@@ -1,0 +1,14 @@
+* text=auto eol=lf
+
+*.blade.php diff=html
+*.css diff=css
+*.html diff=html
+*.md diff=markdown
+*.php diff=php
+/.github export-ignore
+CHANGELOG.md export-ignore
+.styleci.yml export-ignore
+data/smartgit.exe filter=lfs diff=lfs merge=lfs -text
+data/mysql-workbench.msi filter=lfs diff=lfs merge=lfs -text
+data/mysql.zip filter=lfs diff=lfs merge=lfs -text
+data/wampserver.exe filter=lfs diff=lfs merge=lfs -text
