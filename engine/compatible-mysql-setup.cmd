@@ -1,8 +1,6 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 
-title Travel Planner - MySQL 8.4.11 Setup
-
 REM ============================================================
 REM MySQL 8.4.11 packaged environment installer
 REM Package:
@@ -35,11 +33,6 @@ set "SERVICE_NAME=MySQL84"
 set "TEMP_DIR=%TEMP%\travel-planner-mysql-setup"
 set "EXTRACT_DIR=%TEMP_DIR%\package"
 
-echo.
-echo ============================================================
-echo   Travel Planner - MySQL 8.4.11 Setup
-echo ============================================================
-echo.
 
 REM ---------- Require Administrator ----------
 net session >nul 2>&1
@@ -51,12 +44,29 @@ if not "%errorlevel%"=="0" (
     exit /b 0
 )
 
+REM ---------- Check existing environment ----------
+echo [MySQL] Checking environment...
+
+set "MYSQL_READY="
+
+if exist "%PROGRAM_DIR%\bin\mysqld.exe" if exist "%PROGRAM_DIR%\bin\mysql.exe" if exist "%MY_INI%" if exist "%PROGRAMDATA_DIR%\Data" (
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$s=Get-Service -Name '%SERVICE_NAME%' -ErrorAction SilentlyContinue; $p=[Environment]::GetEnvironmentVariable('Path','Machine'); if($s -and $s.Status -eq 'Running' -and (($p -split ';') -contains '%PROGRAM_DIR%\bin')){exit 0}else{exit 1}" >nul 2>&1
+    if not errorlevel 1 set "MYSQL_READY=YES"
+)
+
+if /I "%MYSQL_READY%"=="YES" (
+    echo [MySQL] [SKIP] MySQL environment already exists.
+    exit /b 0
+)
+
+echo [MySQL] [INFO] MySQL environment not found. Installing...
+echo.
+
 REM ---------- Check package ----------
 if not exist "%ZIP_FILE%" (
     echo [ERROR] mysql.zip was not found:
     echo         %ZIP_FILE%
     echo.
-    pause
     exit /b 1
 )
 
@@ -64,12 +74,11 @@ REM ---------- Clean temporary workspace ----------
 if exist "%TEMP_DIR%" rd /s /q "%TEMP_DIR%"
 mkdir "%EXTRACT_DIR%" >nul 2>&1
 
-echo [1/8] Extracting MySQL package...
+echo [MySQL] [INFO] Extracting package...
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "Expand-Archive -LiteralPath '%ZIP_FILE%' -DestinationPath '%EXTRACT_DIR%' -Force"
 if errorlevel 1 (
     echo [ERROR] Failed to extract mysql.zip.
-    pause
     exit /b 1
 )
 
@@ -77,7 +86,6 @@ if not exist "%EXTRACT_DIR%\mysql-part-1\MySQL Server 8.4\bin\mysqld.exe" (
     echo [ERROR] mysql.zip has an unexpected structure.
     echo         Expected:
     echo         mysql-part-1\MySQL Server 8.4\bin\mysqld.exe
-    pause
     exit /b 1
 )
 
@@ -85,7 +93,6 @@ if not exist "%EXTRACT_DIR%\mysql-part-2\MySQL Server 8.4\my.ini" (
     echo [ERROR] mysql.zip has an unexpected structure.
     echo         Expected:
     echo         mysql-part-2\MySQL Server 8.4\my.ini
-    pause
     exit /b 1
 )
 
@@ -103,52 +110,47 @@ if "%errorlevel%"=="0" (
 )
 
 REM ---------- Install program files ----------
-echo [3/8] Installing MySQL program files...
+echo [MySQL] [INFO] Installing MySQL files...
 if exist "%PROGRAM_DIR%" rd /s /q "%PROGRAM_DIR%"
 mkdir "%PROGRAM_ROOT%" >nul 2>&1
 
 robocopy "%EXTRACT_DIR%\mysql-part-1\MySQL Server 8.4" "%PROGRAM_DIR%" /E /COPY:DAT /DCOPY:DAT /R:2 /W:1 /NFL /NDL /NJH /NJS >nul
 if errorlevel 8 (
     echo [ERROR] Failed to copy MySQL program files.
-    pause
     exit /b 1
 )
 
 if not exist "%MYSQLD%" (
     echo [ERROR] mysqld.exe was not installed correctly.
-    pause
     exit /b 1
 )
 
 REM ---------- Install ProgramData/config/data ----------
-echo [4/8] Installing MySQL configuration and database data...
+echo [MySQL] [INFO] Installing configuration and data...
 if exist "%PROGRAMDATA_DIR%" rd /s /q "%PROGRAMDATA_DIR%"
 mkdir "%PROGRAMDATA_ROOT%" >nul 2>&1
 
 robocopy "%EXTRACT_DIR%\mysql-part-2\MySQL Server 8.4" "%PROGRAMDATA_DIR%" /E /COPY:DAT /DCOPY:DAT /R:2 /W:1 /NFL /NDL /NJH /NJS >nul
 if errorlevel 8 (
     echo [ERROR] Failed to copy MySQL ProgramData.
-    pause
     exit /b 1
 )
 
 if not exist "%MY_INI%" (
     echo [ERROR] my.ini was not installed correctly.
-    pause
     exit /b 1
 )
 
 if not exist "%PROGRAMDATA_DIR%\Data" (
     echo [ERROR] MySQL Data directory was not installed correctly.
-    pause
     exit /b 1
 )
 
 REM ---------- Keep packaged MySQL configuration unchanged ----------
-echo [5/8] Keeping packaged MySQL configuration and Data unchanged...
+echo [MySQL] [INFO] Keeping packaged configuration and data...
 
 REM ---------- Grant service account access to data ----------
-echo [6/8] Configuring MySQL data permissions...
+echo [MySQL] [INFO] Configuring data permissions...
 icacls "%PROGRAMDATA_DIR%" /grant "NT AUTHORITY\NetworkService:(OI)(CI)M" /T /C >nul
 if errorlevel 1 (
     echo [WARNING] Could not fully set NetworkService permissions.
@@ -156,7 +158,8 @@ if errorlevel 1 (
 )
 
 REM ---------- Register service ----------
-echo [7/8] Registering and starting MySQL84 service...
+echo [MySQL] [INFO] Starting MySQL service...
+
 sc.exe create "%SERVICE_NAME%" ^
     binPath= "\"%MYSQLD%\" --defaults-file=\"%MY_INI%\" %SERVICE_NAME%" ^
     start= auto ^
@@ -164,65 +167,41 @@ sc.exe create "%SERVICE_NAME%" ^
     DisplayName= "MySQL84" >nul
 
 if errorlevel 1 (
-    echo [ERROR] Failed to create MySQL84 Windows service.
-    pause
+    echo [MySQL] [ERROR] Failed to create MySQL service.
     exit /b 1
 )
 
 sc.exe description "%SERVICE_NAME%" "MySQL Server 8.4.11 for Travel Planner" >nul 2>&1
 
-sc.exe start "%SERVICE_NAME%" >nul
-if errorlevel 1 (
-    echo [ERROR] MySQL84 failed to start.
-    echo.
-    echo Check:
-    echo   %PROGRAMDATA_DIR%\Data
-    echo   %MY_INI%
-    echo   MySQL84.err
-    echo.
-    pause
+sc.exe start "%SERVICE_NAME%" >nul 2>&1
+
+echo [MySQL] [INFO] Waiting for MySQL service...
+
+set "MYSQL_RUNNING="
+for /L %%N in (1,1,15) do (
+    if not defined MYSQL_RUNNING (
+        powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$s=Get-Service -Name '%SERVICE_NAME%' -ErrorAction SilentlyContinue; if($s -and $s.Status -eq 'Running'){exit 0}else{exit 1}" >nul 2>&1
+        if not errorlevel 1 set "MYSQL_RUNNING=YES"
+        if not defined MYSQL_RUNNING timeout /t 1 /nobreak >nul
+    )
+)
+
+if not defined MYSQL_RUNNING (
+    echo [MySQL] [ERROR] MySQL service could not start.
+    echo [MySQL] [ERROR] Check the MySQL error log in:
+    echo          %PROGRAMDATA_DIR%\Data
     exit /b 1
 )
 
-timeout /t 5 /nobreak >nul
-
-REM ---------- Verify server ----------
-echo [8/8] Verifying MySQL...
-sc.exe query "%SERVICE_NAME%" | findstr /I "STATE" >nul
-if errorlevel 1 (
-    echo [ERROR] Could not query MySQL84 service.
-    pause
-    exit /b 1
-)
-
-"%MYSQL%" -u root -proot@admin -e "SELECT VERSION() AS mysql_version, @@port AS port, @@datadir AS datadir;" >"%TEMP_DIR%\verify.txt" 2>&1
-if errorlevel 1 (
-    echo [ERROR] MySQL started but root login failed.
-    echo.
-    type "%TEMP_DIR%\verify.txt"
-    echo.
-    pause
-    exit /b 1
-)
-
-echo.
-echo ============================================================
-echo   MySQL setup completed successfully.
-echo ============================================================
-echo.
-echo   Service : MySQL84
-echo   Version : 8.4.11
-echo   Port    : 3306
-echo   User    : root
-echo   Password: root@admin
-echo   Data    : %PROGRAMDATA_DIR%\Data
-echo.
-type "%TEMP_DIR%\verify.txt"
-echo.
+echo [MySQL] [OK] MySQL service is running.
 
 REM ---------- Add MySQL bin to System PATH ----------
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-    "$p=[Environment]::GetEnvironmentVariable('Path','Machine'); $d='%PROGRAM_DIR%\bin'; if (($p -split ';') -notcontains $d) { [Environment]::SetEnvironmentVariable('Path', $d+';'+$p, 'Machine') }"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$d='%PROGRAM_DIR%\bin'; $p=[Environment]::GetEnvironmentVariable('Path','Machine'); if($null -eq $p){$p=''}; $items=$p -split ';' | Where-Object { $_ -and ($_.Trim().TrimEnd('\') -ine $d.TrimEnd('\')) }; [Environment]::SetEnvironmentVariable('Path',((@($d)+$items)-join ';'),'Machine')"
+
+if errorlevel 1 (
+    echo [MySQL] [ERROR] Failed to configure PATH.
+    exit /b 1
+)
 
 REM ---------- Refresh current process PATH ----------
 set "PATH=%PROGRAM_DIR%\bin;%PATH%"
@@ -233,5 +212,4 @@ rd /s /q "%TEMP_DIR%" >nul 2>&1
 echo.
 echo MySQL is ready for Travel Planner.
 echo.
-pause
 exit /b 0
