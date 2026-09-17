@@ -77,7 +77,7 @@ REM ============================================
 REM Controllers
 REM ============================================
 
-echo [1/6] Creating Controllers shortcut...
+echo [1/5] Creating Controllers shortcut...
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
 "$ws = New-Object -ComObject WScript.Shell; ^
@@ -94,7 +94,7 @@ REM ============================================
 REM Models
 REM ============================================
 
-echo [2/6] Creating Models shortcut...
+echo [2/5] Creating Models shortcut...
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
 "$ws = New-Object -ComObject WScript.Shell; ^
@@ -108,27 +108,10 @@ echo       Models.lnk created.
 echo.
 
 REM ============================================
-REM Services
-REM ============================================
-
-echo [3/6] Creating Services shortcut...
-
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-"$ws = New-Object -ComObject WScript.Shell; ^
-$sc = $ws.CreateShortcut('%MVC_DIR%\Services.lnk'); ^
-$sc.TargetPath = '%PROJECT_DIR%\app\Services'; ^
-$sc.WorkingDirectory = '%PROJECT_DIR%'; ^
-$sc.Description = 'Laravel Services'; ^
-$sc.Save()"
-
-echo       Services.lnk created.
-echo.
-
-REM ============================================
 REM Views
 REM ============================================
 
-echo [4/6] Creating Views shortcut...
+echo [3/5] Creating Views shortcut...
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
 "$ws = New-Object -ComObject WScript.Shell; ^
@@ -145,7 +128,7 @@ REM ============================================
 REM Routes
 REM ============================================
 
-echo [5/6] Creating Routes shortcut...
+echo [4/5] Creating Routes shortcut...
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
 "$ws = New-Object -ComObject WScript.Shell; ^
@@ -162,7 +145,7 @@ REM ============================================
 REM Database
 REM ============================================
 
-echo [6/6] Creating Database shortcut...
+echo [5/5] Creating Database shortcut...
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
 "$ws = New-Object -ComObject WScript.Shell; ^
@@ -188,7 +171,6 @@ echo Created:
 echo.
 echo   mvc-system\MVC\Controllers.lnk
 echo   mvc-system\MVC\Models.lnk
-echo   mvc-system\MVC\Services.lnk
 echo   mvc-system\MVC\Views.lnk
 echo   mvc-system\Routes.lnk
 echo   mvc-system\Database.lnk

@@ -1,82 +1,125 @@
 @echo off
-setlocal EnableExtensions EnableDelayedExpansion
-title Travel Planner - Compatible Program Setup
+setlocal EnableExtensions
 
-rem ============================================================
-rem Travel Planner - Compatible Program Setup
-rem
-rem This master setup installs ONLY:
-rem   1. WampServer 3.4.0
-rem   2. MySQL Workbench 26.7.0
-rem   3. SmartGit 20.2.6
-rem
-rem Each component has its own independent setup script.
-rem This file only runs them sequentially.
-rem
-rem RULE:
-rem   - Exact version already installed -> SKIP
-rem   - Missing or wrong version -> individual setup handles it
-rem   - Next program starts ONLY after previous setup returns PASS
-rem ============================================================
+echo.
+echo ============================================
+echo   Travel Planner - Program Setup
+echo ============================================
+echo.
 
+REM ============================================
+REM Directory configuration
+REM ============================================
+
+REM Script is inside: travel-planner\engine\
 set "ENGINE_DIR=%~dp0"
 
-echo.
-echo ============================================================
-echo          TRAVEL PLANNER - COMPATIBLE PROGRAM SETUP
-echo ============================================================
-echo.
-echo Components:
-echo   [1] WampServer       3.4.0
-echo   [2] MySQL Workbench  26.7.0
-echo   [3] SmartGit         20.2.6
-echo.
-echo Each program is installed and verified before the next
-echo program is started.
+echo Engine: %ENGINE_DIR%
 echo.
 
-echo ============================================================
-echo [1/3] WampServer 3.4.0
-echo ============================================================
+REM ============================================
+REM WampServer
+REM ============================================
+
+echo [1/3] WampServer
+echo.
+
+if not exist "%ENGINE_DIR%compatible-wampserver-setup.cmd" (
+    echo [WampServer] [ERROR] Setup file not found.
+    echo [WampServer] %ENGINE_DIR%compatible-wampserver-setup.cmd
+    echo.
+    echo [Program] Setup stopped.
+    exit /b 1
+)
+
+echo [WampServer] [INFO] Starting setup...
+
 call "%ENGINE_DIR%compatible-wampserver-setup.cmd"
-if errorlevel 1 goto :FAILED
+
+if errorlevel 1 (
+    echo.
+    echo [WampServer] [ERROR] Setup failed.
+    echo.
+    echo [Program] Setup stopped.
+    exit /b 1
+)
 
 echo.
-echo ============================================================
-echo [2/3] MySQL Workbench 26.7.0
-echo ============================================================
-call "%ENGINE_DIR%compatible-workbench-setup.cmd"
-if errorlevel 1 goto :FAILED
-
+echo [WampServer] [OK] Setup completed.
 echo.
-echo ============================================================
-echo [3/3] SmartGit 20.2.6
-echo ============================================================
+
+
+REM ============================================
+REM SmartGit
+REM ============================================
+
+echo [2/3] SmartGit
+echo.
+
+if not exist "%ENGINE_DIR%compatible-smartgit-setup.cmd" (
+    echo [SmartGit] [ERROR] Setup file not found.
+    echo [SmartGit] %ENGINE_DIR%compatible-smartgit-setup.cmd
+    echo.
+    echo [Program] Setup stopped.
+    exit /b 1
+)
+
+echo [SmartGit] [INFO] Starting setup...
+
 call "%ENGINE_DIR%compatible-smartgit-setup.cmd"
-if errorlevel 1 goto :FAILED
+
+if errorlevel 1 (
+    echo.
+    echo [SmartGit] [ERROR] Setup failed.
+    echo.
+    echo [Program] Setup stopped.
+    exit /b 1
+)
 
 echo.
-echo ============================================================
-echo              ALL PROGRAMS ARE READY
-echo ============================================================
+echo [SmartGit] [OK] Setup completed.
 echo.
-echo WampServer       : 3.4.0
-echo MySQL Workbench  : 26.7.0
-echo SmartGit        : 20.2.6
+
+
+REM ============================================
+REM MySQL Workbench
+REM ============================================
+
+echo [3/3] MySQL Workbench
 echo.
-echo Compatible program setup completed successfully.
+
+if not exist "%ENGINE_DIR%compatible-workbench-setup.cmd" (
+    echo [MySQL Workbench] [ERROR] Setup file not found.
+    echo [MySQL Workbench] %ENGINE_DIR%compatible-workbench-setup.cmd
+    echo.
+    echo [Program] Setup stopped.
+    exit /b 1
+)
+
+echo [MySQL Workbench] [INFO] Starting setup...
+
+call "%ENGINE_DIR%compatible-workbench-setup.cmd"
+
+if errorlevel 1 (
+    echo.
+    echo [MySQL Workbench] [ERROR] Setup failed.
+    echo.
+    echo [Program] Setup stopped.
+    exit /b 1
+)
+
 echo.
+echo [MySQL Workbench] [OK] Setup completed.
+echo.
+
+
+REM ============================================
+REM Finished
+REM ============================================
+
+echo ============================================
+echo   Program setup completed successfully
+echo ============================================
+echo.
+
 exit /b 0
-
-:FAILED
-echo.
-echo ============================================================
-echo              COMPATIBLE PROGRAM SETUP FAILED
-echo ============================================================
-echo.
-echo Setup stopped because the current program did not
-echo complete or could not be verified.
-echo.
-echo No later program was started.
-echo.
-exit /b 1
