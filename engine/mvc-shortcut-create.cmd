@@ -1,179 +1,110 @@
 @echo off
-setlocal
+setlocal EnableExtensions
 
-echo ============================================
-echo   Travel Planner - MVC System Shortcuts
-echo ============================================
-echo.
-
-REM ============================================
-REM Directory configuration
-REM ============================================
-
-REM Script is inside: travel-planner\engine\
 set "ENGINE_DIR=%~dp0"
+for %%I in ("%ENGINE_DIR%..") do set "PROJECT_DIR=%%~fI"
 
-REM Laravel project root: travel-planner\
-set "PROJECT_DIR=%ENGINE_DIR%.."
+set "SOURCE_CONTROLLERS=%PROJECT_DIR%\app\Http\Controllers"
+set "SOURCE_MODELS=%PROJECT_DIR%\app\Models"
+set "SOURCE_VIEWS=%PROJECT_DIR%\resources\views"
+set "SOURCE_DATABASES=%PROJECT_DIR%\database"
+set "SOURCE_ROUTE=%PROJECT_DIR%\routes"
 
-REM Shortcut folder: travel-planner\mvc-system\
-set "SHORTCUT_DIR=%PROJECT_DIR%\mvc-system"
+set "OUTPUT=%PROJECT_DIR%\mvc-system"
 
-REM MVC shortcut folder
-set "MVC_DIR=%SHORTCUT_DIR%\MVC"
+echo Checking Laravel source...
 
-REM ============================================
-REM Normalize paths
-REM ============================================
-
-for %%I in ("%PROJECT_DIR%") do set "PROJECT_DIR=%%~fI"
-
-echo Project:
-echo %PROJECT_DIR%
-echo.
-
-REM ============================================
-REM Check Laravel project
-REM ============================================
-
-if not exist "%PROJECT_DIR%\artisan" (
-    echo [ERROR] Laravel project not found.
-    echo.
-    echo Expected:
-    echo %PROJECT_DIR%\artisan
-    echo.
-    pause
+if not exist "%SOURCE_CONTROLLERS%" (
+    echo Failed Controllers
     exit /b 1
 )
 
-echo [OK] Laravel project found.
-echo.
-
-REM ============================================
-REM Create Services folder if needed
-REM ============================================
-
-if not exist "%PROJECT_DIR%\app\Services" (
-    echo [INFO] Creating app\Services...
-    mkdir "%PROJECT_DIR%\app\Services"
+if not exist "%SOURCE_MODELS%" (
+    echo Failed Models
+    exit /b 1
 )
 
-REM ============================================
-REM Create shortcut directories
-REM ============================================
-
-if not exist "%SHORTCUT_DIR%" (
-    mkdir "%SHORTCUT_DIR%"
+if not exist "%SOURCE_VIEWS%" (
+    echo Failed Views
+    exit /b 1
 )
 
-if not exist "%MVC_DIR%" (
-    mkdir "%MVC_DIR%"
+if not exist "%SOURCE_DATABASES%" (
+    echo Failed Databases
+    exit /b 1
 )
 
-echo [OK] Shortcut directories ready.
-echo.
+if not exist "%SOURCE_ROUTE%" (
+    echo Failed Route
+    exit /b 1
+)
 
-REM ============================================
+echo Creating MVC system...
+
+if not exist "%OUTPUT%" mkdir "%OUTPUT%"
+if not exist "%OUTPUT%\MVC" mkdir "%OUTPUT%\MVC"
+
+
+REM Remove old junctions
+if exist "%OUTPUT%\MVC\Controllers" rmdir "%OUTPUT%\MVC\Controllers" /S /Q >nul 2>&1
+if exist "%OUTPUT%\MVC\Models" rmdir "%OUTPUT%\MVC\Models" /S /Q >nul 2>&1
+if exist "%OUTPUT%\MVC\Views" rmdir "%OUTPUT%\MVC\Views" /S /Q >nul 2>&1
+if exist "%OUTPUT%\Databases" rmdir "%OUTPUT%\Databases" /S /Q >nul 2>&1
+if exist "%OUTPUT%\Route" rmdir "%OUTPUT%\Route" /S /Q >nul 2>&1
+
+
 REM Controllers
-REM ============================================
+mklink /J "%OUTPUT%\MVC\Controllers" "%SOURCE_CONTROLLERS%" >nul
 
-echo [1/5] Creating Controllers shortcut...
+if errorlevel 1 (
+    echo Failed Controllers
+    exit /b 1
+)
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-"$ws = New-Object -ComObject WScript.Shell; ^
-$sc = $ws.CreateShortcut('%MVC_DIR%\Controllers.lnk'); ^
-$sc.TargetPath = '%PROJECT_DIR%\app\Http\Controllers'; ^
-$sc.WorkingDirectory = '%PROJECT_DIR%'; ^
-$sc.Description = 'Laravel Controllers'; ^
-$sc.Save()"
+echo Created Controllers
 
-echo       Controllers.lnk created.
-echo.
 
-REM ============================================
 REM Models
-REM ============================================
+mklink /J "%OUTPUT%\MVC\Models" "%SOURCE_MODELS%" >nul
 
-echo [2/5] Creating Models shortcut...
+if errorlevel 1 (
+    echo Failed Models
+    exit /b 1
+)
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-"$ws = New-Object -ComObject WScript.Shell; ^
-$sc = $ws.CreateShortcut('%MVC_DIR%\Models.lnk'); ^
-$sc.TargetPath = '%PROJECT_DIR%\app\Models'; ^
-$sc.WorkingDirectory = '%PROJECT_DIR%'; ^
-$sc.Description = 'Laravel Models'; ^
-$sc.Save()"
+echo Created Models
 
-echo       Models.lnk created.
-echo.
 
-REM ============================================
 REM Views
-REM ============================================
+mklink /J "%OUTPUT%\MVC\Views" "%SOURCE_VIEWS%" >nul
 
-echo [3/5] Creating Views shortcut...
+if errorlevel 1 (
+    echo Failed Views
+    exit /b 1
+)
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-"$ws = New-Object -ComObject WScript.Shell; ^
-$sc = $ws.CreateShortcut('%MVC_DIR%\Views.lnk'); ^
-$sc.TargetPath = '%PROJECT_DIR%\resources\views'; ^
-$sc.WorkingDirectory = '%PROJECT_DIR%'; ^
-$sc.Description = 'Laravel Views'; ^
-$sc.Save()"
+echo Created Views
 
-echo       Views.lnk created.
-echo.
 
-REM ============================================
-REM Routes
-REM ============================================
+REM Databases
+mklink /J "%OUTPUT%\Databases" "%SOURCE_DATABASES%" >nul
 
-echo [4/5] Creating Routes shortcut...
+if errorlevel 1 (
+    echo Failed Databases
+    exit /b 1
+)
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-"$ws = New-Object -ComObject WScript.Shell; ^
-$sc = $ws.CreateShortcut('%SHORTCUT_DIR%\Routes.lnk'); ^
-$sc.TargetPath = '%PROJECT_DIR%\routes'; ^
-$sc.WorkingDirectory = '%PROJECT_DIR%'; ^
-$sc.Description = 'Laravel Routes'; ^
-$sc.Save()"
+echo Created Databases
 
-echo       Routes.lnk created.
-echo.
 
-REM ============================================
-REM Database
-REM ============================================
+REM Route
+mklink /J "%OUTPUT%\Route" "%SOURCE_ROUTE%" >nul
 
-echo [5/5] Creating Database shortcut...
+if errorlevel 1 (
+    echo Failed Route
+    exit /b 1
+)
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-"$ws = New-Object -ComObject WScript.Shell; ^
-$sc = $ws.CreateShortcut('%SHORTCUT_DIR%\Database.lnk'); ^
-$sc.TargetPath = '%PROJECT_DIR%\database'; ^
-$sc.WorkingDirectory = '%PROJECT_DIR%'; ^
-$sc.Description = 'Laravel Database'; ^
-$sc.Save()"
+echo Created Route
 
-echo       Database.lnk created.
-echo.
-
-REM ============================================
-REM Finished
-REM ============================================
-
-echo ============================================
-echo   Shortcut setup completed successfully
-echo ============================================
-echo.
-
-echo Created:
-echo.
-echo   mvc-system\MVC\Controllers.lnk
-echo   mvc-system\MVC\Models.lnk
-echo   mvc-system\MVC\Views.lnk
-echo   mvc-system\Routes.lnk
-echo   mvc-system\Database.lnk
-echo.
-
-pause
+exit /b 0

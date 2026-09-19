@@ -1,48 +1,37 @@
 @echo off
-setlocal
+setlocal EnableExtensions
 
-title Travel Planner - Composer Client
-
-echo.
-echo ==========================================
-echo   Extract Composer Package
-echo ==========================================
-echo.
-
-REM Project root = parent folder of engine
 set "ENGINE_DIR=%~dp0"
 for %%I in ("%ENGINE_DIR%..") do set "PROJECT_DIR=%%~fI"
 
-REM Composer package
 set "ZIP_FILE=%PROJECT_DIR%\data\compatible-composer.zip"
 
-echo Project: %PROJECT_DIR%
-echo Package: %ZIP_FILE%
-echo.
+echo Checking Composer package...
 
-REM Check ZIP
 if not exist "%ZIP_FILE%" (
-    echo ERROR: compatible-composer.zip not found.
-    echo.
+    echo Failed Composer package
     exit /b 1
 )
 
-echo Extracting compatible-composer.zip...
-echo.
+echo Installing Composer package...
 
-tar -xf "%ZIP_FILE%" -C "%PROJECT_DIR%"
+tar -xf "%ZIP_FILE%" -C "%PROJECT_DIR%" >nul 2>&1
 
 if errorlevel 1 (
-    echo.
-    echo ERROR: Failed to extract compatible-composer.zip.
-    echo.
+    echo Failed Composer package
     exit /b 1
 )
 
-echo.
-echo ==========================================
-echo   Extraction completed
-echo ==========================================
-echo.
+if not exist "%PROJECT_DIR%\vendor\autoload.php" (
+    echo Failed Composer package
+    exit /b 1
+)
+
+if not exist "%PROJECT_DIR%\.env" (
+    echo Failed Composer package
+    exit /b 1
+)
+
+echo Installed Composer package
 
 exit /b 0
