@@ -15,7 +15,7 @@ if not exist "%ZIP_FILE%" (
 
 echo Installing Composer package...
 
-tar -xf "%ZIP_FILE%" -C "%PROJECT_DIR%" >nul 2>&1
+powershell -NoProfile -Command "Expand-Archive -Path \"%ZIP_FILE%\" -DestinationPath \"%PROJECT_DIR%\" -Force"
 
 if errorlevel 1 (
     echo Failed Composer package

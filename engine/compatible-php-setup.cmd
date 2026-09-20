@@ -21,7 +21,7 @@ if not exist "%ZIP_FILE%" (
     exit /b 1
 )
 
-tar -xf "%ZIP_FILE%" -C "C:\" >nul 2>&1
+powershell -NoProfile -Command "Expand-Archive -Path \"%ZIP_FILE%\" -DestinationPath \"%PHP_DIR%\" -Force"
 
 if not exist "%PHP_EXE%" (
     echo Failed PHP
