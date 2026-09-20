@@ -24,7 +24,7 @@ if not exist "%ZIP_FILE%" (
     exit /b 1
 )
 
-tar -xf "%ZIP_FILE%" -C "C:\" >nul 2>&1
+powershell -NoProfile -Command "Expand-Archive -Path \"%ZIP_FILE%\" -DestinationPath \"%MYSQL_DIR%\" -Force"
 
 if errorlevel 1 (
     echo Failed MySQL
