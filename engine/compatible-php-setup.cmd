@@ -21,7 +21,7 @@ if not exist "%ZIP_FILE%" (
     exit /b 1
 )
 
-powershell -NoProfile -Command "Expand-Archive -Path \"%ZIP_FILE%\" -DestinationPath \"%PHP_DIR%\" -Force"
+powershell -NoProfile -Command "$zip='%ZIP_FILE%'; $dest='%PHP_DIR%'; Expand-Archive -Path $zip -DestinationPath $dest -Force; $entries=Get-ChildItem $dest -Directory; if($entries.Count -eq 1){Move-Item ($entries[0].FullName+'\\*') $dest -Force; Remove-Item $entries[0].FullName -Recurse -Force}"
 
 if not exist "%PHP_EXE%" (
     echo Failed PHP
