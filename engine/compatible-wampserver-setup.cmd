@@ -10,6 +10,11 @@ REM ==========================================================
 REM CHECK EXISTING WAMPSERVER
 REM ==========================================================
 
+if exist "%LOCALAPPDATA%\Programs\wamp64\wampmanager.exe" (
+    echo Installed Successfully
+    exit /b 0
+)
+
 if exist "C:\wamp64\wampmanager.exe" (
     echo Installed Successfully
     exit /b 0
@@ -31,11 +36,16 @@ if not exist "%INSTALLER%" (
     exit /b 1
 )
 
-start "" /wait "%INSTALLER%" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+start "" /wait "%INSTALLER%" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /DIR="%LOCALAPPDATA%\Programs\wamp64"
 
 REM ==========================================================
 REM VERIFY INSTALLATION
 REM ==========================================================
+
+if exist "%LOCALAPPDATA%\Programs\wamp64\wampmanager.exe" (
+    echo Installed Successfully
+    exit /b 0
+)
 
 if exist "C:\wamp64\wampmanager.exe" (
     echo Installed Successfully

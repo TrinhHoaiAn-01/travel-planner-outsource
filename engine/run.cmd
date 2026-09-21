@@ -28,25 +28,25 @@ goto MENU
 :INSTALL_ALL
 
 call "%ENGINE_DIR%compatible-php-setup.cmd"
-if errorlevel 1 goto RETURN_MENU
+if errorlevel 1 echo [!] Lỗi cài đặt PHP. Bỏ qua...
 
 call "%ENGINE_DIR%compatible-mysql-setup.cmd"
-if errorlevel 1 goto RETURN_MENU
+if errorlevel 1 echo [!] Lỗi cài đặt MySQL. Bỏ qua...
 
 call "%ENGINE_DIR%compatible-composer-setup.cmd"
-if errorlevel 1 goto RETURN_MENU
+if errorlevel 1 echo [!] Lỗi cài đặt Composer. Bỏ qua...
 
 call "%ENGINE_DIR%compatible-composer-client.cmd"
-if errorlevel 1 goto RETURN_MENU
+if errorlevel 1 echo [!] Lỗi cài đặt Composer Client. Bỏ qua...
 
 call "%ENGINE_DIR%compatible-wampserver-setup.cmd"
-if errorlevel 1 goto RETURN_MENU
+if errorlevel 1 echo [!] Lỗi cài đặt WampServer. Bỏ qua...
 
 call "%ENGINE_DIR%compatible-workbench-setup.cmd"
-if errorlevel 1 goto RETURN_MENU
+if errorlevel 1 echo [!] Lỗi cài đặt MySQL Workbench. Bỏ qua...
 
 call "%ENGINE_DIR%compatible-smartgit-setup.cmd"
-if errorlevel 1 goto RETURN_MENU
+if errorlevel 1 echo [!] Lỗi cài đặt SmartGit. Bỏ qua...
 
 goto RETURN_MENU
 
@@ -54,16 +54,16 @@ goto RETURN_MENU
 :INSTALL_ENVIRONMENT
 
 call "%ENGINE_DIR%compatible-php-setup.cmd"
-if errorlevel 1 goto RETURN_MENU
+if errorlevel 1 echo [!] Lỗi cài đặt PHP. Bỏ qua...
 
 call "%ENGINE_DIR%compatible-mysql-setup.cmd"
-if errorlevel 1 goto RETURN_MENU
+if errorlevel 1 echo [!] Lỗi cài đặt MySQL. Bỏ qua...
 
 call "%ENGINE_DIR%compatible-composer-setup.cmd"
-if errorlevel 1 goto RETURN_MENU
+if errorlevel 1 echo [!] Lỗi cài đặt Composer. Bỏ qua...
 
 call "%ENGINE_DIR%compatible-composer-client.cmd"
-if errorlevel 1 goto RETURN_MENU
+if errorlevel 1 echo [!] Lỗi cài đặt Composer Client. Bỏ qua...
 
 goto RETURN_MENU
 
@@ -71,13 +71,13 @@ goto RETURN_MENU
 :INSTALL_PROGRAM
 
 call "%ENGINE_DIR%compatible-wampserver-setup.cmd"
-if errorlevel 1 goto RETURN_MENU
+if errorlevel 1 echo [!] Lỗi cài đặt WampServer. Bỏ qua...
 
 call "%ENGINE_DIR%compatible-workbench-setup.cmd"
-if errorlevel 1 goto RETURN_MENU
+if errorlevel 1 echo [!] Lỗi cài đặt MySQL Workbench. Bỏ qua...
 
 call "%ENGINE_DIR%compatible-smartgit-setup.cmd"
-if errorlevel 1 goto RETURN_MENU
+if errorlevel 1 echo [!] Lỗi cài đặt SmartGit. Bỏ qua...
 
 goto RETURN_MENU
 

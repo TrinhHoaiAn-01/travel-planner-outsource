@@ -27,6 +27,11 @@ REM ==========================================================
 REM CHECK COMMON INSTALL PATHS
 REM ==========================================================
 
+if exist "%LOCALAPPDATA%\Programs\MySQL\MySQL Workbench\MySQLWorkbench.exe" (
+    echo Installed Successfully
+    exit /b 0
+)
+
 if exist "C:\Program Files\MySQL\MySQL Workbench 8.0 CE\MySQLWorkbench.exe" (
     echo Installed Successfully
     exit /b 0
@@ -53,7 +58,7 @@ if not exist "%INSTALLER%" (
     exit /b 1
 )
 
-msiexec /i "%INSTALLER%" /qn /norestart
+msiexec /i "%INSTALLER%" /qn /norestart INSTALLDIR="%LOCALAPPDATA%\Programs\MySQL\MySQL Workbench"
 
 REM ==========================================================
 REM VERIFY AFTER INSTALL
@@ -66,6 +71,11 @@ for /f "delims=" %%A in ('powershell -NoProfile -ExecutionPolicy Bypass -Command
 )
 
 if defined WORKBENCH_FOUND (
+    echo Installed Successfully
+    exit /b 0
+)
+
+if exist "%LOCALAPPDATA%\Programs\MySQL\MySQL Workbench\MySQLWorkbench.exe" (
     echo Installed Successfully
     exit /b 0
 )

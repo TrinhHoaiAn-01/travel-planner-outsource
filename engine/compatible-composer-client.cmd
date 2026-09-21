@@ -15,7 +15,7 @@ if not exist "%ZIP_FILE%" (
 
 echo Installing Composer package...
 
-powershell -NoProfile -Command "$zip='%ZIP_FILE%'; $dest='%PROJECT_DIR%'; Expand-Archive -Path $zip -DestinationPath $dest -Force; $entries=Get-ChildItem $dest -Directory; if($entries.Count -eq 1){Move-Item ($entries[0].FullName+'\\*') $dest -Force; Remove-Item $entries[0].FullName -Recurse -Force}"
+powershell -NoProfile -Command "$zip='%ZIP_FILE%'; $dest='%PROJECT_DIR%'; Expand-Archive -Path $zip -DestinationPath $dest -Force"
 
 if errorlevel 1 (
     echo Failed Composer package
