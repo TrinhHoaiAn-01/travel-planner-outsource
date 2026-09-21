@@ -18,7 +18,12 @@ if exist "%COMPOSER_EXE%" goto SETUP_PATH
 echo Installing Composer...
 
 if not exist "%ZIP_FILE%" (
-    echo Failed Composer
+    echo Skipped Composer setup because %ZIP_FILE% is missing.
+    exit /b 1
+)
+
+for %%A in ("%ZIP_FILE%") do if %%~zA LSS 1024 (
+    echo Skipped Composer setup because %ZIP_FILE% is corrupted.
     exit /b 1
 )
 

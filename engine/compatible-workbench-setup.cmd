@@ -54,7 +54,12 @@ REM ==========================================================
 echo Installing MySQL Workbench...
 
 if not exist "%INSTALLER%" (
-    echo Installation Failed
+    echo Skipped MySQL Workbench installation because %INSTALLER% is missing.
+    exit /b 1
+)
+
+for %%A in ("%INSTALLER%") do if %%~zA LSS 1024 (
+    echo Skipped MySQL Workbench installation because %INSTALLER% is corrupted.
     exit /b 1
 )
 

@@ -32,7 +32,12 @@ REM ==========================================================
 echo Installing WampServer...
 
 if not exist "%INSTALLER%" (
-    echo Installation Failed
+    echo Skipped WampServer installation because %INSTALLER% is missing.
+    exit /b 1
+)
+
+for %%A in ("%INSTALLER%") do if %%~zA LSS 1024 (
+    echo Skipped WampServer installation because %INSTALLER% is corrupted.
     exit /b 1
 )
 
