@@ -1,122 +1,48 @@
 @echo off
-setlocal EnableExtensions EnableDelayedExpansion
+setlocal EnableExtensions
 
-echo.
-echo [PHP] Checking environment...
-
-REM ============================================================
-REM PATHS
-REM ============================================================
-
-set "ENGINE_DIR=%~dp0"
-set "PROJECT_DIR=%ENGINE_DIR%.."
-for %%I in ("%PROJECT_DIR%") do set "PROJECT_DIR=%%~fI"
-
+set "TARGET_VERSION=8.3.33"
 set "PHP_DIR=C:\php83"
 set "PHP_EXE=%PHP_DIR%\php.exe"
 
-set "PHP_ZIP=%PROJECT_DIR%\data\php.zip"
-set "RUNTIME_EXE=%PROJECT_DIR%\data\vs-runtime.exe"
+set "ENGINE_DIR=%~dp0"
+for %%I in ("%ENGINE_DIR%..") do set "PROJECT_DIR=%%~fI"
 
-set "PHP_URL=https://windows.php.net/downloads/releases/archives/php-8.3.33-nts-Win32-vs16-x64.zip"
-set "PHP_DOWNLOAD=%TEMP%\travel-planner-php.zip"
+set "ZIP_FILE=%PROJECT_DIR%\data\php.zip"
 
-REM ============================================================
-REM ADMINISTRATOR
-REM ============================================================
+echo Checking PHP...
 
-net session >nul 2>&1
-if errorlevel 1 (
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
-    exit /b 0
-)
+if exist "%PHP_EXE%" goto SETUP_PATH
 
-REM ============================================================
-REM VISUAL C++ RUNTIME
-REM ============================================================
+echo Installing PHP...
 
-echo [PHP] Checking Visual C++ Runtime...
-
-set "RUNTIME_INSTALLED="
-for /f "delims=" %%R in ('powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$v=Get-ItemPropertyValue -Path 'HKLM:\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64' -Name Installed -ErrorAction SilentlyContinue; if($v -eq 1){'YES'}else{'NO'}"') do set "RUNTIME_INSTALLED=%%R"
-
-if /I "!RUNTIME_INSTALLED!"=="YES" (
-    echo [PHP] [OK] Runtime ready.
-) else (
-    echo [PHP] [INFO] Runtime not found. Installing...
-
-    if not exist "%RUNTIME_EXE%" (
-        echo [PHP] [ERROR] vs-runtime.exe not found.
-        exit /b 1
-    )
-
-    start /wait "" "%RUNTIME_EXE%" /install /quiet /norestart
-
-    set "RUNTIME_INSTALLED="
-    for /f "delims=" %%R in ('powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$v=Get-ItemPropertyValue -Path 'HKLM:\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64' -Name Installed -ErrorAction SilentlyContinue; if($v -eq 1){'YES'}else{'NO'}"') do set "RUNTIME_INSTALLED=%%R"
-
-    if /I not "!RUNTIME_INSTALLED!"=="YES" (
-        echo [PHP] [ERROR] Runtime installation failed.
-        exit /b 1
-    )
-
-    echo [PHP] [OK] Runtime ready.
-)
-
-REM ============================================================
-REM PHP
-REM ============================================================
-
-echo [PHP] Checking PHP environment...
-
-if exist "%PHP_EXE%" (
-    echo [PHP] [OK] PHP environment ready.
-    set "PATH=%PHP_DIR%;%PATH%"
-    exit /b 0
-)
-
-echo [PHP] [INFO] PHP not found. Installing...
-
-if exist "%PHP_ZIP%" (
-    set "PHP_SOURCE=%PHP_ZIP%"
-) else (
-    echo [PHP] [INFO] php.zip not found. Downloading PHP...
-
-    del "%PHP_DOWNLOAD%" >nul 2>&1
-
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "try { Invoke-WebRequest -Uri '%PHP_URL%' -OutFile '%PHP_DOWNLOAD%' -UseBasicParsing -ErrorAction Stop; exit 0 } catch { exit 1 }"
-
-    if errorlevel 1 (
-        echo [PHP] [ERROR] PHP download failed.
-        exit /b 1
-    )
-
-    set "PHP_SOURCE=%PHP_DOWNLOAD%"
-)
-
-if exist "%PHP_DIR%" rmdir /s /q "%PHP_DIR%" >nul 2>&1
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "try { Expand-Archive -LiteralPath '%PHP_SOURCE%' -DestinationPath 'C:\' -Force -ErrorAction Stop; exit 0 } catch { exit 1 }"
-
-if errorlevel 1 (
-    echo [PHP] [ERROR] PHP installation failed.
+if not exist "%ZIP_FILE%" (
+    echo Failed PHP
     exit /b 1
 )
+
+powershell -NoProfile -Command "$zip='%ZIP_FILE%'; $dest='%PHP_DIR%'; Expand-Archive -Path $zip -DestinationPath $dest -Force; $entries=Get-ChildItem $dest -Directory; if($entries.Count -eq 1){Move-Item ($entries[0].FullName+'\\*') $dest -Force; Remove-Item $entries[0].FullName -Recurse -Force}"
 
 if not exist "%PHP_EXE%" (
-    echo [PHP] [ERROR] PHP installation failed.
+    echo Failed PHP
     exit /b 1
 )
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$php='C:\php83'; $p=[Environment]::GetEnvironmentVariable('Path','Machine'); if($null -eq $p){$p=''}; $items=$p -split ';' | Where-Object { $_ -and ($_.Trim().TrimEnd('\') -ine $php.TrimEnd('\')) }; [Environment]::SetEnvironmentVariable('Path',((@($php)+$items)-join ';'),'Machine')"
+goto SETUP_PATH
+
+
+:SETUP_PATH
+
+echo Setting PHP environment...
+
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$phpDir='C:\php83'; $path=[Environment]::GetEnvironmentVariable('Path','User'); if($null -eq $path){$path=''}; $items=$path -split ';'; $found=$false; foreach($item in $items){if($item.Trim().TrimEnd('\') -ieq $phpDir.TrimEnd('\')){$found=$true}}; if(-not $found){if($path.Trim() -eq ''){$newPath=$phpDir}else{$newPath=$path+';'+$phpDir}; [Environment]::SetEnvironmentVariable('Path',$newPath,'User')}"
 
 if errorlevel 1 (
-    echo [PHP] [ERROR] Failed to configure PATH.
+    echo Failed PHP
     exit /b 1
 )
 
-set "PATH=%PHP_DIR%;%PATH%"
-del "%PHP_DOWNLOAD%" >nul 2>&1
+echo Installed PHP %TARGET_VERSION%
+echo Setup Environment PHP Successfully
 
-echo [PHP] [OK] PHP environment ready.
 exit /b 0

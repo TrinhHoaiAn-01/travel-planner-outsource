@@ -1,109 +1,54 @@
 @echo off
-setlocal EnableExtensions EnableDelayedExpansion
+setlocal EnableExtensions
 
-echo.
-echo [Composer] Checking environment...
-
-REM ============================================================
-REM PATHS
-REM ============================================================
+set "TARGET_VERSION=2.10.3"
 
 set "ENGINE_DIR=%~dp0"
-set "PROJECT_DIR=%ENGINE_DIR%.."
-for %%I in ("%PROJECT_DIR%") do set "PROJECT_DIR=%%~fI"
+for %%I in ("%ENGINE_DIR%..") do set "PROJECT_DIR=%%~fI"
 
-set "PHP_DIR=C:\php83"
-set "PHP_EXE=%PHP_DIR%\php.exe"
-set "PHP_SETUP=%ENGINE_DIR%compatible-php-setup.cmd"
+set "ZIP_FILE=%PROJECT_DIR%\data\composer.zip"
 
-set "COMPOSER_ZIP=%PROJECT_DIR%\data\composer.zip"
-set "COMPOSER_ROOT=C:\ProgramData\ComposerSetup"
-set "COMPOSER_BIN=%COMPOSER_ROOT%\bin"
-set "COMPOSER_BAT=%COMPOSER_BIN%\composer.bat"
-set "COMPOSER_PHAR=%COMPOSER_BIN%\composer.phar"
+set "COMPOSER_EXE=C:\ProgramData\ComposerSetup\bin\composer.bat"
+set "COMPOSER_DIR=C:\ProgramData\ComposerSetup\bin"
 
-REM ============================================================
-REM ADMINISTRATOR
-REM ============================================================
+echo Checking Composer...
 
-net session >nul 2>&1
-if errorlevel 1 (
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
-    exit /b 0
-)
+if exist "%COMPOSER_EXE%" goto SETUP_PATH
 
-REM ============================================================
-REM PHP
-REM ============================================================
+echo Installing Composer...
 
-echo [Composer] Checking PHP environment...
-
-if not exist "%PHP_EXE%" (
-    echo [Composer] [INFO] PHP environment not found.
-    echo [Composer] [INFO] Running compatible-php-setup.cmd...
-
-    if not exist "%PHP_SETUP%" (
-        echo [Composer] [ERROR] compatible-php-setup.cmd not found.
-        exit /b 1
-    )
-
-    call "%PHP_SETUP%"
-
-    if errorlevel 1 (
-        echo [Composer] [ERROR] PHP setup failed.
-        exit /b 1
-    )
-)
-
-if not exist "%PHP_EXE%" (
-    echo [Composer] [ERROR] PHP environment is not ready.
+if not exist "%ZIP_FILE%" (
+    echo Failed Composer
     exit /b 1
 )
 
-set "PATH=%PHP_DIR%;%PATH%"
-echo [Composer] [OK] PHP environment ready.
-
-REM ============================================================
-REM COMPOSER
-REM ============================================================
-
-echo [Composer] Checking Composer...
-
-if exist "%COMPOSER_BAT%" (
-    echo [Composer] [OK] Composer environment ready.
-    set "PATH=%COMPOSER_BIN%;%PHP_DIR%;%PATH%"
-    exit /b 0
-)
-
-echo [Composer] [INFO] Composer not found. Installing...
-
-if not exist "%COMPOSER_ZIP%" (
-    echo [Composer] [ERROR] composer.zip not found.
-    exit /b 1
-)
-
-if exist "%COMPOSER_ROOT%" rmdir /s /q "%COMPOSER_ROOT%" >nul 2>&1
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "try { Expand-Archive -LiteralPath '%COMPOSER_ZIP%' -DestinationPath 'C:\ProgramData' -Force -ErrorAction Stop; exit 0 } catch { exit 1 }"
+powershell -NoProfile -Command "$zip='%ZIP_FILE%'; $dest='C:\\ProgramData\\ComposerSetup\\bin'; Expand-Archive -Path $zip -DestinationPath $dest -Force; $entries=Get-ChildItem $dest -Directory; if($entries.Count -eq 1){Move-Item ($entries[0].FullName+'\\*') $dest -Force; Remove-Item $entries[0].FullName -Recurse -Force}"
 
 if errorlevel 1 (
-    echo [Composer] [ERROR] Composer installation failed.
+    echo Failed Composer
     exit /b 1
 )
 
-if not exist "%COMPOSER_BAT%" (
-    echo [Composer] [ERROR] Composer installation failed.
+if not exist "%COMPOSER_EXE%" (
+    echo Failed Composer
     exit /b 1
 )
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$bin='C:\ProgramData\ComposerSetup\bin'; $p=[Environment]::GetEnvironmentVariable('Path','Machine'); if($null -eq $p){$p=''}; $items=$p -split ';' | Where-Object { $_ -and ($_.Trim().TrimEnd('\') -ine $bin.TrimEnd('\')) }; [Environment]::SetEnvironmentVariable('Path',((@($bin)+$items)-join ';'),'Machine')"
+goto SETUP_PATH
+
+
+:SETUP_PATH
+
+echo Setting Composer environment...
+
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$composerDir='C:\ProgramData\ComposerSetup\bin'; $path=[Environment]::GetEnvironmentVariable('Path','User'); if($null -eq $path){$path=''}; $items=$path -split ';'; $found=$false; foreach($item in $items){if($item.Trim().TrimEnd('\') -ieq $composerDir.TrimEnd('\')){$found=$true}}; if(-not $found){if($path.Trim() -eq ''){$newPath=$composerDir}else{$newPath=$path+';'+$composerDir}; [Environment]::SetEnvironmentVariable('Path',$newPath,'User')}"
 
 if errorlevel 1 (
-    echo [Composer] [ERROR] Failed to configure PATH.
+    echo Failed Composer
     exit /b 1
 )
 
-set "PATH=%COMPOSER_BIN%;%PHP_DIR%;%PATH%"
+echo Installed Composer %TARGET_VERSION%
+echo Setup Environment Composer Successfully
 
-echo [Composer] [OK] Composer environment ready.
 exit /b 0
