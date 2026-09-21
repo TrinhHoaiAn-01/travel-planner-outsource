@@ -2,7 +2,7 @@
 setlocal EnableExtensions
 
 set "TARGET_VERSION=8.3.33"
-set "PHP_DIR=C:\php83"
+set "PHP_DIR=%LOCALAPPDATA%\Programs\php83"
 set "PHP_EXE=%PHP_DIR%\php.exe"
 
 set "ENGINE_DIR=%~dp0"
@@ -35,7 +35,7 @@ goto SETUP_PATH
 
 echo Setting PHP environment...
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$phpDir='C:\php83'; $path=[Environment]::GetEnvironmentVariable('Path','User'); if($null -eq $path){$path=''}; $items=$path -split ';'; $found=$false; foreach($item in $items){if($item.Trim().TrimEnd('\') -ieq $phpDir.TrimEnd('\')){$found=$true}}; if(-not $found){if($path.Trim() -eq ''){$newPath=$phpDir}else{$newPath=$path+';'+$phpDir}; [Environment]::SetEnvironmentVariable('Path',$newPath,'User')}"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$phpDir='%PHP_DIR%'; $path=[Environment]::GetEnvironmentVariable('Path','User'); if($null -eq $path){$path=''}; $items=$path -split ';'; $found=$false; foreach($item in $items){if($item.Trim().TrimEnd('\') -ieq $phpDir.TrimEnd('\')){$found=$true}}; if(-not $found){if($path.Trim() -eq ''){$newPath=$phpDir}else{$newPath=$path+';'+$phpDir}; [Environment]::SetEnvironmentVariable('Path',$newPath,'User')}"
 
 if errorlevel 1 (
     echo Failed PHP
