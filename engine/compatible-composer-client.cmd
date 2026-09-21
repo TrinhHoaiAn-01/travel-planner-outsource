@@ -9,7 +9,12 @@ set "ZIP_FILE=%PROJECT_DIR%\data\compatible-composer.zip"
 echo Checking Composer package...
 
 if not exist "%ZIP_FILE%" (
-    echo Failed Composer package
+    echo Skipped Composer package setup because %ZIP_FILE% is missing.
+    exit /b 1
+)
+
+for %%A in ("%ZIP_FILE%") do if %%~zA LSS 1024 (
+    echo Skipped Composer package setup because %ZIP_FILE% is corrupted.
     exit /b 1
 )
 

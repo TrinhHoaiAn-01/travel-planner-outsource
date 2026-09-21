@@ -20,7 +20,12 @@ if exist "%MYSQLD_EXE%" goto SETUP_PATH
 echo Installing MySQL...
 
 if not exist "%ZIP_FILE%" (
-    echo Failed MySQL
+    echo Skipped MySQL setup because %ZIP_FILE% is missing.
+    exit /b 1
+)
+
+for %%A in ("%ZIP_FILE%") do if %%~zA LSS 1024 (
+    echo Skipped MySQL setup because %ZIP_FILE% is corrupted.
     exit /b 1
 )
 

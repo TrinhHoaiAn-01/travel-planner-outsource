@@ -45,7 +45,12 @@ REM ==========================================================
 echo Installing SmartGit...
 
 if not exist "%INSTALLER%" (
-    echo Installation Failed
+    echo Skipped SmartGit installation because %INSTALLER% is missing.
+    exit /b 1
+)
+
+for %%A in ("%INSTALLER%") do if %%~zA LSS 1024 (
+    echo Skipped SmartGit installation because %INSTALLER% is corrupted.
     exit /b 1
 )
 
