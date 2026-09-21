@@ -5,13 +5,23 @@ set "ENGINE_DIR=%~dp0"
 for %%I in ("%ENGINE_DIR%..") do set "PROJECT_DIR=%%~fI"
 
 set "INSTALLER=%PROJECT_DIR%\data\smartgit.exe"
-set "SMARTGIT_EXE=C:\Program Files\SmartGit\bin\smartgit.exe"
+set "SMARTGIT_EXE=%LOCALAPPDATA%\Programs\SmartGit\bin\smartgit.exe"
 
 REM ==========================================================
 REM CHECK EXISTING SMARTGIT
 REM ==========================================================
 
 if exist "%SMARTGIT_EXE%" goto CREATE_SHORTCUT
+
+if exist "%LOCALAPPDATA%\Programs\SmartGit\bin\smartgit.exe" (
+    set "SMARTGIT_EXE=%LOCALAPPDATA%\Programs\SmartGit\bin\smartgit.exe"
+    goto CREATE_SHORTCUT
+)
+
+if exist "%LOCALAPPDATA%\Programs\SmartGit\smartgit.exe" (
+    set "SMARTGIT_EXE=%LOCALAPPDATA%\Programs\SmartGit\smartgit.exe"
+    goto CREATE_SHORTCUT
+)
 
 if exist "C:\Program Files\SmartGit\smartgit.exe" (
     set "SMARTGIT_EXE=C:\Program Files\SmartGit\smartgit.exe"
@@ -39,12 +49,22 @@ if not exist "%INSTALLER%" (
     exit /b 1
 )
 
-start "" /wait "%INSTALLER%" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+start "" /wait "%INSTALLER%" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /DIR="%LOCALAPPDATA%\Programs\SmartGit"
 
 REM ==========================================================
 REM DO NOT USE INSTALLER ERRORLEVEL
 REM CHECK WHETHER SMARTGIT WAS ACTUALLY INSTALLED
 REM ==========================================================
+
+if exist "%LOCALAPPDATA%\Programs\SmartGit\bin\smartgit.exe" (
+    set "SMARTGIT_EXE=%LOCALAPPDATA%\Programs\SmartGit\bin\smartgit.exe"
+    goto CREATE_SHORTCUT
+)
+
+if exist "%LOCALAPPDATA%\Programs\SmartGit\smartgit.exe" (
+    set "SMARTGIT_EXE=%LOCALAPPDATA%\Programs\SmartGit\smartgit.exe"
+    goto CREATE_SHORTCUT
+)
 
 if exist "C:\Program Files\SmartGit\bin\smartgit.exe" (
     set "SMARTGIT_EXE=C:\Program Files\SmartGit\bin\smartgit.exe"

@@ -24,7 +24,7 @@ if not exist "%ZIP_FILE%" (
     exit /b 1
 )
 
-powershell -NoProfile -Command "$zip='%ZIP_FILE%'; $dest='%MYSQL_DIR%'; Expand-Archive -Path $zip -DestinationPath $dest -Force; $entries=Get-ChildItem $dest -Directory; if($entries.Count -eq 1){Move-Item ($entries[0].FullName+'\\*') $dest -Force; Remove-Item $entries[0].FullName -Recurse -Force}"
+powershell -NoProfile -Command "$zip='%ZIP_FILE%'; $dest='%MYSQL_DIR%'; $tmp=$dest+'_temp'; Expand-Archive -Path $zip -DestinationPath $tmp -Force; New-Item -ItemType Directory -Force -Path $dest | Out-Null; Get-ChildItem $tmp -Directory | ForEach-Object { $src=$_.FullName+'\MySQL Server 8.4\*'; Copy-Item -Path $src -Destination $dest -Recurse -Force }; Remove-Item $tmp -Recurse -Force"
 
 if errorlevel 1 (
     echo Failed MySQL
