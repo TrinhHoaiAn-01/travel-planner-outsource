@@ -3,7 +3,7 @@ setlocal EnableExtensions
 
 set "TARGET_VERSION=8.4.11"
 
-set "MYSQL_DIR=C:\Program Files\MySQL\MySQL Server 8.4"
+set "MYSQL_DIR=%LOCALAPPDATA%\Programs\MySQL\MySQL Server 8.4"
 set "MYSQL_BIN=%MYSQL_DIR%\bin"
 set "MYSQL_EXE=%MYSQL_BIN%\mysql.exe"
 set "MYSQLD_EXE=%MYSQL_BIN%\mysqld.exe"
@@ -48,7 +48,7 @@ goto SETUP_PATH
 
 echo Setting MySQL environment...
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$mysqlBin='C:\Program Files\MySQL\MySQL Server 8.4\bin'; $path=[Environment]::GetEnvironmentVariable('Path','User'); if($null -eq $path){$path=''}; $items=$path -split ';'; $found=$false; foreach($item in $items){if($item.Trim().TrimEnd('\') -ieq $mysqlBin.TrimEnd('\')){$found=$true}}; if(-not $found){if($path.Trim() -eq ''){$newPath=$mysqlBin}else{$newPath=$path+';'+$mysqlBin}; [Environment]::SetEnvironmentVariable('Path',$newPath,'User')}"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$mysqlBin='%MYSQL_BIN%'; $path=[Environment]::GetEnvironmentVariable('Path','User'); if($null -eq $path){$path=''}; $items=$path -split ';'; $found=$false; foreach($item in $items){if($item.Trim().TrimEnd('\') -ieq $mysqlBin.TrimEnd('\')){$found=$true}}; if(-not $found){if($path.Trim() -eq ''){$newPath=$mysqlBin}else{$newPath=$path+';'+$mysqlBin}; [Environment]::SetEnvironmentVariable('Path',$newPath,'User')}"
 
 if errorlevel 1 (
     echo Failed MySQL

@@ -8,8 +8,8 @@ for %%I in ("%ENGINE_DIR%..") do set "PROJECT_DIR=%%~fI"
 
 set "ZIP_FILE=%PROJECT_DIR%\data\composer.zip"
 
-set "COMPOSER_EXE=C:\ProgramData\ComposerSetup\bin\composer.bat"
-set "COMPOSER_DIR=C:\ProgramData\ComposerSetup\bin"
+set "COMPOSER_DIR=%LOCALAPPDATA%\Programs\ComposerSetup\bin"
+set "COMPOSER_EXE=%COMPOSER_DIR%\composer.bat"
 
 echo Checking Composer...
 
@@ -22,7 +22,7 @@ if not exist "%ZIP_FILE%" (
     exit /b 1
 )
 
-powershell -NoProfile -Command "$zip='%ZIP_FILE%'; $dest='C:\\ProgramData\\ComposerSetup\\bin'; Expand-Archive -Path $zip -DestinationPath $dest -Force; $entries=Get-ChildItem $dest -Directory; if($entries.Count -eq 1){Move-Item ($entries[0].FullName+'\\*') $dest -Force; Remove-Item $entries[0].FullName -Recurse -Force}"
+powershell -NoProfile -Command "$zip='%ZIP_FILE%'; $dest='%COMPOSER_DIR%'; Expand-Archive -Path $zip -DestinationPath $dest -Force; $entries=Get-ChildItem $dest -Directory; if($entries.Count -eq 1){Move-Item ($entries[0].FullName+'\\*') $dest -Force; Remove-Item $entries[0].FullName -Recurse -Force}"
 
 if errorlevel 1 (
     echo Failed Composer
@@ -41,7 +41,7 @@ goto SETUP_PATH
 
 echo Setting Composer environment...
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$composerDir='C:\ProgramData\ComposerSetup\bin'; $path=[Environment]::GetEnvironmentVariable('Path','User'); if($null -eq $path){$path=''}; $items=$path -split ';'; $found=$false; foreach($item in $items){if($item.Trim().TrimEnd('\') -ieq $composerDir.TrimEnd('\')){$found=$true}}; if(-not $found){if($path.Trim() -eq ''){$newPath=$composerDir}else{$newPath=$path+';'+$composerDir}; [Environment]::SetEnvironmentVariable('Path',$newPath,'User')}"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$composerDir='%COMPOSER_DIR%'; $path=[Environment]::GetEnvironmentVariable('Path','User'); if($null -eq $path){$path=''}; $items=$path -split ';'; $found=$false; foreach($item in $items){if($item.Trim().TrimEnd('\') -ieq $composerDir.TrimEnd('\')){$found=$true}}; if(-not $found){if($path.Trim() -eq ''){$newPath=$composerDir}else{$newPath=$path+';'+$composerDir}; [Environment]::SetEnvironmentVariable('Path',$newPath,'User')}"
 
 if errorlevel 1 (
     echo Failed Composer
