@@ -1,0 +1,75 @@
+name: Travel Planner CI/CD
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  laravel-tests:
+
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: travel_planner
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        extensions: mbstring, pdo_mysql
+        tools: composer:2.10.3
+        coverage: none
+
+    - name: Check PHP
+      run: php -v
+
+    - name: Check Composer
+      run: composer --version
+
+    - name: Copy .env
+      run: cp .env.example .env
+
+    - name: Install Dependencies
+      run: composer install --no-ansi --no-interaction --no-progress --prefer-dist
+
+    - name: Generate key
+      run: php artisan key:generate --force
+
+    - name: Directory Permissions
+      run: chmod -R 777 storage bootstrap/cache
+
+    - name: Configure Database
+      run: |
+        sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env
+        sed -i 's/^DB_HOST=.*/DB_HOST=127.0.0.1/' .env
+        sed -i 's/^DB_PORT=.*/DB_PORT=3306/' .env
+        sed -i 's/^DB_DATABASE=.*/DB_DATABASE=travel_planner/' .env
+        sed -i 's/^DB_USERNAME=.*/DB_USERNAME=root/' .env
+        sed -i 's/^DB_PASSWORD=.*/DB_PASSWORD=root/' .env
+
+    - name: Check Database
+      run: php artisan migrate:status
+
+    - name: Run Migrations
+      run: php artisan migrate --force
+
+    - name: Execute Tests
+      run: php artisan test
