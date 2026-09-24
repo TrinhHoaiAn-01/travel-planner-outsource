@@ -46,8 +46,15 @@ jobs:
       - name: Check Database
         run: docker compose exec -T app php artisan migrate:status
 
+      - name: Check Docker Resources
+        run: |
+          docker compose ps
+          docker stats --no-stream
+          docker system df
+
       - name: Execute Tests
-        run: docker compose exec -T app php artisan test
+        run: |
+          docker compose exec -T app php -d memory_limit=512M artisan test
 
       - name: Stop Docker
         if: always()
