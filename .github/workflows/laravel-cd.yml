@@ -1,0 +1,56 @@
+name: Travel Planner CD
+
+on:
+  workflow_run:
+    workflows:
+      - "Travel Planner CI"
+    types:
+      - completed
+    branches:
+      - master
+
+jobs:
+  build:
+
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'master'
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout tested code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_mysql
+          tools: composer:2.10.3
+          coverage: none
+
+      - name: Install Production Dependencies
+        run: composer install --no-dev --no-ansi --no-interaction --no-progress --prefer-dist --optimize-autoloader
+
+      - name: Create Build Package
+        run: |
+          zip -r travel-planner.zip . \
+            -x ".git/*" \
+            -x ".github/*" \
+            -x "node_modules/*" \
+            -x "storage/logs/*" \
+            -x "storage/framework/cache/*" \
+            -x "storage/framework/sessions/*" \
+            -x "storage/framework/views/*"
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: travel-planner-build
+          path: travel-planner.zip
+          retention-days: 7
