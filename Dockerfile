@@ -1,14 +1,23 @@
 FROM php:8.3-apache
 
-RUN docker-php-ext-install pdo_mysql
+RUN apt-get update \
+    && apt-get install -y \
+        libzip-dev \
+        unzip \
+        zip \
+    && docker-php-ext-install \
+        pdo_mysql \
+        zip \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN a2enmod rewrite
 
 WORKDIR /var/www/html
 
-COPY . /var/www/html
-
 COPY --from=composer:2.10.3 /usr/bin/composer /usr/bin/composer
+
+COPY . /var/www/html
 
 RUN composer install \
     --no-ansi \
@@ -16,10 +25,12 @@ RUN composer install \
     --no-progress \
     --prefer-dist
 
-RUN chown -R www-data:www-data /var/www/html/storage \
+RUN chown -R www-data:www-data \
+    /var/www/html/storage \
     /var/www/html/bootstrap/cache
 
-RUN chmod -R 775 /var/www/html/storage \
+RUN chmod -R 775 \
+    /var/www/html/storage \
     /var/www/html/bootstrap/cache
 
 RUN printf '%s\n' \
