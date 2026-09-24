@@ -23,6 +23,12 @@ services:
       mysql:
         condition: service_healthy
 
+    command: >
+      sh -c "
+        php artisan migrate --force &&
+        apache2-foreground
+      "
+
   mysql:
     image: mysql:8.4
 
