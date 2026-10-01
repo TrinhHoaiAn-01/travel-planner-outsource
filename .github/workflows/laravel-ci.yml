@@ -1,0 +1,64 @@
+name: Travel Planner CI
+
+on:
+  push:
+    branches: [ "master" ]
+
+  pull_request:
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+
+jobs:
+
+  laravel-tests:
+
+    runs-on: ubuntu-latest
+
+    env:
+      APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: travel_planner
+      DB_USERNAME: root
+      DB_PASSWORD: root@admin
+
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check Docker
+        run: |
+          docker --version
+          docker compose version
+
+      - name: Build Docker
+        run: docker compose -f docker-compose.ci.yml build
+
+      - name: Start Docker
+        run: docker compose -f docker-compose.ci.yml up -d
+
+      - name: Check Containers
+        run: docker compose -f docker-compose.ci.yml ps
+
+      - name: Check Database
+        run: docker compose -f docker-compose.ci.yml exec -T app php artisan migrate:status
+
+      - name: Check Docker Resources
+        run: |
+          docker compose -f docker-compose.ci.yml ps
+          docker stats --no-stream
+          docker system df
+
+      - name: Execute Tests
+        run: |
+          docker compose -f docker-compose.ci.yml exec -T app \
+            php -d memory_limit=512M artisan test
+
+      - name: Stop Docker
+        if: always()
+        run: docker compose -f docker-compose.ci.yml down -v
