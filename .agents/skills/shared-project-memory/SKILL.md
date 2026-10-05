@@ -715,6 +715,68 @@ Do not claim that an image requirement is implemented unless the result was actu
 
 ---
 
+# 11.1 Image-to-Code Workflow
+
+When the user provides a screenshot or image of a UI design, the Agent MUST automatically follow this workflow:
+
+1. Check `PROJECT_SPECIFICATIONS.md` in the shared `history-conversation-agent` folder to determine which member is responsible for the screen or feature shown in the image.
+
+2. If the screen belongs to the current member's assigned scope, implement it using the required Laravel architecture:
+
+   Service Interface
+   → Service
+   → Form Request / Policy
+   → Thin Controller
+   → Blade View
+
+3. The implementation MUST follow all business rules, validation rules, authorization rules, security requirements, naming conventions, UI requirements, and architectural constraints defined in `PROJECT_SPECIFICATIONS.md`.
+
+4. The Blade View MUST reproduce the provided UI screenshot as accurately as possible:
+   - Match layout structure.
+   - Match spacing and sizing.
+   - Match typography.
+   - Match colors.
+   - Match buttons, forms, tables, cards, navigation, and other visible components.
+   - Do not redesign the UI unless explicitly requested.
+   - Do not add UI features that are not present in the provided image or specification.
+
+5. Controllers MUST remain thin.
+   Business logic MUST be implemented in the appropriate Service.
+   Authorization MUST use Policy where required.
+   Request validation MUST use Form Request where required.
+
+6. After implementation, create or update Feature Tests for the relevant authorization behavior.
+
+   The minimum expected authorization cases are:
+
+   - Guest → HTTP 302 when authentication is required.
+   - Authenticated User → HTTP 403 or HTTP 200 according to the specified authorization rule.
+   - Admin → HTTP 200 when the Admin role is authorized.
+
+7. Run the relevant Feature Tests and verify the implemented functionality.
+   If a test fails because of the implementation, automatically fix the issue within the current task scope and run the test again.
+
+8. After the implementation and verification are complete, automatically record the work in the shared `history-conversation-agent` folder according to the existing shared-history rules.
+
+9. The history entry MUST contain the important information needed for future members and sessions, including:
+   - Date.
+   - Member.
+   - Objective.
+   - Screen or feature implemented.
+   - Files changed.
+   - Business or authorization rules applied.
+   - Tests performed.
+   - Verification result.
+   - Problems encountered.
+   - Current status.
+   - Next step, if applicable.
+
+10. If the screenshot belongs to another member's assigned scope, DO NOT implement it automatically.
+    Report that the screen is outside the current member's assigned scope and identify the responsible member from `PROJECT_SPECIFICATIONS.md`.
+
+11. Never overwrite or redesign another member's implementation.
+    Before modifying existing files, inspect the current source code and shared history to determine whether another member has already implemented or modified the same feature.
+
 # 12. Error Handling and Self-Repair
 
 When an implementation produces an error:
