@@ -1,4 +1,790 @@
-# SKILL.md
+---
+name: laravel-team-agent
+description: Develop Laravel projects using strict MVC, Service Interfaces, simple readable code, exact user scope, multi-member code protection, and automatic shared project history through a Google Drive synchronized folder.
+---
+
+# Antigravity Laravel Team Development Skill
+
+This skill combines the Laravel development rules with the team's shared project-memory workflow.
+
+The Agent must:
+- follow the exact user requirement;
+- use the project's required Laravel MVC architecture and Service Interfaces;
+- protect other members' work;
+- automatically load shared project history before substantial coding;
+- use the local Google Drive synchronized folder as shared memory;
+- verify changes and update shared history after meaningful work.
+
+# Antigravity Laravel Development Skill
+
+## 1. Purpose
+
+This skill defines the mandatory working rules for an Antigravity coding agent working on a Laravel project.
+
+The agent must:
+
+- Follow standard Laravel MVC architecture.
+- Use Service Interfaces as the contract between Controllers and Services.
+- Keep code hard-coded, explicit, simple, readable, and easy to maintain.
+- Implement only the exact requirement requested by the user.
+- Avoid unnecessary abstraction, creativity, refactoring, or feature expansion.
+- Protect other developers' work.
+- Maintain persistent shared conversation and development history through the Google Drive folder `history-conversation-agent`.
+- Continue previous team members' work from the latest verified project state.
+- Verify and automatically fix errors when possible.
+- Follow an image supplied by the user exactly when the image describes UI, layout, behavior, or implementation requirements.
+- Write code comments in Vietnamese.
+
+The agent must prioritize correctness, scope control, maintainability, and continuity over cleverness.
+
+---
+
+# 2. Core Development Principles
+
+## 2.1 Exact Requirement Only
+
+The agent must do exactly what the user asks.
+
+Do not:
+
+- Add features that were not requested.
+- Add optional improvements without being asked.
+- Refactor unrelated code.
+- Rename unrelated classes, methods, variables, routes, columns, or files.
+- Change architecture without a requirement.
+- Introduce new design patterns without a requirement.
+- Replace an existing implementation merely because another implementation appears cleaner.
+- Modify another developer's work unless the user's task explicitly requires it.
+- Guess missing business rules.
+- Invent database columns, routes, models, APIs, permissions, or workflows.
+
+If a requirement is unclear and the ambiguity materially affects implementation, inspect the existing project and shared history first. Ask the user only when the required behavior cannot be determined safely.
+
+---
+
+## 2.2 Simple and Explicit Code
+
+Code must be:
+
+- Hard-coded where appropriate.
+- Explicit.
+- Easy to read.
+- Easy to debug.
+- Easy to maintain.
+- Easy for another developer to continue.
+
+Prefer:
+
+```php
+if ($trip->status === 'completed') {
+    return true;
+}
+
+return false;
+```
+
+over unnecessarily compressed or clever expressions.
+
+Do not optimize for fewer lines.
+
+Optimize for clear business logic.
+
+---
+
+## 2.3 No Abbreviation
+
+Do not use abbreviations in:
+
+- Class names.
+- Method names.
+- Variable names.
+- Interface names.
+- Database-related code.
+- Business logic identifiers.
+
+Use full descriptive English names.
+
+Prefer:
+
+```php
+$destinationManagementService
+```
+
+over:
+
+```php
+$destinationMgmtService
+```
+
+Prefer:
+
+```php
+calculateRemainingBudget()
+```
+
+over:
+
+```php
+calcRemainBudget()
+```
+
+---
+
+## 2.4 Code Comments
+
+All code comments written by the agent must be in Vietnamese.
+
+Comments should explain business or technical intent when useful.
+
+Do not add comments that merely repeat obvious code.
+
+Example:
+
+```php
+// Kiểm tra ngày đặt phòng phải nằm trong thời gian của chuyến đi.
+if ($bookingDate < $trip->start_date || $bookingDate > $trip->end_date) {
+    throw ValidationException::withMessages([
+        'booking_date' => 'Ngày đặt phòng không nằm trong thời gian chuyến đi.',
+    ]);
+}
+```
+
+---
+
+# 3. Laravel MVC Architecture
+
+Use standard Laravel MVC architecture.
+
+Required flow:
+
+```text
+Route
+    ↓
+Controller
+    ↓
+Form Request / Policy
+    ↓
+Service Interface
+    ↓
+Service
+    ↓
+Model
+    ↓
+Database
+    ↓
+Service
+    ↓
+Controller
+    ↓
+Blade View / Redirect / JSON
+```
+
+The normal application flow is:
+
+```text
+Controller
+    ↓
+Service Interface
+    ↓
+Service
+    ↓
+Model
+```
+
+---
+
+## 3.1 Controller Responsibility
+
+Controllers must remain thin.
+
+Controllers may handle:
+
+- HTTP requests.
+- Form Request validation.
+- Authorization.
+- Calling Service Interfaces.
+- Returning views.
+- Returning redirects.
+- Returning JSON responses.
+
+Controllers must not contain complex business logic.
+
+Example:
+
+```php
+public function store(StoreTripRequest $request)
+{
+    $this->tripService->createTrip($request->validated());
+
+    return redirect()
+        ->route('trips.index')
+        ->with('success', 'Tạo chuyến đi thành công.');
+}
+```
+
+Business rules belong in the Service.
+
+---
+
+## 3.2 Service Responsibility
+
+Services contain business logic.
+
+A Service must:
+
+- Implement its corresponding Service Interface.
+- Execute business rules.
+- Coordinate Models.
+- Handle transactions when required.
+- Validate business rules that are not HTTP validation.
+- Return appropriate business results.
+- Explicitly handle expected business errors.
+
+Do not move HTTP-specific concerns into Services.
+
+---
+
+## 3.3 Model Responsibility
+
+Models are responsible for:
+
+- Eloquent relationships.
+- Casts.
+- Scopes.
+- Persistence-related behavior.
+- Model-level data behavior.
+
+Do not place application business workflows inside Models when they belong to a Service.
+
+Use Eloquent relationships instead of unnecessary manual queries.
+
+---
+
+## 3.4 Policy Responsibility
+
+Use Policies for authorization.
+
+Required Policies:
+
+- `TripPolicy`
+- `ItineraryPolicy`
+- `ExpensePolicy`
+- `ReviewPolicy`
+- `BookingPolicy`
+
+Authorization must happen before protected modifications.
+
+---
+
+## 3.5 Form Request Responsibility
+
+Use Form Requests for request validation.
+
+Form Requests should handle HTTP input validation.
+
+Do not duplicate the same validation unnecessarily between Controller and Service.
+
+Business validation that depends on application state may remain in the Service.
+
+---
+
+# 4. Interfaces
+
+The following Service Interfaces are the approved interfaces for this project.
+
+Do not create another interface for a requirement that can use one of these interfaces.
+
+```text
+AuthServiceInterface
+ProfileServiceInterface
+DestinationServiceInterface
+FavoriteServiceInterface
+TripServiceInterface
+ItineraryServiceInterface
+BudgetServiceInterface
+ExpenseServiceInterface
+ReviewServiceInterface
+BookingServiceInterface
+PaymentServiceInterface
+RoomTypeServiceInterface
+CityServiceInterface
+CategoryServiceInterface
+DestinationManagementServiceInterface
+DestinationImageServiceInterface
+RoomTypeManagementServiceInterface
+ReviewManagementServiceInterface
+UserManagementServiceInterface
+DashboardServiceInterface
+ActivityLogServiceInterface
+AiTravelAssistantInterface
+```
+
+Services must implement their corresponding interfaces.
+
+Example:
+
+```php
+class TripService implements TripServiceInterface
+{
+    // ...
+}
+```
+
+Controllers must depend on the interface rather than directly coupling to the concrete Service whenever dependency injection is used.
+
+Example:
+
+```php
+public function __construct(
+    private TripServiceInterface $tripService
+) {
+}
+```
+
+Interfaces define the contract.
+
+Services contain the implementation.
+
+---
+
+# 5. Controllers
+
+## User Controllers
+
+Approved controllers:
+
+```text
+AuthController
+ProfileController
+HomeController
+DestinationController
+FavoriteController
+TripController
+ItineraryController
+BudgetController
+ExpenseController
+ReviewController
+BookingController
+PaymentController
+```
+
+## Admin Controllers
+
+Approved admin controllers:
+
+```text
+Admin\DashboardController
+Admin\UserController
+Admin\CityController
+Admin\CategoryController
+Admin\DestinationController
+Admin\DestinationImageController
+Admin\RoomTypeController
+Admin\ReviewController
+Admin\BookingController
+Admin\PaymentController
+Admin\ActivityLogController
+```
+
+Do not create alternative controllers for the same responsibility without a clear requirement.
+
+---
+
+# 6. Service Methods
+
+Use the following approved business methods where applicable.
+
+## Authentication
+
+```text
+registerUser()
+authenticate()
+logoutUser()
+refreshCaptcha()
+sendPasswordResetLink()
+resetPassword()
+verifyEmail()
+resendVerificationEmail()
+handleSocialLogin()
+```
+
+## Profile
+
+```text
+getProfile()
+updateProfile()
+updateAvatar()
+changePassword()
+```
+
+## Destination
+
+```text
+getDestinations()
+searchDestinations()
+getFeaturedDestinations()
+getDestinationDetails()
+getRelatedDestinations()
+getDestinationGallery()
+```
+
+## Favorite
+
+```text
+getFavorites()
+addFavorite()
+removeFavorite()
+addFavoriteToTrip()
+```
+
+## Trip
+
+```text
+getUserTrips()
+createTrip()
+getTripDetails()
+updateTrip()
+deleteTrip()
+updateTripStatus()
+validateTripDates()
+getTripSummary()
+cloneTrip()
+reopenTrip()
+handleTripDateChange()
+```
+
+## Itinerary
+
+```text
+getItinerary()
+createItineraryItem()
+updateItineraryItem()
+deleteItineraryItem()
+validateItemWithinTripDates()
+hasTimeOverlap()
+reorderItineraryItems()
+linkBookingToItinerary()
+```
+
+## Budget
+
+```text
+getBudgetSummary()
+updateBudget()
+calculateTotalExpenses()
+calculateRemainingBudget()
+calculateOverBudgetAmount()
+isOverBudget()
+```
+
+## Expense
+
+```text
+getExpenses()
+createExpense()
+updateExpense()
+deleteExpense()
+```
+
+## Review
+
+```text
+getApprovedReviews()
+canCreateReview()
+createReview()
+updateReview()
+deleteReview()
+recalculateDestinationRating()
+approveReview()
+hideReview()
+```
+
+## Booking
+
+```text
+createBooking()
+getUserBookings()
+getBookingDetails()
+cancelBooking()
+validateBookingDates()
+checkRoomAvailability()
+calculateBookingTotal()
+generateBookingCode()
+updateBookingStatus()
+```
+
+## Payment
+
+```text
+getPaymentDetails()
+createPayment()
+validatePaymentAmount()
+processPayment()
+handlePaymentCallback()
+updatePaymentStatus()
+```
+
+Do not invent alternative names when an approved method already represents the requested operation.
+
+---
+
+# 7. CRUD Rules
+
+Use standard Laravel CRUD method names:
+
+```text
+index()
+create()
+store()
+show()
+edit()
+update()
+destroy()
+```
+
+Do not replace standard CRUD method names with custom names when the operation is standard CRUD.
+
+Example:
+
+```php
+public function index()
+{
+    // ...
+}
+
+public function create()
+{
+    // ...
+}
+
+public function store(StoreDestinationRequest $request)
+{
+    // ...
+}
+
+public function show(Destination $destination)
+{
+    // ...
+}
+
+public function edit(Destination $destination)
+{
+    // ...
+}
+
+public function update(
+    UpdateDestinationRequest $request,
+    Destination $destination
+) {
+    // ...
+}
+
+public function destroy(Destination $destination)
+{
+    // ...
+}
+```
+
+---
+
+# 8. Naming Rules
+
+Use:
+
+```text
+Interface
+    PascalCase + Interface
+
+Service
+    PascalCase + Service
+
+Controller
+    PascalCase + Controller
+
+Model
+    Singular PascalCase
+
+Method
+    camelCase
+
+Variable
+    camelCase
+
+Form Request
+    Store/Update + Entity + Request
+
+Policy
+    Entity + Policy
+
+Blade View
+    lowercase-kebab-case
+
+Route Name
+    resource.action
+```
+
+All code identifiers must use English.
+
+Use full words.
+
+---
+
+# 9. Coding Style
+
+The agent must:
+
+- Prefer explicit code.
+- Prefer simple `if/else` logic when clearer.
+- Keep each method focused on one responsibility.
+- Validate input before business processing.
+- Authorize before protected modifications.
+- Use dependency injection.
+- Bind Interfaces to Services in the Laravel service container.
+- Use Eloquent relationships.
+- Use transactions when multiple database operations must succeed or fail together.
+- Handle expected business errors explicitly.
+- Never silently ignore exceptions.
+- Return the correct Laravel response type.
+- Keep business logic out of Blade, Routes, and Controllers.
+- Avoid unnecessary helpers.
+- Avoid unnecessary repositories.
+- Avoid unnecessary factories.
+- Avoid unnecessary design patterns.
+- Avoid over-engineering.
+
+---
+
+# 10. Scope Protection and Multi-Developer Safety
+
+Multiple developers may work on the same project.
+
+The agent must protect other developers' work.
+
+Before modifying code:
+
+1. Identify exactly which files are required by the user's task.
+2. Inspect recent changes.
+3. Check shared history.
+4. Check the current Git/project state when available.
+5. Identify files being actively modified by another developer.
+6. Determine whether the requested change conflicts with another developer's work.
+7. Modify only the smallest necessary scope.
+
+## Do Not Modify Other Work
+
+Do not:
+
+- Rewrite unrelated files.
+- Reformat unrelated code.
+- Rename unrelated variables.
+- Refactor unrelated methods.
+- Reorganize directories without requirement.
+- Change another developer's feature.
+- Delete code merely because it appears unused.
+- Change shared architecture without requirement.
+
+## Conflict Blocking Rule
+
+If implementing the requested task would likely overwrite, break, or materially alter another developer's active work:
+
+1. Stop before making the conflicting change.
+2. Identify the conflict.
+3. Inspect shared history and actual source code.
+4. Determine whether the task can be implemented without touching the conflicting area.
+5. If it cannot, report the conflict to the user instead of silently overwriting the other developer's work.
+
+The agent must prioritize preservation of existing team work.
+
+---
+
+# 11. User-Supplied Images
+
+If the user supplies an image as a requirement, the image is part of the specification.
+
+The agent must:
+
+- Inspect the image carefully.
+- Reproduce the requested UI/layout/behavior shown in the image.
+- Match visible structure, placement, labels, controls, spacing, and relevant visual behavior as closely as required.
+- Avoid inventing additional UI elements.
+- Avoid replacing the design with a preferred design.
+
+If the image conflicts with existing code, determine the smallest required change.
+
+Do not claim that an image requirement is implemented unless the result was actually checked.
+
+---
+
+# 12. Error Handling and Self-Repair
+
+When an implementation produces an error:
+
+1. Read the complete error.
+2. Identify the actual cause.
+3. Inspect the related code and configuration.
+4. Fix the root cause.
+5. Run the relevant verification again.
+6. Repeat when the next error is directly caused by the same task.
+7. Stop if fixing the error would require changing unrelated functionality or another developer's work.
+
+The agent should automatically fix errors that are clearly within the requested scope.
+
+Do not hide errors.
+
+Do not claim success when verification failed.
+
+If verification cannot be completed, explicitly record:
+
+```text
+Status: Completed - Not Fully Verified
+```
+
+---
+
+# 13. Verification
+
+Before considering a task complete, verify whenever possible.
+
+Verification can include:
+
+```text
+Unit tests
+Integration tests
+Feature tests
+Build
+Application startup
+Runtime verification
+Static analysis
+Command output
+Manual inspection
+```
+
+Never claim:
+
+```text
+Tests passed
+Build succeeded
+Feature works
+```
+
+unless the result was actually verified.
+
+---
+
+# Shared Memory Integration
+
+The shared-memory rules below are part of the same skill and are mandatory.
+
+For this project, shared history is accessed through the locally synchronized
+Google Drive folder `history-conversation-agent`.
+
+Do not use Google Drive MCP, Google Drive API, OAuth credentials, Google Cloud
+credentials, or browser automation for shared history.
+
+Git remains responsible for source-code collaboration and version history.
+The shared Google Drive folder is responsible for shared project context,
+decisions, session continuity, and development history.
+
 
 ## 1. Purpose
 
