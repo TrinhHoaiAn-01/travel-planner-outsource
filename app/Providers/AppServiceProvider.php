@@ -12,7 +12,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Ràng buộc DashboardServiceInterface với triển khai cụ thể DashboardService
+        $this->app->bind(
+            \App\Services\Interfaces\DashboardServiceInterface::class,
+            \App\Services\DashboardService::class
+        );
     }
 
     /**

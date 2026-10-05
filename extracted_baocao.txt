@@ -1,0 +1,3096 @@
+TRƯỜNG CAO ĐẲNG CÔNG NGHỆ THỦ ĐỨC
+KHOA CÔNG NGHỆ THÔNG TIN
+BÁO CÁO ĐỒ ÁN
+CHUYÊN ĐỀ PHÁT TRIỂN WEB
+ĐỀ TÀI: WEBSITE QUẢN LÝ DU LỊCHTRAVEL PLANNER
+STT
+Tên Thành Viên
+MSSV
+Chức Vụ
+01
+    Trịnh Hoài An
+24211TT4545
+ Nhóm Trưởng
+02
+    Nguyễn Trần Thành
+24211TT3546
+ Nhóm Phó
+03
+    Nguyễn Văn Thắng
+23211TT2980
+ Thành Viên
+04
+    Trần Văn Trọng
+22211TT0337
+ Thành Viên
+05
+    Phạm Thị Ngọc Ái
+24211TT3767
+Thành Viên
+Giảng viên: Phan Thanh Nhuần
+TP. HCM, ngày 22 tháng 09 năm 2026
+TRƯỜNG CAO ĐẲNG CÔNG NGHỆ THỦ ĐỨC
+KHOA CÔNG NGHỆ THÔNG TIN
+BÁO CÁO ĐỒ ÁN
+CHUYÊN ĐỀ PHÁT TRIỂN WEB
+ĐỀ TÀI: WEBSITE QUẢN LÝ DU LỊCH TRAVEL PLANNER
+STT
+Tên Thành Viên
+MSSV
+Chức Vụ
+01
+    Trịnh Hoài An
+24211TT4545
+ Nhóm Trưởng
+02
+    Nguyễn Trần Thành
+24211TT3546
+ Nhóm Phó
+03
+    Nguyễn Văn Thắng
+23211TT2980
+ Thành Viên
+04
+    Trần Văn Trọng
+22211TT0337
+ Thành Viên
+05
+    Phạm Thị Ngọc Ái
+24211TT3767
+Thành Viên
+Giảng viên: Phan Thanh Nhuần
+TP. HCM, ngày 22 tháng 09 năm 2026
+MỤC LỤC
+MỤC LỤC3
+DANH MỤC HÌNH ẢNH6
+DANH MỤC BẢNG7
+DANH MỤC VIẾT TẮT8
+LỜI MỞ ĐẦU11
+1 ĐỊNH HƯỚNG PHÁT TRIỂN HỆ THỐNG12
+1.1 Định hướng triển khai12
+Bảng 1. Mốc triển khai theo thứ tự tuần13
+1.2 Bảng phân chia công việc14
+Bảng 2. Phân công đề xuất cho các thành viên22
+1.3 Bảng báo cáo phiên họp nhóm23
+Bảng 3. Lịch và mẫu biên bản họp23
+2 GIỚI THIỆU ĐỀ TÀI VÀ MÔ TẢ CHỨC NĂNG24
+2.1 Giới thiệu đề tài24
+2.1.1 Hiện trạng và vấn đề24
+2.1.2 Mục tiêu và phạm vi24
+2.1.3 Công nghệ và kiến trúc đề xuất25
+Bảng 4. Bảng chi tiết về hướng phát triển kiến trúc 3 lớp MVC25
+2.2 Chức năng và phân quyền27
+Bảng 5. Bảng chức năng và phân quyền sử dụng27
+2.3 Danh mục yêu cầu chức năng29
+Bảng 6. Account Management29
+Bảng 7. Destination Discovery30
+Bảng 8. Trip Management31
+Bảng 9. Itinerary Management31
+Bảng 10: Budget Management32
+Bảng 11: Review & Rating Management32
+Bảng 12: Booking Management33
+Bảng 13: System Administration34
+Bảng 14: System Statistics34
+2.4 Quy tắc nghiệp vụ35
+Bảng 15: Mã và quy tắc nghiệp vụ35
+2.5 Yêu cầu phi chức năng36
+Bảng 16. Bảng yêu cầu phi chức năng phù hợp với tiêu chí người dùng36
+2.6 Thiết kế tuyến xử lý38
+Bảng 17. Quy ước tuyến38
+Bảng 18. Account & Authentication39
+Bảng 19. Destination Discovery39
+Bảng 20. Favorites40
+Bảng 21. Trip Management40
+Bảng 22. Itinerary & Expense41
+Bảng 23. Reviews42
+Bảng 24. Booking & Payment42
+Bảng 25. Administration43
+2.7 Quy tắc phản hồi và kiểm tra đầu vào43
+Bảng 26. Bảng quy tắc ràng buộc các dữ liệu43
+Bảng 27. Bảng quy tắc phản hồi HTTP45
+Bảng 28. Bảng nghiệm thu các thao tác có khả năng xảy ra46
+3 DATABASE VÀ MÔ HÌNH ERD49
+3.1 Mô hình ERD49
+3.2 Cấu trúc dữ liệu của Database50
+Bảng 29. Bảng User50
+Bảng 30. Bảng Trips51
+Bảng 31. Bảng itinerary_items51
+Bảng 32. Bảng expenses52
+Bảng 33. Bảng cities52
+Bảng 34. Bảng categories53
+Bảng 35. Bảng destinations53
+Bảng 36. Bảng destination_images54
+Bảng 37. Bảng room_types55
+Bảng 38. Bảng bookings55
+Bảng 39. Bảng payments56
+Bảng 40. Bảng favorites56
+Bảng 41. Bảng reviews57
+4 DEMO GIAO DIỆN58
+4.1 Trang đăng ký và đăng nhập58
+4.2 Trang chủ và khám phá60
+4.3 Trang chi tiết địa điểm62
+4.4 Trang chuyến đi của tôi64
+4.5 Trang yêu thích67
+4.6 Trang chi tiết lịch trình68
+4.7 Trang ngân sách71
+4.8 Trang khôi phục mật khẩu và Profile73
+4.9 Giao diện đánh giá75
+4.10 Trang quản trị Admin79
+4.11 Thứ tự phát triển và khả năng nâng cấp81
+5 BẢO MẬT HỆ THỐNG82
+5.1 Sơ đồ tích hợp cơ chế bảo mật hệ thống82
+5.2 Các cơ chế bảo mật82
+Bảng 42: Cơ chế và tích hợp nghiệp vụ bảo mật82
+5.3 Kết quả xử lý nghiệp vụ dự kiến83
+Bảng 43. Bảng kết quả xử lý nghiệp vụ dự kiến83
+5.4 Thứ tự phát triển hệ thống bảo mật83
+Tài Liệu Tham Khảo84
+DANH MỤC HÌNH ẢNH
+Hình 1. Sơ đồ tóm tắt hướng phát triển Travel Planner24
+Hình 2. Kiến trúc ba lớp của ứng dụng26
+Hình 3. Sơ đồ Use Case phát triển nghiệp vụ28
+Hình 4. Mô hình ERD Travel Planner đầy đủ49
+Hình 5. Màn hình đăng ký58
+Hình 6. Màn hình đăng nhập59
+Hình 7. Màn hình trang chủ (home)60
+Hình 8. Màn hình trang khám phá61
+Hình 9. Trang chi tiết địa điểm62
+Hình 10. Màn hình thêm vào chuyến đi63
+Hình 11. Trang chuyến đi của tôi64
+Hình 12. Trang tạo chuyến đi mới65
+Hình 13. Màn hình chỉnh sửa chuyến đi66
+Hình 14. Trang yêu thích67
+Hình 15. Trang chi tiết lịch trình68
+Hình 16. Màn hình thêm địa điểm vào lịch trình69
+Hình 17. Màn hình chỉnh sửa địa điểm trong lịch trình70
+Hình 18. Trang ngân sách (trong ngân sách)71
+Hình 19. Trang ngân sách (vượt ngân sách)72
+Hình 20. Màn hình quên mật khẩu73
+Hình 21. Trang thông tin cá nhân74
+Hình 22. Form đánh giá địa điểm75
+Hình 23. Màn hình thêm đánh giá76
+Hình 24. Màn hình chỉnh sửa đánh giá77
+Hình 25. Màn hình quản trị đánh giá79
+Hình 26. Trang dashboard quản trị80
+Hình 27. Trang quản lý người dùng (form chung cho các trang quản lý)80
+Hình 28. Sơ đồ thứ tự phát triển Travel Planner81
+Hình 29. Tích hợp luồng bảo mật82
+Hình 30. Trang danh sách nơi lưu trú83
+Hình 31. Màn hình đặt phòng lưu trú84
+Hình 32. Trang danh sách đặt phòng cá nhân85
+Hình 33. Màn hình chi tiết đặt phòng86
+Hình 34. Màn hình thanh toán đặt phòng87
+Hình 35. Màn hình quản lý đặt phòng (Admin)88
+Hình 36. Màn hình quản lý giao dịch thanh toán (Admin)89
+Hình 37. Màn hình quản lý loại phòng (Admin)90
+Hình 38. Giao diện Chatbot AI hỗ trợ lịch trình91
+Hình 39. Sơ đồ kiến trúc kiểm thử và tích hợp92
+DANH MỤC BẢNG
+Bảng 1. Mốc triển khai theo thứ tự tuần13
+Bảng 2. Phân công đề xuất cho các thành viên22
+Bảng 3. Lịch và mẫu biên bản họp23
+Bảng 4. Bảng chi tiết về hướng phát triển kiến trúc 3 lớp MVC25
+Bảng 5. Bảng chức năng và phân quyền sử dụng27
+Bảng 6. Account Management29
+Bảng 7. Destination Discovery30
+Bảng 8. Trip Management31
+Bảng 9. Itinerary Management31
+Bảng 10. Budget Management32
+Bảng 11. Review & Rating Management32
+Bảng 12. Booking Management33
+Bảng 13. System Administration34
+Bảng 14. System Statistics34
+Bảng 15. Mã và quy tắc nghiệp vụ35
+Bảng 16. Bảng yêu cầu phi chức năng phù hợp với tiêu chí người dùng36
+Bảng 17. Quy ước tuyến38
+Bảng 18. Account & Authentication39
+Bảng 19. Destination Discovery39
+Bảng 20. Favorites40
+Bảng 21. Trip Management40
+Bảng 22. Itinerary & Expense41
+Bảng 23. Reviews42
+Bảng 24. Booking & Payment42
+Bảng 25. Administration43
+Bảng 26. Bảng quy tắc ràng buộc các dữ liệu43
+Bảng 27. Bảng quy tắc phản hồi HTTP45
+Bảng 28. Bảng nghiệm thu các thao tác có khả năng xảy ra46
+Bảng 29. Bảng User50
+Bảng 30. Bảng Trips51
+Bảng 31. Bảng itinerary_items51
+Bảng 32. Bảng expenses52
+Bảng 33. Bảng cities52
+Bảng 34. Bảng categories53
+Bảng 35. Bảng destinations53
+Bảng 36. Bảng destination_images54
+Bảng 37. Bảng room_types55
+Bảng 38. Bảng bookings55
+Bảng 39. Bảng payments56
+Bảng 40. Bảng favorites56
+Bảng 41. Bảng reviews57
+Bảng 42. Cơ chế và tích hợp nghiệp vụ bảo mật82
+Bảng 43. Bảng kết quả xử lý nghiệp vụ dự kiến83
+Bảng 44. Bảng danh sách công việc chuẩn bị cho thử nghiệm84
+Bảng 45. Bảng kịch bản kiểm thử tích hợp chính85
+Bảng 46. Bảng kết quả kiểm thử nghiệp vụ tổng hợp86
+DANH MỤC VIẾT TẮT
+STT
+Viết tắt
+Ý nghĩa tiếng Anh
+Giải thích
+1
+AI
+Artificial Intelligence
+Trí tuệ nhân tạo; dùng cho AI Chatbot và các chức năng gợi ý lịch trình.
+2
+API
+Application Programming Interface
+Giao diện cho phép các hệ thống hoặc thành phần phần mềm giao tiếp với nhau.
+3
+REST
+Representational State Transfer
+Kiến trúc thiết kế API dựa trên tài nguyên và HTTP Method.
+4
+MVC
+Model – View – Controller
+Mô hình tổ chức ứng dụng thành Model, View và Controller.
+5
+ERD
+Entity Relationship Diagram
+Sơ đồ thực thể – liên kết, dùng để thiết kế cấu trúc và quan hệ Database.
+6
+SQL
+Structured Query Language
+Ngôn ngữ dùng để truy vấn và thao tác dữ liệu trong Database.
+7
+CRUD
+Create – Read – Update – Delete
+Bốn thao tác cơ bản với dữ liệu: tạo, đọc, cập nhật và xóa.
+8
+MVP
+Minimum Viable Product
+Phiên bản tối thiểu của hệ thống có các chức năng chính để triển khai và kiểm thử.
+9
+HTTP
+Hypertext Transfer Protocol
+Giao thức được sử dụng để truyền request và response giữa Client và Server.
+10
+URL
+Uniform Resource Locator
+Địa chỉ xác định tài nguyên hoặc tuyến truy cập trên Website.
+11
+PHP
+PHP: Hypertext Preprocessor
+Ngôn ngữ lập trình phía Server được sử dụng để phát triển hệ thống.
+12
+HTML
+HyperText Markup Language
+Ngôn ngữ đánh dấu dùng để xây dựng cấu trúc giao diện Web.
+13
+CSS
+Cascading Style Sheets
+Ngôn ngữ định dạng giao diện và bố cục Website.
+14
+JS
+JavaScript
+Ngôn ngữ lập trình phía Client dùng để xử lý tương tác trên giao diện.
+15
+ORM
+Object-Relational Mapping
+Cơ chế ánh xạ đối tượng trong code với bảng và dữ liệu trong Database; hệ thống sử dụng Eloquent ORM.
+16
+CSRF
+Cross-Site Request Forgery
+Kiểu tấn công giả mạo request; cơ chế CSRF dùng để bảo vệ các request thay đổi dữ liệu.
+17
+CAPTCHA
+Completely Automated Public Turing test to tell Computers and Humans Apart
+Cơ chế kiểm tra nhằm phân biệt người dùng thật với chương trình tự động.
+18
+PK
+Primary Key
+Khóa chính, dùng để định danh duy nhất một bản ghi trong bảng.
+19
+FK
+Foreign Key
+Khóa ngoại, dùng để liên kết bản ghi với bảng khác.
+20
+UK
+Unique Key
+Khóa duy nhất, ngăn dữ liệu trùng trong phạm vi trường được quy định.
+21
+ID
+Identifier
+Giá trị định danh của một đối tượng hoặc bản ghi.
+22
+CSDL
+Cơ sở dữ liệu
+Database dùng để lưu trữ và quản lý dữ liệu của hệ thống.
+23
+VND
+Vietnamese đồng
+Đơn vị tiền tệ được sử dụng trong hệ thống.
+24
+MSSV
+Mã số sinh viên
+Mã định danh của sinh viên trong danh sách thành viên nhóm.
+25
+STT
+Số thứ tự
+Số thứ tự của dòng hoặc công việc trong bảng.
+26
+SV
+Sinh viên
+Viết tắt dùng trong cột đánh giá của sinh viên.
+27
+GV
+Giảng viên
+Viết tắt dùng trong cột đánh giá của giảng viên.
+28
+FR
+Functional Requirement
+Mã dùng để định danh yêu cầu chức năng, ví dụ FR01, FR02.
+29
+BR
+Business Rule
+Mã dùng để định danh quy tắc nghiệp vụ, ví dụ BR-01, BR-02.
+30
+AWS
+Amazon Web Services
+Nền tảng dịch vụ điện toán đám mây; xuất hiện trong phần định hướng nâng cấp hệ thống.
+LỜI MỞ ĐẦU
+Việc chuẩn bị một chuyến du lịch thường yêu cầu người dùng quản lý nhiều thông tin như địa điểm, lịch trình, chi phí và chỗ lưu trú. Khi các thông tin được lưu trữ rời rạc, người dùng có thể gặp khó khăn trong việc theo dõi và quản lý toàn bộ chuyến đi.
+Nhóm B lựa chọn đề tài “Website quản lý Travel Planner” cho môn Chuyên đề phát triển Web. Hệ thống được xây dựng nhằm hỗ trợ người dùng khám phá các địa điểm du lịch, tạo chuyến đi, xây dựng lịch trình theo ngày, quản lý chi phí và đặt chỗ lưu trú trên cùng một nền tảng.
+Quy trình chính của hệ thống gồm: khám phá địa điểm → tạo chuyến đi → xây dựng lịch trình → quản lý chi phí → đặt chỗ lưu trú và thanh toán. 
+Bên cạnh đó, người dùng có thể lưu địa điểm yêu thích và đánh giá địa điểm. Hệ thống cũng cung cấp các chức năng quản trị nhằm quản lý người dùng, địa điểm, thành phố, danh mục, loại phòng, đặt phòng và các dữ liệu liên quan.
+Báo cáo trình bày các nội dung chính gồm kế hoạch thực hiện, yêu cầu chức năng, kiến trúc hệ thống, thiết kế cơ sở dữ liệu, thiết kế giao diện và kiểm thử. Công việc được phân chia thành các phần cụ thể để các thành viên có thể thực hiện, kiểm tra và tích hợp trong quá trình phát triển.
+Nhóm mong nhận được ý kiến góp ý của giảng viên Phan Thanh Nhuần để điều chỉnh phạm vi và hoàn thiện thiết kế trước khi triển khai đầy đủ các chức năng của hệ thống.
+1 ĐỊNH HƯỚNG PHÁT TRIỂN HỆ THỐNG
+  1.1 Định hướng triển khai
+Nhóm đề xuất kế hoạch triển khai trong 8 tuần kể từ khi thống nhất yêu cầu. Đây là thời gian dự kiến; ngày nộp, yêu cầu công nghệ và tiêu chí đánh giá sẽ được xác nhận với giảng viên trước khi lập lịch chi tiết.Mỗi chức năng được phát triển theo quy trình: dữ liệu → SQL → xử lý → giao diện → kiểm thử. Phần SQL tập trung vào việc tạo, truy vấn, cập nhật và liên kết dữ liệu theo ERD. Kết quả mong đợi là các chức năng hoạt động đúng, dữ liệu được lưu và truy xuất chính xác, đồng thời có thể kiểm tra bằng các truy vấn SQL cơ bản.Giai đoạn MVC ưu tiên Account, Explore, Trip, Itinerary và Budget. Các chức năng còn lại như Favorites, Reviews, Booking, Payment và AI Chatbot sẽ được triển khai và hoàn thiện ở các giai đoạn sau.
+Bảng 1. Mốc triển khai theo thứ tự tuần
+Tuần
+Công việc
+Chi tiết
+1
+Xây dựng project 
+Tạo project Laravel, cấu hình môi trường, thống nhất cấu trúc và cách làm việc. 
+2
+Xây dựng Database 
+Tạo database theo ERD, migration và các quan hệ giữa các bảng. 
+3
+User, Trip, Favorites, Reviews 
+Làm đăng ký/đăng nhập, quản lý Trip, lưu Favorites và viết Reviews. 
+4
+Destinations 
+Làm Destinations và liên kết với Cities, Categories, Destination Images, Room Types. 
+5
+Itinerary, Expenses 
+Làm lịch trình theo Trip, sắp xếp ngày/giờ và quản lý các khoản chi. 
+6
+Bookings, Payments, Admin page 
+Làm đặt phòng, quản lý ngày nhận/trả phòng, số lượng phòng và thanh toán. Sau đó làm Admin page quản lý toàn bộ
+7
+Kiểm thử và sửa lỗi
+Kiểm thử và phán đoán các lỗi có thể xảy ra từng function, sau đó ghi chú lại và sửa lỗi.
+8
+Tích hợp AI Chatbox
+Tích hợp thêm tính năng AI Chatbox
+1.2 Bảng phân chia công việc
+Trịnh Hoài An
+STT
+Công việc
+Hạn hoàn thành
+Đánh giá của SV
+Đánh giá của GV
+1
+Đăng ký tài khoản và xác thực thông tin đăng ký
+07/10/2026
+2
+Đăng nhập / đăng xuất và quản lý phiên đăng nhập
+07/10/2026
+3
+Quên mật khẩu / đặt lại mật khẩu / đổi mật khẩu
+07/10/2026
+4
+Xem và chỉnh sửa hồ sơ cá nhân, upload / thay avatar
+09/10/2026
+5
+Middleware xác thực đăng nhập và kiểm tra trạng thái `is_active`
+09/10/2026
+6
+Phân quyền User / Admin và bảo vệ các Route theo quyền
+12/10/2026
+7
+Admin xem danh sách / tìm kiếm / lọc / xem chi tiết User
+12/10/2026
+8
+Admin tạo và chỉnh sửa tài khoản User
+14/10/2026
+9
+Admin khóa / mở khóa và Soft Delete User
+14/10/2026
+10
+Kiểm tra quyền sở hữu dữ liệu và ngăn truy cập trái phép
+16/10/2026
+11
+Validation và bảo mật dữ liệu tài khoản / request
+17/10/2026
+12
+Logging lỗi hệ thống và nhật ký hoạt động cần thiết
+21/10/2026
+Nguyễn Trần Thành
+STT
+Công việc
+Hạn hoàn thành
+Đánh giá của SV
+Đánh giá của GV
+1
+Xem, tìm kiếm và lọc danh sách chuyến đi của User
+7/10/2026
+2
+Tạo chuyến đi mới
+7/10/2026
+3
+Xem chi tiết / chỉnh sửa / xóa chuyến đi
+9/10/2026
+4
+Quản lý mô tả và ghi chú tổng quát của chuyến đi
+9/10/2026
+5
+Quản lý trạng thái Trip: nháp / đã lập kế hoạch / hoàn thành
+12/10/2026
+6
+Kiểm tra và xử lý ngày bắt đầu / ngày kết thúc của Trip
+12/10/2026
+7
+Hiển thị tóm tắt số ngày / số địa điểm / tổng chi phí của Trip
+14/10/2026
+8
+Xử lý thay đổi hoặc rút ngắn ngày Trip khi có Itinerary phụ thuộc
+14/10/2026
+9
+Kiểm tra ảnh hưởng của thay đổi Trip đến chi phí và Booking liên quan
+16/10/2026
+10
+Thêm / sửa / xóa nhận xét và đánh giá Destination
+16/10/2026
+11
+Quản lý trạng thái và quy tắc Review của User
+19/10/2026
+12
+Mở lại / nhân bản chuyến đi đã hoàn thành cho kế hoạch mới
+19/10/2026
+Trần Văn Trọng
+STT
+Công việc
+Hạn hoàn thành
+Đánh giá của SV
+Đánh giá của GV
+1
+Hiển thị thành phố và danh mục phổ biến
+07/10/2026
+2
+Tìm kiếm nhanh địa điểm / thành phố từ Trang chủ
+07/10/2026
+3
+Danh sách địa điểm và phân trang
+09/10/2026
+4
+Lọc và sắp xếp địa điểm theo City / Category / nơi lưu trú / giá / rating
+09/10/2026
+5
+Xem chi tiết địa điểm
+12/10/2026
+6
+Quản lý Gallery hình ảnh và địa điểm liên quan
+12/10/2026
+7
+Hiển thị nơi lưu trú, danh sách và chi tiết Room Type
+14/10/2026
+8
+Admin CRUD Destination và Destination Images
+14/10/2026
+9
+Admin CRUD City và Category
+16/10/2026
+10
+Admin CRUD Room Type và Seeder dữ liệu City / Category / Destination / Room Type
+16/10/2026
+11
+AI gợi ý / tạo / đánh giá lịch trình thông minh
+19/10/2026
+12
+Chatbot AI hỗ trợ lập kế hoạch du lịch
+22/10/2026
+Phạm Thị Ngọc Ái
+STT
+Công việc
+Hạn hoàn thành
+Đánh giá của SV
+Đánh giá của GV
+1
+Xây dựng Trang chủ chính
+7/10/2026
+2
+Hiển thị địa điểm nổi bật
+7/10/2026
+3
+Quản lý danh sách địa điểm yêu thích
+7/10/2026
+4
+Thêm địa điểm yêu thích vào Trip
+9/10/2026
+5
+Xem lịch trình theo từng ngày của chuyến đi
+9/10/2026
+6
+Thêm địa điểm / hoạt động vào lịch trình
+11/10/2026
+7
+Xem / chỉnh sửa / xóa hoạt động trong lịch trình
+11/10/2026
+8
+Quản lý ngày và thời gian bắt đầu / kết thúc hoạt động
+14/10/2026
+9
+Quản lý ghi chú của từng hoạt động
+14/10/2026
+10
+Kiểm tra thời gian nằm trong phạm vi ngày của Trip
+16/10/2026
+11
+Kiểm tra và xử lý lịch trình bị trùng giờ
+18/10/2026
+12
+Sắp xếp thứ tự hoạt động và liên kết Booking vào lịch trình
+21/10/2026
+Nguyễn Văn Thắng
+STT
+Công việc
+Hạn hoàn thành
+Đánh giá của SV
+Đánh giá của GV
+1
+Thiết lập và chỉnh sửa ngân sách của Trip
+7/10/2026
+2
+Thêm / sửa / xóa các khoản chi phí của Trip
+7/10/2026
+3
+Tính tổng chi phí và ngân sách còn lại
+9/10/2026
+4
+Cảnh báo vượt ngân sách và cập nhật khi chi phí thay đổi
+9/10/2026
+5
+Tạo Booking: chọn phòng, Trip, ngày nhận/trả và số lượng phòng
+12/10/2026
+6
+Kiểm tra điều kiện Booking và tình trạng phòng còn trống
+12/10/2026
+7
+Tính tổng tiền Booking và sinh mã đặt phòng
+14/10/2026
+8
+Xem danh sách / chi tiết / hủy Booking của User
+14/10/2026
+9
+Thực hiện thanh toán và lựa chọn phương thức thanh toán
+16/10/2026
+10
+Kiểm tra số tiền, trạng thái thanh toán và lưu thông tin giao dịch
+16/10/2026
+11
+Admin quản lý Booking và Payment
+19/10/2026
+12
+Admin kiểm duyệt Review và Dashboard thống kê tổng quan
+21/10/2026
+1.3 Bảng báo cáo phiên họp nhóm
+Các hàng bên dưới là lịch họp dự kiến. Sau mỗi buổi họp, người ghi biên bản bổ sung ngày họp, thành viên tham dự và các quyết định thực tế. 
+Bảng 3. Lịch và mẫu biên bản họp
+Phiên tuần
+Nội dung dự kiến
+Thông tin cập nhật sau họp
+Đầu tuần 1
+Thảo luận, thiết kế và thống nhất yêu cầu 
+Ngày/giờ: [Điền]Thành phần: [Điền]Quyết định: [Điền]
+Cuối mỗi tuần
+Demo chức năng và kiểm tra tiến độ 
+Người ghi: [Điền]Kết quả thật: [Điền]Việc tiếp theo: [Điền]
+Cuối tuần 4
+Kiểm thử và điều chỉnh giữa kỳ 
+Chức năng đạt: [Điền]
+Lỗi còn lại: [Điền]
+Điều chỉnh: [Điền] 
+Tuần 8
+Tổng kết và nghiệm thu 
+Thành phần: [Điền]
+Kết quả: [Điền]
+Kết luận: [Điền] 
+2 GIỚI THIỆU ĐỀ TÀI VÀ MÔ TẢ CHỨC NĂNG
+2.1 Giới thiệu đề tài
+2.1.1 Hiện trạng và vấn đề
+Người dùng thường phải xem nhiều địa điểm trước khi quyết định chuyến đi. Việc lưu địa điểm yêu thích chưa hỗ trợ sắp xếp thành lịch trình, trong khi chi phí có thể thay đổi khi thêm hoặc thay đổi hoạt động. Travel Planner giải quyết vấn đề này bằng cách kết hợp địa điểm, chuyến đi, lịch trình và quản lý chi phí trong một hệ thống.  
+2.1.2 Mục tiêu và phạm vi
+Phạm vi tập trung vào lập kế hoạch và quản lý chuyến du lịch cá nhân tại Việt Nam, sử dụng Tiếng Việt, VND và múi giờ Việt Nam. Các chức năng như Google Maps, REST API và AI nâng cao được xem là hướng mở rộng.
+Hình 1. Sơ đồ tóm tắt hướng phát triển Travel Planner
+2.1.3 Công nghệ và kiến trúc đề xuất
+Nhóm sử dụng Laravel 12, PHP 8.3.33, MySQL 8.4 và Composer 2.10.3, phát triển giao diện bằng Blade, HTML, CSS và JavaScript. MySQL Workbench được dùng để thiết kế và quản lý cơ sở dữ liệu, SmartGit 20.2.6 dùng để quản lý mã nguồn.
+Hệ thống được xây dựng theo mô hình Laravel + Blade + MySQL, tập trung trong một ứng dụng để dễ phát triển, tích hợp và quản lý. Các phiên bản trên được thống nhất cho toàn nhóm để tránh khác biệt môi trường trong quá trình thực hiện.
+Bảng 4. Bảng chi tiết về hướng phát triển kiến trúc 3 lớp MVC
+Lớp
+Thành phần
+Trách nhiệm
+Presentation Layer 
+Route, Controller, Form Request, Blade 
+Nhận request, kiểm tra dữ liệu đầu vào, gọi xử lý nghiệp vụ và trả kết quả về giao diện. 
+Business Layer 
+Service, Policy 
+Xử lý nghiệp vụ, kiểm tra quyền và các quy tắc của hệ thống như lịch trình, ngân sách, review và quyền sở hữu. 
+Data Access Layer 
+Eloquent Model, Query, Migration 
+Đọc/ghi dữ liệu, truy vấn CSDL, quản lý quan hệ và cấu trúc các bảng. 
+Hình 2. Kiến trúc ba lớp của ứng dụng
+Controller tiếp nhận request và gọi Service. Form Request kiểm tra dữ liệu, Policy kiểm tra quyền, Service xử lý nghiệp vụ và Eloquent Model truy vấn/ghi dữ liệu MySQL. Kết quả được trả về Controller và hiển thị bằng Blade, giúp các lớp tách biệt, dễ bảo trì và mở rộng. 
+2.2 Chức năng và phân quyền
+Bảng 5. Bảng chức năng và phân quyền sử dụng
+Chức năng
+Guest
+User
+Admin
+Account 
+Đăng ký, đăng nhập 
+Quản lý tài khoản 
+Quản lý user 
+Destination 
+Xem 
+Xem, tìm kiếm 
+Thêm, xem, xóa 
+Favorite 
+Không
+Thêm, xem, xóa 
+Không
+Trip 
+Không
+Thêm, xem, sửa, xóa
+Không
+Itinerary 
+Không
+Thêm, xem, sửa, xóa dựa vào Trip
+Không
+Expense 
+Không
+Thêm, xem, sửa, xóa dựa vào Trip
+Không
+Review 
+Xem 
+Thêm, sửa, xóa 
+Duyệt, sửa, xóa 
+Room Type 
+Xem 
+Xem 
+Thêm, sửa, xóa 
+Booking 
+Không
+Thêm, sửa, xóa 
+Xem, cập nhật trạng thái 
+Payment 
+Không
+Xem thông tin thanh toán 
+Quản lý giao dịch và trạng thái 
+City / Category 
+Xem 
+Xem 
+Thêm, sửa, xóa 
+Destination Image 
+Xem 
+Xem 
+Thêm, sửa, xóa 
+Hình 3. Sơ đồ Use Case phát triển nghiệp vụ
+2.3 Danh mục yêu cầu chức năng
+Bảng 6. Account Management 
+Mã
+Chức năng
+Tiêu chí chính
+FR01
+Đăng ký & Đăng nhập
+Tạo tài khoản mới, xác thực email, đăng nhập, đăng xuất an toàn. Báo lỗi khi email đã tồn tại.
+FR02
+Quên mật khẩu
+Gửi liên kết đặt lại mật khẩu qua email, kiểm tra token hợp lệ và hạn sử dụng.
+FR03
+Đổi mật khẩu
+Yêu cầu nhập đúng mật khẩu hiện tại (current_password) trước khi cập nhật mật khẩu mới.
+FR04
+Cập nhật hồ sơ (Profile)
+Cho phép người dùng cập nhật thông tin cá nhân (tên, ảnh đại diện/avatar).
+FR05
+Quản lý quyền & Phiên
+Chặn truy cập trái phép các tuyến (route) nội bộ. Tự động đăng xuất nếu tài khoản bị vô hiệu hóa.
+Bảng 7. Destination Discovery
+Mã
+Chức năng
+Tiêu chí chính
+FR06
+Xem trang chủ
+Hiển thị danh sách các địa điểm nổi bật (is_featured).
+FR07
+Danh sách & Phân trang
+Hiển thị danh sách địa điểm, hỗ trợ chuyển trang (pagination) trơn tru.
+FR08
+Tìm kiếm địa điểm
+Tìm kiếm địa điểm theo từ khóa, giữ nguyên tham số tìm kiếm khi chuyển trang.
+FR09
+Lọc địa điểm
+Lọc kết quả tìm kiếm theo Thành phố (City), Danh mục (Category) và đánh dấu Nơi lưu trú (is_lodging). 
+FR10
+Sắp xếp địa điểm
+Hỗ trợ thay đổi tiêu chí sắp xếp (theo giá, đánh giá cao, phổ biến).
+FR11
+Xem chi tiết địa điểm
+Hiển thị đầy đủ thông tin mô tả, giá, giờ mở cửa của địa điểm.
+FR12
+Xem Gallery hình ảnh
+Hiển thị danh sách hình ảnh (Destination Images) thuộc địa điểm.
+FR13
+Địa điểm liên quan
+Gợi ý các địa điểm tương tự nhưng không trùng lặp với địa điểm đang xem.
+FR14
+Quản lý Yêu thích (Favorite)
+Thêm hoặc bỏ địa điểm khỏi danh sách Favorites cá nhân, chặn nhấn đúp/tạo trùng.
+FR15
+Thêm Favorite vào Trip
+Cho phép thao tác chuyển nhanh một địa điểm yêu thích vào chuyến đi (Trip) có sẵn.
+Bảng 8. Trip Management 
+Mã
+Chức năng
+Ưu tiên
+Tiêu chí chính
+FR16
+Quản lý danh sách chuyến đi
+Cao
+Xem danh sách Trip thuộc sở hữu. Chặn User truy cập hoặc sửa Trip của người khác bằng URL.
+FR17
+Thêm/Sửa/Xóa chuyến đi
+Cao
+Thực hiện CRUD Trip. Xác thực dữ liệu chặt chẽ (Ngày bắt đầu không được sau ngày kết thúc).
+Bảng 9. Itinerary Management 
+Mã
+Chức năng
+Ưu tiên
+Tiêu chí chính
+FR18
+Thêm hoạt động vào lịch trình
+Cao
+Thêm địa điểm vào ngày cụ thể. Thời gian phải nằm trong giới hạn ngày của Trip.
+FR19
+Ràng buộc thời gian lịch trình
+Cao
+Từ chối mục lịch trình nằm ngoài khoảng thời gian của chuyến đi, chặn nhập giờ chồng chéo.
+FR20
+Cập nhật & Xóa hoạt động
+Cao
+Chỉnh sửa ngày, giờ, ghi chú (note) hoặc xóa hoạt động. Không làm mất dữ liệu khi lưu.
+FR21
+Sắp xếp thứ tự (Sort order)
+Trung bình
+Kéo thả/đổi thứ tự hiển thị an toàn. Chặn các request chứa ID trùng, thiếu hoặc ID từ Trip khác.
+Bảng 10: Budget Management 
+Mã
+Chức năng
+Ưu tiên
+Tiêu chí chính
+FR22
+Thiết lập ngân sách (Budget)
+Cao
+Nhập và lưu trữ ngân sách tổng cho Trip. Hiển thị tính toán số dư ngân sách tự động.
+FR23
+Thêm khoản chi phí (Expense)
+Cao
+Ghi nhận các khoản chi (amount). Bắt buộc số tiền phải lớn hơn 0 và đúng định dạng.
+FR24
+Cập nhật/Xóa khoản chi phí
+Cao
+Sửa/xóa khoản chi, tự động tính lại số dư. Cho phép ghi lưu nhưng hiện cảnh báo nếu chi vượt ngân sách.
+Bảng 11: Review & Rating Management 
+Mã
+Chức năng
+Ưu tiên
+Tiêu chí chính
+FR25
+Gửi đánh giá và xếp hạng
+Cao
+Giới hạn 1 review cho 1 địa điểm từ 1 User. Cho phép sửa review do chính User tạo. Trạng thái ban đầu là Pending.
+Bảng 12: Booking Management 
+Mã
+Chức năng
+Ưu tiên
+Tiêu chí chính
+FR31
+Đặt phòng (Booking)
+Cao
+Gắn với tài khoản, loại phòng. Ngày nhận phòng không sau ngày trả phòng. Số lượng phòng > 0.
+FR32
+Quản lý Booking cá nhân
+Cao
+User được quyền xem chi tiết hoặc hủy (cancel) các Booking thuộc tài khoản của mình.
+FR33
+Xem thông tin Thanh toán
+Cao
+Xem thông tin giao dịch (Payment), trạng thái thanh toán và mã hóa đơn liên quan đến Booking.
+Bảng 13: System Administration 
+Mã
+Chức năng
+Ưu tiên
+Tiêu chí chính
+FR26
+Quản lý User
+Cao
+Khóa/vô hiệu hóa tài khoản User. Hệ thống chặn Admin tự xóa quyền hoặc xóa Admin cuối cùng.
+FR27
+Quản lý dữ liệu hệ thống
+Cao
+CRUD City, Category, Destination. Từ chối xóa Category đang dùng. Xóa mềm Destination đang có lịch trình.
+FR28
+Quản lý Hình ảnh (Images)
+Cao
+Upload ảnh hợp lệ (loại file, < 2MB). Giới hạn 1 ảnh chính (is_primary), cho phép quản lý ảnh phụ.
+FR29
+Kiểm duyệt Review
+Trung bình
+Admin duyệt, ẩn hoặc xóa Review. Review chưa duyệt (pending) không được hiển thị ra trang Public.
+Bảng 14: System Statistics 
+Mã
+Chức năng
+Ưu tiên
+Tiêu chí chính
+FR30
+Bảng điều khiển (Dashboard)
+Trung bình
+Thống kê số lượng chuyến đi, tổng User, dữ liệu hệ thống. Route chỉ dành riêng cho Admin truy cập.
+2.4 Quy tắc nghiệp vụ
+Bảng 15: Mã và quy tắc nghiệp vụ 
+Mã
+Quy tắc nghiệp vụ
+BR-01
+Người dùng phải đăng nhập để sử dụng các chức năng quản lý dữ liệu cá nhân như Trip, Itinerary, Expense, Favorite, Review và Booking.
+BR-02
+Mỗi tài khoản chỉ được quản lý thông tin hồ sơ và mật khẩu của chính tài khoản đó.
+BR-03
+User chỉ được sửa hoặc xóa Trip do tài khoản đó sở hữu.
+BR-04
+Itinerary và Expense chỉ được thêm, sửa hoặc xóa trong Trip mà User có quyền sở hữu.
+BR-05
+User có thể thêm hoặc xóa địa điểm khỏi danh sách Favorites và không tạo trùng cùng một địa điểm trong danh sách của tài khoản.
+BR-06
+User chỉ được sửa hoặc xóa Review do chính tài khoản đó tạo.
+BR-07
+Review chưa được Admin duyệt không được hiển thị trong danh sách review công khai.
+BR-08
+Mỗi Review phải gắn với một User và một Destination cụ thể, đồng thời có Rating hợp lệ.
+BR-09
+Booking phải gắn với tài khoản User, loại phòng và khoảng thời gian đặt phòng cụ thể.
+BR-10
+Ngày nhận phòng không được sau ngày trả phòng.
+BR-11
+User chỉ được xem hoặc hủy các Booking thuộc tài khoản của mình.
+BR-12
+Thông tin Payment phải gắn với Booking tương ứng và có trạng thái thanh toán rõ ràng.
+BR-13
+Admin có quyền quản lý các dữ liệu hệ thống như User, Destination, Category, City, Room Type, Booking, Payment và Review.
+BR-14
+Admin có quyền duyệt, cập nhật hoặc xóa Review theo quy định quản trị của hệ thống.
+BR-15
+Destination phải thuộc một City và Category phù hợp để hỗ trợ tìm kiếm và phân loại.
+BR-16
+Room Type phải thuộc một Destination để có thể sử dụng trong chức năng Booking.
+BR-17
+Các dữ liệu tham chiếu đang được sử dụng bởi dữ liệu khác không được xóa nếu việc xóa làm mất tính toàn vẹn dữ liệu.
+BR-18
+Các thao tác thêm, sửa, xóa dữ liệu phải kiểm tra quyền truy cập trước khi thực hiện.
+BR-19
+Dữ liệu chi phí được ghi nhận trong Expense phải thuộc một Trip cụ thể để phục vụ quản lý ngân sách.
+BR-20
+Các chức năng quản trị và thống kê hệ thống chỉ dành cho Admin.
+BR-21 
+Số tiền thanh toán (amount) gửi lên để xử lý phải khớp chính xác với tổng giá trị (total_price) của Booking lấy trực tiếp từ Database. Hệ thống từ chối mọi giao dịch có số tiền sai lệch để chống gian lận. 
+2.5 Yêu cầu phi chức năng
+Bảng 16. Bảng yêu cầu phi chức năng phù hợp với tiêu chí người dùng
+Nhóm
+Tiêu chí nghiệm thu
+Dễ sử dụng 
+Giao diện tiếng Việt, bố cục rõ ràng; các chức năng chính như tìm địa điểm, tạo Trip, quản lý Itinerary, Expense và Booking dễ tìm và sử dụng. 
+Responsive 
+Website hiển thị phù hợp trên màn hình desktop và mobile; nội dung không bị tràn ngang và các thành phần chính vẫn sử dụng được trên màn hình nhỏ. 
+Hiệu năng
+Các trang và thao tác chính như đăng nhập, tìm kiếm địa điểm, xem Trip và Booking có thời gian phản hồi phù hợp trong môi trường demo. 
+Bảo mật 
+Mật khẩu được mã hóa; kiểm tra quyền truy cập trước các thao tác quản lý dữ liệu; bảo vệ dữ liệu đầu vào và các chức năng yêu cầu đăng nhập. 
+Tính toàn vẹn dữ liệu 
+Dữ liệu Trip, Itinerary, Expense, Favorite, Review, Booking và Payment được liên kết đúng; hạn chế dữ liệu trùng và dữ liệu không hợp lệ. 
+Độ tin cậy 
+Các thao tác thêm, sửa, xóa và đặt phòng phải trả về trạng thái thành công hoặc lỗi rõ ràng; khi xảy ra lỗi không làm mất hoặc ghi sai dữ liệu. 
+Khả năng bảo trì 
+Mã nguồn được tổ chức theo kiến trúc 3 lớp; chức năng được tách thành các module rõ ràng, dễ kiểm thử và cập nhật. 
+Khả năng tương thích 
+Website hoạt động ổn định trên các trình duyệt phổ biến như Google Chrome, Microsoft Edge và Firefox. 
+2.6 Thiết kế tuyến xử lý
+Hệ thống sử dụng HTTP Route của Laravel để tiếp nhận request và điều hướng đến Controller tương ứng. Mỗi tuyến xác định rõ HTTP Method, quyền truy cập và chức năng xử lý. Các chức năng yêu cầu đăng nhập sử dụng middleware auth, các chức năng quản trị sử dụng admin, đồng thời kiểm tra quyền sở hữu dữ liệu trước khi thực hiện thao tác. 
+Bảng 17. Quy ước tuyến
+Thành phần 
+Quy ước 
+HTTP Method
+GET để đọc dữ liệu hoặc mở biểu mẫu; POST để tạo dữ liệu hoặc gửi một yêu cầu xử lý; PATCH để cập nhật một phần; PUT có thể dùng khi thay thế toàn bộ; DELETE để xóa. Các thao tác ghi không thực hiện bằng GET.
+URL
+Dùng danh từ số nhiều cho tài nguyên, ví dụ /destinations, /trips, /bookings. Nhóm quản trị sử dụng tiền tố /admin.
+Tham số tuyến
+Dùng {destination}, {trip}, {itinerary}, {expense}, {review}, {roomType}, {booking}, {payment}, {user}, {city}, {category}, {image} và {conversation} để xác định đối tượng. Các đối tượng được tham chiếu phải tồn tại.
+Public
+Không yêu cầu đăng nhập; chỉ trả dữ liệu được phép công khai.
+Guest
+Biểu mẫu và thao tác dành cho người chưa đăng nhập như đăng ký, đăng nhập và khôi phục mật khẩu.
+Auth
+Yêu cầu đăng nhập; kiểm tra is_active và deleted_at. Tài khoản bị khóa hoặc xóa mềm không được tiếp tục sử dụng phiên để truy cập chức năng bảo vệ.
+Owner
+Bao gồm điều kiện Auth và kiểm tra quyền sở hữu bằng Policy. Kiểm tra cả thao tác xem, tạo dữ liệu con, sửa và xóa; không chỉ kiểm tra việc hiển thị nút trên giao diện.
+Admin
+Bao gồm điều kiện Auth và kiểm tra vai trò quản trị. Quyền quản trị được giới hạn theo chức năng ở mục 2.2, không mặc nhiên cấp quyền sửa mọi dữ liệu cá nhân.
+System
+Tuyến nhận kết quả thanh toán từ hệ thống bên ngoài; phải xác minh nguồn và tính hợp lệ của kết quả trước khi cập nhật dữ liệu. Đây không phải tuyến Public cho người dùng tự đổi trạng thái thanh toán.
+Kiểm tra đầu vào
+Form Request kiểm tra các trường, định dạng, giới hạn và đối tượng tham chiếu trước khi Service thực hiện nghiệp vụ. Các ràng buộc liên bảng, trạng thái và tính sẵn có được kiểm tra trong Service.
+Bảng 18. Account & Authentication
+Method và Route
+Quyền
+Xử lý chính và ràng buộc
+GET /register
+Guest
+Mở biểu mẫu đăng ký.
+POST /register
+Guest
+Kiểm tra họ tên, email duy nhất, mật khẩu và xác nhận mật khẩu; tạo tài khoản với mật khẩu được băm. Không cho người đăng ký tự cấp quyền Admin.
+GET /login
+Guest
+Mở biểu mẫu đăng nhập, hiển thị CAPTCHA theo giao diện mục 4.1.
+POST /login
+Guest
+Kiểm tra email, mật khẩu, CAPTCHA và trạng thái tài khoản; tạo phiên hợp lệ, xử lý tùy chọn ghi nhớ đăng nhập theo cấu hình.
+POST /captcha/refresh
+Guest
+Tạo CAPTCHA mới cho phiên đăng nhập; CAPTCHA cũ hết hiệu lực.
+POST /logout
+Auth
+Đăng xuất và kết thúc phiên đăng nhập an toàn.
+GET /forgot-password
+Guest
+Mở biểu mẫu quên mật khẩu.
+POST /forgot-password
+Guest
+Kiểm tra email, giới hạn tần suất gửi; gửi liên kết đặt lại mật khẩu cho tài khoản hợp lệ. Dùng thông báo chung để tránh tiết lộ email có tồn tại.
+GET /reset-password/{token}
+Guest
+Mở biểu mẫu đặt lại mật khẩu từ liên kết có token và email tương ứng.
+POST /reset-password
+Guest
+Kiểm tra token, email, hạn hiệu lực và xác nhận mật khẩu; cập nhật mật khẩu, vô hiệu hóa token đã dùng.
+GET /email/verify
+Auth
+Hiển thị hướng dẫn xác thực email, đáp ứng trường email_verified_at.
+GET /email/verify/{id}/{hash}
+Auth
+Kiểm tra liên kết xác thực hợp lệ, đúng tài khoản và thời hạn; cập nhật email_verified_at.
+POST /email/verification-notification
+Auth
+Gửi lại liên kết xác thực email, có giới hạn tần suất.
+GET /profile
+Auth
+Hiển thị hồ sơ của chính tài khoản đang đăng nhập.
+GET /profile/edit
+Auth
+Mở biểu mẫu cập nhật tên và ảnh đại diện.
+PATCH /profile
+Auth
+Kiểm tra dữ liệu và ảnh tải lên; cập nhật hồ sơ hiện tại, không cho thay đổi tùy ý role, is_active hoặc tài khoản khác.
+GET /password/change
+Auth
+Mở biểu mẫu đổi mật khẩu.
+PATCH /password
+Auth
+Yêu cầu đúng current_password; kiểm tra và băm mật khẩu mới trước khi lưu.
+GET /auth/{provider}/redirect
+Guest
+Chuyển đến luồng đăng nhập Google hoặc Facebook được mô tả tại mục 4.1.
+GET /auth/{provider}/callback
+Guest
+Kiểm tra phản hồi của nhà cung cấp; đăng nhập hoặc tạo/liên kết tài khoản theo chính sách đã thống nhất.
+Bảng 19. Destination Discovery 
+Method và Route
+Quyền
+Xử lý chính và ràng buộc
+GET /
+Public
+Hiển thị trang chủ và các địa điểm nổi bật có is_featured, kèm thông tin được phép công khai.
+GET /destinations
+Public
+Danh sách, phân trang, tìm kiếm, lọc và sắp xếp địa điểm; giữ tham số tìm kiếm và bộ lọc khi đổi trang.
+GET /destinations/{destination}
+Public
+Hiển thị mô tả, thành phố, danh mục, địa chỉ, phí tham quan, giờ hoạt động, thời lượng, ảnh, đánh giá đã duyệt và địa điểm liên quan không trùng địa điểm hiện tại.
+GET /cities/{city}/destinations
+Public
+Hiển thị địa điểm theo đúng thành phố; kết hợp tìm kiếm, bộ lọc, sắp xếp và phân trang.
+GET /categories/{category}/destinations
+Public
+Hiển thị địa điểm theo đúng danh mục; kết hợp tìm kiếm, bộ lọc, sắp xếp và phân trang.
+GET /destinations/{destination}/images
+Public
+Tải thư viện ảnh thuộc đúng địa điểm, gồm ảnh chính và ảnh phụ.
+Bảng 20. Favorites 
+Method & Route
+Quyền
+Xử lý chính
+GET /favorites
+User
+Hiển thị danh sách địa điểm yêu thích.
+POST /destinations/{destination}/favorite
+User
+Thêm địa điểm vào Favorites.
+DELETE /destinations/{destination}/favorite
+User
+Xóa địa điểm khỏi Favorites.
+Bảng 21. Trip Management 
+Method & Route
+Quyền
+Xử lý chính
+GET /trips
+User
+Hiển thị các Trip theo quyền sở hữu.
+GET /trips/create
+User
+Hiển thị form tạo Trip.
+POST /trips
+User
+Validate và tạo Trip.
+GET /trips/{trip}
+User
+Hiển thị chi tiết Trip.
+GET /trips/{trip}/edit
+Owner
+Hiển thị form chỉnh sửa Trip.
+PATCH /trips/{trip}
+Owner
+Cập nhật Trip.
+DELETE /trips/{trip}
+Owner
+Xóa Trip.
+Bảng 22. Itinerary & Expense 
+Method và Route
+Quyền
+Xử lý chính và ràng buộc
+GET /trips/{trip}/itinerary
+Owner
+Hiển thị lịch trình theo ngày; có thể nhận tham số day_number để chọn ngày trong phạm vi chuyến đi.
+GET /trips/{trip}/itinerary/create
+Owner
+Mở biểu mẫu thêm hoạt động; có thể điền sẵn destination_id và ngày từ màn hình địa điểm, Favorite hoặc lịch trình.
+POST /trips/{trip}/itinerary
+Owner
+Kiểm tra địa điểm, ngày, giờ và ghi chú; tạo mục lịch trình thuộc đúng Trip, từ chối thời gian ngoài chuyến đi hoặc chồng lấn hoạt động cùng ngày.
+GET /itinerary/{itinerary}/edit
+Owner
+Kiểm tra quyền sở hữu Trip chứa {itinerary} và tải dữ liệu hiện tại vào biểu mẫu.
+PATCH /itinerary/{itinerary}
+Owner
+Cập nhật địa điểm, ngày, giờ và ghi chú; kiểm tra trùng lịch với các mục khác, loại trừ chính mục đang sửa.
+DELETE /itinerary/{itinerary}
+Owner
+Xóa đúng mục thuộc chuyến đi; cập nhật lịch trình sau khi thành công.
+PATCH /trips/{trip}/itinerary/reorder
+Owner
+Nhận ngày và danh sách ID theo thứ tự mới; kiểm tra đủ các mục của ngày, không trùng ID, không chứa mục của ngày hoặc Trip khác; cập nhật sort_order trong transaction.
+GET /trips/{trip}/budget
+Owner
+Hiển thị ngân sách dự kiến, tổng khoản chi, số tiền còn lại, mức vượt và tổng hợp chi theo danh mục.
+PATCH /trips/{trip}/budget
+Owner
+Cập nhật trips.budget, kiểm tra số hợp lệ và không âm; tính lại số dư và cảnh báo. Đây là tuyến tách riêng cho FR22, dùng cùng nghiệp vụ ngân sách của Trip.
+GET /trips/{trip}/expenses
+Owner
+Hiển thị lịch sử khoản chi thuộc chuyến đi, gồm ngày, loại, mô tả và số tiền.
+GET /trips/{trip}/expenses/create
+Owner
+Mở biểu mẫu thêm khoản chi.
+POST /trips/{trip}/expenses
+Owner
+Ghi khoản chi với số tiền hợp lệ và lớn hơn 0; cập nhật tổng chi, số dư và cảnh báo vượt ngân sách.
+GET /expenses/{expense}/edit
+Owner
+Kiểm tra quyền sở hữu Trip chứa {expense} và mở biểu mẫu chỉnh sửa.
+PATCH /expenses/{expense}
+Owner
+Cập nhật khoản chi hợp lệ, số tiền lớn hơn 0; tính lại tổng chi và mức vượt.
+DELETE /expenses/{expense}
+Owner
+Xóa đúng khoản chi thuộc chuyến đi; tính lại dữ liệu ngân sách và danh sách giao dịch.
+Bảng 23. Reviews 
+Method và Route
+Quyền
+Xử lý chính và ràng buộc
+GET /destinations/{destination}/reviews
+Public
+Hiển thị các đánh giá đã được duyệt và được phép công khai của địa điểm.
+GET /destinations/{destination}/reviews/create
+Auth
+Mở biểu mẫu đánh giá địa điểm; kiểm tra người dùng đã có đánh giá tại địa điểm hay chưa.
+POST /destinations/{destination}/reviews
+Auth
+Kiểm tra điểm và nội dung; tạo đánh giá cho tài khoản hiện tại, tối đa một Review cho mỗi cặp người dùng và địa điểm; trạng thái ban đầu là pending.
+GET /reviews/{review}/edit
+Owner
+Mở biểu mẫu sửa đánh giá do chính người dùng tạo.
+PATCH /reviews/{review}
+Owner
+Cập nhật điểm và nội dung hợp lệ; không cho người dùng tự duyệt hoặc sửa chủ sở hữu của đánh giá.
+DELETE /reviews/{review}
+Owner
+Xóa đánh giá của người dùng; cập nhật dữ liệu hiển thị và điểm tổng hợp liên quan.
+Bảng 24. Booking & Payment 
+Method & Route
+Quyền
+Xử lý chính
+GET /room-types/{roomType}
+Public
+Xem thông tin loại phòng.
+POST /bookings
+User
+Kiểm tra dữ liệu và tạo Booking.
+GET /bookings
+User
+Xem Booking thuộc tài khoản.
+GET /bookings/{booking}
+Owner
+Xem chi tiết Booking.
+PATCH /bookings/{booking}/cancel
+Owner
+Kiểm tra trạng thái và hủy Booking.
+GET /bookings/{booking}/payment
+Owner
+Xem thông tin Payment của Booking.
+POST /bookings/{booking}/payment
+Owner
+Thực hiện thanh toán cho Booking.
+POST /payments/callback
+System
+Webhook nhận kết quả từ cổng thanh toán.
+Bảng 25. Administration 
+Method và Route
+Quyền
+Xử lý chính và ràng buộc
+GET /admin
+Admin
+Dashboard thống kê người dùng, chuyến đi và dữ liệu hệ thống.
+GET /admin/users
+Admin
+Danh sách, tìm kiếm và lọc tài khoản.
+GET /admin/users/create
+Admin
+Mở biểu mẫu tạo tài khoản.
+POST /admin/users
+Admin
+Kiểm tra email duy nhất, mật khẩu và vai trò được phép; tạo tài khoản.
+GET /admin/users/{user}
+Admin
+Xem chi tiết tài khoản.
+GET /admin/users/{user}/edit
+Admin
+Mở biểu mẫu chỉnh sửa tài khoản.
+PATCH /admin/users/{user}
+Admin
+Cập nhật tài khoản; chặn Admin tự xóa quyền quản trị và thao tác làm mất Admin cuối cùng.
+PATCH /admin/users/{user}/status
+Admin
+Khóa/mở khóa bằng is_active; tài khoản bị khóa phải bị chặn sử dụng phiên. Bảo vệ khả năng quản trị còn lại của hệ thống.
+DELETE /admin/users/{user}
+Admin
+Xóa mềm tài khoản, giữ liên kết khóa ngoại; không xóa Admin cuối cùng.
+GET /admin/cities
+Admin
+Danh sách thành phố.
+GET /admin/cities/create
+Admin
+Mở biểu mẫu thêm thành phố.
+POST /admin/cities
+Admin
+Tạo thành phố với slug duy nhất.
+GET /admin/cities/{city}/edit
+Admin
+Mở biểu mẫu sửa thành phố.
+PATCH /admin/cities/{city}
+Admin
+Cập nhật dữ liệu thành phố hợp lệ.
+DELETE /admin/cities/{city}
+Admin
+Kiểm tra địa điểm và dữ liệu tham chiếu trước khi xóa.
+GET /admin/categories
+Admin
+Danh sách danh mục địa điểm.
+GET /admin/categories/create
+Admin
+Mở biểu mẫu thêm danh mục.
+POST /admin/categories
+Admin
+Tạo danh mục với slug duy nhất.
+GET /admin/categories/{category}/edit
+Admin
+Mở biểu mẫu sửa danh mục.
+PATCH /admin/categories/{category}
+Admin
+Cập nhật danh mục hợp lệ.
+DELETE /admin/categories/{category}
+Admin
+Từ chối xóa danh mục đang được sử dụng.
+GET /admin/destinations
+Admin
+Danh sách và quản lý địa điểm.
+GET /admin/destinations/create
+Admin
+Mở biểu mẫu thêm địa điểm.
+POST /admin/destinations
+Admin
+Tạo địa điểm với thành phố, danh mục hợp lệ và slug duy nhất.
+GET /admin/destinations/{destination}
+Admin
+Xem chi tiết dữ liệu địa điểm phục vụ quản trị.
+GET /admin/destinations/{destination}/edit
+Admin
+Mở biểu mẫu sửa địa điểm.
+PATCH /admin/destinations/{destination}
+Admin
+Cập nhật thông tin, cờ nổi bật và nơi lưu trú; kiểm tra dữ liệu liên quan.
+DELETE /admin/destinations/{destination}
+Admin
+Kiểm tra lịch trình và các liên kết; áp dụng xóa mềm với địa điểm đang có lịch trình.
+GET /admin/room-types
+Admin
+Danh sách loại phòng.
+GET /admin/room-types/create
+Admin
+Mở biểu mẫu thêm loại phòng cho nơi lưu trú.
+POST /admin/room-types
+Admin
+Tạo loại phòng; kiểm tra địa điểm, sức chứa, giá mỗi đêm và số lượng hợp lệ.
+GET /admin/room-types/{roomType}/edit
+Admin
+Mở biểu mẫu sửa loại phòng.
+PATCH /admin/room-types/{roomType}
+Admin
+Cập nhật loại phòng và kiểm tra ảnh hưởng tới Booking liên quan.
+DELETE /admin/room-types/{roomType}
+Admin
+Kiểm tra Booking tham chiếu trước khi xóa, không làm mất tính toàn vẹn dữ liệu.
+GET /admin/destinations/{destination}/images
+Admin
+Xem và quản lý ảnh của địa điểm.
+POST /admin/destinations/{destination}/images
+Admin
+Tải ảnh hợp lệ, dung lượng nhỏ hơn 2 MB; thêm ảnh thuộc đúng địa điểm.
+PATCH /admin/images/{image}
+Admin
+Cập nhật thuộc tính ảnh; khi chọn ảnh chính, bảo đảm mỗi địa điểm chỉ có một ảnh.
+DELETE /admin/images/{image}
+Admin
+Xóa ảnh được chọn và xử lý dữ liệu liên quan; giữ ràng buộc ảnh chính của địa điểm.
+GET /admin/reviews
+Admin
+Danh sách đánh giá, phục vụ kiểm duyệt.
+GET /admin/reviews/{review}/edit
+Admin
+Mở biểu mẫu cập nhật đánh giá theo quyền Admin.
+PATCH /admin/reviews/{review}
+Admin
+Cập nhật nội dung hợp lệ theo quyền quản trị và ghi nhật ký thao tác cần thiết.
+PATCH /admin/reviews/{review}/status
+Admin
+Duyệt hoặc ẩn đánh giá; đồng bộ dữ liệu công khai và điểm tổng hợp của địa điểm.
+DELETE /admin/reviews/{review}
+Admin
+Xóa đánh giá theo quyền quản trị, cập nhật dữ liệu liên quan.
+GET /admin/bookings
+Admin
+Danh sách Booking phục vụ quản trị.
+GET /admin/bookings/{booking}
+Admin
+Xem chi tiết Booking.
+PATCH /admin/bookings/{booking}/status
+Admin
+Cập nhật trạng thái sau khi kiểm tra chuyển đổi hợp lệ và dữ liệu thanh toán liên quan.
+GET /admin/payments
+Admin
+Danh sách giao dịch và trạng thái thanh toán.
+GET /admin/payments/{payment}
+Admin
+Xem thông tin giao dịch của Booking tương ứng.
+PATCH /admin/payments/{payment}/status
+Admin
+Quản lý trạng thái giao dịch theo bằng chứng và chuyển đổi được phép; giữ nhất quán với Booking và ghi nhật ký.
+GET /admin/activity-logs
+Admin
+Xem nhật ký hoạt động; không cung cấp thao tác sửa nhật ký và không hiển thị mật khẩu, token hoặc dữ liệu phiên.
+Bảng 26. AI Chatbot (Mở rộng)
+Method & Route
+Quyền
+Xử lý chính
+GET /ai/conversations
+User
+Xem lịch sử hội thoại của tài khoản hiện tại khi có triển khai lưu lịch sử. 
+POST /ai/conversations
+User
+Tạo hội thoại thuộc tài khoản hiện tại; kiểm tra quyền sở hữu Trip nếu gắn hội thoại với chuyến đi. 
+POST /ai/conversations/{conversation}/messages
+User
+Kiểm tra quyền sở hữu hội thoại, nhận tin nhắn và trả phản hồi AI; lưu lịch sử nếu chức năng này được triển khai. 
+2.7 Quy tắc phản hồi và kiểm tra đầu vào
+Bảng 27. Bảng quy tắc ràng buộc các dữ liệu
+Dữ liệu
+Quy tắc ràng buộc
+Lỗi giả định
+Kết quả nghiệm thu
+name
+bắt buộc, không rỗng, độ dài trong giới hạn cho phép
+bỏ trống name
+không tạo/cập nhật dữ liệu, hiển thị lỗi tại name
+email
+bắt buộc, đúng định dạng email, không trùng tài khoản đã tồn tại
+nhập abc, hoặc email đã tồn tại
+hiển thị lỗi email, không tạo tài khoản
+password
+bắt buộc, đạt độ dài tối thiểu, phải khớp password confirmation
+password quá ngắn hoặc không khớp
+hiển thị lỗi, không tạo/cập nhật mật khẩu
+password confirmation
+bắt buộc và phải giống password
+nhập hai mật khẩu khác nhau
+hiển thị lỗi xác nhận mật khẩu
+trip name
+bắt buộc, không rỗng, độ dài trong giới hạn cho phép
+tạo trip không có tên
+không tạo trip, hiển thị lỗi
+trip date
+ngày bắt đầu không sau ngày kết thúc
+start date > end date
+không lưu trip, hiển thị lỗi ngày
+itinerary
+phải thuộc trip hợp lệ và user có quyền sở hữu trip
+thêm itinerary vào trip không thuộc user
+trả lỗi quyền truy cập, không tạo dữ liệu
+itinerary date/time
+phải nằm trong khoảng thời gian của trip
+hoạt động nằm ngoài thời gian trip
+không lưu itinerary, hiển thị lỗi
+expense amount
+bắt buộc, là số và lớn hơn 0
+nhập chữ hoặc số âm
+không lưu expense, hiển thị lỗi
+expense
+phải thuộc trip hợp lệ
+expense tham chiếu trip không tồn tại
+không lưu dữ liệu
+favorite
+destination phải tồn tại, không được trùng favorite của cùng user
+thêm cùng destination hai lần
+không tạo bản ghi trùng
+review
+phải có destination hợp lệ, nội dung hợp lệ và rating trong khoảng quy định
+rating ngoài khoảng cho phép
+không tạo review, hiển thị lỗi
+booking
+room type phải tồn tại, ngày nhận/trả phòng hợp lệ
+checkout trước check-in
+không tạo booking, hiển thị lỗi
+booking quantity
+số lượng phòng phải là số nguyên và lớn hơn 0
+nhập 0 hoặc số âm
+không tạo booking
+payment
+phải gắn với booking hợp lệ
+payment tham chiếu booking không tồn tại
+không ghi payment
+image
+đúng định dạng và kích thước cho phép
+upload file không phải ảnh hoặc vượt giới hạn
+từ chối file và hiển thị lỗi
+quyền truy cập
+user chỉ được thao tác trên dữ liệu thuộc quyền sở hữu
+sửa trip của user khác
+trả lỗi 403, không thay đổi dữ liệu
+payment amount 
+bắt buộc phải bằng chính xác trường total_price của booking tương ứng lấy từ hệ thống. 
+dùng công cụ can thiệp request để gửi số tiền thanh toán thấp hơn giá trị thực của booking 
+từ chối giao dịch, không tạo bản ghi payment và hiển thị lỗi sai lệch số tiền. 
+Bảng 28. Bảng quy tắc phản hồi HTTP
+Mã
+Trường hợp
+Phản hồi
+200
+xem hoặc cập nhật dữ liệu thành công
+trả dữ liệu hoặc trang kết quả
+201
+tạo dữ liệu thành công khi sử dụng api
+trả thông tin resource vừa tạo
+204
+xóa dữ liệu thành công khi sử dụng api
+không trả nội dung
+302
+thao tác form blade thành công
+chuyển hướng đến trang kết quả
+401
+chưa đăng nhập nhưng truy cập chức năng yêu cầu user
+chuyển đến trang đăng nhập
+403
+đã đăng nhập nhưng không có quyền
+hiển thị trang không có quyền truy cập
+404
+resource không tồn tại
+hiển thị trang không tìm thấy
+422
+dữ liệu đầu vào không hợp lệ
+trả lỗi validation tại các trường tương ứng
+409
+xảy ra xung đột dữ liệu
+thông báo dữ liệu đã tồn tại hoặc trạng thái không cho phép thao tác
+429
+gửi request vượt giới hạn
+thông báo yêu cầu quá nhiều lần
+Bảng 29. Bảng nghiệm thu các thao tác có khả năng xảy ra
+Trường hợp kiểm tra
+Yêu cầu nghiệm thu
+bỏ trống trường bắt buộc
+không ghi dữ liệu và hiển thị lỗi
+nhập sai định dạng
+không ghi dữ liệu và hiển thị lỗi
+nhập vượt giới hạn
+không ghi dữ liệu và hiển thị lỗi
+nhập dữ liệu không tồn tại
+trả lỗi phù hợp, không thực hiện nghiệp vụ
+truy cập resource của user khác
+trả 403, không thay đổi dữ liệu
+gửi request chưa đăng nhập
+yêu cầu đăng nhập
+gửi dữ liệu trùng
+không tạo bản ghi trùng, thông báo lỗi
+lỗi database khi ghi dữ liệu
+rollback transaction, không lưu dữ liệu một phần
+upload file không hợp lệ
+từ chối file và không lưu file
+thao tác thành công
+lưu dữ liệu đúng và trả kết quả tương ứng
+Nguyên tắc xử lý nghiệp vụ khi phát triển hệ thống:
+Validation được thực hiện trước khi gọi Service.
+Policy kiểm tra quyền trước các thao tác xem, sửa, xóa dữ liệu cần phân quyền.
+Service không thực hiện thao tác nếu dữ liệu không hợp lệ.
+Các thao tác ghi nhiều bảng phải sử dụng Transaction khi cần đảm bảo tính toàn vẹn.
+Lỗi Validation phải hiển thị rõ trường và nguyên nhân.
+Lỗi hệ thống không được hiển thị thông tin nhạy cảm như cấu hình Database hoặc Stack Trace cho người dùng.
+Dữ liệu hợp lệ đã nhập phải được giữ lại khi Form Validation thất bại.
+Resource được tham chiếu phải tồn tại trước khi thực hiện thao tác liên quan.
+Không cho phép tạo dữ liệu trùng khi nghiệp vụ yêu cầu duy nhất.
+Không cho phép sử dụng dữ liệu của tài khoản khác khi User không có quyền sở hữu.
+Thao tác xóa phải kiểm tra các dữ liệu liên quan trước khi xóa.
+Không cho phép thực hiện thao tác khi trạng thái hiện tại của dữ liệu không phù hợp với nghiệp vụ.
+Dữ liệu ngày giờ phải được kiểm tra đúng định dạng và đúng thứ tự trước khi lưu.
+Các giá trị số như số lượng và chi phí phải đúng kiểu dữ liệu và nằm trong phạm vi cho phép.
+File Upload phải được kiểm tra loại file, kích thước và tên file trước khi lưu.
+Request không hợp lệ phải kết thúc tại lớp Validation và không được ghi dữ liệu xuống Database.
+Request chưa đăng nhập phải được chuyển đến trang đăng nhập hoặc trả về mã 401 tùy loại Request.
+Request không có quyền phải trả về 403 và không được thực hiện nghiệp vụ.
+Resource không tồn tại phải trả về 404 và không tiếp tục xử lý.
+Thao tác tạo, cập nhật hoặc xóa thành công phải trả về trạng thái phù hợp và thông báo kết quả rõ ràng.
+Khi xảy ra lỗi trong Transaction, toàn bộ thay đổi liên quan phải được Rollback.
+Các thao tác quan trọng như Booking và Payment phải kiểm tra trạng thái trước khi cập nhật.
+Không cho phép gửi lại cùng một Request tạo dữ liệu dẫn đến bản ghi trùng nếu nghiệp vụ yêu cầu chống trùng.
+Dữ liệu hiển thị cho User phải được lọc theo quyền truy cập, không trả về dữ liệu ngoài phạm vi được phép.
+Các lỗi phát sinh trong hệ thống phải được ghi Log để Dev kiểm tra nhưng không hiển thị chi tiết kỹ thuật cho người dùng.
+Các thông báo lỗi phải thống nhất về nội dung và cách hiển thị trên toàn hệ thống.
+Sau khi thao tác thành công, hệ thống phải chuyển về đúng màn hình hoặc Resource liên quan.
+Dữ liệu sau khi lưu phải được kiểm tra lại để đảm bảo thông tin hiển thị khớp với dữ liệu trong Database.
+3 DATABASE VÀ MÔ HÌNH ERD
+3.1 Mô hình ERD
+Thiết kế kế thừa 16 bảng nghiệp vụ theo ERD: users, cities, categories, destinations, destination_images, room_types, favorites, trips, itinerary_items, expenses, reviews, bookings và payments. ERD được sử dụng làm cơ sở để tạo migration, khóa ngoại và các ràng buộc dữ liệu. 
+Hình 4. Mô hình ERD Travel Planner đầy đủ 
+3.2 Cấu trúc dữ liệu của Database
+Quy ước chung: Trường id của mỗi bảng là khóa chính (PK), sử dụng kiểu BIGINT và được định danh duy nhất. Các trường khóa ngoại (FK) sử dụng kiểu dữ liệu tương ứng với khóa chính mà chúng tham chiếu. Các trường được đánh dấu NULL trên ERD được phép để trống; các trường không đánh dấu NULL được xem là bắt buộc, trừ trường hợp có giá trị mặc định được quy định trong thiết kế triển khai.
+created_at và updated_at dùng TIMESTAMP khi bảng cần theo dõi tạo và cập nhật. favorites và activity_logs chỉ có created_at; sessions dùng last_activity dạng số giây Unix. Trường UK là khóa duy nhất, gồm users.email, cities.slug, categories.slug, destinations.slug, bookings.booking_code và password_reset_tokens.email. Các khóa kết hợp được nêu ở mục 3.3.
+Kiểu dữ liệu của từng thuộc tính theo các bảng bên dưới, gồm BIGINT, VARCHAR, TEXT, LONGTEXT, JSON, DATE, TIME, DECIMAL, INT, TINYINT, BOOLEAN và TIMESTAMP. Migration tạo PK, FK, UK và chỉ mục cần thiết; các quy tắc liên bảng hoặc kiểm tra nghiệp vụ được thực hiện trong transaction và lớp Service.
+Bảng 30. Bảng User
+Trường
+Kiểu dữ liệu
+Ràng buộc và ý nghĩa
+id
+BIGINT
+PK; định danh người dùng
+name
+VARCHAR
+Họ và tên người dùng
+email
+VARCHAR
+UNIQUE; email đăng nhập
+password
+VARCHAR
+Mật khẩu đã được mã hóa
+role
+VARCHAR
+Vai trò của người dùng
+avatar
+VARCHAR
+NULL; đường dẫn ảnh đại diện
+email_verified_at
+TIMESTAMP
+NULL; thời điểm xác thực email đăng ký
+is_active
+BOOLEAN
+Mặc định TRUE; FALSE khi tài khoản bị khóa
+deleted_at
+TIMESTAMP
+NULL; thời điểm xóa mềm tài khoản
+created_at
+TIMESTAMP
+Thời điểm tạo
+updated_at
+TIMESTAMP
+Thời điểm cập nhật
+ 
+ 
+Bảng 31. Bảng Trips
+Trường
+Kiểu dữ liệu
+Ràng buộc và ý nghĩa
+id
+BIGINT
+PK; định danh chuyến đi
+user_id
+BIGINT
+FK → users.id; người tạo chuyến đi
+name
+VARCHAR
+Tên chuyến đi
+description
+TEXT
+NULL; mô tả chuyến đi
+start_date
+DATE
+NULL; ngày bắt đầu
+end_date
+DATE
+NULL; ngày kết thúc
+budget
+DECIMAL(12,2)
+Ngân sách chuyến đi
+status
+VARCHAR
+Trạng thái chuyến đi
+created_at
+TIMESTAMP
+Thời điểm tạo
+updated_at
+TIMESTAMP
+Thời điểm cập nhật
+ 
+Bảng 32. Bảng itinerary_items
+Trường
+Kiểu dữ liệu
+Ràng buộc và ý nghĩa
+id
+BIGINT
+PK; định danh mục lịch trình
+trip_id
+BIGINT
+FK → trips.id; chuyến đi chứa mục lịch trình
+destination_id
+BIGINT
+FK → destinations.id; NULL; địa điểm được tham chiếu
+booking_id
+BIGINT
+FK → bookings.id; NULL; booking liên quan, phải thuộc cùng Trip
+custom_title
+VARCHAR
+NULL; tiêu đề tùy chỉnh
+day_number
+INT
+Ngày thứ bao nhiêu trong chuyến đi
+start_time
+TIME
+NULL; thời gian bắt đầu
+end_time
+TIME
+NULL; thời gian kết thúc
+note
+TEXT
+NULL; ghi chú
+sort_order
+INT
+Thứ tự hiển thị trong lịch trình
+created_at
+TIMESTAMP
+Thời điểm tạo
+updated_at
+TIMESTAMP
+Thời điểm cập nhật
+ 
+Bảng 33. Bảng expenses
+Trường
+Kiểu dữ liệu
+Ràng buộc và ý nghĩa
+id
+BIGINT
+PK; định danh khoản chi
+trip_id
+BIGINT
+FK → trips.id; chuyến đi phát sinh chi phí
+category
+VARCHAR
+Phân loại khoản chi
+description
+TEXT
+NULL; mô tả khoản chi
+amount
+DECIMAL(12,2)
+Số tiền chi
+expense_date
+DATE
+NULL; ngày phát sinh chi phí
+created_at
+TIMESTAMP
+Thời điểm tạo
+updated_at
+TIMESTAMP
+Thời điểm cập nhật
+ 
+Bảng 34. Bảng cities
+Trường
+Kiểu dữ liệu
+Ràng buộc và ý nghĩa
+id
+BIGINT
+PK; định danh thành phố
+name
+VARCHAR
+Tên thành phố
+slug
+VARCHAR
+UNIQUE; định danh dạng URL
+description
+TEXT
+NULL; mô tả thành phố
+created_at
+TIMESTAMP
+Thời điểm tạo
+updated_at
+TIMESTAMP
+Thời điểm cập nhật
+ 
+Bảng 35. Bảng categories
+Trường
+Kiểu dữ liệu
+Ràng buộc và ý nghĩa
+id
+BIGINT
+PK; định danh danh mục
+name
+VARCHAR
+Tên danh mục
+slug
+VARCHAR
+UNIQUE; định danh dạng URL
+description
+TEXT
+NULL; mô tả danh mục
+created_at
+TIMESTAMP
+Thời điểm tạo
+updated_at
+TIMESTAMP
+Thời điểm cập nhật
+ 
+Bảng 36. Bảng destinations
+Trường
+Kiểu dữ liệu
+Ràng buộc và ý nghĩa
+id
+BIGINT
+PK; định danh địa điểm
+city_id
+BIGINT
+FK → cities.id; thành phố chứa địa điểm
+category_id
+BIGINT
+FK → categories.id; danh mục của địa điểm
+name
+VARCHAR
+Tên địa điểm
+slug
+VARCHAR
+UNIQUE; định danh dạng URL
+description
+TEXT
+NULL; mô tả địa điểm
+address
+VARCHAR
+NULL; địa chỉ
+entrance_fee
+DECIMAL(12,2)
+Phí vào cửa
+opening_time
+TIME
+NULL; giờ mở cửa
+closing_time
+TIME
+NULL; giờ đóng cửa
+duration
+INT
+NULL; thời lượng tham quan
+rating
+DECIMAL(3,2)
+Điểm đánh giá
+is_featured
+BOOLEAN
+Đánh dấu địa điểm nổi bật
+is_lodging
+BOOLEAN
+Xác định địa điểm có phải nơi lưu trú
+created_at
+TIMESTAMP
+Thời điểm tạo
+updated_at
+TIMESTAMP
+Thời điểm cập nhật
+ 
+Bảng 37. Bảng destination_images
+Trường
+Kiểu dữ liệu
+Ràng buộc và ý nghĩa
+id
+BIGINT
+PK; định danh hình ảnh
+destination_id
+BIGINT
+FK → destinations.id; địa điểm sở hữu hình ảnh
+image_path
+VARCHAR
+Đường dẫn hình ảnh
+is_primary
+BOOLEAN
+Xác định hình ảnh chính
+created_at
+TIMESTAMP
+Thời điểm tạo
+updated_at
+TIMESTAMP
+Thời điểm cập nhật
+ 
+ 
+Bảng 38. Bảng room_types
+Trường
+Kiểu dữ liệu
+Ràng buộc và ý nghĩa
+id
+BIGINT
+PK; định danh loại phòng
+destination_id
+BIGINT
+FK → destinations.id; nơi lưu trú chứa loại phòng
+name
+VARCHAR
+Tên loại phòng
+capacity
+INT
+Sức chứa
+price_per_night
+DECIMAL(12,2)
+Giá mỗi đêm
+quantity
+INT
+Số lượng phòng
+description
+TEXT
+NULL; mô tả loại phòng
+created_at
+TIMESTAMP
+Thời điểm tạo
+updated_at
+TIMESTAMP
+Thời điểm cập nhật
+ 
+Bảng 39. Bảng bookings
+Trường
+Kiểu dữ liệu
+Ràng buộc và ý nghĩa
+id
+BIGINT
+PK; định danh booking
+user_id
+BIGINT
+FK → users.id; người thực hiện booking
+trip_id
+BIGINT
+FK → trips.id; NULL; chuyến đi liên quan
+room_type_id
+BIGINT
+FK → room_types.id; loại phòng được đặt
+room_count
+INT
+Số lượng phòng đặt
+check_in_date
+DATE
+Ngày nhận phòng
+check_out_date
+DATE
+Ngày trả phòng
+total_price
+DECIMAL(12,2)
+Tổng giá trị booking
+status
+VARCHAR
+Trạng thái booking
+booking_code
+VARCHAR
+UNIQUE; mã booking
+created_at
+TIMESTAMP
+Thời điểm tạo
+updated_at
+TIMESTAMP
+Thời điểm cập nhật
+ 
+Bảng 40. Bảng payments
+Trường
+Kiểu dữ liệu
+Ràng buộc và ý nghĩa
+id
+BIGINT
+PK; định danh giao dịch thanh toán
+booking_id
+BIGINT
+FK → bookings.id; booking được thanh toán
+amount
+DECIMAL(12,2)
+Số tiền thanh toán
+payment_method
+VARCHAR
+Phương thức thanh toán
+transaction_id
+VARCHAR
+NULL; mã giao dịch
+status
+VARCHAR
+Trạng thái thanh toán
+payment_date
+TIMESTAMP
+NULL; thời điểm thanh toán
+created_at
+TIMESTAMP
+Thời điểm tạo
+updated_at
+TIMESTAMP
+Thời điểm cập nhật
+ 
+Bảng 41. Bảng favorites
+Trường
+Kiểu dữ liệu
+Ràng buộc và ý nghĩa
+id
+BIGINT
+PK; định danh yêu thích
+user_id
+BIGINT
+FK → users.id; người dùng đánh dấu yêu thích
+destination_id
+BIGINT
+FK → destinations.id; địa điểm được yêu thích
+created_at
+TIMESTAMP
+Thời điểm thêm vào danh sách yêu thích
+ 
+Bảng 42. Bảng reviews
+Trường
+Kiểu dữ liệu
+Ràng buộc và ý nghĩa
+id
+BIGINT
+PK; định danh đánh giá
+user_id
+BIGINT
+FK → users.id; người viết đánh giá
+destination_id
+BIGINT
+FK → destinations.id; địa điểm được đánh giá
+rating
+TINYINT
+Điểm đánh giá
+comment
+TEXT
+NULL; nội dung đánh giá
+status
+VARCHAR
+Trạng thái đánh giá
+created_at
+TIMESTAMP
+Thời điểm tạo
+updated_at
+TIMESTAMP
+Thời điểm cập nhật
+ 
+Bảng 43. Bảng password_reset_tokens
+Trường
+Kiểu dữ liệu
+Ràng buộc và ý nghĩa
+email
+VARCHAR
+PK; email yêu cầu khôi phục, liên kết logic với users.email
+token
+VARCHAR
+Token đặt lại mật khẩu ở dạng băm; không lưu token gốc
+created_at
+TIMESTAMP
+NULL; thời điểm phát hành, dùng để kiểm tra hạn hiệu lực
+ 
+Bảng 44. Bảng sessions
+Trường
+Kiểu dữ liệu
+Ràng buộc và ý nghĩa
+id
+VARCHAR(255)
+PK; định danh phiên đăng nhập
+user_id
+BIGINT
+FK → users.id; NULL cho phiên khách; đánh chỉ mục
+ip_address
+VARCHAR(45)
+NULL; địa chỉ IP
+user_agent
+TEXT
+NULL; thông tin trình duyệt
+payload
+LONGTEXT
+Dữ liệu phiên do Laravel quản lý
+last_activity
+INT
+Thời điểm hoạt động gần nhất theo Unix time; đánh chỉ mục
+ 
+Bảng 45. Bảng activity_logs
+Trường
+Kiểu dữ liệu
+Ràng buộc và ý nghĩa
+id
+BIGINT
+PK; định danh nhật ký
+user_id
+BIGINT
+FK → users.id; NULL nếu tác nhân không xác định
+action
+VARCHAR
+Tên hành động như đăng nhập, khóa tài khoản, duyệt review
+subject_type
+VARCHAR
+NULL; loại đối tượng bị tác động
+subject_id
+BIGINT
+NULL; ID đối tượng; liên kết đa hình, không đặt FK
+metadata
+JSON
+NULL; chi tiết không chứa mật khẩu, token hoặc dữ liệu phiên
+ip_address
+VARCHAR(45)
+NULL; IP phát sinh hành động
+created_at
+TIMESTAMP
+Thời điểm ghi nhật ký; bản ghi chỉ thêm
+ 
+Các bảng AI dưới đây chỉ cần tạo khi nhóm triển khai lưu lịch sử chatbot ở mục 1.2. Gợi ý AI được chấp nhận sẽ ghi thành itinerary_items thông qua kiểm tra ngày, giờ và quyền sở hữu Trip; kết quả tạm thời không bắt buộc lưu riêng.
+Bảng 46. Bảng ai_conversations (mở rộng AI)
+Trường
+Kiểu dữ liệu
+Ràng buộc và ý nghĩa
+id
+BIGINT
+PK; định danh cuộc hội thoại
+user_id
+BIGINT
+FK → users.id; chủ cuộc hội thoại
+trip_id
+BIGINT
+FK → trips.id; NULL nếu hỏi chung, Trip phải thuộc user_id
+created_at
+TIMESTAMP
+Thời điểm bắt đầu
+updated_at
+TIMESTAMP
+Thời điểm cập nhật gần nhất
+ 
+Bảng 47. Bảng ai_messages (mở rộng AI)
+Trường
+Kiểu dữ liệu
+Ràng buộc và ý nghĩa
+id
+BIGINT
+PK; định danh tin nhắn
+conversation_id
+BIGINT
+FK → ai_conversations.id
+role
+VARCHAR
+Giá trị user hoặc assistant
+content
+TEXT
+Nội dung tin nhắn; giới hạn truy cập theo chủ hội thoại
+created_at
+TIMESTAMP
+Thời điểm gửi
+ 
+3.3 Đối chiếu chức năng và ràng buộc dữ liệu
+Ràng buộc duy nhất: favorites(user_id, destination_id) không lặp; chỉ một destination_image có is_primary = TRUE cho mỗi destination (kiểm soát bằng transaction hoặc chỉ mục phù hợp MySQL). bookings.booking_code duy nhất; payments.transaction_id duy nhất khi khác NULL. Trạng thái và role dùng tập giá trị thống nhất trong ứng dụng.
+Ràng buộc nghiệp vụ: trips.end_date không trước start_date; itinerary_items.day_number nằm trong số ngày Trip và end_time sau start_time. Dịch chuyển ngày Trip phải kiểm tra hoặc cập nhật lịch trình, booking và chi phí liên quan trong transaction. expenses.amount và payments.amount không âm; room_count dương, check_out_date sau check_in_date, lượng phòng còn trống được kiểm tra đồng thời trước khi xác nhận booking.
+Quyền sở hữu: trip, expense, itinerary, favorite, review, booking và cuộc hội thoại AI chỉ được truy cập bởi user tương ứng hoặc Admin theo phân quyền. itinerary_items.booking_id, nếu có, phải trỏ đến booking cùng Trip và cùng chủ sở hữu. Khi xóa mềm users, giữ FK và chặn đăng nhập bằng is_active/deleted_at; nhật ký không ghi mật khẩu hoặc token. Lỗi hệ thống được ghi qua logging của Laravel, không cần thêm bảng lỗi.
+3.4 Migration và dữ liệu mẫu
+Migration tạo users, cities, categories trước; tiếp theo là destinations, trips, password_reset_tokens, sessions, activity_logs, room_types và các bảng phụ thuộc destination_images, favorites, reviews, expenses, bookings, payments, itinerary_items. Nếu triển khai lưu hội thoại AI, tạo ai_conversations rồi ai_messages sau users và trips. Khi rollback, xóa theo thứ tự phụ thuộc ngược lại; khóa ngoại bắt buộc không được trỏ tới bản ghi không tồn tại.
+Seeder tạo dữ liệu mẫu đúng FK, bao gồm người dùng hoạt động/bị khóa, địa điểm lưu trú và loại phòng, chuyến đi có lịch trình và chi phí, booking có giao dịch thanh toán và review ở các trạng thái duyệt. Không tạo dữ liệu mẫu chứa token đặt lại mật khẩu hoặc nội dung riêng tư của phiên đăng nhập.
+4 DEMO GIAO DIỆN
+4.1 Xác thực & Tài khoản
+Hình 5. Màn hình đăng ký
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Nhập họ và tên
+Trường Họ và tên là bắt buộc. Không chấp nhận giá trị chỉ chứa khoảng trắng. Giới hạn độ dài phù hợp, tối đa 40 ký tự.
+Vui lòng nhập họ và tên.
+Nhập Email
+Trường Email là bắt buộc và phải đúng định dạng email hợp lệ, ví dụ example@gmail.com. Khoảng trắng ở đầu/cuối cần được loại bỏ trước khi kiểm tra.
+Vui lòng nhập email hợp lệ.
+Kiểm tra Email đã tồn tại
+Email dùng để đăng ký phải chưa được sử dụng bởi tài khoản khác trong hệ thống. Việc kiểm tra được thực hiện khi người dùng gửi yêu cầu đăng ký.
+Email này đã được sử dụng. Vui lòng sử dụng email khác.
+Nhập mật khẩu
+Trường Mật khẩu là bắt buộc. Nên quy định độ dài tối thiểu, ví dụ 8 ký tự, và áp dụng chính sách độ mạnh mật khẩu của hệ thống nếu có.
+Mật khẩu phải có ít nhất 8 ký tự.
+Xác nhận mật khẩu
+Trường Xác nhận mật khẩu là bắt buộc và phải trùng khớp hoàn toàn với trường Mật khẩu.
+Mật khẩu xác nhận không khớp.
+Hiển thị/ẩn mật khẩu
+Mật khẩu và xác nhận mật khẩu mặc định được che. Khi nhấn biểu tượng mắt, hệ thống chuyển đổi giữa trạng thái hiển thị và ẩn nội dung mật khẩu mà không làm thay đổi giá trị đã nhập.
+Không áp dụng.
+Đăng ký tài khoản
+Khi nhấn Đăng ký, hệ thống kiểm tra toàn bộ dữ liệu. Chỉ tạo tài khoản khi tất cả thông tin hợp lệ. Sau khi đăng ký thành công, hệ thống chuyển người dùng sang bước tiếp theo theo luồng của ứng dụng (ví dụ trang đăng nhập hoặc xác thực email).
+Đăng ký không thành công. Vui lòng kiểm tra thông tin và thử lại.
+Hình 6. Màn hình đăng nhập
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Nhập Email
+Trường Email là bắt buộc. Giá trị nhập phải đúng định dạng email và cần loại bỏ khoảng trắng ở đầu/cuối trước khi kiểm tra.
+Vui lòng nhập email hợp lệ.
+Nhập mật khẩu
+Trường Mật khẩu là bắt buộc. Mật khẩu mặc định phải được che để đảm bảo tính riêng tư. Người dùng có thể nhấn biểu tượng mắt để hiển thị/ẩn mật khẩu.
+Vui lòng nhập mật khẩu.
+Xác thực CAPTCHA
+Người dùng bắt buộc nhập mã CAPTCHA hiển thị trên màn hình. Mã nhập phải khớp với CAPTCHA hiện tại trước khi hệ thống thực hiện đăng nhập.
+Mã CAPTCHA không chính xác.
+Làm mới CAPTCHA
+Khi nhấn biểu tượng Làm mới, hệ thống phải tạo CAPTCHA mới và CAPTCHA cũ lập tức hết hiệu lực. Giá trị CAPTCHA người dùng đã nhập nên được xóa để tránh gửi nhầm mã cũ.
+Không thể tạo mã CAPTCHA mới. Vui lòng thử lại.
+Ghi nhớ đăng nhập
+Khi chọn Ghi nhớ đăng nhập, hệ thống duy trì trạng thái đăng nhập theo thời hạn được cấu hình. Nếu không chọn, phiên đăng nhập tuân theo thời gian sống mặc định của hệ thống.
+Không áp dụng.
+Đăng nhập
+Khi nhấn Đăng nhập, hệ thống kiểm tra các trường bắt buộc, CAPTCHA và thông tin xác thực. Chỉ cho phép đăng nhập khi toàn bộ dữ liệu hợp lệ. Sau khi thành công, chuyển người dùng tới trang phù hợp, mặc định có thể là Trang chủ.
+Email hoặc mật khẩu không chính xác.
+Đăng nhập bằng Facebook/Google
+Khi chọn Facebook hoặc Google, hệ thống chuyển sang luồng xác thực của nhà cung cấp tương ứng. Khi xác thực thành công, người dùng được đăng nhập hoặc tạo/liên kết tài khoản theo chính sách hệ thống.
+Đăng nhập không thành công. Vui lòng thử lại.
+Hình 7. Màn hình quên mật khẩu
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Nhập Email
+Email là trường bắt buộc. Giá trị phải đúng định dạng email hợp lệ và cần loại bỏ khoảng trắng ở đầu/cuối trước khi xử lý.
+Vui lòng nhập email hợp lệ.
+Kiểm tra tài khoản
+Khi người dùng gửi yêu cầu, hệ thống xử lý email theo chính sách bảo mật của chức năng khôi phục mật khẩu. Nếu tài khoản hợp lệ, hệ thống tạo yêu cầu đặt lại mật khẩu.
+Theo chính sách bảo mật của hệ thống.
+Gửi hướng dẫn đặt lại mật khẩu
+Khi nhấn Gửi hướng dẫn, hệ thống gửi email chứa hướng dẫn hoặc liên kết đặt lại mật khẩu đến địa chỉ hợp lệ. Liên kết đặt lại mật khẩu phải có thời hạn sử dụng.
+Không thể gửi hướng dẫn. Vui lòng thử lại.
+Bảo mật thông tin tài khoản
+Để tránh dò tìm tài khoản, nên sử dụng thông báo chung sau khi gửi yêu cầu thay vì xác nhận trực tiếp email có tồn tại trong hệ thống hay không.
+Có thể hiển thị: Nếu email được đăng ký, hướng dẫn đặt lại mật khẩu sẽ được gửi đến email của bạn.
+Giới hạn số lần gửi
+Hệ thống nên giới hạn tần suất gửi yêu cầu quên mật khẩu theo email/IP hoặc cơ chế bảo mật tương đương để tránh spam và lạm dụng.
+Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau.
+Hiệu lực liên kết đặt lại mật khẩu
+Liên kết/token đặt lại mật khẩu chỉ được sử dụng trong thời hạn quy định và nên mất hiệu lực sau khi đặt lại mật khẩu thành công.
+Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.
+Quay lại đăng nhập
+Khi nhấn Quay lại đăng nhập, hệ thống điều hướng người dùng về màn hình Đăng nhập mà không gửi yêu cầu đặt lại mật khẩu.
+Không áp dụng.
+Hình 8. Màn hình đặt lại mật khẩu
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Màn hình Đặt lại mật khẩu mới
+Cho phép người dùng nhập mật khẩu mới và xác nhận mật khẩu mới
+Không có lỗi nghiệp vụ rõ ràng
+Nền trang
+Nền xám thuần, trung tính, không dùng hình ảnh trang trí
+Nền cần giữ đơn giản để tập trung vào form
+Khung nội dung
+Một card trắng ở giữa màn hình, bo góc nhẹ, có shadow nhẹ
+Card hơi lớn nhưng vẫn phù hợp với bố cục
+Tiêu đề
+“Đặt lại mật khẩu mới”, đặt ở phía trên và nổi bật
+Không cần subtitle hoặc mô tả nhỏ bên dưới theo guideline chung
+Mật khẩu mới
+Input “Mật khẩu mới”, hiển thị trạng thái mật khẩu đã nhập
+Nên có chức năng hiện/ẩn mật khẩu vì đây là trường password
+Xác nhận mật khẩu
+Input “Xác nhận mật khẩu mới”
+Nên có chức năng hiện/ẩn mật khẩu và kiểm tra hai mật khẩu có khớp
+Nút thao tác
+Button chính “Cập nhật”, màu xanh, full width
+Không cần thêm icon vì nút đã đủ rõ về chức năng
+Tổng thể
+Tối giản, ít thành phần, tập trung vào thao tác cập nhật mật khẩu
+Thiết kế hiện tại đã khá phù hợp với guideline; có thể giảm khoảng trắng/card nếu cần tối ưu màn hình nhỏ
+Hình 9. Màn hình đổi mật khẩu
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Màn hình Đặt lại mật khẩu mới
+Cho phép người dùng nhập mật khẩu mới và xác nhận mật khẩu mới
+Không có lỗi nghiệp vụ rõ ràng
+Nền trang
+Nền xám thuần, trung tính, không dùng hình ảnh trang trí
+Nền cần giữ đơn giản để tập trung vào form
+Khung nội dung
+Một card trắng ở giữa màn hình, bo góc nhẹ, có shadow nhẹ
+Card hơi lớn nhưng vẫn phù hợp với bố cục
+Tiêu đề
+“Đặt lại mật khẩu mới”, đặt ở phía trên và nổi bật
+Không cần subtitle hoặc mô tả nhỏ bên dưới theo guideline chung
+Mật khẩu mới
+Input “Mật khẩu mới”, hiển thị trạng thái mật khẩu đã nhập
+Nên có chức năng hiện/ẩn mật khẩu vì đây là trường password
+Xác nhận mật khẩu
+Input “Xác nhận mật khẩu mới”
+Nên có chức năng hiện/ẩn mật khẩu và kiểm tra hai mật khẩu có khớp
+Nút thao tác
+Button chính “Cập nhật”, màu xanh, full width
+Không cần thêm icon vì nút đã đủ rõ về chức năng
+Tổng thể
+Tối giản, ít thành phần, tập trung vào thao tác cập nhật mật khẩu
+Thiết kế hiện tại đã khá phù hợp với guideline; có thể giảm khoảng trắng/card nếu cần tối ưu màn hình nhỏ
+Hình 10. Màn hình Hồ sơ cá nhân
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Hồ sơ cá nhân
+Cho phép người dùng xem và quản lý thông tin tài khoản cá nhân
+—
+Thông tin tài khoản
+Cho phép cập nhật họ tên, email, số điện thoại, thành phố sinh sống, ảnh đại diện và giới thiệu cá nhân
+—
+Xác minh Email
+Hiển thị trạng thái email của tài khoản
+Cần có quy trình xử lý khi email chưa được xác minh
+Thống kê tài khoản
+Hiển thị số chuyến đi, lượt yêu thích và đánh giá của người dùng
+—
+Đổi mật khẩu
+Cho phép người dùng chuyển sang chức năng đổi mật khẩu
+—
+Lưu thay đổi
+Lưu các thông tin cá nhân đã chỉnh sửa
+Cần kiểm tra dữ liệu hợp lệ trước khi lưu và thông báo kết quả
+Đặt lại
+Khôi phục các thông tin đang chỉnh sửa về dữ liệu trước khi thay đổi
+—
+Đăng xuất
+Kết thúc phiên đăng nhập hiện tại
+Nên xác nhận hoặc xử lý rõ trạng thái sau khi đăng xuất
+4.2 Khám phá và địa điểm
+Hình 11. Màn hình trang chủ (home)
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Trang chủ Travel Planner
+Cho phép người dùng tìm kiếm, khám phá và lựa chọn các điểm đến du lịch
+—
+Tìm kiếm điểm đến
+Cho phép nhập địa điểm/thành phố để tìm kiếm
+—
+Lọc danh mục
+Cho phép lọc điểm đến theo danh mục
+Cần đảm bảo danh mục có thể mở rộng khi số lượng loại hình tăng
+Lọc ngân sách
+Cho phép lọc kết quả theo mức ngân sách
+—
+Danh mục phổ biến
+Hiển thị các nhóm điểm đến để người dùng khám phá nhanh
+—
+Địa điểm nổi bật
+Hiển thị các địa điểm đang được đề xuất, gồm thông tin cơ bản, đánh giá và giá tham khảo
+Cần xác định rõ tiêu chí để một địa điểm được đưa vào danh sách nổi bật
+Yêu thích
+Cho phép người dùng lưu/bỏ lưu địa điểm yêu thích
+—
+Xem chi tiết
+Cho phép truy cập thông tin đầy đủ của một địa điểm
+—
+Điều hướng
+Cho phép truy cập Trang chủ, Địa điểm, Chuyến đi, Yêu thích và Booking
+—
+Tài khoản
+Cho phép người dùng truy cập các chức năng liên quan đến tài khoản
+—
+Admin
+Cho phép người dùng có quyền quản trị truy cập khu vực quản trị
+Cần phân quyền rõ giữa tài khoản thường và tài khoản quản trị
+Hình 12. Màn hình trang khám phá
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Khám phá địa điểm du lịch
+Cho phép người dùng tìm kiếm và khám phá các địa điểm du lịch
+—
+Tìm kiếm
+Tìm địa điểm theo tên
+—
+Thành phố
+Lọc địa điểm theo thành phố
+—
+Danh mục
+Lọc theo loại hình địa điểm
+—
+Khoảng giá
+Lọc địa điểm theo mức giá
+—
+Sắp xếp
+Sắp xếp kết quả theo tiêu chí được chọn
+—
+Chỉ hiển thị nơi lưu trú
+Cho phép giới hạn kết quả chỉ còn khách sạn/resort
+Cần đảm bảo trạng thái bật/tắt được phản ánh rõ
+Lọc nhanh
+Cho phép chọn nhanh một số thành phố phổ biến
+—
+Địa điểm
+Hiển thị danh sách địa điểm phù hợp với bộ lọc
+—
+Yêu thích
+Cho phép lưu hoặc bỏ lưu địa điểm
+—
+Xem chi tiết
+Mở thông tin chi tiết của địa điểm được chọn
+—
+Phân trang
+Cho phép chuyển giữa các trang kết quả
+—
+Đặt lại bộ lọc
+Xóa các điều kiện tìm kiếm/lọc hiện tại
+—
+Hình 13. Trang chi tiết địa điểm
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Chi tiết địa điểm
+Hiển thị đầy đủ thông tin của một địa điểm du lịch
+—
+Thông tin cơ bản
+Hiển thị tên, địa chỉ, loại địa điểm và trạng thái có chỗ lưu trú
+—
+Hình ảnh
+Cho phép người dùng xem hình ảnh của địa điểm
+—
+Yêu thích
+Cho phép lưu hoặc bỏ lưu địa điểm
+—
+Thêm vào Trip
+Cho phép thêm địa điểm vào lịch trình chuyến đi
+Cần xử lý trường hợp người dùng chưa có Trip
+Đặt phòng
+Cho phép người dùng đặt chỗ lưu trú liên quan đến địa điểm
+Cần phân biệt rõ đặt phòng lưu trú với đặt dịch vụ tham quan
+Đánh giá
+Hiển thị điểm đánh giá và số lượng đánh giá của địa điểm
+—
+Giờ mở cửa
+Hiển thị thời gian hoạt động của địa điểm
+—
+Giá vé
+Hiển thị giá vé tham quan và đơn vị tính
+Cần cập nhật theo dữ liệu thực tế
+Thông tin địa điểm
+Cung cấp mô tả, điểm nổi bật và các dịch vụ/tiện ích
+—
+Đặt phòng lưu trú
+Cho phép chọn loại phòng, ngày nhận phòng, ngày trả phòng và thực hiện đặt phòng
+Cần kiểm tra tình trạng phòng theo ngày trước khi cho phép đặt
+Giá lưu trú
+Hiển thị giá phòng theo đêm
+Cần làm rõ giá đã bao gồm các khoản phí hay chưa
+Hủy phòng
+Hiển thị chính sách hủy phòng
+Cần hiển thị đầy đủ điều kiện áp dụng
+Thêm vào lịch trình
+Cho phép đưa dịch vụ/địa điểm vào Trip hiện tại
+—
+Hình 14. Màn hình thêm vào chuyến đi
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Thêm địa điểm vào Chuyến đi
+Cho phép người dùng thêm địa điểm đang xem vào một chuyến đi đã có
+—
+Chọn Chuyến đi
+Cho phép chọn chuyến đi muốn thêm địa điểm
+Cần xử lý trường hợp người dùng chưa có chuyến đi
+Ngày tham quan
+Cho phép chọn ngày thực hiện hoạt động trong chuyến đi
+Ngày phải nằm trong khoảng thời gian của chuyến đi
+Khung giờ dự kiến
+Cho phép xác định thời gian dự kiến tham quan
+Cần kiểm tra thời gian có hợp lệ với lịch trình
+Ghi chú
+Cho phép người dùng thêm ghi chú cho hoạt động
+—
+Tạo chuyến đi mới
+Cho phép tạo chuyến đi mới khi chưa có chuyến đi phù hợp
+—
+Xác nhận thêm
+Thêm địa điểm và thông tin hoạt động vào lịch trình đã chọn
+Cần thông báo rõ khi thêm thành công hoặc khi dữ liệu không hợp lệ
+Đóng
+Hủy thao tác thêm địa điểm và đóng cửa sổ
+—
+Hình 15. Trang danh sách yêu thích
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Bộ sưu tập yêu thích
+Hiển thị các địa điểm mà người dùng đã lưu yêu thích
+—
+Địa điểm yêu thích
+Hiển thị thông tin cơ bản của từng địa điểm đã lưu
+—
+Xóa yêu thích
+Cho phép người dùng bỏ địa điểm khỏi danh sách yêu thích
+Cần xác nhận hoặc có cơ chế hoàn tác để tránh xóa nhầm
+Thêm vào Trip
+Cho phép thêm địa điểm yêu thích vào chuyến đi
+—
+Xem chi tiết
+Cho phép truy cập thông tin chi tiết của địa điểm
+—
+Khám phá thêm địa điểm
+Cho phép người dùng quay lại danh sách địa điểm để tìm và lưu thêm địa điểm
+—
+Trạng thái danh sách
+Cho phép kiểm tra trạng thái danh sách yêu thích, bao gồm trường hợp không có địa điểm
+Cần có trạng thái rỗng rõ ràng khi người dùng chưa lưu địa điểm nào
+4.3 Quản lý chuyến đi
+Hình 16. Trang chuyến đi của tôi
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Hành trình & Chuyến đi
+Quản lý các chuyến đi và lịch trình du lịch của người dùng
+—
+Tạo chuyến đi mới
+Cho phép tạo một chuyến đi mới
+—
+Danh sách chuyến đi
+Hiển thị các chuyến đi của người dùng
+—
+Phân loại chuyến đi
+Cho phép xem chuyến đi theo trạng thái: tất cả, sắp tới, đang diễn ra, đã hoàn thành
+—
+Thông tin chuyến đi
+Hiển thị thời gian, thời lượng, tên chuyến đi, địa điểm và mô tả
+—
+Ngân sách
+Hiển thị ngân sách dự kiến đối với chuyến chưa hoàn thành và chi phí thực tế đối với chuyến đã hoàn thành
+Cần phân biệt rõ ngân sách dự kiến và chi phí thực tế
+Lịch trình
+Cho phép mở lịch trình chi tiết của chuyến đi
+—
+Xem lại
+Cho phép xem lại thông tin của chuyến đi đã hoàn thành
+—
+Quản lý chuyến đi
+Cho phép thực hiện các thao tác khác trên từng chuyến đi
+Cần xác định rõ các thao tác trong menu của từng chuyến đi, ví dụ chỉnh sửa hoặc xóa
+Hình 17. Trang tạo chuyến đi mới
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Tạo chuyến đi mới
+Cho phép người dùng tạo một chuyến đi và khai báo thông tin ban đầu
+—
+Tên chuyến đi
+Nhập tên chuyến đi
+Bắt buộc nhập
+Ngày bắt đầu
+Chọn ngày bắt đầu chuyến đi
+Bắt buộc nhập; không được sau ngày kết thúc
+Ngày kết thúc
+Chọn ngày kết thúc chuyến đi
+Bắt buộc nhập; không được trước ngày bắt đầu
+Tổng ngân sách dự kiến
+Nhập ngân sách dự kiến cho toàn bộ chuyến đi
+Phải là giá trị tiền hợp lệ và lớn hơn 0
+Địa bàn trọng tâm
+Chọn khu vực chính của chuyến đi
+Phải chọn giá trị có trong hệ thống
+Ảnh bìa chuyến đi
+Cho phép thêm ảnh đại diện cho chuyến đi
+Không bắt buộc; nếu nhập URL thì URL phải hợp lệ
+Mô tả & ghi chú mục tiêu
+Nhập mục tiêu, kế hoạch hoặc ghi chú cho chuyến đi
+Không bắt buộc
+Hủy bỏ
+Hủy quá trình tạo chuyến đi mà không lưu dữ liệu
+—
+Lưu & xem lịch trình
+Lưu chuyến đi và chuyển sang chức năng quản lý lịch trình
+Cần kiểm tra toàn bộ trường bắt buộc trước khi lưu và thông báo rõ kết quả
+4.4 Quản lý lịch trình
+Hình 18. Trang chi tiết lịch trình
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Chi tiết lịch trình
+Cho phép người dùng xem và quản lý lịch trình của một chuyến đi
+—
+Thông tin chuyến đi
+Hiển thị tên chuyến đi, thời gian, địa bàn và ngân sách
+—
+Ngày trong chuyến đi
+Cho phép chuyển đổi giữa các ngày để xem lịch trình tương ứng
+—
+Thêm hoạt động
+Cho phép thêm hoạt động mới vào ngày đang chọn
+—
+Danh sách hoạt động
+Hiển thị các hoạt động theo thứ tự thời gian trong ngày
+—
+Thời gian hoạt động
+Xác định thời gian bắt đầu và kết thúc của từng hoạt động
+Cần kiểm tra các khoảng thời gian không bị trùng nhau
+Sắp xếp hoạt động
+Cho phép thay đổi thứ tự các hoạt động trong ngày
+Cần tự cập nhật thứ tự/thời gian nếu việc sắp xếp làm thay đổi lịch trình
+Chỉnh sửa hoạt động
+Cho phép cập nhật thông tin hoạt động
+—
+Xóa hoạt động
+Cho phép xóa hoạt động khỏi lịch trình
+Nên xác nhận trước khi xóa để tránh thao tác nhầm
+Chi phí hoạt động
+Hiển thị chi phí của từng hoạt động
+Cần đồng bộ chi phí với tổng ngân sách chuyến đi
+Quản lý ngân sách
+Cho phép người dùng theo dõi và quản lý ngân sách của chuyến đi
+Cần cảnh báo khi tổng chi phí vượt ngân sách
+Sửa Trip
+Cho phép cập nhật thông tin cơ bản của chuyến đi
+—
+Hình 19. Màn hình thêm địa điểm vào lịch trình
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Thêm hoạt động mới
+Cho phép người dùng thêm một hoạt động vào lịch trình của chuyến đi
+—
+Tên hoạt động
+Nhập tên hoạt động
+Bắt buộc nhập
+Giờ bắt đầu
+Xác định thời gian bắt đầu hoạt động
+Cần kiểm tra thời gian hợp lệ và không trùng với hoạt động khác
+Giờ kết thúc
+Xác định thời gian kết thúc hoạt động
+Phải lớn hơn giờ bắt đầu
+Loại hoạt động
+Phân loại hoạt động theo nhóm nghiệp vụ
+Cần sử dụng danh sách loại hoạt động có sẵn trong hệ thống
+Chi phí dự kiến
+Nhập chi phí dự kiến cho hoạt động
+Phải là giá trị tiền hợp lệ, không âm
+Ghi chú thêm
+Cho phép nhập các lưu ý hoặc thông tin bổ sung
+Không bắt buộc
+Lưu hoạt động
+Lưu hoạt động vào lịch trình của ngày đang chọn
+Cần kiểm tra các dữ liệu bắt buộc và xung đột thời gian trước khi lưu
+Hủy
+Hủy thao tác thêm hoạt động và không lưu dữ liệu
+—
+Hình 20. Màn hình chỉnh sửa địa điểm trong lịch trình
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Hiển thị dữ liệu hiện tại
+Khi mở màn hình chỉnh sửa, hệ thống phải tải đúng mục lịch trình được chọn và hiển thị các giá trị hiện tại gồm Địa điểm, Ngày, Giờ bắt đầu, Giờ kết thúc và Ghi chú.
+Không thể tải thông tin lịch trình.
+Thay đổi địa điểm
+Địa điểm là bắt buộc. Nếu giao diện cho phép xóa địa điểm hiện tại bằng biểu tượng ×, người dùng phải chọn địa điểm khác trước khi cập nhật.
+Vui lòng chọn địa điểm.
+Thay đổi ngày
+Ngày mới phải nằm trong khoảng thời gian của chuyến đi. Khi thay đổi ngày, mục lịch trình phải được chuyển sang đúng ngày mới sau khi cập nhật thành công.
+Ngày được chọn phải nằm trong thời gian của chuyến đi.
+Thay đổi thời gian
+Giờ bắt đầu và Giờ kết thúc là bắt buộc. Giờ kết thúc phải sau giờ bắt đầu.
+Giờ kết thúc phải sau giờ bắt đầu.
+Kiểm tra xung đột lịch sau chỉnh sửa
+Khi thay đổi ngày hoặc thời gian, hệ thống phải kiểm tra khoảng thời gian mới với các mục lịch trình khác, không tính chính mục đang được chỉnh sửa. Không được lưu nếu phát sinh chồng lấn thời gian.
+Khoảng thời gian này bị trùng với một hoạt động khác trong lịch trình.
+Cập nhật ghi chú
+Người dùng có thể thêm, sửa hoặc xóa nội dung Ghi chú. Nếu có giới hạn ký tự, hệ thống phải kiểm tra trước khi lưu.
+Ghi chú vượt quá số ký tự cho phép.
+Cập nhật lịch trình
+Khi nhấn Cập nhật, hệ thống chỉ lưu khi toàn bộ dữ liệu hợp lệ. Sau khi thành công, mục lịch trình phải được cập nhật ở đúng ngày và đúng thứ tự thời gian mới.
+Không thể cập nhật lịch trình. Vui lòng thử lại.
+4.5 Quản lý ngân sách
+Hình 21. Trang ngân sách (trong ngân sách)
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Theo dõi ngân sách & chi tiêu
+Cho phép người dùng theo dõi ngân sách và các khoản chi của chuyến đi
+—
+Tổng ngân sách dự kiến
+Hiển thị ngân sách được thiết lập cho chuyến đi
+—
+Tổng đã chi tiêu
+Hiển thị tổng số tiền đã phát sinh
+—
+Số dư khả dụng
+Tính và hiển thị số tiền ngân sách còn lại
+Cần đảm bảo số dư được cập nhật sau mỗi khoản chi
+Tiến độ sử dụng ngân sách
+So sánh tổng chi tiêu với ngân sách dự kiến
+Cần cảnh báo rõ khi chi tiêu vượt ngân sách
+Chỉnh sửa hạn mức
+Cho phép thay đổi ngân sách dự kiến của chuyến đi
+Cần kiểm tra hạn mức mới không nhỏ hơn số tiền đã chi nếu nghiệp vụ yêu cầu
+Thêm khoản chi
+Cho phép người dùng thêm một khoản chi mới
+—
+Danh sách khoản chi
+Hiển thị các khoản chi phát sinh của chuyến đi
+—
+Phân loại khoản chi
+Phân loại chi phí theo nhóm như vé máy bay, lưu trú, vé tham quan, ăn uống
+Cần đảm bảo mỗi khoản chi thuộc một danh mục hợp lệ
+Thông tin khoản chi
+Hiển thị tên, ngày chi, số tiền và ghi chú
+—
+Chỉnh sửa khoản chi
+Cho phép cập nhật thông tin khoản chi
+Cần cập nhật lại tổng chi tiêu và số dư sau khi chỉnh sửa
+Xóa khoản chi
+Cho phép xóa khoản chi khỏi chuyến đi
+Cần xác nhận trước khi xóa và cập nhật lại ngân sách sau khi xóa
+Vượt ngân sách
+Phát hiện trường hợp tổng chi tiêu lớn hơn ngân sách
+Cần có trạng thái/cảnh báo rõ ràng và cập nhật số dư phù hợp
+Hình 22. Trang ngân sách (vượt ngân sách)
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Xác định trạng thái vượt ngân sách
+Khi Tổng hóa đơn > Ngân sách dự kiến, hệ thống xác định chuyến đi đang vượt ngân sách và hiển thị trạng thái/cảnh báo tương ứng.
+Không áp dụng.
+Tính số tiền vượt ngân sách
+Số tiền vượt = Tổng hóa đơn - Ngân sách dự kiến. Giá trị chỉ được hiển thị dưới dạng số tiền vượt khi kết quả lớn hơn 0.
+Không áp dụng.
+Hiển thị cảnh báo vượt ngân sách
+Khi vượt ngân sách, hệ thống phải hiển thị cảnh báo rõ ràng và số tiền vượt để người dùng nhận biết tình trạng chi tiêu.
+Không áp dụng.
+Hiển thị chi tiết khoản vượt ngân sách
+Khu vực Chi tiêu ngoài ngân sách (vượt ngân sách) phải hiển thị các giao dịch được hệ thống xác định làm phát sinh phần vượt, gồm tối thiểu Ngày, Loại chi tiêu, Mô tả, Số tiền và Mức vượt.
+Không thể tải danh sách giao dịch vượt ngân sách.
+Thêm/Sửa giao dịch khi đã vượt ngân sách
+Người dùng vẫn có thể thêm hoặc sửa giao dịch nếu nghiệp vụ cho phép. Hệ thống phải tính lại ngân sách sau khi lưu và cảnh báo khi giao dịch làm tăng mức vượt.
+Giao dịch này sẽ làm vượt ngân sách của chuyến đi.
+Cập nhật trạng thái ngân sách
+Sau khi thêm, sửa hoặc xóa giao dịch, hệ thống phải tính lại Tổng hóa đơn và Số tiền vượt. Nếu tổng chi giảm xuống nhỏ hơn hoặc bằng ngân sách, trạng thái Vượt ngân sách phải được loại bỏ.
+Không thể cập nhật dữ liệu ngân sách.
+Quyền quản lý ngân sách
+Chỉ chủ sở hữu chuyến đi mới được thêm, sửa hoặc xóa các giao dịch ngân sách của chuyến đi.
+Bạn không có quyền thực hiện thao tác này.
+Hình 23. Màn hình thêm khoản chi
+4.6 Đánh giá và xếp hạng
+Hình 24. Form đánh giá địa điểm
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Hiển thị tổng quan đánh giá
+Tab Đánh giá phải hiển thị điểm trung bình, tổng số lượt đánh giá và phân bố số lượng/tỷ lệ đánh giá từ 1 đến 5 sao của địa điểm hiện tại.
+Không thể tải thông tin đánh giá.
+Tính điểm đánh giá trung bình
+Điểm trung bình được tính từ tất cả đánh giá hợp lệ/được phép hiển thị của địa điểm. Giá trị phải được làm tròn và hiển thị theo quy tắc thống nhất, ví dụ 4.7/5.
+Không áp dụng.
+Hiển thị phân bố đánh giá
+Hệ thống thống kê tỷ lệ đánh giá theo từng mức 1, 2, 3, 4, 5 sao. Tổng tỷ lệ sau khi làm tròn nên xấp xỉ 100%.
+Không thể tải thống kê đánh giá.
+Hiển thị danh sách đánh giá
+Mỗi đánh giá hiển thị tối thiểu người đánh giá, số sao, nội dung, ngày đánh giá và các thao tác được phép. Chỉ hiển thị đánh giá hợp lệ theo trạng thái kiểm duyệt của hệ thống.
+Không thể tải danh sách đánh giá.
+Viết đánh giá
+Khi nhấn Viết đánh giá, hệ thống mở form đánh giá cho địa điểm hiện tại. Người dùng phải đăng nhập trước khi gửi đánh giá.
+Vui lòng đăng nhập để đánh giá địa điểm.
+Quản lý đánh giá của người dùng
+Người dùng chỉ được sửa/xóa đánh giá do chính mình tạo. Không được sửa hoặc xóa đánh giá của tài khoản khác.
+Bạn không có quyền thực hiện thao tác này.
+Xóa đánh giá
+Khi người dùng xóa đánh giá của mình, hệ thống nên yêu cầu xác nhận. Sau khi xóa thành công, tổng lượt đánh giá, điểm trung bình và phân bố sao phải được tính lại.
+Không thể xóa đánh giá. Vui lòng thử lại.
+Hình 25. Màn hình thêm đánh giá
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Kiểm tra đăng nhập
+Người dùng phải đăng nhập mới được gửi đánh giá. Nếu phiên đăng nhập hết hạn, hệ thống không được lưu đánh giá và yêu cầu xác thực lại.
+Vui lòng đăng nhập để đánh giá địa điểm.
+Hiển thị địa điểm cần đánh giá
+Form phải hiển thị đúng hình ảnh, tên, vị trí và thông tin đánh giá hiện tại của địa điểm được chọn.
+Không thể tải thông tin địa điểm.
+Chọn số sao
+Đánh giá của bạn là bắt buộc. Người dùng phải chọn từ 1 đến 5 sao và chỉ được chọn một mức tại một thời điểm.
+Vui lòng chọn số sao đánh giá.
+Nhập nội dung đánh giá
+Nội dung nhận xét có giới hạn tối đa 500 ký tự theo UI. Hệ thống phải hiển thị số ký tự đã nhập và không cho phép vượt giới hạn.
+Nội dung đánh giá không được vượt quá 500 ký tự.
+Kiểm tra nội dung đánh giá
+Nội dung phải tuân thủ quy định của hệ thống. Đánh giá chứa nội dung vi phạm có thể bị từ chối hoặc chuyển sang trạng thái chờ kiểm duyệt.
+Nội dung đánh giá không phù hợp. Vui lòng chỉnh sửa và thử lại.
+Gửi đánh giá
+Khi nhấn Gửi đánh giá, hệ thống kiểm tra số sao và nội dung trước khi lưu. Không được tạo nhiều bản ghi do người dùng nhấn nút gửi nhiều lần liên tiếp.
+Không thể gửi đánh giá. Vui lòng thử lại.
+Cập nhật thống kê sau đánh giá
+Khi đánh giá được chấp nhận/được phép hiển thị, hệ thống phải cập nhật tổng lượt đánh giá, điểm trung bình và phân bố số sao của địa điểm.
+Đánh giá đã được ghi nhận nhưng chưa thể cập nhật thống kê.
+Hình 26. Màn hình chỉnh sửa đánh giá
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Kiểm tra quyền chỉnh sửa
+Chỉ người tạo đánh giá hoặc vai trò được cấp quyền quản trị mới được truy cập chức năng chỉnh sửa.
+Bạn không có quyền chỉnh sửa đánh giá này.
+Hiển thị đánh giá hiện tại
+Khi mở form, hệ thống phải tải đúng địa điểm và điền sẵn số sao và nội dung đánh giá hiện tại của người dùng.
+Không thể tải thông tin đánh giá.
+Chỉnh sửa số sao
+Người dùng được thay đổi mức đánh giá từ 1 đến 5 sao. Tại mọi thời điểm phải có một mức sao hợp lệ được chọn.
+Vui lòng chọn số sao đánh giá.
+Chỉnh sửa nội dung
+Người dùng có thể sửa nội dung đánh giá. Nội dung không được vượt quá 500 ký tự và phải tuân thủ quy định nội dung của hệ thống.
+Nội dung đánh giá không được vượt quá 500 ký tự.
+Kiểm duyệt nội dung sau chỉnh sửa
+Đánh giá đã chỉnh sửa có thể phải được kiểm duyệt lại trước khi hiển thị công khai theo chính sách hệ thống. Trạng thái kiểm duyệt phải được cập nhật tương ứng.
+Nội dung đánh giá không phù hợp. Vui lòng chỉnh sửa và thử lại.
+Cập nhật đánh giá
+Khi nhấn Cập nhật, hệ thống chỉ lưu khi dữ liệu hợp lệ. Không tạo đánh giá mới mà phải cập nhật đúng bản ghi hiện tại.
+Không thể cập nhật đánh giá. Vui lòng thử lại.
+Tính lại điểm địa điểm
+Nếu số sao thay đổi và đánh giá được công nhận, hệ thống phải tính lại điểm trung bình, phân bố sao và các thống kê liên quan của địa điểm.
+Không thể cập nhật thống kê đánh giá.
+4.7 Đặt phòng và thanh toán
+Hình 27. Màn hình đặt phòng
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Đặt phòng lưu trú
+Cho phép người dùng nhập thông tin và hoàn tất đặt phòng tại khách sạn
+—
+Thông tin khách sạn & phòng
+Xác định khách sạn, loại phòng, ngày nhận/trả phòng và số lượng phòng
+Cần kiểm tra phòng còn trống trong khoảng thời gian đã chọn
+Thông tin người nhận phòng
+Nhập họ tên, số điện thoại và email của người nhận phòng
+Các thông tin liên hệ bắt buộc phải hợp lệ
+Số lượng khách
+Xác định số khách lưu trú
+Cần kiểm tra sức chứa của loại phòng đã chọn
+Yêu cầu đặc biệt
+Cho phép người dùng gửi yêu cầu bổ sung cho khách sạn
+Không bắt buộc
+Phương thức thanh toán
+Cho phép chọn phương thức thanh toán
+Cần xác định rõ trạng thái thanh toán của từng phương thức
+Tóm tắt đơn đặt phòng
+Hiển thị lại thông tin phòng, thời gian lưu trú, số lượng phòng và chi phí
+Tổng tiền phải tự động cập nhật theo phòng, số đêm và số lượng phòng
+Thuế & phí
+Hiển thị các khoản thuế/phí liên quan đến đặt phòng
+Cần thể hiện rõ khoản phí đã bao gồm hay chưa bao gồm trong giá
+Chính sách hủy
+Hiển thị điều kiện hủy phòng
+Cần nêu rõ thời hạn và điều kiện áp dụng
+Xác nhận & hoàn tất đặt phòng
+Tạo đơn đặt phòng sau khi người dùng xác nhận thông tin
+Cần kiểm tra lại tình trạng phòng và thông tin đặt phòng trước khi hoàn tất
+Hủy bỏ
+Hủy quá trình đặt phòng và không tạo đơn
+—
+Hình 28. Màn hình xác nhận thanh toán
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Xác nhận đặt phòng
+Hiển thị kết quả đặt phòng sau khi đơn đã được tạo thành công
+—
+Thông tin đơn đặt phòng
+Hiển thị mã đơn và ngày đặt phòng
+—
+Thông tin lưu trú
+Hiển thị khách sạn, địa chỉ, loại phòng, ngày nhận/trả phòng, thời gian lưu trú và số lượng khách
+—
+Thông tin người đặt
+Hiển thị họ tên, số điện thoại và email của người đặt
+—
+Chi tiết thanh toán
+Hiển thị mã giao dịch, mã hóa đơn, phương thức và trạng thái thanh toán
+—
+Chi phí đặt phòng
+Hiển thị tiền phòng, thuế/phí và tổng tiền thanh toán
+Cần đảm bảo tổng tiền khớp với đơn đặt phòng
+Hóa đơn điện tử
+Cho phép người dùng xem hóa đơn điện tử
+Cần đảm bảo hóa đơn được tạo tương ứng với đơn
+In xác nhận
+Cho phép người dùng in thông tin xác nhận đặt phòng
+—
+Quay lại danh sách Booking
+Cho phép người dùng trở về danh sách các đơn đặt phòng
+—
+Xem trong lịch trình
+Cho phép đưa hoặc xem thông tin đặt phòng trong lịch trình chuyến đi
+Cần đảm bảo đơn đặt phòng được liên kết đúng với chuyến đi
+Hình 29. Màn hình danh sách đặt phòng
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Quản lý đơn đặt phòng
+Cho phép người dùng xem và quản lý toàn bộ các đơn đặt phòng của mình
+—
+Danh sách Booking
+Hiển thị mã Booking, khách sạn/địa điểm, hạng phòng, thời gian, số phòng, tổng tiền và trạng thái
+—
+Phân loại đơn
+Cho phép lọc đơn theo trạng thái: tất cả, sắp tới, đã hoàn thành, đã hủy
+—
+Đặt phòng mới
+Cho phép người dùng tạo một đơn đặt phòng mới
+—
+Trạng thái Booking
+Hiển thị trạng thái hiện tại của từng đơn đặt phòng
+Cần thống nhất trạng thái và quy tắc chuyển trạng thái
+Xem chi tiết
+Cho phép mở thông tin đầy đủ của đơn đặt phòng
+—
+Hủy Booking
+Cho phép hủy đơn đặt phòng còn đủ điều kiện hủy
+Cần kiểm tra chính sách hủy trước khi cho phép thực hiện
+Hóa đơn
+Cho phép xem hóa đơn của đơn đã hoàn thành
+Cần đảm bảo hóa đơn chỉ khả dụng khi đơn đã có hóa đơn hợp lệ
+Xem lại
+Cho phép xem lại thông tin của đơn đã hủy
+—
+Tổng tiền
+Hiển thị tổng số tiền của từng đơn đặt phòng
+Cần đảm bảo số tiền khớp với thông tin thanh toán thực tế
+4.8 Quản trị hệ thống
+Hình 30. Trang dashboard quản trị
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Kiểm tra quyền truy cập Dashboard
+Chỉ tài khoản có quyền quản trị phù hợp mới được truy cập Dashboard. Dữ liệu và chức năng hiển thị có thể phụ thuộc vào vai trò quản trị.
+Bạn không có quyền truy cập trang quản trị.
+Hiển thị số liệu tổng quan
+Dashboard hiển thị các KPI như Tổng người dùng, Điểm đến, Chuyến đi, Yêu thích và Đánh giá trong phạm vi thời gian được chọn.
+Không thể tải dữ liệu tổng quan.
+So sánh với kỳ trước
+Khi hiển thị phần trăm tăng/giảm so với kỳ trước, hệ thống phải sử dụng cùng độ dài kỳ và cùng tiêu chí thống kê để đảm bảo khả năng so sánh.
+Không thể tính dữ liệu so sánh.
+Lọc theo khoảng thời gian
+Khi quản trị viên thay đổi khoảng thời gian, các KPI, biểu đồ và dữ liệu thống kê có liên quan phải được tải/tính lại theo khoảng thời gian được chọn.
+Khoảng thời gian không hợp lệ.
+Hiển thị thống kê hoạt động
+Biểu đồ hoạt động phải phản ánh dữ liệu theo thời gian của các chỉ số được cấu hình, ví dụ Người dùng mới, Chuyến đi, Đánh giá.
+Không thể tải thống kê hoạt động.
+Hiển thị Top điểm đến yêu thích
+Hệ thống xếp hạng các điểm đến theo số lượt yêu thích trong phạm vi thống kê và hiển thị số lượt tương ứng.
+Không thể tải danh sách điểm đến được yêu thích.
+Hiển thị hoạt động gần đây
+Khu vực Hoạt động gần đây hiển thị các sự kiện hệ thống phù hợp gồm thời gian, người dùng, loại hành động và thông tin chi tiết. Dữ liệu mới nhất được ưu tiên hiển thị trước.
+Không thể tải hoạt động gần đây.
+Thống kê danh mục điểm đến
+Hệ thống tổng hợp số lượng/tỷ lệ điểm đến theo từng danh mục. Tổng số lượng giữa các danh mục phải nhất quán với tập dữ liệu được thống kê.
+Không thể tải thống kê danh mục điểm đến.
+Hình 31. Trang quản lý người dùng
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Kiểm tra quyền quản trị
+Chỉ quản trị viên có quyền tương ứng mới được truy cập các trang quản lý và thực hiện thao tác thêm, sửa, khóa hoặc xóa dữ liệu.
+Bạn không có quyền thực hiện thao tác này.
+Hiển thị danh sách dữ liệu
+Danh sách phải hiển thị các trường quan trọng của đối tượng quản lý. Với người dùng gồm ảnh đại diện, tên, email, số điện thoại, vai trò, trạng thái và ngày đăng ký.
+Không thể tải danh sách dữ liệu.
+Tìm kiếm
+Ô tìm kiếm cho phép tìm theo các thuộc tính được hỗ trợ. Với người dùng có thể gồm họ tên, email hoặc số điện thoại. Khoảng trắng đầu/cuối từ khóa phải được loại bỏ trước khi tìm kiếm.
+Không thể thực hiện tìm kiếm. Vui lòng thử lại.
+Lọc dữ liệu
+Quản trị viên có thể kết hợp các bộ lọc, ví dụ Vai trò và Trạng thái. Danh sách và tổng số kết quả phải được cập nhật theo điều kiện hiện tại.
+Không thể lọc dữ liệu.
+Làm mới danh sách
+Khi nhấn Làm mới, hệ thống tải lại dữ liệu mới nhất. Việc có giữ hay đặt lại từ khóa/bộ lọc cần được áp dụng nhất quán theo thiết kế hệ thống.
+Không thể làm mới dữ liệu.
+Thêm mới dữ liệu
+Nút + Thêm người dùng hoặc nút thêm mới tương ứng mở form tạo dữ liệu. Hệ thống chỉ lưu khi các trường bắt buộc và các ràng buộc nghiệp vụ hợp lệ.
+Không thể thêm dữ liệu. Vui lòng kiểm tra thông tin và thử lại.
+Xem chi tiết
+Khi nhấn biểu tượng Xem, hệ thống mở đúng bản ghi được chọn. Thông tin hiển thị phụ thuộc vào quyền của quản trị viên.
+Không thể tải thông tin chi tiết.
+Chỉnh sửa
+Khi nhấn Sửa, hệ thống cho phép thay đổi các trường được cấp quyền. Dữ liệu phải được validation trước khi cập nhật.
+Không thể cập nhật dữ liệu. Vui lòng thử lại.
+Xóa dữ liệu
+Với dữ liệu được phép xóa, hệ thống phải yêu cầu xác nhận trước khi thực hiện. Các bản ghi đang được tham chiếu bởi dữ liệu khác phải tuân theo quy tắc toàn vẹn dữ liệu.
+Không thể xóa dữ liệu này.
+Phân trang
+Khi số bản ghi vượt quá kích thước một trang, hệ thống phải phân trang. Việc chuyển trang phải giữ nguyên điều kiện tìm kiếm/lọc hiện tại.
+Không thể tải trang dữ liệu.
+Hiển thị tổng số kết quả
+Hệ thống phải hiển thị số bản ghi đang được xem và tổng số bản ghi phù hợp, ví dụ 1–10 trong tổng số 1.248 người dùng.
+Không áp dụng.
+Hình 32. Trang quản lý thành phố
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Quản lý Tỉnh / Thành phố
+Cho phép quản trị viên quản lý danh sách tỉnh/thành phố được sử dụng trong hệ thống
+—
+Danh sách tỉnh/thành phố
+Hiển thị tên, mã tỉnh/thành phố, khu vực, số lượng điểm đến và trạng thái
+—
+Khu vực
+Phân loại tỉnh/thành phố theo khu vực địa lý
+Cần đảm bảo mỗi tỉnh/thành phố thuộc đúng một khu vực
+Số điểm đến
+Hiển thị số lượng địa điểm du lịch thuộc từng tỉnh/thành phố
+Cần tự động cập nhật khi thêm hoặc xóa địa điểm
+Trạng thái
+Cho phép quản lý trạng thái hiển thị của tỉnh/thành phố
+Cần xác định rõ trạng thái nào cho phép người dùng sử dụng tỉnh/thành phố đó
+Thêm tỉnh/thành phố
+Cho phép quản trị viên tạo tỉnh/thành phố mới
+Cần kiểm tra mã tỉnh/thành phố không bị trùng
+Chỉnh sửa
+Cho phép cập nhật thông tin tỉnh/thành phố
+Cần tránh làm mất liên kết với các địa điểm đã thuộc tỉnh/thành phố
+Xóa
+Cho phép xóa tỉnh/thành phố
+Cần kiểm tra dữ liệu liên quan trước khi xóa, đặc biệt các địa điểm đang thuộc tỉnh/thành phố
+Truy cập quản trị
+Cho phép quản trị viên quản lý dữ liệu tỉnh/thành phố
+Cần phân quyền để người dùng thông thường không thể thực hiện các thao tác quản trị
+Hình 33. Trang quản lý danh mục
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Quản lý danh mục du lịch
+Cho phép quản trị viên quản lý các danh mục được sử dụng để phân loại điểm đến
+—
+Danh sách danh mục
+Hiển thị tên danh mục, Slug URL, số lượng điểm đến và trạng thái
+—
+Slug URL
+Quản lý định danh URL của danh mục
+Cần đảm bảo Slug không trùng giữa các danh mục
+Số điểm đến
+Hiển thị số lượng điểm đến thuộc từng danh mục
+Cần tự động cập nhật khi điểm đến được thêm, sửa hoặc chuyển danh mục
+Trạng thái
+Cho phép bật/tắt danh mục để kiểm soát việc sử dụng trong hệ thống
+Cần xác định cách xử lý các điểm đến đang thuộc danh mục bị tắt
+Thêm danh mục
+Cho phép quản trị viên tạo danh mục mới
+Cần kiểm tra tên và Slug không bị trùng
+Chỉnh sửa danh mục
+Cho phép cập nhật thông tin danh mục
+Cần đảm bảo thay đổi Slug không làm hỏng các URL hoặc liên kết hiện có
+Xóa danh mục
+Cho phép xóa danh mục
+Cần kiểm tra các điểm đến đang sử dụng danh mục trước khi xóa
+Quản lý biểu tượng
+Cho phép gắn biểu tượng đại diện cho danh mục
+—
+Phân loại điểm đến
+Danh mục phải được sử dụng để phân loại và lọc các điểm đến trong hệ thống
+Cần đảm bảo danh mục bị tắt/xóa không gây lỗi dữ liệu điểm đến
+Hình 34. Trang quản lý địa điểm
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Quản lý điểm đến du lịch
+Cho phép quản trị viên quản lý toàn bộ các điểm đến trong hệ thống
+—
+Tìm kiếm điểm đến
+Cho phép tìm kiếm điểm đến theo tên
+—
+Lọc theo thành phố
+Cho phép lọc điểm đến theo tỉnh/thành phố
+—
+Lọc theo danh mục
+Cho phép lọc điểm đến theo danh mục du lịch
+—
+Danh sách điểm đến
+Hiển thị tên, thành phố, danh mục, đánh giá, giá vé/phòng và trạng thái lưu trú
+—
+Đánh giá
+Hiển thị điểm đánh giá của từng điểm đến
+Cần xác định cách tính và cập nhật điểm đánh giá từ các đánh giá của người dùng
+Giá vé / phòng
+Hiển thị mức giá áp dụng cho điểm đến
+Cần phân biệt rõ giá vé tham quan và giá phòng lưu trú
+Thông tin lưu trú
+Cho biết điểm đến có cung cấp dịch vụ lưu trú hay không
+—
+Xem chi tiết
+Cho phép quản trị viên xem thông tin đầy đủ của điểm đến
+—
+Thêm điểm đến
+Cho phép tạo điểm đến mới
+Cần kiểm tra các thông tin bắt buộc và tránh tạo dữ liệu trùng
+Chỉnh sửa điểm đến
+Cho phép cập nhật thông tin điểm đến
+Cần đảm bảo thay đổi không làm mất liên kết với danh mục, thành phố và dữ liệu liên quan
+Xóa điểm đến
+Cho phép xóa điểm đến khỏi hệ thống
+Cần kiểm tra dữ liệu liên quan như yêu thích, Trip, Booking và đánh giá trước khi xóa
+Mã điểm đến
+Mỗi điểm đến có một mã định danh riêng
+Mã phải duy nhất và không thay đổi tùy tiện
+Hình 35. Trang quản lý hình ảnh địa điểm
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Quản lý thư viện hình ảnh
+Cho phép quản trị viên quản lý hình ảnh được sử dụng cho các điểm đến du lịch
+—
+Lọc theo điểm đến
+Cho phép chọn một điểm đến để xem các hình ảnh thuộc điểm đến đó
+—
+Danh sách hình ảnh
+Hiển thị toàn bộ hình ảnh đã được liên kết với điểm đến
+—
+Ảnh đại diện
+Xác định một hình ảnh làm ảnh đại diện chính của điểm đến
+Cần đảm bảo mỗi điểm đến chỉ có một ảnh đại diện tại một thời điểm
+Tải ảnh mới
+Cho phép quản trị viên tải hình ảnh lên hệ thống
+Cần kiểm tra định dạng, kích thước và dung lượng file
+Gán hình ảnh
+Cho phép liên kết hình ảnh với đúng điểm đến
+Không nên cho phép hình ảnh tồn tại mà không xác định được điểm đến sử dụng
+Xóa hình ảnh
+Cho phép xóa hình ảnh khỏi thư viện
+Cần kiểm tra nếu hình ảnh đang được sử dụng làm ảnh đại diện hoặc được tham chiếu ở nơi khác
+Số lượng hình ảnh
+Hiển thị tổng số hình ảnh của điểm đến đang được chọn
+Số lượng phải tự động cập nhật khi thêm hoặc xóa hình ảnh
+Hình 36. Màn hình quản trị đánh giá
+Mô tả
+Yêu cầu
+Thông tin lỗi
+Kiểm tra quyền quản trị
+Chỉ tài khoản có quyền quản trị đánh giá mới được truy cập màn hình. Người dùng thông thường không được phép xem hoặc thực hiện chức năng quản trị.
+Bạn không có quyền truy cập chức năng này.
+Hiển thị danh sách đánh giá
+Hệ thống hiển thị danh sách đánh giá gồm tối thiểu địa điểm, vị trí, người đánh giá, số sao, nội dung và ngày đánh giá.
+Không thể tải danh sách đánh giá.
+Lọc theo số sao
+Quản trị viên có thể lọc danh sách theo Tất cả, 5 sao, 4 sao, 3 sao, 2 sao, 1 sao. Số lượng trên từng bộ lọc phải phản ánh dữ liệu tương ứng.
+Không thể lọc danh sách đánh giá.
+Xem chi tiết đánh giá
+Khi nhấn Xem, hệ thống hiển thị đầy đủ thông tin của đúng đánh giá được chọn mà không làm thay đổi dữ liệu.
+Không thể tải chi tiết đánh giá.
+Xóa đánh giá
+Quản trị viên có quyền phù hợp có thể xóa đánh giá vi phạm hoặc không hợp lệ. Hệ thống phải yêu cầu xác nhận trước khi xóa.
+Không thể xóa đánh giá. Vui lòng thử lại.
+Cập nhật thống kê sau khi xóa
+Sau khi đánh giá bị xóa/không còn được tính, hệ thống phải tính lại số lượt đánh giá, điểm trung bình và phân bố sao của địa điểm liên quan.
+Không thể cập nhật thống kê đánh giá.
+Ghi nhận thao tác quản trị
+Các thao tác quản trị có ảnh hưởng đến đánh giá nên được ghi nhận trong activity log, gồm tối thiểu quản trị viên thực hiện, hành động, đối tượng và thời gian.
+Không thể ghi nhận thao tác quản trị.
+4.9 Thứ tự phát triển và khả năng nâng cấp
+Hình 37. Sơ đồ thứ tự phát triển Travel Planner
+5 BẢO MẬT HỆ THỐNG
+5.1 Sơ đồ tích hợp cơ chế bảo mật hệ thống
+Hệ thống tích hợp bảo mật theo luồng: 
+Hình 38: Tích hợp luồng bảo mật
+5.2 Các cơ chế bảo mật
+Bảng 42: Cơ chế và tích hợp nghiệp vụ bảo mật
+Cơ chế
+Nghiệp vụ bảo mật
+xác thực
+auth kiểm tra đăng nhập và session
+phân quyền
+policy kiểm tra quyền User và Admin
+quyền sở hữu
+User chỉ thao tác trên Trip, Itinerary, Expense, Review và Booking được phép
+validation
+Form Request kiểm tra dữ liệu trước Service
+csrf
+bảo vệ các request thay đổi dữ liệu
+upload
+kiểm tra loại và kích thước file
+dữ liệu nhạy cảm
+không hiển thị password, database config hoặc stack trace
+transaction
+rollback khi thao tác nhiều bảng thất bại
+payment
+đối chiếu Payment.amount với Booking.total_price từ Database
+5.3 Kết quả xử lý nghiệp vụ dự kiến
+Bảng 43. Bảng kết quả xử lý nghiệp vụ dự kiến
+Trường hợp
+Kết quả
+chưa đăng nhập
+yêu cầu đăng nhập
+không có quyền
+403
+dữ liệu không hợp lệ
+422, hiển thị lỗi
+không tìm thấy dữ liệu
+404
+csrf không hợp lệ
+từ chối request
+payment sai số tiền
+từ chối giao dịch
+lỗi transaction
+rollback
+5.4 Thứ tự phát triển hệ thống bảo mật
+Hình 39: Thứ tự phát triển hệ thống bảo mật
+Tài Liệu Tham Khảo
+Tài liệu nhóm cung cấp được dùng để xác định bố cục và yêu cầu. Các tài liệu Laravel dưới đây hỗ trợ lựa chọn cơ chế kỹ thuật; nhóm cần đọc đúng phiên bản đã chốt khi lập trình.
+[1] Laravel Release Notes. https://laravel.com/framework/docs/13.x/releases
+[2] Laravel Authentication. https://laravel.com/framework/docs/13.x/authentication
+[3] Laravel Authorization. https://laravel.com/framework/docs/13.x/authorization
+[4] Laravel Validation. https://laravel.com/framework/docs/12.x/validation
+[5] Laravel Resetting Passwords. https://laravel.com/framework/docs/13.x/passwords
+[6] Laravel Database Migrations. https://laravel.com/framework/docs/13.x/migrations
+[7] Laravel Blade Templates. https://laravel.com/framework/docs/13.x/blade
