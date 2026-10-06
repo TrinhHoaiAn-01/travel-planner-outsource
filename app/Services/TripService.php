@@ -119,7 +119,23 @@ class TripService implements TripServiceInterface
             }
         }
 
-        return Trip::create($data);
+        // Chuẩn hóa và lọc các thuộc tính tương thích với bảng trips
+        $description = $data['description'] ?? null;
+        if (! empty($data['destination_area']) && empty($description)) {
+            $description = 'Địa bàn: ' . $data['destination_area'];
+        }
+
+        $tripAttributes = [
+            'user_id' => $data['user_id'] ?? null,
+            'name' => $data['name'],
+            'description' => $description,
+            'start_date' => $data['start_date'] ?? null,
+            'end_date' => $data['end_date'] ?? null,
+            'budget' => $data['budget'] ?? 0,
+            'status' => $data['status'] ?? Trip::STATUS_PLANNED,
+        ];
+
+        return Trip::create($tripAttributes);
     }
 
     /**
