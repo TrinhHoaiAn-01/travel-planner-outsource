@@ -29,4 +29,35 @@ interface AuthServiceInterface
      * @return void
      */
     public function resendVerificationEmail(User $user): void;
+
+    /**
+     * Xác thực thông tin đăng nhập và tạo phiên làm việc cho người dùng.
+     *
+     * @param array<string, mixed> $credentials Thông tin đăng nhập gồm email và password
+     * @param bool $remember Tùy chọn ghi nhớ đăng nhập
+     * @return bool
+     */
+    public function authenticate(array $credentials, bool $remember = false): bool;
+
+    /**
+     * Đăng xuất người dùng hiện tại và vô hiệu hóa phiên làm việc.
+     *
+     * @return void
+     */
+    public function logoutUser(): void;
+
+    /**
+     * Tạo mã CAPTCHA ngẫu nhiên mới và lưu vào session.
+     *
+     * @return string
+     */
+    public function refreshCaptcha(): string;
+
+    /**
+     * Kiểm tra tính chính xác của mã CAPTCHA người dùng nhập.
+     *
+     * @param string $inputCaptcha
+     * @return bool
+     */
+    public function validateCaptcha(string $inputCaptcha): bool;
 }

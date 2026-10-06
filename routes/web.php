@@ -12,10 +12,14 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-// Các tuyến đăng ký tài khoản (Dành cho khách chưa đăng nhập)
+// Các tuyến đăng ký & đăng nhập (Dành cho khách chưa đăng nhập)
 Route::middleware('guest')->group(function () {
     Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
+
+    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/captcha/refresh', [AuthController::class, 'refreshCaptcha'])->name('captcha.refresh');
 });
 
 // Các tuyến xác thực thông tin đăng ký / email (Dành cho tài khoản đã đăng nhập)
@@ -23,32 +27,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/email/verify', [AuthController::class, 'showVerificationNotice'])->name('verification.notice');
     Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
     Route::post('/email/verification-notification', [AuthController::class, 'resendVerificationEmail'])->name('verification.send');
-});
-
-// Tuyến đăng nhập đơn giản cho hệ thống
-Route::get('/login', function () {
-    return view('auth.login');
-})->name('login');
-
-Route::post('/login', function (Request $request) {
-    $credentials = $request->validate([
-        'email' => ['required', 'email'],
-        'password' => ['required'],
-    ]);
-
-    if (Auth::attempt($credentials)) {
-        $request->session()->regenerate();
-
-        if (Auth::user()->role === 'admin') {
-            return redirect()->intended(route('admin.dashboard'));
-        }
-
-        return redirect()->intended(route('home'));
-    }
-
-    return back()->withErrors([
-        'email' => 'Thông tin đăng nhập không chính xác.',
-    ])->onlyInput('email');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
 // Tuyến đăng nhập nhanh cho môi trường phát triển / demo
@@ -68,14 +47,6 @@ Route::get('/dev/login-as-admin', function () {
     Auth::login($admin);
     return redirect()->route('admin.dashboard');
 })->name('dev.login.admin');
-
-// Tuyến đăng xuất
-Route::post('/logout', function (Request $request) {
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-    return redirect()->route('login');
-})->name('logout');
 
 // Nhóm các tuyến quản trị viên Admin (Bảo vệ bởi auth và admin middleware)
 Route::prefix('admin')

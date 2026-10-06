@@ -96,4 +96,63 @@ class AuthController extends Controller
 
         return back()->with('status', 'verification-link-sent');
     }
+
+    /**
+     * Hiển thị giao diện đăng nhập cho người dùng.
+     */
+    public function showLoginForm(): View
+    {
+        // Khởi tạo mã CAPTCHA nếu chưa có trong phiên làm việc
+        $captchaCode = session('auth_captcha') ?: $this->authService->refreshCaptcha();
+
+        return view('auth.login', [
+            'captchaCode' => $captchaCode,
+        ]);
+    }
+
+    /**
+     * Làm mới mã CAPTCHA cho phiên đăng nhập.
+     */
+    public function refreshCaptcha(Request $request): \Illuminate\Http\JsonResponse|RedirectResponse
+    {
+        $newCaptcha = $this->authService->refreshCaptcha();
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'captcha' => $newCaptcha,
+            ]);
+        }
+
+        return back();
+    }
+
+    /**
+     * Xử lý đăng nhập tài khoản người dùng vào hệ thống.
+     */
+    public function login(\App\Http\Requests\LoginRequest $request): RedirectResponse
+    {
+        // Xác thực thông tin qua Service Interface
+        $this->authService->authenticate(
+            $request->only('email', 'password'),
+            $request->boolean('remember')
+        );
+
+        // Điều hướng theo vai trò người dùng
+        if (Auth::user()->role === 'admin') {
+            return redirect()->intended(route('admin.dashboard'));
+        }
+
+        return redirect()->intended(route('home'));
+    }
+
+    /**
+     * Đăng xuất người dùng khỏi hệ thống.
+     */
+    public function logout(): RedirectResponse
+    {
+        $this->authService->logoutUser();
+
+        return redirect()->route('login');
+    }
 }
