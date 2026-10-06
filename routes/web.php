@@ -37,6 +37,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/trips', [TripController::class, 'store'])->name('trips.store');
     Route::post('/trips/{trip}/clone', [TripController::class, 'clone'])->name('trips.clone');
     Route::post('/trips/{trip}/reopen', [TripController::class, 'reopen'])->name('trips.reopen');
+
+    //Ngocai
+    // Quản lý danh sách địa điểm yêu thích (Favorites)
+    Route::get('/favorites', [\App\Http\Controllers\FavoriteController::class, 'index'])->name('favorites.index');
+    Route::post('/favorites/toggle/{destinationId}', [\App\Http\Controllers\FavoriteController::class, 'toggle'])->name('favorites.toggle');
 });
 
 // Tuyến đăng nhập nhanh người dùng thường (Demo / Test)

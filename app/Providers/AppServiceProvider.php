@@ -36,6 +36,12 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\Interfaces\DestinationServiceInterface::class,
             \App\Services\DestinationService::class
         );
+
+        // Ràng buộc FavoriteServiceInterface với triển khai cụ thể FavoriteService
+        $this->app->bind(
+            \App\Services\Interfaces\FavoriteServiceInterface::class,
+            \App\Services\FavoriteService::class
+        );
     }
 
     /**
