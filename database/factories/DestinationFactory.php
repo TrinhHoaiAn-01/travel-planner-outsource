@@ -20,7 +20,7 @@ class DestinationFactory extends Factory
             'slug' => Str::slug($name).'-'.fake()->unique()->numberBetween(1, 99999),
             'description' => fake()->paragraphs(2, true),
             'address' => fake()->address(),
-            'price' => fake()->randomElement([0, 50000, 100000, 200000, 350000]),
+            'entrance_fee' => fake()->randomElement([0, 50000, 100000, 200000, 350000]),
             'opening_time' => '08:00',
             'closing_time' => '18:00',
             'duration' => fake()->randomElement([60, 90, 120, 180]),

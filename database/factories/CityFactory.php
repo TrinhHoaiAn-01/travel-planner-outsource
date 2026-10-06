@@ -15,7 +15,6 @@ class CityFactory extends Factory
             'name' => $name,
             'slug' => Str::slug($name).'-'.fake()->unique()->numberBetween(1, 99999),
             'description' => fake()->paragraph(),
-            'image' => null,
         ];
     }
 }

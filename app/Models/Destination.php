@@ -21,7 +21,7 @@ class Destination extends Model
         'slug',
         'description',
         'address',
-        'price',
+        'entrance_fee',
         'opening_time',
         'closing_time',
         'duration',
@@ -32,7 +32,7 @@ class Destination extends Model
     protected function casts(): array
     {
         return [
-            'price' => 'decimal:2',
+            'entrance_fee' => 'decimal:2',
             'rating' => 'decimal:1',
             'is_featured' => 'boolean',
         ];
