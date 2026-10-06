@@ -2,15 +2,15 @@
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\HomeController;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
+//Ngocai
 // Tuyến trang chủ công khai (Public Home)
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Các tuyến đăng ký & đăng nhập (Dành cho khách chưa đăng nhập)
 Route::middleware('guest')->group(function () {
