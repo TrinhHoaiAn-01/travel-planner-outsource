@@ -36,8 +36,15 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $hidden = [
         'password',
-        'remember_token',
     ];
+
+    /**
+     * Bỏ qua remember_token do bảng users trong ERD đồ án đã loại bỏ cột này.
+     */
+    public function getRememberTokenName(): string
+    {
+        return '';
+    }
 
     /**
      * Get the attributes that should be cast.
