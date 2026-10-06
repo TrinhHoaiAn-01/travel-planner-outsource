@@ -23,6 +23,12 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\Interfaces\AuthServiceInterface::class,
             \App\Services\AuthService::class
         );
+
+        // Ràng buộc TripServiceInterface với triển khai cụ thể TripService
+        $this->app->bind(
+            \App\Services\Interfaces\TripServiceInterface::class,
+            \App\Services\TripService::class
+        );
     }
 
     /**
