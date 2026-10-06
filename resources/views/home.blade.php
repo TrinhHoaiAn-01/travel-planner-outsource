@@ -679,7 +679,7 @@
             </div>
         </section>
 
-        <!-- 4. Section: Địa Điểm Nổi Bật (Grid 4 cột) -->
+               <!-- 4. Section: Địa Điểm Nổi Bật (Render động từ Database) -->
         <section id="destinations">
             <div class="section-header-wrap">
                 <div>
@@ -690,101 +690,42 @@
             </div>
 
             <div class="destinations-grid-4">
-                <!-- Card 1: Sun World Bà Nà Hills -->
-                <div class="dest-card-box">
-                    <div class="dest-img-header">
-                        <img src="https://images.unsplash.com/photo-1528127269322-539801943592?w=600" alt="Bà Nà Hills">
-                        <span class="tag-dest-badge tag-blue-light">Nghỉ dưỡng</span>
-                        <button class="btn-heart-fav" title="Yêu thích">🤍</button>
-                    </div>
-                    <div class="dest-body-content">
-                        <div class="dest-meta-row">
-                            <span class="dest-city-text">📍 Đà Nẵng</span>
-                            <span class="dest-rating-pill">⭐ 4.9</span>
+                @forelse($featuredDestinations as $destination)
+                    <div class="dest-card-box">
+                        <div class="dest-img-header">
+                            @if($destination->primaryImage)
+                                <img src="{{ $destination->primaryImage->image_path }}" alt="{{ $destination->name }}">
+                            @else
+                                <img src="https://images.unsplash.com/photo-1528127269322-539801943592?w=600" alt="{{ $destination->name }}">
+                            @endif
+                            <span class="tag-dest-badge tag-blue-light">
+                                {{ $destination->category->name ?? 'Du lịch' }}
+                            </span>
+                            <button class="btn-heart-fav" title="Lưu yêu thích">🤍</button>
                         </div>
-                        <h3 class="dest-card-name">Sun World Bà Nà Hills</h3>
-                        <p class="dest-card-desc">Đường lên tiên cảnh với Cầu Vàng lừng danh thế giới và khí hậu 4 mùa.</p>
-                        <div class="dest-card-footer">
-                            <div>
-                                <span class="price-label-small">Từ</span>
-                                <div class="price-val-blue">900.000đ</div>
+                        <div class="dest-body-content">
+                            <div class="dest-meta-row">
+                                <span class="dest-city-text">📍 {{ $destination->city->name ?? 'Việt Nam' }}</span>
+                                <span class="dest-rating-pill">⭐ {{ number_format($destination->rating, 1) }}</span>
                             </div>
-                            <a href="#" class="btn-detail-blue">Chi tiết</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Card 2: Du Thuyền Vịnh Hạ Long -->
-                <div class="dest-card-box">
-                    <div class="dest-img-header">
-                        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600" alt="Vịnh Hạ Long">
-                        <span class="tag-dest-badge tag-teal-light">Kỳ quan thế giới</span>
-                        <button class="btn-heart-fav" title="Yêu thích" style="color: #EF4444;">❤️</button>
-                    </div>
-                    <div class="dest-body-content">
-                        <div class="dest-meta-row">
-                            <span class="dest-city-text">📍 Quảng Ninh</span>
-                            <span class="dest-rating-pill">⭐ 4.8</span>
-                        </div>
-                        <h3 class="dest-card-name">Du Thuyền Vịnh Hạ Long</h3>
-                        <p class="dest-card-desc">Trải nghiệm du thuyền ngắm hoàng hôn và hàng ngàn đảo đá vôi kỳ vĩ.</p>
-                        <div class="dest-card-footer">
-                            <div>
-                                <span class="price-label-small">Từ</span>
-                                <div class="price-val-blue">1.500.000đ</div>
+                            <h3 class="dest-card-name">{{ $destination->name }}</h3>
+                            <p class="dest-card-desc">{{ $destination->description }}</p>
+                            <div class="dest-card-footer">
+                                <div>
+                                    <span class="price-label-small">Từ</span>
+                                    <div class="price-val-blue">
+                                        {{ $destination->entrance_fee > 0 ? number_format($destination->entrance_fee, 0, ',', '.') . 'đ' : 'Miễn phí' }}
+                                    </div>
+                                </div>
+                                <a href="#" class="btn-detail-blue">Chi tiết</a>
                             </div>
-                            <a href="#" class="btn-detail-blue">Chi tiết</a>
                         </div>
                     </div>
-                </div>
-
-                <!-- Card 3: Vinpearl Resort & Spa -->
-                <div class="dest-card-box">
-                    <div class="dest-img-header">
-                        <img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600" alt="Vinpearl Resort">
-                        <span class="tag-dest-badge tag-gold-light">Resort 5 Sao</span>
-                        <button class="btn-heart-fav" title="Yêu thích">🤍</button>
-                    </div>
-                    <div class="dest-body-content">
-                        <div class="dest-meta-row">
-                            <span class="dest-city-text">📍 Phú Quốc</span>
-                            <span class="dest-rating-pill">⭐ 5.0</span>
-                        </div>
-                        <h3 class="dest-card-name">Vinpearl Resort & Spa</h3>
-                        <p class="dest-card-desc">Thiên đường nghỉ dưỡng bãi biển với hồ bơi vô cực và ẩm thực đẳng cấp quốc tế.</p>
-                        <div class="dest-card-footer">
-                            <div>
-                                <span class="price-label-small">Từ</span>
-                                <div class="price-val-blue">2.800.000đ</div>
-                            </div>
-                            <a href="#" class="btn-detail-blue">Chi tiết</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Card 4: Phố Cổ Hội An -->
-                <div class="dest-card-box">
-                    <div class="dest-img-header">
-                        <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600" alt="Phố Cổ Hội An">
-                        <span class="tag-dest-badge tag-red-light">Phố cổ</span>
-                        <button class="btn-heart-fav" title="Yêu thích">🤍</button>
-                    </div>
-                    <div class="dest-body-content">
-                        <div class="dest-meta-row">
-                            <span class="dest-city-text">📍 Quảng Nam</span>
-                            <span class="dest-rating-pill">⭐ 4.9</span>
-                        </div>
-                        <h3 class="dest-card-name">Phố Cổ Hội An</h3>
-                        <p class="dest-card-desc">Thả đèn hoa đăng sông Hoài và ngắm nhìn phố đèn lồng lung linh về đêm.</p>
-                        <div class="dest-card-footer">
-                            <div>
-                                <span class="price-label-small">Từ</span>
-                                <div class="price-val-blue">150.000đ</div>
-                            </div>
-                            <a href="#" class="btn-detail-blue">Chi tiết</a>
-                        </div>
-                    </div>
-                </div>
+                @empty
+                    <p style="grid-column: 1/-1; text-align: center; color: #64748B; padding: 40px 0;">
+                        Hiện chưa có địa điểm nổi bật nào.
+                    </p>
+                @endforelse
             </div>
         </section>
 

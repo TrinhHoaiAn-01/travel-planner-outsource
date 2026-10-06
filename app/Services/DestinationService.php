@@ -13,12 +13,11 @@ use Illuminate\Database\Eloquent\Collection;
 //Ngocai
 class DestinationService implements DestinationServiceInterface
 {
-    /**
-     * Lấy danh sách các địa điểm nổi bật kèm thông tin thành phố, danh mục và ảnh đại diện.
+        /**
+     * Lấy danh sách các địa điểm nổi bật (is_featured = true) kèm ảnh đại diện, thành phố và danh mục.
      */
-    public function getFeaturedDestinations(int $limit = 6): Collection
+    public function getFeaturedDestinations(int $limit = 4): Collection
     {
-        // Eager loading giúp tối ưu câu lệnh SQL, tránh lỗi N+1 query
         return Destination::query()
             ->with(['city', 'category', 'primaryImage'])
             ->where('is_featured', true)
@@ -26,6 +25,7 @@ class DestinationService implements DestinationServiceInterface
             ->limit($limit)
             ->get();
     }
+
 
     /**
      * Lấy danh sách các thành phố có nhiều địa điểm du lịch nhất.
