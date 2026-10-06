@@ -51,4 +51,23 @@ class FavoriteController extends Controller
 
         return back()->with('success', $result['message']);
     }
+
+    /**
+     * Thêm địa điểm vào chuyến đi cụ thể
+     */
+    public function addToTrip(Request $request): RedirectResponse
+    {
+        $validatedData = $request->validate([
+            'trip_id' => 'required|exists:trips,id',
+            'destination_id' => 'required|exists:destinations,id',
+            'day_number' => 'required|integer|min:1',
+            'note' => 'nullable|string|max:255',
+            'start_time' => 'nullable|date_format:H:i',
+            'end_time' => 'nullable|date_format:H:i',
+        ]);
+
+        $this->favoriteService->addDestinationToTrip($request->user(), $validatedData);
+
+        return back()->with('success', 'Đã thêm địa điểm vào lịch trình chuyến đi thành công!');
+    }
 }

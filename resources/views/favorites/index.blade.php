@@ -143,9 +143,9 @@
                                             {{ $dest->entrance_fee > 0 ? number_format($dest->entrance_fee, 0, ',', '.') . ' đ' : 'Miễn phí' }}
                                         </div>
                                     </div>
-                                    <a href="{{ route('trips.index') }}" class="btn-add-trip">
+                                    <button type="button" class="btn-add-trip" onclick="openAddToTripModal({{ $dest->id }}, '{{ addslashes($dest->name) }}')">
                                         <i class="fa-solid fa-plus"></i> Thêm vào Trip
-                                    </a>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -168,8 +168,86 @@
         @endif
     </main>
 
+    <!-- MODAL THÊM VÀO TRIP (HÌNH 10 & 34) -->
+    <div id="addToTripModal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 100; align-items: center; justify-content: center;">
+        <div style="background: var(--white); border-radius: var(--radius-lg); width: 100%; max-width: 480px; box-shadow: var(--shadow-lg); overflow: hidden; animation: modalFadeIn 0.2s ease;">
+            <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-dark); display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-suitcase" style="color: var(--primary);"></i> Thêm vào chuyến đi
+                </h3>
+                <button type="button" onclick="closeAddToTripModal()" style="background: none; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer;">&times;</button>
+            </div>
+            <form id="addToTripForm" action="{{ route('favorites.add-to-trip') }}" method="POST">
+                @csrf
+                <input type="hidden" name="destination_id" id="modalDestinationId">
+                <div style="padding: 1.5rem;">
+                    <div style="margin-bottom: 1rem; padding: 0.75rem 1rem; background: var(--primary-light); border-radius: var(--radius-md); font-size: 0.9rem; color: var(--primary-dark);">
+                        Địa điểm: <strong id="modalDestinationName"></strong>
+                    </div>
+                    
+                    <div style="margin-bottom: 1.25rem;">
+                        <label style="display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-dark); margin-bottom: 0.4rem;">Chọn chuyến đi của bạn <span style="color:var(--danger)">*</span></label>
+                        @if(isset($userTrips) && $userTrips->count() > 0)
+                            <select name="trip_id" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.95rem;" required>
+                                <option value="">-- Chọn chuyến đi --</option>
+                                @foreach($userTrips as $trip)
+                                    <option value="{{ $trip->id }}">{{ $trip->name }} ({{ \Carbon\Carbon::parse($trip->start_date)->format('d/m/Y') }})</option>
+                                @endforeach
+                            </select>
+                        @else
+                            <p style="color: var(--text-muted); font-size: 0.85rem;">Bạn chưa có chuyến đi nào. <a href="{{ route('trips.create') }}" style="color:var(--primary); font-weight:700;">Tạo chuyến đi mới ngay</a></p>
+                        @endif
+                    </div>
+
+                    <div style="margin-bottom: 1.25rem;">
+                        <label style="display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-dark); margin-bottom: 0.4rem;">Ngày tham quan trong lịch trình <span style="color:var(--danger)">*</span></label>
+                        <select name="day_number" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.95rem;" required>
+                            <option value="1">Ngày 1</option>
+                            <option value="2">Ngày 2</option>
+                            <option value="3">Ngày 3</option>
+                            <option value="4">Ngày 4</option>
+                            <option value="5">Ngày 5</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom: 1.25rem;">
+                        <label style="display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-dark); margin-bottom: 0.4rem;">Ghi chú hoạt động (Tùy chọn)</label>
+                        <input type="text" name="note" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.95rem;" placeholder="Ví dụ: Tham quan buổi sáng, chụp ảnh...">
+                    </div>
+                </div>
+                <div style="padding: 1rem 1.5rem; background: var(--bg-light); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 0.75rem;">
+                    <button type="button" onclick="closeAddToTripModal()" style="background: #e2e8f0; color: var(--text-dark); border: none; padding: 0.6rem 1.2rem; border-radius: var(--radius-md); font-weight: 600; cursor: pointer;">Hủy</button>
+                    <button type="submit" style="background: var(--primary); color: var(--white); border: none; padding: 0.6rem 1.4rem; border-radius: var(--radius-md); font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;" {{ (isset($userTrips) && $userTrips->isEmpty()) ? 'disabled' : '' }}>
+                        <i class="fa-solid fa-check"></i> Xác nhận thêm
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <footer>
         <p>&copy; {{ date('Y') }} Travel Planner. Hệ thống gợi ý và lên lịch trình du lịch thông minh.</p>
     </footer>
+
+    <script>
+        function openAddToTripModal(destinationId, destinationName) {
+            document.getElementById('modalDestinationId').value = destinationId;
+            document.getElementById('modalDestinationName').textContent = destinationName;
+            var modal = document.getElementById('addToTripModal');
+            modal.style.display = 'flex';
+        }
+
+        function closeAddToTripModal() {
+            var modal = document.getElementById('addToTripModal');
+            modal.style.display = 'none';
+        }
+
+        // Đóng modal khi click ra ngoài vùng backdrop
+        document.getElementById('addToTripModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAddToTripModal();
+            }
+        });
+    </script>
 </body>
 </html>

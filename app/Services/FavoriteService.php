@@ -94,4 +94,31 @@ class FavoriteService implements FavoriteServiceInterface
             ->pluck('destination_id')
             ->toArray();
     }
+
+    /**
+     * Thêm địa điểm vào chuyến đi cụ thể của người dùng
+     */
+    public function addDestinationToTrip(User $user, array $data): \App\Models\ItineraryItem
+    {
+        $trip = \App\Models\Trip::where('id', $data['trip_id'])
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        $dayNumber = (int) ($data['day_number'] ?? 1);
+
+        // Tự động tính số thứ tự lớn nhất trong ngày để xếp vào cuối ngày
+        $maxSortOrder = \App\Models\ItineraryItem::where('trip_id', $trip->id)
+            ->where('day_number', $dayNumber)
+            ->max('sort_order') ?? 0;
+
+        return \App\Models\ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'destination_id' => $data['destination_id'],
+            'day_number' => $dayNumber,
+            'sort_order' => $maxSortOrder + 1,
+            'note' => $data['note'] ?? null,
+            'start_time' => $data['start_time'] ?? null,
+            'end_time' => $data['end_time'] ?? null,
+        ]);
+    }
 }

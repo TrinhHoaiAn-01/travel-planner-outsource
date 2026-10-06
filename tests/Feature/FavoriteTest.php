@@ -76,4 +76,74 @@ class FavoriteTest extends TestCase
             'destination_id' => $destination->id,
         ]);
     }
+
+    /**
+     * Người dùng có thể thêm địa điểm yêu thích vào chuyến đi của mình
+     */
+    public function test_user_can_add_favorite_destination_to_trip(): void
+    {
+        $user = User::factory()->create();
+        $city = City::factory()->create();
+        $category = Category::factory()->create();
+        $destination = Destination::factory()->create([
+            'city_id' => $city->id,
+            'category_id' => $category->id,
+        ]);
+
+        $trip = \App\Models\Trip::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'Chuyến đi Đà Nẵng 3N2Đ',
+        ]);
+
+        $postData = [
+            'trip_id' => $trip->id,
+            'destination_id' => $destination->id,
+            'day_number' => 1,
+            'note' => 'Tham quan buổi sáng, chụp ảnh check-in',
+        ];
+
+        $response = $this->actingAs($user)->post(route('favorites.add-to-trip'), $postData);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('itinerary_items', [
+            'trip_id' => $trip->id,
+            'destination_id' => $destination->id,
+            'day_number' => 1,
+            'sort_order' => 1,
+            'note' => 'Tham quan buổi sáng, chụp ảnh check-in',
+        ]);
+    }
+
+    /**
+     * Người dùng không thể thêm địa điểm vào chuyến đi của người khác
+     */
+    public function test_user_cannot_add_destination_to_other_users_trip(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $city = City::factory()->create();
+        $category = Category::factory()->create();
+        $destination = Destination::factory()->create([
+            'city_id' => $city->id,
+            'category_id' => $category->id,
+        ]);
+
+        $otherTrip = \App\Models\Trip::factory()->create([
+            'user_id' => $otherUser->id,
+        ]);
+
+        $postData = [
+            'trip_id' => $otherTrip->id,
+            'destination_id' => $destination->id,
+            'day_number' => 1,
+        ];
+
+        $response = $this->actingAs($user)->post(route('favorites.add-to-trip'), $postData);
+
+        $response->assertStatus(404);
+        $this->assertDatabaseMissing('itinerary_items', [
+            'trip_id' => $otherTrip->id,
+            'destination_id' => $destination->id,
+        ]);
+    }
 }
