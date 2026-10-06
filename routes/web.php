@@ -31,8 +31,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/email/verification-notification', [AuthController::class, 'resendVerificationEmail'])->name('verification.send');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    // Quản lý chuyến đi của người dùng (Trip Management)
+    // Quản lý chuyến đi của người dùng (Trip Management - Nguyễn Trần Thành)
     Route::get('/trips', [TripController::class, 'index'])->name('trips.index');
+    Route::get('/trips/create', [TripController::class, 'create'])->name('trips.create');
+    Route::post('/trips', [TripController::class, 'store'])->name('trips.store');
+    Route::post('/trips/{trip}/clone', [TripController::class, 'clone'])->name('trips.clone');
+    Route::post('/trips/{trip}/reopen', [TripController::class, 'reopen'])->name('trips.reopen');
 });
 
 // Tuyến đăng nhập nhanh người dùng thường (Demo / Test)
