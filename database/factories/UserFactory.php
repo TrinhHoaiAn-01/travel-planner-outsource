@@ -32,7 +32,6 @@ class UserFactory extends Factory
             'role' => 'user',
             'avatar' => null,
             'is_active' => true,
-            'remember_token' => Str::random(10),
         ];
     }
 
