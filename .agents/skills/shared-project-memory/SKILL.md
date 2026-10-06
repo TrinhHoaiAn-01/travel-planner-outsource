@@ -777,6 +777,106 @@ When the user provides a screenshot or image of a UI design, the Agent MUST auto
 11. Never overwrite or redesign another member's implementation.
     Before modifying existing files, inspect the current source code and shared history to determine whether another member has already implemented or modified the same feature.
 
+## 11.2 Cross-Member Business Continuity
+
+When the current member is assigned a feature that depends on business logic previously developed by another member, the Agent must continue the existing business implementation instead of creating a new independent implementation.
+
+Example:
+
+The current member is assigned the User CRUD feature.
+
+The current member did not develop the Login or Signup functionality.
+
+The Login and Signup functionality was previously developed by another member.
+
+In this situation, the Agent must:
+
+1. Identify the current member's assigned scope from `PROJECT_SPECIFICATIONS.md`.
+
+2. Identify which member previously developed the related Login, Signup, Authentication, User, or Profile business logic.
+
+3. Read the relevant shared history of that member from:
+
+   `history-conversation-agent/workdays/`
+
+4. Analyze the previous member's business implementation history, including:
+   - Business requirements.
+   - Authentication flow.
+   - User creation rules.
+   - User validation rules.
+   - User roles and permissions.
+   - Authorization rules.
+   - Password handling.
+   - User status rules.
+   - Existing Service Interfaces.
+   - Existing Services.
+   - Existing Controllers.
+   - Existing Models.
+   - Existing Policies.
+   - Existing Form Requests.
+   - Relevant tests.
+   - Important implementation decisions.
+
+5. Inspect the current source code and compare it with the historical implementation.
+
+6. Treat the current source code as the final authority when history and source code differ.
+
+7. Reuse the existing business rules and architecture when implementing the current member's feature.
+
+8. Do not recreate Login, Signup, Authentication, or User business logic merely because the current member did not originally implement it.
+
+9. Implement the User CRUD only within the current member's assigned scope.
+
+10. The User CRUD must integrate with the existing authentication and user-management business rules.
+
+11. Do not modify another member's existing Login, Signup, Authentication, or unrelated User functionality unless the current task explicitly requires such a change.
+
+12. If an existing implementation must be changed to support the current task, identify the exact dependency and make the smallest possible change.
+
+13. Before modifying shared or previously developed files:
+    - Inspect the current source code.
+    - Inspect Git changes when available.
+    - Inspect the relevant shared history.
+    - Determine whether another member is actively working on the same area.
+    - Avoid overwriting or redesigning existing work.
+
+14. If the required User CRUD can be implemented without modifying another member's code, do not modify that member's code.
+
+15. If the requested User CRUD conflicts with another member's active implementation:
+    - Stop before overwriting the conflicting implementation.
+    - Explain the conflict.
+    - Identify the affected files and previous implementation.
+    - Determine whether the current task can be completed without changing the conflicting code.
+    - Only make the minimum required compatible change when it is safe to do so.
+
+16. After implementation, verify that:
+    - Existing Login functionality still works.
+    - Existing Signup functionality still works.
+    - Existing authentication behavior is preserved.
+    - User CRUD works according to the current specification.
+    - Authorization rules remain correct.
+    - Relevant Feature Tests pass.
+
+17. Record the cross-member dependency and important business rules reused from the previous member's implementation in the current session history.
+
+The Agent must treat previous members' business logic as existing project knowledge, not as code to be independently redesigned.
+
+The goal is continuity:
+
+Previous Member's Business Logic
+        ↓
+Shared History
+        ↓
+Current Agent analyzes existing rules
+        ↓
+Current Source Code
+        ↓
+Current Member's Assigned Feature
+        ↓
+Compatible Implementation
+
+The Agent must never break another member's implementation merely because the current member did not originally develop that functionality.
+
 # 12. Error Handling and Self-Repair
 
 When an implementation produces an error:
