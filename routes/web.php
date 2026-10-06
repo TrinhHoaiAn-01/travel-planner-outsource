@@ -22,13 +22,36 @@ Route::middleware('guest')->group(function () {
     Route::post('/captcha/refresh', [AuthController::class, 'refreshCaptcha'])->name('captcha.refresh');
 });
 
+use App\Http\Controllers\TripController;
+
 // Các tuyến xác thực thông tin đăng ký / email (Dành cho tài khoản đã đăng nhập)
 Route::middleware('auth')->group(function () {
     Route::get('/email/verify', [AuthController::class, 'showVerificationNotice'])->name('verification.notice');
     Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
     Route::post('/email/verification-notification', [AuthController::class, 'resendVerificationEmail'])->name('verification.send');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    // Quản lý chuyến đi của người dùng (Trip Management)
+    Route::get('/trips', [TripController::class, 'index'])->name('trips.index');
 });
+
+// Tuyến đăng nhập nhanh người dùng thường (Demo / Test)
+Route::get('/dev/login-as-user', function () {
+    $user = User::where('role', 'user')->first();
+    if (! $user) {
+        $user = User::firstOrCreate(
+            ['email' => 'user@travelplanner.test'],
+            [
+                'name' => 'Ngọc Nguyễn',
+                'password' => bcrypt('password'),
+                'role' => 'user',
+                'is_active' => true,
+            ]
+        );
+    }
+    Auth::login($user);
+    return redirect()->route('trips.index');
+})->name('dev.login.user');
 
 // Tuyến đăng nhập nhanh cho môi trường phát triển / demo
 Route::get('/dev/login-as-admin', function () {
