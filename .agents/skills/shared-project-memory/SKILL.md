@@ -877,7 +877,126 @@ Compatible Implementation
 
 The Agent must never break another member's implementation merely because the current member did not originally develop that functionality.
 
-## 11.3 Interrupted Session Recovery
+## 11.3 Cross-Member Reference-Only Development
+
+When the current member's feature depends on functionality owned or implemented by another member, but the current member does not own that functionality, the Agent must use the other member's implementation as a read-only reference.
+
+The Agent must:
+
+1. Identify the dependent functionality from `PROJECT_SPECIFICATIONS.md`.
+
+2. Identify the member responsible for that functionality.
+
+3. Read the responsible member's relevant shared history.
+
+4. Inspect the current source code of that functionality.
+
+5. Analyze the existing:
+   - Business logic.
+   - Architecture.
+   - Service Interfaces.
+   - Services.
+   - Models.
+   - Policies.
+   - Form Requests.
+   - Routes.
+   - Data flow.
+   - Authorization rules.
+   - Validation rules.
+   - Relevant tests.
+
+6. Use the existing implementation as a read-only reference when developing the current member's feature.
+
+7. Implement the current feature using the existing business rules, contracts, architecture, and integration behavior where applicable.
+
+### Strict Read-Only Rule
+
+The other member's implementation is READ-ONLY.
+
+The Agent MUST NOT:
+
+- Modify the other member's code.
+- Rewrite the other member's code.
+- Refactor the other member's code.
+- Rename the other member's files, classes, methods, variables, routes, or models.
+- Delete the other member's code.
+- Move the other member's files.
+- Reformat the other member's code unnecessarily.
+- Add features to the other member's implementation.
+- Fix unrelated bugs in the other member's implementation.
+- Change the other member's business logic.
+- Change the other member's database structure.
+- Change the other member's routes or APIs.
+- Overwrite the other member's files.
+- Revert the other member's changes.
+
+The Agent may only READ, ANALYZE, and REFERENCE the other member's implementation.
+
+### Current Feature Scope
+
+The Agent must modify only the files belonging to the current member's requested feature.
+
+Example:
+
+Admin functionality
+        ↓
+READ ONLY
+        ↓
+Analyze Admin implementation
+        ↓
+Use Admin implementation as reference
+        ↓
+Develop current member's Login functionality
+        ↓
+Modify only Login-related files
+
+The Agent must never modify Admin code merely because Login depends on Admin.
+
+### Dependency Rule
+
+If the current feature depends on another member's functionality:
+
+1. Read the existing implementation.
+2. Understand its business rules and contracts.
+3. Reuse the existing contracts where possible.
+4. Implement the integration inside the current member's own scope.
+5. Do not modify the dependency's implementation.
+
+If the dependency cannot support the current feature without modifying the other member's code:
+
+1. Stop before modifying the other member's files.
+2. Identify the exact dependency.
+3. Report the conflict.
+4. Do not automatically modify or overwrite the other member's implementation.
+
+### Source Priority
+
+When analyzing another member's functionality:
+
+1. Current source code.
+2. Current project configuration.
+3. Shared project history.
+4. Git history.
+
+The current source code is the final authority for what currently exists.
+
+Shared history is used to understand previous decisions, business rules, and implementation context.
+
+### Final Rule
+
+The Agent may read and use another member's code as a reference, but must never modify that member's implementation while working on the current member's feature.
+
+READ the other member's code.
+
+ANALYZE the other member's code.
+
+USE it as a reference.
+
+BUILD the current feature independently within the current member's scope.
+
+DO NOT MODIFY the other member's code.
+
+## 11.4 Interrupted Session Recovery
 
 The Agent must support automatic recovery when a coding session is interrupted unexpectedly.
 
