@@ -120,6 +120,14 @@
             font-weight: 600;
             font-size: 14px;
             cursor: pointer;
+            padding: 4px 10px;
+            border-radius: 20px;
+            transition: all 0.15s ease;
+        }
+
+        .user-dropdown:hover {
+            background-color: #F1F5F9;
+            color: #0066FF;
         }
 
         .user-avatar-img {
@@ -549,11 +557,11 @@
                         Admin
                     </a>
                 @endif
-                <div class="user-dropdown">
-                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100" class="user-avatar-img" alt="Avatar">
+                <a href="{{ route('profile.show') }}" class="user-dropdown" title="Hồ sơ cá nhân">
+                    <img src="{{ Auth::user()->avatar ?: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100' }}" class="user-avatar-img" alt="Avatar">
                     <span>{{ Auth::user()->name }}</span>
                     <span>▾</span>
-                </div>
+                </a>
             @else
                 <a href="{{ route('login') }}" class="btn-admin">Đăng nhập</a>
                 <a href="{{ route('register') }}" class="btn-detail-blue">Đăng ký</a>
