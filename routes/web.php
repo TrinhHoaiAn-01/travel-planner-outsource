@@ -12,7 +12,10 @@ use Illuminate\Support\Facades\Route;
 // Tuyến trang chủ công khai (Public Home)
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-// Các tuyến đăng ký & đăng nhập (Dành cho khách chưa đăng nhập)
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TripController;
+
+// Các tuyến đăng ký & đăng nhập & khôi phục mật khẩu (Dành cho khách chưa đăng nhập)
 Route::middleware('guest')->group(function () {
     Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
@@ -20,9 +23,13 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/captcha/refresh', [AuthController::class, 'refreshCaptcha'])->name('captcha.refresh');
-});
 
-use App\Http\Controllers\TripController;
+    // Quên mật khẩu & Khôi phục mật khẩu (Trịnh Hoài An)
+    Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('password.request');
+    Route::post('/forgot-password', [AuthController::class, 'sendPasswordResetLink'])->name('password.email');
+    Route::get('/reset-password/{token}', [AuthController::class, 'showResetPasswordForm'])->name('password.reset');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
+});
 
 // Các tuyến xác thực thông tin đăng ký / email (Dành cho tài khoản đã đăng nhập)
 Route::middleware('auth')->group(function () {
@@ -30,6 +37,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
     Route::post('/email/verification-notification', [AuthController::class, 'resendVerificationEmail'])->name('verification.send');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    // Quản lý hồ sơ cá nhân & Đổi mật khẩu (Profile & Avatar - Trịnh Hoài An)
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar');
+    Route::get('/profile/change-password', [ProfileController::class, 'showChangePasswordForm'])->name('profile.password');
+    Route::post('/profile/change-password', [ProfileController::class, 'changePassword'])->name('profile.password.update');
 
     // Quản lý chuyến đi của người dùng (Trip Management - Nguyễn Trần Thành)
     Route::get('/trips', [TripController::class, 'index'])->name('trips.index');
