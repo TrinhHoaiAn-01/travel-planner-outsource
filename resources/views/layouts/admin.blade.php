@@ -259,6 +259,31 @@
             position: sticky;
             top: 0;
             z-index: 30;
+            gap: 16px;
+        }
+
+        .header-left-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-toggle-btn {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 6px;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-toggle-btn:hover {
+            background-color: #F1F5F9;
+            border-color: #CBD5E1;
         }
 
         .header-title-text {
@@ -266,12 +291,14 @@
             font-weight: 700;
             color: var(--text-dark);
             letter-spacing: -0.01em;
+            white-space: nowrap;
         }
 
         .header-right-actions {
             display: flex;
             align-items: center;
             gap: 16px;
+            flex-wrap: wrap;
         }
 
         .system-status-pill {
@@ -284,14 +311,31 @@
             border-radius: 9999px;
             font-size: 13px;
             font-weight: 500;
+            transition: all 0.2s ease;
         }
 
         .status-dot-pulse {
-            width: 7px;
-            height: 7px;
+            width: 8px;
+            height: 8px;
             background-color: var(--success);
             border-radius: 50%;
             display: inline-block;
+            position: relative;
+        }
+
+        .status-dot-pulse::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 50%;
+            border: 2px solid var(--success);
+            animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.9); opacity: 0.9; }
+            50% { transform: scale(1.6); opacity: 0; }
+            100% { transform: scale(1.6); opacity: 0; }
         }
 
         .btn-view-public {
@@ -312,6 +356,7 @@
         .btn-view-public:hover {
             background-color: #F1F5F9;
             border-color: #CBD5E1;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         /* Breadcrumbs */
@@ -337,6 +382,79 @@
         /* Main Content Container */
         .admin-content-body {
             padding: 16px 28px 36px 28px;
+        }
+
+        /* Mobile Sidebar Backdrop */
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background-color: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(2px);
+            z-index: 45;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .sidebar-backdrop.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+            .sidebar-toggle-btn {
+                display: inline-flex;
+            }
+
+            .admin-sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                transform: translateX(-100%);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 50;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            }
+
+            .admin-sidebar.open {
+                transform: translateX(0);
+            }
+
+            .admin-header-bar {
+                padding: 12px 18px;
+            }
+
+            .header-title-text {
+                font-size: 16px;
+            }
+
+            .admin-breadcrumbs {
+                padding: 16px 18px 4px 18px;
+            }
+
+            .admin-content-body {
+                padding: 16px 18px 28px 18px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .header-right-actions .btn-view-public span {
+                display: none;
+            }
+
+            .btn-view-public {
+                padding: 7px 10px;
+            }
+
+            .system-status-pill span:last-child {
+                display: none;
+            }
+
+            .system-status-pill {
+                padding: 6px 8px;
+            }
         }
     </style>
     @stack('styles')
@@ -481,7 +599,16 @@
     <div class="admin-main-wrap">
         <!-- Header Bar -->
         <header class="admin-header-bar">
-            <h1 class="header-title-text">Hệ Thống Quản Trị Travel Planner</h1>
+            <div class="header-left-group">
+                <button type="button" class="sidebar-toggle-btn" id="sidebarToggleBtn" aria-label="Mở menu điều hướng">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <h1 class="header-title-text">Hệ Thống Quản Trị Travel Planner</h1>
+            </div>
             <div class="header-right-actions">
                 <div class="system-status-pill">
                     <span class="status-dot-pulse"></span>
@@ -510,6 +637,41 @@
         </main>
     </div>
 
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebar = document.querySelector('.admin-sidebar');
+            const toggleBtn = document.getElementById('sidebarToggleBtn');
+            const backdrop = document.getElementById('sidebarBackdrop');
+
+            function toggleSidebar() {
+                if (sidebar) {
+                    sidebar.classList.toggle('open');
+                }
+                if (backdrop) {
+                    backdrop.classList.toggle('active');
+                }
+            }
+
+            function closeSidebar() {
+                if (sidebar) {
+                    sidebar.classList.remove('open');
+                }
+                if (backdrop) {
+                    backdrop.classList.remove('active');
+                }
+            }
+
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', toggleSidebar);
+            }
+            if (backdrop) {
+                backdrop.addEventListener('click', closeSidebar);
+            }
+        });
+    </script>
     @stack('scripts')
 </body>
 </html>
