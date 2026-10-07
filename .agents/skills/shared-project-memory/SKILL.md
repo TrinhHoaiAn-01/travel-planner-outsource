@@ -1224,6 +1224,237 @@ Before declaring the function complete:
 
 Only after all applicable checks pass may the Agent report the function as completed.
 
+## 11.6 Automatic New Skill Detection and Project-Wide Integration
+
+The Agent MUST automatically detect and apply every new skill or rule added to SKILL.md.
+
+This rule applies to all future skills added after this SKILL.md was created.
+
+### New Skill Detection
+
+Whenever SKILL.md contains a new skill, rule, requirement, workflow, architecture rule, testing rule, security rule, CI/CD rule, or technology requirement, the Agent MUST treat it as a new mandatory project requirement.
+
+The Agent must not assume that the new skill only applies to future code.
+
+The new skill MUST be retroactively applied to the existing project.
+
+### Automatic Full Project Scan
+
+After detecting a new skill, the Agent MUST recursively scan the entire project directory.
+
+The Agent must determine:
+
+1. Which existing features are affected.
+2. Which files are affected.
+3. Which implementations already comply.
+4. Which implementations partially comply.
+5. Which implementations do not comply.
+6. Which required components are missing.
+7. Which tests are missing.
+8. Which configuration is missing.
+9. Which CI/CD changes are required.
+10. Which dependencies or integrations are required.
+
+The Agent MUST NOT limit the scan to the current user's feature.
+
+### Automatic Integration
+
+If the new skill is missing from any applicable part of the project, the Agent MUST automatically implement and integrate it.
+
+The Agent must:
+
+1. Identify the missing requirement.
+2. Create the required implementation.
+3. Integrate it into the existing architecture.
+4. Preserve existing business logic.
+5. Preserve existing functionality.
+6. Follow MVC and Service Interface rules.
+7. Respect multi-member ownership rules.
+8. Create or update required tests.
+9. Run tests.
+10. Fix failures.
+11. Verify CI/CD.
+12. Perform a full project re-scan.
+
+The Agent MUST NOT only report missing requirements.
+
+If a required component is missing and it is within the Agent's authorized scope, the Agent MUST create it.
+
+### Existing Project Rule
+
+A feature implemented before a new skill was added is NOT automatically considered compliant.
+
+Example:
+
+Existing project:
+
+    Login
+    User CRUD
+    Booking
+    Search
+    Admin
+
+New skill:
+
+    "Every function must have tests."
+
+The Agent MUST automatically inspect:
+
+    Login
+    User CRUD
+    Booking
+    Search
+    Admin
+
+and create the missing tests.
+
+### Future Skill Rule
+
+This mechanism MUST continue working for every future skill added to SKILL.md.
+
+Example:
+
+Today:
+    Test Case + Unit Test + CI/CD skill
+
+Later:
+    Apache Solr skill
+
+Later:
+    API Documentation skill
+
+Later:
+    Security Testing skill
+
+Later:
+    Caching skill
+
+For every newly added skill:
+
+    Detect New Skill
+        ↓
+    Read Skill Requirement
+        ↓
+    Scan Entire Project
+        ↓
+    Find Missing / Non-Compliant Areas
+        ↓
+    Automatically Implement
+        ↓
+    Integrate
+        ↓
+    Create / Update Tests
+        ↓
+    Run Tests
+        ↓
+    Fix Failures
+        ↓
+    Verify CI/CD
+        ↓
+    Full Project Re-Scan
+        ↓
+    Skill Fully Applied
+
+### No Manual Activation
+
+The user MUST NOT need to explicitly tell the Agent:
+
+"Apply the new skill to the old code."
+
+The addition of the skill to SKILL.md itself is the activation signal.
+
+The Agent must automatically detect that the project may contain existing code that predates the new skill.
+
+### No Partial Adoption
+
+The Agent MUST NOT apply the new skill only to:
+
+- The next function
+- The current feature
+- Recently modified files
+- New files
+- Files mentioned by the user
+- Files changed in the latest commit
+
+The Agent must apply the new skill to every applicable existing part of the project.
+
+### Compliance Classification
+
+During the full project scan, each affected component must be classified as:
+
+COMPLIANT
+    → Already follows the new skill.
+
+INCOMPLETE
+    → Partially follows the new skill and must be completed.
+
+NON-COMPLIANT
+    → Violates the new skill and must be fixed.
+
+MISSING
+    → Required component does not exist and must be created.
+
+BLOCKED
+    → Cannot safely modify because of ownership, dependency, authorization, or another explicit project restriction.
+
+The Agent must automatically resolve COMPLIANT, INCOMPLETE, NON-COMPLIANT, and MISSING items whenever they are within the current authorized scope.
+
+BLOCKED items must be reported instead of being silently ignored.
+
+### Full Project Verification
+
+After integration, the Agent MUST perform another full recursive project scan.
+
+The Agent must verify that:
+
+- The new skill is applied everywhere applicable.
+- Required implementations exist.
+- Missing components have been created.
+- Existing implementations have been updated where required.
+- Required tests exist.
+- Tests pass.
+- CI passes.
+- CD remains compatible.
+- Existing business rules remain intact.
+- Existing member ownership rules remain intact.
+- No unnecessary unrelated changes were introduced.
+
+The Agent MUST NOT declare the new skill fully integrated while applicable MISSING, INCOMPLETE, or NON-COMPLIANT items remain.
+
+### Continuous Skill Enforcement
+
+SKILL.md is a living project specification.
+
+Every time SKILL.md is changed:
+
+    READ UPDATED SKILL.md
+        ↓
+    DETECT NEW / CHANGED RULES
+        ↓
+    COMPARE AGAINST ENTIRE PROJECT
+        ↓
+    AUTOMATICALLY APPLY CHANGES
+        ↓
+    TEST
+        ↓
+    VERIFY CI/CD
+        ↓
+    RE-SCAN ENTIRE PROJECT
+
+This process MUST happen automatically for every future skill added to SKILL.md.
+
+### Final Principle
+
+Adding a new skill to SKILL.md means:
+
+    "Apply this skill to the entire project now and continue enforcing it for all future development."
+
+The Agent MUST automatically detect, scan, implement, integrate, test, verify, and enforce every newly added skill.
+
+DO NOT WAIT FOR THE USER TO ASK FOR RETROACTIVE APPLICATION.
+DO NOT ONLY REPORT MISSING IMPLEMENTATION.
+AUTOMATICALLY APPLY THE NEW SKILL TO THE ENTIRE PROJECT.
+
 # 12. Error Handling and Self-Repair
 
 When an implementation produces an error:
