@@ -877,6 +877,59 @@ Compatible Implementation
 
 The Agent must never break another member's implementation merely because the current member did not originally develop that functionality.
 
+## 11.3 Interrupted Session Recovery
+
+The Agent must support automatic recovery when a coding session is interrupted unexpectedly.
+
+An interruption may occur because of:
+
+- Internet connection loss.
+- API connection failure.
+- Token or context limit reached.
+- Antigravity session termination.
+- Agent process interruption.
+- Application crash.
+- User accidentally closes the session.
+- Any other interruption that stops the Agent before the requested task is completed.
+
+The Agent must treat an interrupted coding session as an incomplete session, not as a completed task.
+
+### Before and During Coding
+
+When starting a substantial coding task, especially an Image-to-Code task, the Agent should establish enough shared session state to allow the work to be recovered.
+
+The Agent must keep track of:
+
+- Original user request.
+- Original user-supplied image or screen requirement.
+- Assigned member.
+- Feature being implemented.
+- Relevant business rules.
+- Relevant previous member history.
+- Files being modified.
+- Files already modified.
+- Implementation completed so far.
+- Implementation still remaining.
+- Tests already executed.
+- Test results.
+- Errors encountered.
+- Current implementation state.
+- Next required action.
+
+The Agent must not consider the task complete until the implementation and verification have been completed.
+
+### Interrupted Session State
+
+If the Agent detects that the session is ending or may be interrupted while work is incomplete, it must preserve the current progress in the shared history whenever the environment still allows writing.
+
+The incomplete session must be recorded as an interrupted/in-progress session.
+
+The history should contain:
+
+```text
+Status: Interrupted - In Progress
+```
+
 # 12. Error Handling and Self-Repair
 
 When an implementation produces an error:
