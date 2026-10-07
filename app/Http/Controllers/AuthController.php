@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\ResetPasswordRequest;
 use App\Services\Interfaces\AuthServiceInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -154,5 +156,48 @@ class AuthController extends Controller
         $this->authService->logoutUser();
 
         return redirect()->route('login');
+    }
+
+    /**
+     * Hiển thị giao diện Quên mật khẩu.
+     */
+    public function showForgotPasswordForm(): View
+    {
+        return view('auth.forgot-password');
+    }
+
+    /**
+     * Xử lý gửi liên kết đặt lại mật khẩu qua email.
+     */
+    public function sendPasswordResetLink(ForgotPasswordRequest $request): RedirectResponse
+    {
+        // Gọi Service gửi liên kết đặt lại mật khẩu theo chính sách bảo mật
+        $message = $this->authService->sendPasswordResetLink($request->validated());
+
+        return back()->with('status', $message);
+    }
+
+    /**
+     * Hiển thị giao diện Đặt lại mật khẩu mới từ liên kết xác thực.
+     */
+    public function showResetPasswordForm(Request $request, string $token): View
+    {
+        return view('auth.reset-password', [
+            'token' => $token,
+            'email' => $request->query('email', ''),
+        ]);
+    }
+
+    /**
+     * Xử lý đặt lại mật khẩu mới cho tài khoản người dùng.
+     */
+    public function resetPassword(ResetPasswordRequest $request): RedirectResponse
+    {
+        // Gọi Service thực hiện cập nhật mật khẩu mới
+        $message = $this->authService->resetPassword($request->validated());
+
+        return redirect()
+            ->route('login')
+            ->with('success', $message);
     }
 }

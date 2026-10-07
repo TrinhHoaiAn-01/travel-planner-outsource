@@ -60,4 +60,20 @@ interface AuthServiceInterface
      * @return bool
      */
     public function validateCaptcha(string $inputCaptcha): bool;
+
+    /**
+     * Gửi liên kết đặt lại mật khẩu cho tài khoản người dùng qua email.
+     *
+     * @param array<string, mixed> $data Mảng chứa email người dùng
+     * @return string Trạng thái hoặc thông báo kết quả
+     */
+    public function sendPasswordResetLink(array $data): string;
+
+    /**
+     * Đặt lại mật khẩu mới cho tài khoản người dùng bằng token hợp lệ.
+     *
+     * @param array<string, mixed> $data Mảng chứa token, email, password, password_confirmation
+     * @return string Trạng thái hoặc thông báo kết quả
+     */
+    public function resetPassword(array $data): string;
 }
