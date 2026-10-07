@@ -12,6 +12,13 @@
         border-radius: 12px;
         padding: 22px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+        border-color: #CBD5E1;
     }
 
     /* Grid for 4 Top Stat Cards */
@@ -91,6 +98,11 @@
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
+        transition: transform 0.2s ease;
+    }
+
+    .dashboard-card:hover .stat-icon-box {
+        transform: scale(1.06);
     }
 
     .stat-icon-box.users {
@@ -183,31 +195,44 @@
     .bar-rect-visual {
         width: 100%;
         max-width: 28px;
-        background-color: #2563EB;
+        background: linear-gradient(180deg, #38BDF8 0%, #2563EB 100%);
         border-radius: 4px 4px 0 0;
-        transition: height 0.4s ease, background-color 0.2s;
+        transition: height 0.4s ease, filter 0.2s ease, transform 0.2s ease;
         cursor: pointer;
         position: relative;
     }
 
     .bar-rect-visual:hover {
-        background-color: #1D4ED8;
+        filter: brightness(1.12);
+        transform: scaleY(1.02);
+        transform-origin: bottom;
     }
 
-    .bar-rect-visual:hover::after {
+    .bar-rect-visual::after {
         content: attr(data-tooltip);
         position: absolute;
-        top: -30px;
+        bottom: calc(100% + 8px);
         left: 50%;
-        transform: translateX(-50%);
+        transform: translateX(-50%) translateY(4px);
         background-color: #0F172A;
         color: #FFFFFF;
         font-size: 11px;
-        padding: 3px 6px;
-        border-radius: 4px;
+        font-weight: 500;
+        padding: 4px 8px;
+        border-radius: 6px;
         white-space: nowrap;
-        z-index: 10;
+        z-index: 20;
         pointer-events: none;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.15s ease, transform 0.15s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    }
+
+    .bar-rect-visual:hover::after {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
     }
 
     .bar-label-month {
@@ -236,7 +261,7 @@
     .legend-color-box {
         width: 10px;
         height: 10px;
-        background-color: #2563EB;
+        background: linear-gradient(180deg, #38BDF8 0%, #2563EB 100%);
         border-radius: 2px;
     }
 
@@ -256,6 +281,13 @@
         display: flex;
         flex-direction: column;
         gap: 6px;
+        padding: 4px 6px;
+        border-radius: 6px;
+        transition: background-color 0.15s ease;
+    }
+
+    .destination-rank-row:hover {
+        background-color: #F8FAFC;
     }
 
     .dest-row-header {
@@ -283,7 +315,7 @@
     .progress-fill-bar {
         height: 100%;
         border-radius: 9999px;
-        transition: width 0.5s ease;
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .btn-manage-destinations {
@@ -315,6 +347,7 @@
         border-radius: 12px;
         padding: 22px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        transition: box-shadow 0.2s ease;
     }
 
     .table-header-flex {
@@ -361,6 +394,14 @@
         border-bottom: 1px solid #F8FAFC;
         vertical-align: middle;
         color: var(--text-dark);
+    }
+
+    .modern-data-table tbody tr {
+        transition: background-color 0.15s ease;
+    }
+
+    .modern-data-table tbody tr:hover td {
+        background-color: #F8FAFC;
     }
 
     .modern-data-table tr:last-child td {
