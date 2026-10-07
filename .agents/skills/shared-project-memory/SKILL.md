@@ -877,6 +877,584 @@ Compatible Implementation
 
 The Agent must never break another member's implementation merely because the current member did not originally develop that functionality.
 
+## 11.3 Cross-Member Reference-Only Development
+
+When the current member's feature depends on functionality owned or implemented by another member, but the current member does not own that functionality, the Agent must use the other member's implementation as a read-only reference.
+
+The Agent must:
+
+1. Identify the dependent functionality from `PROJECT_SPECIFICATIONS.md`.
+
+2. Identify the member responsible for that functionality.
+
+3. Read the responsible member's relevant shared history.
+
+4. Inspect the current source code of that functionality.
+
+5. Analyze the existing:
+   - Business logic.
+   - Architecture.
+   - Service Interfaces.
+   - Services.
+   - Models.
+   - Policies.
+   - Form Requests.
+   - Routes.
+   - Data flow.
+   - Authorization rules.
+   - Validation rules.
+   - Relevant tests.
+
+6. Use the existing implementation as a read-only reference when developing the current member's feature.
+
+7. Implement the current feature using the existing business rules, contracts, architecture, and integration behavior where applicable.
+
+### Strict Read-Only Rule
+
+The other member's implementation is READ-ONLY.
+
+The Agent MUST NOT:
+
+- Modify the other member's code.
+- Rewrite the other member's code.
+- Refactor the other member's code.
+- Rename the other member's files, classes, methods, variables, routes, or models.
+- Delete the other member's code.
+- Move the other member's files.
+- Reformat the other member's code unnecessarily.
+- Add features to the other member's implementation.
+- Fix unrelated bugs in the other member's implementation.
+- Change the other member's business logic.
+- Change the other member's database structure.
+- Change the other member's routes or APIs.
+- Overwrite the other member's files.
+- Revert the other member's changes.
+
+The Agent may only READ, ANALYZE, and REFERENCE the other member's implementation.
+
+### Current Feature Scope
+
+The Agent must modify only the files belonging to the current member's requested feature.
+
+Example:
+
+Admin functionality
+        ↓
+READ ONLY
+        ↓
+Analyze Admin implementation
+        ↓
+Use Admin implementation as reference
+        ↓
+Develop current member's Login functionality
+        ↓
+Modify only Login-related files
+
+The Agent must never modify Admin code merely because Login depends on Admin.
+
+### Dependency Rule
+
+If the current feature depends on another member's functionality:
+
+1. Read the existing implementation.
+2. Understand its business rules and contracts.
+3. Reuse the existing contracts where possible.
+4. Implement the integration inside the current member's own scope.
+5. Do not modify the dependency's implementation.
+
+If the dependency cannot support the current feature without modifying the other member's code:
+
+1. Stop before modifying the other member's files.
+2. Identify the exact dependency.
+3. Report the conflict.
+4. Do not automatically modify or overwrite the other member's implementation.
+
+### Source Priority
+
+When analyzing another member's functionality:
+
+1. Current source code.
+2. Current project configuration.
+3. Shared project history.
+4. Git history.
+
+The current source code is the final authority for what currently exists.
+
+Shared history is used to understand previous decisions, business rules, and implementation context.
+
+### Final Rule
+
+The Agent may read and use another member's code as a reference, but must never modify that member's implementation while working on the current member's feature.
+
+READ the other member's code.
+
+ANALYZE the other member's code.
+
+USE it as a reference.
+
+BUILD the current feature independently within the current member's scope.
+
+DO NOT MODIFY the other member's code.
+
+## 11.4 Interrupted Session Recovery
+
+The Agent must support automatic recovery when a coding session is interrupted unexpectedly.
+
+An interruption may occur because of:
+
+- Internet connection loss.
+- API connection failure.
+- Token or context limit reached.
+- Antigravity session termination.
+- Agent process interruption.
+- Application crash.
+- User accidentally closes the session.
+- Any other interruption that stops the Agent before the requested task is completed.
+
+The Agent must treat an interrupted coding session as an incomplete session, not as a completed task.
+
+### Before and During Coding
+
+When starting a substantial coding task, especially an Image-to-Code task, the Agent should establish enough shared session state to allow the work to be recovered.
+
+The Agent must keep track of:
+
+- Original user request.
+- Original user-supplied image or screen requirement.
+- Assigned member.
+- Feature being implemented.
+- Relevant business rules.
+- Relevant previous member history.
+- Files being modified.
+- Files already modified.
+- Implementation completed so far.
+- Implementation still remaining.
+- Tests already executed.
+- Test results.
+- Errors encountered.
+- Current implementation state.
+- Next required action.
+
+The Agent must not consider the task complete until the implementation and verification have been completed.
+
+### Interrupted Session State
+
+If the Agent detects that the session is ending or may be interrupted while work is incomplete, it must preserve the current progress in the shared history whenever the environment still allows writing.
+
+The incomplete session must be recorded as an interrupted/in-progress session.
+
+The history should contain:
+
+```text
+Status: Interrupted - In Progress
+```
+
+## 11.5 Function Completion, Test Case, Unit Test and CI/CD Validation
+
+After completing every function, feature, or meaningful code change, the Agent must automatically perform testing and CI/CD validation before considering the work complete.
+
+### Mandatory Testing Workflow
+
+For every completed function or feature, the Agent must:
+
+1. Analyze the function's expected behavior and business requirements.
+2. Create appropriate test cases covering:
+   - Happy path
+   - Validation failure
+   - Authorization failure
+   - Authentication failure when applicable
+   - Boundary cases
+   - Invalid input
+   - Relevant business rules
+   - Relevant error cases
+3. Create or update Laravel tests for the function.
+4. Create Unit Tests when the logic is suitable for isolated unit testing.
+5. Create or update Feature Tests when the function involves:
+   - HTTP requests
+   - Controllers
+   - Routes
+   - Authentication
+   - Authorization
+   - Form Requests
+   - Policies
+   - Database operations
+   - Full business workflows
+6. Run the tests locally.
+7. Fix all failures caused by the current implementation.
+8. Re-run the tests until all relevant tests pass.
+9. Validate the CI workflow using the project's actual CI configuration.
+10. Verify that the CI workflow can successfully:
+    - Build Docker
+    - Start required containers
+    - Connect to the database
+    - Run migrations
+    - Run Laravel tests
+    - Finish without errors
+11. Verify the CD workflow remains compatible with the successful CI result.
+12. Only consider the function complete when the required tests pass and CI/CD is expected to pass.
+
+### Test Coverage Rule
+
+Tests must verify behavior, not merely execute code.
+
+The Agent must test the actual expected result of the function, including:
+- HTTP status
+- Redirect behavior
+- Validation errors
+- Database changes
+- Returned data
+- Authorization behavior
+- Authentication behavior
+- Business rules
+- Error handling
+
+Do not create meaningless tests whose only purpose is increasing test count.
+
+### Laravel Test Rule
+
+Prefer Laravel Feature Tests for application behavior involving HTTP, authentication, authorization, database operations, controllers, services, and complete business flows.
+
+Use Unit Tests for isolated business logic that can be tested independently without the Laravel HTTP/database workflow.
+
+When both are appropriate, use both.
+
+### CI Rule
+
+The Agent must inspect the project's actual CI configuration before modifying or adding tests.
+
+For the current Travel Planner project, CI currently:
+- Runs on push to `master`
+- Runs on pull requests to `master`
+- Builds using `docker-compose.ci.yml`
+- Starts the Docker environment
+- Checks the database
+- Runs `php artisan test`
+- Stops Docker after completion
+
+The Agent must ensure newly created tests are compatible with this CI environment.
+
+The CI configuration is the source of truth for how tests are executed.
+
+### CI Failure Self-Repair
+
+If CI fails after a function is completed, the Agent must:
+
+1. Read the CI failure output.
+2. Identify the actual failure.
+3. Determine whether the failure is caused by:
+   - Application code
+   - Test code
+   - Database setup
+   - Docker configuration
+   - Environment configuration
+   - Dependencies
+   - CI configuration
+   - Existing unrelated code
+4. If the failure is caused by the current feature, fix it.
+5. Re-run the relevant tests.
+6. Re-run the complete test suite.
+7. Re-check CI configuration.
+8. Continue until the current feature does not introduce CI failures.
+
+The Agent must not simply remove, skip, disable, or weaken a failing test to make CI pass.
+
+### 100% CI Pass Rule
+
+Before reporting a function as completed, the Agent must ensure that the complete required CI test suite passes.
+
+Target state:
+
+Tests: PASS
+Laravel Feature Tests: PASS
+Laravel Unit Tests: PASS
+Docker CI environment: PASS
+Database setup: PASS
+CI workflow: PASS
+CD dependency: PASS
+
+The Agent must never report a feature as fully completed while knowingly leaving a CI failure caused by the current implementation.
+
+### CI/CD Modification Rule
+
+When a newly implemented function requires changes to CI/CD configuration, the Agent may update the CI/CD configuration only when the change is necessary for the current project requirements.
+
+Any CI/CD modification must:
+1. Preserve existing project behavior.
+2. Not remove existing required tests.
+3. Not disable existing validation.
+4. Not bypass Docker validation.
+5. Not bypass Laravel tests.
+6. Not weaken security or deployment checks.
+7. Be tested before completion.
+
+### Existing Test Protection
+
+The Agent must not delete, disable, skip, or rewrite existing tests merely to make a new feature pass.
+
+If an existing test fails because the intended business behavior has legitimately changed, the Agent must:
+1. Identify the affected requirement.
+2. Verify the change against the project specification.
+3. Update the test only when the new behavior is actually correct.
+4. Preserve unrelated test coverage.
+
+### Other Member CI/Test Protection
+
+When working on another member's feature dependency, the Agent may read and execute existing tests but must not modify that member's tests or CI/CD configuration unless the user explicitly authorizes modification.
+
+If the current feature cannot pass CI without modifying another member's protected implementation or tests, stop and report the dependency conflict instead of automatically changing their code.
+
+### Final Function Completion Checklist
+
+Before declaring the function complete:
+
+- [ ] Function implemented
+- [ ] Business rules verified
+- [ ] Test cases created
+- [ ] Feature Tests created/updated where required
+- [ ] Unit Tests created/updated where appropriate
+- [ ] Local tests passed
+- [ ] Full Laravel test suite passed
+- [ ] Docker CI environment verified
+- [ ] CI configuration verified
+- [ ] CI/CD compatibility verified
+- [ ] No existing tests unnecessarily removed or weakened
+- [ ] No other member's protected code modified
+- [ ] No known CI failure caused by the current feature
+- [ ] Shared project history updated
+
+Only after all applicable checks pass may the Agent report the function as completed.
+
+## 11.6 Automatic New Skill Detection and Project-Wide Integration
+
+The Agent MUST automatically detect and apply every new skill or rule added to SKILL.md.
+
+This rule applies to all future skills added after this SKILL.md was created.
+
+### New Skill Detection
+
+Whenever SKILL.md contains a new skill, rule, requirement, workflow, architecture rule, testing rule, security rule, CI/CD rule, or technology requirement, the Agent MUST treat it as a new mandatory project requirement.
+
+The Agent must not assume that the new skill only applies to future code.
+
+The new skill MUST be retroactively applied to the existing project.
+
+### Automatic Full Project Scan
+
+After detecting a new skill, the Agent MUST recursively scan the entire project directory.
+
+The Agent must determine:
+
+1. Which existing features are affected.
+2. Which files are affected.
+3. Which implementations already comply.
+4. Which implementations partially comply.
+5. Which implementations do not comply.
+6. Which required components are missing.
+7. Which tests are missing.
+8. Which configuration is missing.
+9. Which CI/CD changes are required.
+10. Which dependencies or integrations are required.
+
+The Agent MUST NOT limit the scan to the current user's feature.
+
+### Automatic Integration
+
+If the new skill is missing from any applicable part of the project, the Agent MUST automatically implement and integrate it.
+
+The Agent must:
+
+1. Identify the missing requirement.
+2. Create the required implementation.
+3. Integrate it into the existing architecture.
+4. Preserve existing business logic.
+5. Preserve existing functionality.
+6. Follow MVC and Service Interface rules.
+7. Respect multi-member ownership rules.
+8. Create or update required tests.
+9. Run tests.
+10. Fix failures.
+11. Verify CI/CD.
+12. Perform a full project re-scan.
+
+The Agent MUST NOT only report missing requirements.
+
+If a required component is missing and it is within the Agent's authorized scope, the Agent MUST create it.
+
+### Existing Project Rule
+
+A feature implemented before a new skill was added is NOT automatically considered compliant.
+
+Example:
+
+Existing project:
+
+    Login
+    User CRUD
+    Booking
+    Search
+    Admin
+
+New skill:
+
+    "Every function must have tests."
+
+The Agent MUST automatically inspect:
+
+    Login
+    User CRUD
+    Booking
+    Search
+    Admin
+
+and create the missing tests.
+
+### Future Skill Rule
+
+This mechanism MUST continue working for every future skill added to SKILL.md.
+
+Example:
+
+Today:
+    Test Case + Unit Test + CI/CD skill
+
+Later:
+    Apache Solr skill
+
+Later:
+    API Documentation skill
+
+Later:
+    Security Testing skill
+
+Later:
+    Caching skill
+
+For every newly added skill:
+
+    Detect New Skill
+        ↓
+    Read Skill Requirement
+        ↓
+    Scan Entire Project
+        ↓
+    Find Missing / Non-Compliant Areas
+        ↓
+    Automatically Implement
+        ↓
+    Integrate
+        ↓
+    Create / Update Tests
+        ↓
+    Run Tests
+        ↓
+    Fix Failures
+        ↓
+    Verify CI/CD
+        ↓
+    Full Project Re-Scan
+        ↓
+    Skill Fully Applied
+
+### No Manual Activation
+
+The user MUST NOT need to explicitly tell the Agent:
+
+"Apply the new skill to the old code."
+
+The addition of the skill to SKILL.md itself is the activation signal.
+
+The Agent must automatically detect that the project may contain existing code that predates the new skill.
+
+### No Partial Adoption
+
+The Agent MUST NOT apply the new skill only to:
+
+- The next function
+- The current feature
+- Recently modified files
+- New files
+- Files mentioned by the user
+- Files changed in the latest commit
+
+The Agent must apply the new skill to every applicable existing part of the project.
+
+### Compliance Classification
+
+During the full project scan, each affected component must be classified as:
+
+COMPLIANT
+    → Already follows the new skill.
+
+INCOMPLETE
+    → Partially follows the new skill and must be completed.
+
+NON-COMPLIANT
+    → Violates the new skill and must be fixed.
+
+MISSING
+    → Required component does not exist and must be created.
+
+BLOCKED
+    → Cannot safely modify because of ownership, dependency, authorization, or another explicit project restriction.
+
+The Agent must automatically resolve COMPLIANT, INCOMPLETE, NON-COMPLIANT, and MISSING items whenever they are within the current authorized scope.
+
+BLOCKED items must be reported instead of being silently ignored.
+
+### Full Project Verification
+
+After integration, the Agent MUST perform another full recursive project scan.
+
+The Agent must verify that:
+
+- The new skill is applied everywhere applicable.
+- Required implementations exist.
+- Missing components have been created.
+- Existing implementations have been updated where required.
+- Required tests exist.
+- Tests pass.
+- CI passes.
+- CD remains compatible.
+- Existing business rules remain intact.
+- Existing member ownership rules remain intact.
+- No unnecessary unrelated changes were introduced.
+
+The Agent MUST NOT declare the new skill fully integrated while applicable MISSING, INCOMPLETE, or NON-COMPLIANT items remain.
+
+### Continuous Skill Enforcement
+
+SKILL.md is a living project specification.
+
+Every time SKILL.md is changed:
+
+    READ UPDATED SKILL.md
+        ↓
+    DETECT NEW / CHANGED RULES
+        ↓
+    COMPARE AGAINST ENTIRE PROJECT
+        ↓
+    AUTOMATICALLY APPLY CHANGES
+        ↓
+    TEST
+        ↓
+    VERIFY CI/CD
+        ↓
+    RE-SCAN ENTIRE PROJECT
+
+This process MUST happen automatically for every future skill added to SKILL.md.
+
+### Final Principle
+
+Adding a new skill to SKILL.md means:
+
+    "Apply this skill to the entire project now and continue enforcing it for all future development."
+
+The Agent MUST automatically detect, scan, implement, integrate, test, verify, and enforce every newly added skill.
+
+DO NOT WAIT FOR THE USER TO ASK FOR RETROACTIVE APPLICATION.
+DO NOT ONLY REPORT MISSING IMPLEMENTATION.
+AUTOMATICALLY APPLY THE NEW SKILL TO THE ENTIRE PROJECT.
+
 # 12. Error Handling and Self-Repair
 
 When an implementation produces an error:
@@ -986,6 +1564,196 @@ history-conversation-agent/
     └── ...
 
 ---
+
+## 2.1 Search Engine Requirement
+
+All searching functionality in the project MUST use Apache Solr Search Engine.
+
+### Mandatory Apache Solr Rule
+
+Whenever a feature requires searching, filtering, querying, text matching, full-text search, or search suggestions, the Agent must use Apache Solr as the search engine.
+
+This includes:
+- Global search
+- Search by keyword
+- Full-text search
+- Product/entity search
+- User search
+- Destination search
+- Hotel search
+- Travel search
+- Autocomplete/search suggestions
+- Search with multiple conditions
+- Fuzzy search
+- Relevance-based search
+- Search result ranking
+
+### Forbidden Search Implementations
+
+The Agent MUST NOT implement application searching using:
+- Laravel collection filtering
+- PHP loops for searching database records
+- `LIKE '%keyword%'` as the primary search engine
+- `WHERE LIKE` as the primary search implementation
+- MySQL full-text search as a replacement for Solr
+- Elasticsearch
+- Other search engines
+- Client-side JavaScript searching for server-side application data
+
+Database queries may still be used for exact filtering, authorization, data retrieval, or other non-search operations, but search functionality itself must be handled by Apache Solr.
+
+### Search Architecture
+
+Search functionality must follow the project's MVC + Service Interface architecture.
+
+Recommended flow:
+
+User Request
+    ↓
+Controller
+    ↓
+Form Request / Validation
+    ↓
+Search Service Interface
+    ↓
+Search Service
+    ↓
+Apache Solr
+    ↓
+Search Results
+    ↓
+Controller
+    ↓
+Blade / API Response
+
+The Controller must remain thin.
+
+Search logic must not be placed directly inside Controllers.
+
+### Apache Solr Integration
+
+When implementing a search feature, the Agent must:
+
+1. Check whether Apache Solr is already configured in the project.
+2. Inspect existing Solr configuration.
+3. Inspect existing Solr cores/collections.
+4. Inspect existing indexing logic.
+5. Inspect existing Search Services and Interfaces.
+6. Reuse existing Solr architecture when available.
+7. Create the required Solr integration only when it does not already exist.
+8. Keep Solr-specific logic inside the appropriate Service layer.
+9. Follow existing project naming and architecture rules.
+10. Never introduce another search engine when Solr is already the project standard.
+
+### Search Indexing
+
+When a searchable entity is created, updated, or deleted, the Agent must consider whether the Solr index must also be updated.
+
+The Agent must ensure that:
+- New searchable records can be indexed.
+- Updated searchable records are synchronized with Solr.
+- Deleted records are removed from Solr when required.
+- Search results do not depend on stale indexed data.
+- Index synchronization follows the project's existing architecture.
+
+### Search Result Requirements
+
+Search results must use Apache Solr's search capabilities where applicable, including:
+- Keyword matching
+- Relevance scoring
+- Ranking
+- Pagination
+- Sorting
+- Filtering/faceting
+- Fuzzy matching
+- Prefix matching
+- Partial matching
+- Highlighting
+- Autocomplete
+
+Only implement capabilities that are required by the current feature.
+
+Do not add unnecessary search complexity.
+
+### Search Performance
+
+The Agent must not retrieve the entire database table and perform searching in PHP.
+
+Bad:
+
+    Model::all()->filter(...)
+
+Bad:
+
+    Model::where('name', 'like', "%{$keyword}%")->get();
+
+Good:
+
+    Controller
+        → Search Service
+        → Apache Solr
+        → Search Results
+
+The database remains the source of persistent application data.
+
+Apache Solr is the search engine.
+
+### Search Testing
+
+Every search feature must include appropriate tests.
+
+Tests must verify:
+- Search request validation
+- Keyword handling
+- Search result correctness
+- Empty search results
+- Relevant matching behavior
+- Pagination when applicable
+- Filtering when applicable
+- Authorization when applicable
+- Solr integration behavior
+- Error handling when Solr is unavailable
+
+Search tests must not bypass the application's Search Service architecture.
+
+### Search Failure Handling
+
+If Apache Solr is unavailable or returns an error, the Agent must:
+
+1. Detect the failure.
+2. Handle the error according to the project's error-handling rules.
+3. Return an appropriate application response.
+4. Log the relevant error when required.
+5. Never silently replace Solr with MySQL `LIKE` search or another search engine.
+
+A fallback search implementation may only be introduced if the user explicitly requests it.
+
+### Search Dependency Protection
+
+If Apache Solr configuration, indexing logic, or Search Services were created by another member:
+
+- Read and analyze the existing implementation.
+- Use it as a read-only reference when required.
+- Reuse existing contracts and architecture.
+- Do not rewrite or replace the existing Solr implementation.
+- Do not introduce another search engine.
+- Do not modify another member's protected code unless explicitly authorized.
+
+### Final Search Rule
+
+If the feature contains searching, the Agent MUST use Apache Solr.
+
+SEARCH FUNCTION
+    ↓
+APACHE SOLR
+    ↓
+SEARCH SERVICE
+    ↓
+CONTROLLER
+    ↓
+RESPONSE
+
+Never implement primary application search using database `LIKE`, PHP filtering, or another search engine.
 
 ## 3. Finding the Shared Folder
 

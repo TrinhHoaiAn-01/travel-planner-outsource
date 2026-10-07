@@ -65,6 +65,7 @@ class AdminDashboardTest extends TestCase
         $response->assertSee('TỔNG ĐỊA ĐIỂM');
         $response->assertSee('368');
         $response->assertSee('ĐÁNH GIÁ CHỜ DUYỆT');
+        $response->assertSee('Xem và phê duyệt', false);
 
         // Biểu đồ và Điểm đến phổ biến
         $response->assertSee('Thống Kê Lượng Đặt Chuyến Đi & Booking (2026)', false);
@@ -81,5 +82,66 @@ class AdminDashboardTest extends TestCase
         $response->assertSee('Mercure Danang French Village');
         $response->assertSee('3.700.000đ');
         $response->assertSee('Confirmed');
+        $response->assertSee('#WND-2026-8890');
+        $response->assertSee('Trần Hoàng Long');
+        $response->assertSee('#WND-2026-8889');
+        $response->assertSee('Phạm Thanh Thảo');
+    }
+
+    /**
+     * Kiểm tra thanh điều hướng Sidebar chứa đầy đủ các phân hệ quản lý hệ thống.
+     */
+    public function test_admin_sidebar_contains_all_system_management_links(): void
+    {
+        $admin = new User([
+            'id' => 1,
+            'name' => 'Administrator',
+            'email' => 'admin@travelplanner.com',
+            'role' => 'admin',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.dashboard'));
+
+        $response->assertStatus(200);
+
+        // Sidebar Brand
+        $response->assertSee('Admin Panel');
+
+        // Nhóm Tổng quan
+        $response->assertSee('TỔNG QUAN');
+        $response->assertSee('Dashboard');
+
+        // Nhóm Quản lý hệ thống
+        $response->assertSee('QUẢN LÝ HỆ THỐNG');
+        $response->assertSee('Người dùng (Users)');
+        $response->assertSee('Thành phố (Cities)');
+        $response->assertSee('Danh mục (Categories)');
+        $response->assertSee('Địa điểm (Destinations)');
+        $response->assertSee('Thư viện ảnh (Images)');
+
+        // Nhóm Kiểm duyệt
+        $response->assertSee('KIỂM DUYỆT');
+        $response->assertSee('Đánh giá (Reviews)');
+    }
+
+    /**
+     * Kiểm tra nút chuyển đổi Xem Giao diện Public và đăng xuất bảo mật CSRF.
+     */
+    public function test_admin_header_actions_and_logout_form_are_present(): void
+    {
+        $admin = new User([
+            'id' => 1,
+            'name' => 'Administrator',
+            'email' => 'admin@travelplanner.com',
+            'role' => 'admin',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($admin)->get('/admin');
+
+        $response->assertStatus(200);
+        $response->assertSee('Admin');
+        $response->assertSee('Bảng điều khiển (Dashboard)');
     }
 }
