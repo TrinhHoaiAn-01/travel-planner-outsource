@@ -1455,6 +1455,340 @@ DO NOT WAIT FOR THE USER TO ASK FOR RETROACTIVE APPLICATION.
 DO NOT ONLY REPORT MISSING IMPLEMENTATION.
 AUTOMATICALLY APPLY THE NEW SKILL TO THE ENTIRE PROJECT.
 
+## 11.7 Image Re-Submission, Existing Feature Detection and Automatic Completion
+
+When the user provides an image or screenshot of a UI, feature, page, workflow, or application requirement, the Agent MUST NOT assume that the feature is new.
+
+The Agent must determine whether the image represents:
+
+1. A completely new feature.
+2. An existing feature that is already implemented.
+3. A partially implemented feature.
+4. A previously implemented feature that is broken.
+5. A previously requested feature that was interrupted or incomplete.
+6. A feature implemented by another member.
+7. A feature that exists in source code but does not fully match the image or project requirements.
+
+### Image Identity Rule
+
+If the user sends the same image again, or an image representing the same feature, the Agent MUST automatically recognize that the feature may already exist.
+
+The Agent MUST NOT automatically recreate the feature from scratch.
+
+Instead, the Agent must investigate the current project state and shared project history before making changes.
+
+### Mandatory Investigation
+
+Whenever an image is provided, the Agent MUST inspect:
+
+1. The entire relevant project source code.
+2. The current project structure.
+3. Existing routes.
+4. Existing Controllers.
+5. Existing Services.
+6. Existing Service Interfaces.
+7. Existing Models.
+8. Existing Form Requests.
+9. Existing Policies and authorization rules.
+10. Existing Blade Views.
+11. Existing JavaScript/CSS/frontend implementation.
+12. Existing database migrations and schema when relevant.
+13. Existing tests.
+14. Existing CI/CD configuration.
+15. `PROJECT_SPECIFICATIONS.md`.
+16. Relevant shared Google Drive project history.
+17. Previous session history related to the image or feature.
+18. Previous implementation decisions.
+19. Existing member ownership information.
+
+The Agent must use the current source code and current project state as the authority for what currently exists.
+
+Shared history must be used to understand previous work, decisions, ownership, unfinished work, and intended behavior.
+
+### Google Drive History Rule
+
+When processing an image, the Agent MUST check the shared `history-conversation-agent` folder and relevant historical records.
+
+The Agent must search for:
+
+- Previous sessions involving the same feature.
+- Previous sessions involving the same image.
+- Previous implementation attempts.
+- Previous errors.
+- Previous unfinished work.
+- Previous member ownership.
+- Previous business decisions.
+- Previous test results.
+- Previous CI/CD failures.
+- Previous UI implementation decisions.
+
+The Agent must not assume that the latest conversation contains the complete project history.
+
+### Existing Feature Decision
+
+After inspecting the project and history, the Agent must classify the image feature as:
+
+NEW
+    → Feature does not exist.
+
+EXISTING
+    → Feature already exists and appears complete.
+
+PARTIAL
+    → Feature exists but is missing functionality or UI.
+
+BROKEN
+    → Feature exists but does not work correctly.
+
+OUTDATED
+    → Feature exists but does not comply with current SKILL.md,
+      PROJECT_SPECIFICATIONS.md, or current business requirements.
+
+INTERRUPTED
+    → Previous implementation exists but was not completed.
+
+### New Feature Behavior
+
+If the feature is NEW:
+
+1. Analyze the image.
+2. Read `PROJECT_SPECIFICATIONS.md`.
+3. Check relevant project history.
+4. Identify the responsible member.
+5. Determine required business logic.
+6. Design the required architecture.
+7. Implement the UI.
+8. Implement the required backend functionality.
+9. Follow MVC and Service Interface rules.
+10. Apply all mandatory skills in SKILL.md.
+11. Create required tests.
+12. Verify CI/CD.
+13. Update shared history.
+
+### Existing Feature Behavior
+
+If the feature already exists, the Agent MUST NOT recreate it unnecessarily.
+
+The Agent must inspect the existing implementation and compare it against:
+
+- The provided image.
+- `PROJECT_SPECIFICATIONS.md`.
+- Current SKILL.md rules.
+- Existing business rules.
+- Existing source code.
+- Existing shared history.
+- Existing tests.
+- Existing CI/CD requirements.
+
+The Agent must identify:
+
+- Missing UI
+- Missing functionality
+- Incorrect UI
+- Incorrect business logic
+- Missing validation
+- Missing authorization
+- Missing tests
+- Broken routes
+- Broken database behavior
+- Broken integration
+- CI/CD failures
+- Security issues
+- Violations of any mandatory skill
+
+The Agent must automatically fix applicable problems within the current member's authorized scope.
+
+### Existing Feature Completion Rule
+
+If the feature exists but is incomplete:
+
+    DO NOT RECREATE FROM SCRATCH
+
+Instead:
+
+    EXISTING CODE
+        ↓
+    ANALYZE
+        ↓
+    COMPARE WITH IMAGE
+        ↓
+    COMPARE WITH REQUIREMENTS
+        ↓
+    IDENTIFY MISSING PARTS
+        ↓
+    IMPLEMENT MISSING PARTS
+        ↓
+    TEST
+        ↓
+    VERIFY CI/CD
+
+### Existing Feature Bug-Fix Rule
+
+If the feature exists but contains errors, the Agent must automatically investigate and fix the errors according to the mandatory rules in SKILL.md.
+
+The Agent must not wait for the user to explicitly say:
+
+"Find the bug."
+
+The image itself is sufficient to trigger comparison between the expected feature and the current implementation.
+
+### Existing Feature Quality Rule
+
+If the feature already exists but does not satisfy the current SKILL.md requirements, the Agent must bring it into compliance.
+
+For example:
+
+If the feature exists but:
+- Has no Feature Tests
+- Has no Unit Tests where appropriate
+- Does not use Apache Solr for required searching
+- Violates MVC
+- Does not use Service Interfaces
+- Has incorrect authorization
+- Does not follow current naming rules
+- Has incomplete CI/CD
+- Has incomplete validation
+
+The Agent must automatically correct the applicable issue.
+
+### Same Image Sent Again
+
+If an image that was previously provided is sent again on a later day or later session:
+
+The Agent MUST assume that existing implementation may already exist and perform a fresh project-wide investigation.
+
+The Agent must:
+
+1. Search shared history for the previous image/feature.
+2. Inspect previous implementation history.
+3. Inspect the current source code.
+4. Determine what changed since the previous implementation.
+5. Compare the current implementation with the image.
+6. Detect missing or broken functionality.
+7. Automatically continue, repair, or complete the feature.
+8. Avoid duplicating existing functionality.
+9. Preserve newer valid changes made by other members.
+10. Apply all current SKILL.md rules.
+
+The Agent MUST continue from the current project state rather than blindly starting over.
+
+### No Unnecessary Reimplementation
+
+The Agent MUST NOT:
+
+- Delete a working implementation merely because the image was sent again.
+- Recreate existing Controllers unnecessarily.
+- Recreate existing Services unnecessarily.
+- Recreate existing Interfaces unnecessarily.
+- Recreate existing Models unnecessarily.
+- Recreate existing Views unnecessarily.
+- Duplicate routes.
+- Duplicate database tables.
+- Duplicate functionality.
+- Overwrite newer valid implementation.
+- Revert another member's valid changes.
+
+The Agent must modify only what is necessary to make the existing feature correct and compliant.
+
+### Multi-Member Rule
+
+If the existing implementation belongs to another member:
+
+1. Identify the responsible member.
+2. Read their relevant shared history.
+3. Inspect their current implementation.
+4. Treat their implementation according to the existing ownership and protection rules.
+5. Use it as read-only reference when the current feature depends on it.
+6. Do not overwrite or refactor their implementation without authorization.
+7. Implement missing functionality within the current member's scope whenever possible.
+
+If the requested image requires modifying another member's protected implementation, the Agent must identify the conflict before making unauthorized changes.
+
+### Current SKILL.md Priority
+
+Every image-based implementation must follow ALL currently active rules in SKILL.md.
+
+The Agent must not use an old implementation as a reason to ignore newer skills.
+
+If a new skill was added after the original implementation, the Agent must retroactively apply that skill to the existing feature.
+
+### Automatic Test and CI/CD Rule
+
+After modifying or completing an existing image-based feature, the Agent MUST:
+
+1. Create missing test cases.
+2. Create missing Feature Tests.
+3. Create missing Unit Tests when appropriate.
+4. Run relevant tests.
+5. Run the complete test suite.
+6. Fix failures.
+7. Verify CI configuration.
+8. Verify CD compatibility.
+9. Ensure no known failure remains caused by the current implementation.
+10. Update shared project history.
+
+### Final Image Processing Rule
+
+Every image must trigger this decision process:
+
+    IMAGE RECEIVED
+        ↓
+    READ CURRENT SKILL.md
+        ↓
+    READ PROJECT_SPECIFICATIONS.md
+        ↓
+    SEARCH GOOGLE DRIVE HISTORY
+        ↓
+    SCAN CURRENT PROJECT
+        ↓
+    IDENTIFY EXISTING IMPLEMENTATION
+        ↓
+    CLASSIFY:
+        NEW / EXISTING / PARTIAL / BROKEN / OUTDATED / INTERRUPTED
+        ↓
+    IF NEW:
+        DESIGN + IMPLEMENT
+        ↓
+    IF EXISTING:
+        ANALYZE + COMPARE + FIX
+        ↓
+    IF PARTIAL:
+        COMPLETE
+        ↓
+    IF BROKEN:
+        REPAIR
+        ↓
+    IF OUTDATED:
+        APPLY CURRENT SKILL.md RULES
+        ↓
+    TEST
+        ↓
+    CI/CD
+        ↓
+    UPDATE GOOGLE DRIVE HISTORY
+        ↓
+    FINAL VERIFICATION
+
+### Final Principle
+
+The image is a specification/reference, not an instruction to blindly recreate the UI.
+
+When the same image is provided again, the Agent must understand:
+
+"Check what already exists, understand what was previously done, identify what is missing or wrong, and automatically complete or repair it according to the latest SKILL.md rules."
+
+The Agent MUST inspect before implementing.
+
+The Agent MUST reuse valid existing work.
+
+The Agent MUST automatically create missing functionality.
+
+The Agent MUST automatically fix applicable problems.
+
+The Agent MUST NOT unnecessarily recreate existing functionality.
+
+The Agent MUST apply all current and future mandatory skills.
+
 # 12. Error Handling and Self-Repair
 
 When an implementation produces an error:
