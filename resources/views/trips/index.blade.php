@@ -1087,6 +1087,18 @@
 
                         <!-- Dropdown Menu -->
                         <div id="menu-{{ $trip->id }}" class="menu-dropdown">
+                            <!-- Xem chi tiết chuyến đi (Nguyễn Trần Thành) -->
+                            <a href="{{ route('trips.show', $trip->id) }}" class="menu-item-btn" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="12 8 8 12 12 16 12 8"></polygon></svg>
+                                Xem chi tiết lịch trình
+                            </a>
+
+                            <!-- Chỉnh sửa chuyến đi (Nguyễn Trần Thành) -->
+                            <a href="{{ route('trips.edit', $trip->id) }}" class="menu-item-btn" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                Chỉnh sửa chuyến đi
+                            </a>
+
                             <!-- Nhân bản chuyến đi (Nguyễn Trần Thành) -->
                             <form action="{{ route('trips.clone', $trip->id) }}" method="POST">
                                 @csrf
@@ -1106,6 +1118,12 @@
                                     </button>
                                 </form>
                             @endif
+
+                            <!-- Xóa chuyến đi (Nguyễn Trần Thành) -->
+                            <button type="button" class="menu-item-btn" style="color: #DC2626;" onclick="showDeleteTripModal({{ $trip->id }}, '{{ addslashes($trip->name) }}')">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                Xóa chuyến đi
+                            </button>
                         </div>
 
                         <img src="{{ $bannerImage }}" alt="{{ $trip->name }}" loading="lazy">
@@ -1126,7 +1144,9 @@
                             </span>
                         </div>
 
-                        <h3 class="trip-name">{{ $trip->name }}</h3>
+                        <a href="{{ route('trips.show', $trip->id) }}" style="text-decoration: none; color: inherit;">
+                            <h3 class="trip-name">{{ $trip->name }}</h3>
+                        </a>
                         <p class="trip-description">{{ $trip->description ?: 'Bà Nà Hills, Bán đảo Sơn Trà, Ngũ Hành Sơn và phố đèn lồng Hội An thơ mộng.' }}</p>
 
                         <!-- Footer -->
@@ -1142,19 +1162,19 @@
                             </div>
 
                             <div class="action-buttons">
-                                <button type="button" class="btn-calendar-icon" title="Xem lịch trình" onclick="alert('Xem lịch chuyến đi: {{ $trip->name }}');">
+                                <a href="{{ route('trips.show', $trip->id) }}" class="btn-calendar-icon" title="Xem chi tiết lịch trình" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
                                         <line x1="16" x2="16" y1="2" y2="6"></line>
                                         <line x1="8" x2="8" y1="2" y2="6"></line>
                                         <line x1="3" x2="21" y1="10" y2="10"></line>
                                     </svg>
-                                </button>
+                                </a>
 
                                 @if($isCompleted)
-                                    <button type="button" class="btn-primary-action" onclick="alert('Xem lại chi tiết chuyến đi #{{ $trip->id }}');">Xem lại</button>
+                                    <a href="{{ route('trips.show', $trip->id) }}" class="btn-primary-action" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Xem lại</a>
                                 @else
-                                    <button type="button" class="btn-primary-action" onclick="alert('Xem lịch trình chuyến đi #{{ $trip->id }}');">Lịch trình</button>
+                                    <a href="{{ route('trips.show', $trip->id) }}" class="btn-primary-action" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Lịch trình</a>
                                 @endif
                             </div>
                         </div>
@@ -1367,6 +1387,35 @@
         </div>
     </div>
 
+    <!-- Modal Xác Nhận Xóa Chuyến Đi (Nguyễn Trần Thành) -->
+    <div id="deleteTripModal" class="modal-overlay" onclick="closeDeleteModalOnBackdrop(event)" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div class="modal-box" style="background: #FFFFFF; border-radius: 16px; width: 100%; max-width: 480px; padding: 28px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); margin: 20px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; border-bottom: 1px solid #E2E8F0; padding-bottom: 12px;">
+                <h3 style="font-size: 18px; font-weight: 700; color: #DC2626; display: flex; align-items: center; gap: 8px; margin: 0;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    Xác nhận xóa chuyến đi
+                </h3>
+                <button type="button" onclick="closeDeleteTripModal()" style="background: none; border: none; font-size: 20px; color: #64748B; cursor: pointer;">&times;</button>
+            </div>
+            <p style="font-size: 14.5px; color: #334155; margin-bottom: 10px;">
+                Bạn có chắc chắn muốn xóa chuyến đi <strong id="deleteTripTargetName" style="color: #0F172A;"></strong>?
+            </p>
+            <p style="font-size: 13px; color: #64748B; margin-bottom: 24px; background: #FEF2F2; padding: 10px 14px; border-radius: 8px; border-left: 3px solid #DC2626;">
+                Hành động này sẽ xóa vĩnh viễn dữ liệu chuyến đi, toàn bộ hoạt động lịch trình chi tiết và bảng chi tiêu liên quan.
+            </p>
+            <form id="deleteTripForm" method="POST" style="display: flex; justify-content: flex-end; gap: 10px;">
+                @csrf
+                @method('DELETE')
+                <button type="button" onclick="closeDeleteTripModal()" style="padding: 9px 20px; border-radius: 9999px; border: 1px solid #CBD5E1; background: #FFFFFF; color: #475569; font-weight: 500; cursor: pointer;">
+                    Hủy bỏ
+                </button>
+                <button type="submit" style="padding: 9px 22px; border-radius: 9999px; border: none; background: #DC2626; color: #FFFFFF; font-weight: 600; cursor: pointer; box-shadow: 0 4px 6px rgba(220, 38, 38, 0.25);">
+                    Xác nhận xóa
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- Scripts for modal and interactive dropdowns -->
     <script>
         function openCreateTripModal() {
@@ -1382,6 +1431,26 @@
         function closeModalOnBackdrop(e) {
             if (e.target.id === 'createTripModal') {
                 closeCreateTripModal();
+            }
+        }
+
+        function showDeleteTripModal(tripId, tripName) {
+            const modal = document.getElementById('deleteTripModal');
+            document.getElementById('deleteTripTargetName').textContent = tripName;
+            document.getElementById('deleteTripForm').action = '/trips/' + tripId;
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDeleteTripModal() {
+            const modal = document.getElementById('deleteTripModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function closeDeleteModalOnBackdrop(e) {
+            if (e.target.id === 'deleteTripModal') {
+                closeDeleteTripModal();
             }
         }
 
