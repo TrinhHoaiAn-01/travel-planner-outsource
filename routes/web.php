@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
@@ -113,9 +114,11 @@ Route::prefix('admin')
             return view('admin.placeholder', ['pageTitle' => 'Quản lý Người dùng (Users)']);
         })->name('users.index');
 
-        Route::get('/cities', function () {
-            return view('admin.placeholder', ['pageTitle' => 'Quản lý Thành phố (Cities)']);
-        })->name('cities.index');
+        // Quản lý Tỉnh / Thành phố (Admin Cities - Trần Văn Trọng)
+        Route::get('/cities', [CityController::class, 'index'])->name('cities.index');
+        Route::post('/cities', [CityController::class, 'store'])->name('cities.store');
+        Route::put('/cities/{city}', [CityController::class, 'update'])->name('cities.update');
+        Route::delete('/cities/{city}', [CityController::class, 'destroy'])->name('cities.destroy');
 
         Route::get('/categories', function () {
             return view('admin.placeholder', ['pageTitle' => 'Quản lý Danh mục (Categories)']);
