@@ -396,12 +396,12 @@
         </ul>
 
         <div class="navbar-actions">
-            <div class="user-dropdown">
+            <a href="{{ route('profile.show') }}" class="user-dropdown" style="text-decoration: none; color: inherit;" title="Hồ sơ cá nhân">
                 <div class="user-avatar">
                     {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}
                 </div>
                 <span class="user-name">{{ Auth::user()->name ?? 'Người dùng' }}</span>
-            </div>
+            </a>
         </div>
     </header>
 

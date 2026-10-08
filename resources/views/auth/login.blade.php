@@ -465,7 +465,7 @@
                     <input type="checkbox" id="remember" name="remember" value="1" {{ old('remember') ? 'checked' : '' }}>
                     <span>Ghi nhớ đăng nhập</span>
                 </label>
-                <a href="#" class="forgot-password-link">Quên mật khẩu?</a>
+                <a href="{{ route('password.request') }}" class="forgot-password-link">Quên mật khẩu?</a>
             </div>
 
             <!-- Nút Đăng nhập -->

@@ -42,6 +42,12 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\Interfaces\FavoriteServiceInterface::class,
             \App\Services\FavoriteService::class
         );
+
+        // Ràng buộc ProfileServiceInterface với triển khai cụ thể ProfileService (Trịnh Hoài An)
+        $this->app->bind(
+            \App\Services\Interfaces\ProfileServiceInterface::class,
+            \App\Services\ProfileService::class
+        );
     }
 
     /**
