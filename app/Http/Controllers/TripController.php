@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreTripRequest;
+use App\Http\Requests\UpdateTripNotesRequest;
 use App\Http\Requests\UpdateTripRequest;
 use App\Models\Trip;
 use App\Services\Interfaces\TripServiceInterface;
@@ -162,4 +163,21 @@ class TripController extends Controller
             ->route('trips.index')
             ->with('success', 'Đã mở lại chuyến đi thành công!');
     }
+
+    /**
+     * Cập nhật nhanh mô tả và ghi chú tổng quát của chuyến đi.
+     * Thuộc chức năng Quản lý mô tả và ghi chú tổng quát của Nguyễn Trần Thành.
+     */
+    public function updateNotes(UpdateTripNotesRequest $request, Trip $trip): RedirectResponse
+    {
+        Gate::authorize('update', $trip);
+
+        $description = $request->validated('description');
+        $this->tripService->updateTripNotes($trip->id, $description);
+
+        return redirect()
+            ->route('trips.show', $trip->id)
+            ->with('success', 'Đã cập nhật mô tả và ghi chú tổng quát chuyến đi thành công!');
+    }
 }
+

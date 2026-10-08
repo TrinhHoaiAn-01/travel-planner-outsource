@@ -109,4 +109,14 @@ interface TripServiceInterface
      * @return void
      */
     public function handleTripDateChange(int $tripId, ?string $newStartDate, ?string $newEndDate): void;
+
+    /**
+     * Cập nhật mô tả và ghi chú tổng quát của chuyến đi.
+     *
+     * @param int $tripId Mã định danh chuyến đi
+     * @param string|null $notes Nội dung mô tả hoặc ghi chú mới
+     * @return Trip
+     */
+    public function updateTripNotes(int $tripId, ?string $notes): Trip;
 }
+
