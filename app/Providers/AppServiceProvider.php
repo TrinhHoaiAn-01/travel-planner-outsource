@@ -64,6 +64,12 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\Interfaces\CategoryServiceInterface::class,
             \App\Services\CategoryManagementService::class
         );
+
+        // Ràng buộc UserManagementServiceInterface với triển khai cụ thể UserManagementService (Trần Văn Trọng)
+        $this->app->bind(
+            \App\Services\Interfaces\UserManagementServiceInterface::class,
+            \App\Services\UserManagementService::class
+        );
     }
 
     /**
