@@ -2089,25 +2089,180 @@ Git history must represent real development.
 
 ## Commit During Development
 
-The Agent MUST commit meaningful completed milestones during implementation.
+The Agent MUST use meaningful functional milestones as the primary unit of Git commits.
 
-The Agent MUST NOT wait until the entire feature is finished before creating every commit when the feature contains multiple meaningful stages.
+A commit represents a meaningful part of the requested work that has been completed, verified, and is ready to be preserved in Git history.
 
-For each meaningful milestone:
+The Agent MUST NOT treat individual files, classes, methods, migrations, models, controllers, or other technical components as automatic commit boundaries.
 
-    Implement
+The Agent MUST follow this workflow:
+
+    Start Feature
+        ↓
+    Implement Functional Milestone
+        ↓
+    Test / Verify Functional Milestone
+        ↓
+    Commit Functional Milestone
+        ↓
+    Continue Feature
+        ↓
+    Implement Next Functional Milestone
         ↓
     Test / Verify
-        ↓
-    Review changes
         ↓
     Commit
         ↓
     Continue
 
-A commit must represent a real completed development step.
+A functional milestone may be, depending on the actual feature:
 
-The Agent MUST NOT create one large final commit containing all feature work when the work naturally consists of multiple independent milestones.
+- A completed frontend interface.
+- A completed business function.
+- A completed user flow.
+- A completed CRUD function.
+- A completed authentication function.
+- A completed authorization function.
+- A completed validation flow.
+- A completed search function.
+- A completed API integration.
+- A completed database-backed function.
+- A completed integration between existing components.
+- A completed bug fix that represents a meaningful functional change.
+- Any other logically complete and verifiable part of the assigned feature.
+
+For example, when implementing Login:
+
+    Login UI
+        ↓
+    UI Test / Verify
+        ↓
+    COMMIT: Complete Login UI
+
+    Login Business Logic
+        ↓
+    Test / Verify
+        ↓
+    COMMIT: Complete Login
+
+    Login Validation / Error Handling
+        ↓
+    Test / Verify
+        ↓
+    COMMIT: Complete Login Validation
+
+    Login Integration / Final Verification
+        ↓
+    Test
+        ↓
+    COMMIT when a meaningful final change exists
+
+The Agent MUST commit the functional milestone immediately after that milestone is completed and successfully verified.
+
+The Agent MUST NOT wait until the entire feature is finished before committing completed functional milestones.
+
+For example, the Agent MUST NOT do:
+
+    Login UI
+        ↓
+    Login Business Logic
+        ↓
+    Login Validation
+        ↓
+    Login Integration
+        ↓
+    One Large Commit
+
+Instead, the Agent should preserve the completed functional milestones separately:
+
+    Login UI
+        ↓
+    Verify
+        ↓
+    COMMIT
+
+    Login Business Logic
+        ↓
+    Verify
+        ↓
+    COMMIT
+
+    Login Validation
+        ↓
+    Verify
+        ↓
+    COMMIT
+
+    Login Integration
+        ↓
+    Verify
+        ↓
+    COMMIT
+
+The Agent MAY modify multiple technical files within one functional milestone.
+
+For example, completing Login Business Logic may require changes to:
+
+- Migration
+- Model
+- Interface
+- Service
+- Request
+- Controller
+- Routes
+- Tests
+
+These changes SHOULD normally be committed together when they collectively complete the same functional milestone.
+
+The Agent MUST NOT create separate commits merely because these components are technically different.
+
+The Agent MUST NOT create artificial commits only to increase the number of commits.
+
+The Agent MUST NOT create:
+
+- File-based commits without a meaningful functional milestone.
+- Empty commits.
+- Whitespace-only commits.
+- Comment-only commits without functional meaning.
+- Duplicate commits.
+- Artificial milestone commits.
+- Commits containing unrelated work.
+
+If a functional milestone is incomplete, the Agent MUST continue working on that milestone rather than committing incomplete functionality.
+
+If verification fails, the Agent MUST fix the problem and verify again before creating the milestone commit.
+
+The Agent MUST review the staged changes before committing and ensure that the commit contains only changes belonging to the completed functional milestone.
+
+The commit message MUST describe the completed functional milestone.
+
+Examples:
+
+    Hoàn thành giao diện Login
+
+    Hoàn thành chức năng Login
+
+    Hoàn thành validation Login
+
+    Hoàn thành CRUD User
+
+    Hoàn thành tìm kiếm User
+
+    Hoàn thành phân quyền User
+
+    Hoàn thành Admin Dashboard
+
+Git history MUST therefore represent the actual functional development progress of the feature.
+
+The intended principle is:
+
+    Functional Work Completed
+        ↓
+    Verification Passed
+        ↓
+    Commit Immediately
+        ↓
+    Continue Next Functional Work
 
 ---
 
