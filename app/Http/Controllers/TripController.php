@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreTripRequest;
+use App\Http\Requests\UpdateTripRequest;
 use App\Models\Trip;
 use App\Services\Interfaces\TripServiceInterface;
 use Illuminate\Http\RedirectResponse;
@@ -74,6 +75,64 @@ class TripController extends Controller
         return redirect()
             ->route('trips.index')
             ->with('success', 'Tạo chuyến đi mới thành công!');
+    }
+
+    /**
+     * Hiển thị chi tiết chuyến đi của người dùng.
+     * Tuân thủ quy tắc bảo mật BR-01 và BR-03 chống lỗi IDOR.
+     */
+    public function show(Trip $trip): View
+    {
+        Gate::authorize('view', $trip);
+
+        $tripDetails = $this->tripService->getTripDetails($trip->id);
+        $summary = $this->tripService->getTripSummary($trip->id);
+
+        return view('trips.show', [
+            'trip' => $tripDetails,
+            'summary' => $summary,
+        ]);
+    }
+
+    /**
+     * Hiển thị màn hình chỉnh sửa thông tin chuyến đi.
+     */
+    public function edit(Trip $trip): View
+    {
+        Gate::authorize('update', $trip);
+
+        return view('trips.edit', [
+            'trip' => $trip,
+        ]);
+    }
+
+    /**
+     * Cập nhật thông tin chuyến đi qua Form Request và Service Interface.
+     */
+    public function update(UpdateTripRequest $request, Trip $trip): RedirectResponse
+    {
+        Gate::authorize('update', $trip);
+
+        $validatedData = $request->validated();
+        $this->tripService->updateTrip($trip->id, $validatedData);
+
+        return redirect()
+            ->route('trips.show', $trip->id)
+            ->with('success', 'Cập nhật chuyến đi thành công!');
+    }
+
+    /**
+     * Xóa chuyến đi khỏi hệ thống.
+     */
+    public function destroy(Trip $trip): RedirectResponse
+    {
+        Gate::authorize('delete', $trip);
+
+        $this->tripService->deleteTrip($trip->id);
+
+        return redirect()
+            ->route('trips.index')
+            ->with('success', 'Xóa chuyến đi thành công!');
     }
 
     /**

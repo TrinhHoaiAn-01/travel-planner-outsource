@@ -161,9 +161,27 @@ class TripService implements TripServiceInterface
             }
         }
 
-        $trip->update($data);
+        // Chuẩn hóa mô tả và địa bàn trọng tâm
+        $description = $data['description'] ?? $trip->description;
+        if (! empty($data['destination_area']) && empty($data['description'])) {
+            $description = 'Địa bàn: ' . $data['destination_area'];
+        }
 
-        return $trip;
+        $updateAttributes = [
+            'name' => $data['name'] ?? $trip->name,
+            'description' => $description,
+            'start_date' => $data['start_date'] ?? $trip->start_date,
+            'end_date' => $data['end_date'] ?? $trip->end_date,
+            'budget' => $data['budget'] ?? $trip->budget,
+        ];
+
+        if (isset($data['status'])) {
+            $updateAttributes['status'] = $data['status'];
+        }
+
+        $trip->update($updateAttributes);
+
+        return $trip->fresh();
     }
 
     /**
