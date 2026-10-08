@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
 use App\Models\User;
@@ -110,10 +111,11 @@ Route::prefix('admin')
         // Bảng điều khiển chính (Dashboard)
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-        // Các tuyến chức năng quản trị hệ thống
-        Route::get('/users', function () {
-            return view('admin.placeholder', ['pageTitle' => 'Quản lý Người dùng (Users)']);
-        })->name('users.index');
+        // Quản lý Người dùng hệ thống (Admin Users - Trần Văn Trọng)
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::post('/users', [UserController::class, 'store'])->name('users.store');
+        Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::post('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
 
         // Quản lý Tỉnh / Thành phố (Admin Cities - Trần Văn Trọng)
         Route::get('/cities', [CityController::class, 'index'])->name('cities.index');
