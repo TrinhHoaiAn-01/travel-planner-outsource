@@ -26,6 +26,7 @@ class DashboardController extends Controller
         // Thu thập các thông số thống kê tổng hợp từ Service
         $summary = $this->dashboardService->getSummaryStatistics();
         $monthlyStats = $this->dashboardService->getMonthlyStatistics(2026);
+        $bookingCategories = $this->dashboardService->getBookingCategories(4);
         $topDestinations = $this->dashboardService->getTopDestinations(4);
         $recentBookings = $this->dashboardService->getRecentBookings(5);
 
@@ -33,6 +34,7 @@ class DashboardController extends Controller
         return view('admin.dashboard', compact(
             'summary',
             'monthlyStats',
+            'bookingCategories',
             'topDestinations',
             'recentBookings'
         ));

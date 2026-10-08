@@ -29,6 +29,25 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\Interfaces\TripServiceInterface::class,
             \App\Services\TripService::class
         );
+
+        //Ngocai
+        // Ràng buộc DestinationServiceInterface với triển khai cụ thể DestinationService
+        $this->app->bind(
+            \App\Services\Interfaces\DestinationServiceInterface::class,
+            \App\Services\DestinationService::class
+        );
+
+        // Ràng buộc FavoriteServiceInterface với triển khai cụ thể FavoriteService
+        $this->app->bind(
+            \App\Services\Interfaces\FavoriteServiceInterface::class,
+            \App\Services\FavoriteService::class
+        );
+
+        // Ràng buộc ProfileServiceInterface với triển khai cụ thể ProfileService (Trịnh Hoài An)
+        $this->app->bind(
+            \App\Services\Interfaces\ProfileServiceInterface::class,
+            \App\Services\ProfileService::class
+        );
     }
 
     /**
