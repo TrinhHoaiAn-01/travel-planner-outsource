@@ -87,4 +87,32 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->role === 'admin';
     }
+
+    /**
+     * Mã định danh hiển thị chuẩn ảnh (#USR-xxx).
+     */
+    public function getUserCodeAttribute(): string
+    {
+        if ($this->role === 'admin') {
+            return '#USR-000';
+        }
+
+        return sprintf('#USR-%03d', $this->id);
+    }
+
+    /**
+     * Nhãn vai trò người dùng (Administrator / Member).
+     */
+    public function getRoleLabelAttribute(): string
+    {
+        return $this->role === 'admin' ? 'Administrator' : 'Member';
+    }
+
+    /**
+     * Nhãn trạng thái tài khoản.
+     */
+    public function getStatusLabelAttribute(): string
+    {
+        return $this->is_active ? 'Hoạt động (Active)' : 'Đã khóa (Disabled)';
+    }
 }
