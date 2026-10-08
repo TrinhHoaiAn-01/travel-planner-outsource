@@ -48,6 +48,12 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\Interfaces\ProfileServiceInterface::class,
             \App\Services\ProfileService::class
         );
+
+        // Ràng buộc CityManagementServiceInterface với triển khai cụ thể CityManagementService (Trần Văn Trọng)
+        $this->app->bind(
+            \App\Services\Interfaces\CityManagementServiceInterface::class,
+            \App\Services\CityManagementService::class
+        );
     }
 
     /**
