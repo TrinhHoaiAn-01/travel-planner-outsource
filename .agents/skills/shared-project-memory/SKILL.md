@@ -2796,6 +2796,986 @@ Both must remain consistent with the actual project state.
 
 ---
 
+# Mandatory Git Workflow: Member Branch → Main → Master → CI/CD
+
+This Git workflow is part of the project-wide development rules and MUST be applied together with the existing Verification and Shared Memory Integration rules in `SKILL.md`.
+
+The Agent MUST manage Git as part of the development workflow.
+
+Git must reflect the actual development process of the project.
+
+The current project uses the following integration flow:
+
+    Member Feature Branch
+            ↓
+         Commits
+            ↓
+           main
+            ↓
+          master
+            ↓
+         CI / CD
+
+`main` is the development and team integration branch.
+
+`master` is the final integration/deployment branch used by the current CI/CD workflow.
+
+The Agent MUST follow the repository's actual Git structure and existing workflow.
+
+The Agent MUST NOT invent a different Git workflow when the repository already has an established workflow.
+
+Git manages source-code history.
+
+The Google Drive synchronized folder manages shared team context, session history, ownership, decisions, and development records.
+
+---
+
+## Identify the Responsible Member and Check Git Safety
+
+Before modifying code, the Agent MUST:
+
+1. Read `PROJECT_SPECIFICATIONS.md` from `history-conversation-agent` when available.
+2. Read the relevant current state and latest member session.
+3. Identify the member responsible for the requested feature.
+4. Confirm that the working directory is the correct Git repository.
+5. Inspect `git status --short`.
+6. Inspect the current branch.
+7. Inspect local and remote branches.
+8. Inspect recent `main` history.
+9. Inspect relevant feature branches.
+10. Inspect `master` history when integration is relevant.
+11. Check the current CI/CD branch configuration.
+12. Check the Git author identity.
+13. Detect uncommitted and untracked changes.
+14. Protect changes belonging to the user or other members.
+
+The Agent MUST NOT:
+
+- Run `git init` to bypass an existing repository.
+- Create a second Git repository.
+- Reset another member's work.
+- Delete another member's work.
+- Overwrite uncommitted changes.
+- Automatically stash another member's work.
+- Force-push.
+- Rewrite another member's history.
+- Commit as another member.
+- Change Git identity without authorization.
+- Include unrelated changes in the current member's commit.
+
+If the Git state, member ownership, repository, or integration state cannot be safely determined, the Agent MUST stop the affected Git operation and report the blocker.
+
+The Agent MUST NOT guess.
+
+---
+
+## Understand the Project's Branch Structure
+
+The current project uses:
+
+    main
+        ↓
+    master
+        ↓
+    CI / CD
+
+Member work is developed through member-specific feature branches.
+
+The repository currently uses branch names such as:
+
+    van_trong/admin-dashboard
+    van_trong/crud-user
+    van_trong/set-rule
+    hoai_an/<feature>
+    tran_thanh/<feature>
+
+The Agent MUST follow the branch naming pattern already established by the repository.
+
+The Agent MUST NOT force a different naming convention such as:
+
+    feature/member-a/<feature>
+
+when the repository already uses:
+
+    <member>/<feature>
+
+The actual Git repository is the source of truth for branch naming.
+
+---
+
+## One Member Feature Branch Per Assigned Feature
+
+Each assigned feature should have its own member feature branch.
+
+Example:
+
+    main
+      ↓
+    van_trong/admin-dashboard
+
+or:
+
+    main
+      ↓
+    van_trong/crud-user
+
+A branch represents one assigned feature or one logically related implementation scope.
+
+The Agent MUST NOT:
+
+- Put unrelated features into the same feature branch.
+- Reuse a completed feature branch for an unrelated feature.
+- Take another member's feature.
+- Create duplicate branches unnecessarily.
+
+If an unfinished branch already exists for the requested feature, the Agent MUST inspect and safely continue that branch instead of creating a duplicate.
+
+---
+
+## Start New Feature Work From the Latest Main
+
+Before starting a new feature, the Agent MUST inspect the latest available `main`.
+
+The normal workflow is:
+
+    main
+      ↓
+    create / continue member branch
+      ↓
+    implement feature
+
+When a remote exists, the Agent may safely synchronize `main` before creating a feature branch.
+
+Example:
+
+```bash
+git switch main
+git pull --ff-only origin main
+```
+
+Only use the remote command when `origin/main` exists and the fast-forward operation is safe.
+
+The Agent MUST NOT:
+
+- Force-pull.
+- Reset local `main` to remote.
+- Overwrite divergent history.
+- Delete local work to make synchronization possible.
+
+If local and remote history diverge, stop and investigate.
+
+---
+
+## Continue an Existing Feature Safely
+
+If the requested feature already has a branch:
+
+    <member>/<feature>
+
+The Agent MUST inspect:
+
+- Current branch status.
+- Existing commits.
+- Existing implementation.
+- Uncommitted changes.
+- Previous session history.
+- Google Drive history.
+- Feature ownership.
+- Current `main` changes.
+
+If the branch contains unfinished work belonging to the current feature:
+
+    Existing Branch
+          ↓
+       Inspect
+          ↓
+       Continue
+
+The Agent MUST NOT create a duplicate feature branch unnecessarily.
+
+If the feature was already merged and completed, the next feature MUST start from the latest appropriate `main`.
+
+---
+
+## Plan Real Development Milestones
+
+Before implementing a feature, the Agent MUST divide the assigned work into real, sequential, verifiable milestones when the feature is large enough to justify multiple milestones.
+
+Examples:
+
+    Milestone 1
+    Database / Model / Migration
+
+    Milestone 2
+    Service / Interface / Business Logic
+
+    Milestone 3
+    Controller / Request / Authorization
+
+    Milestone 4
+    Blade / Frontend
+
+    Milestone 5
+    Tests / CI fixes
+
+The milestone structure MUST reflect the actual feature.
+
+The Agent MUST NOT invent functionality merely to create additional commits.
+
+A small feature may have fewer commits when there are not enough meaningful development stages.
+
+The Agent MUST NOT create:
+
+- Empty commits.
+- Artificial commits.
+- Whitespace-only commits.
+- Meaningless comment changes.
+- Fake milestones.
+- Duplicate changes.
+
+Git history must represent real development.
+
+---
+
+## Commit During Development
+
+The Agent MUST create a commit immediately after each meaningful development milestone is completed and successfully verified.
+
+The Agent MUST NOT continue to the next meaningful milestone while leaving the completed current milestone uncommitted.
+
+The required development loop is:
+
+    Implement Current Milestone
+        ↓
+    Test / Verify Current Milestone
+        ↓
+    Review Current Changes
+        ↓
+    Commit Immediately
+        ↓
+    Continue to Next Milestone
+
+The Agent MUST verify and commit each meaningful completed milestone before continuing. If verification fails, the Agent MUST fix the failure before committing and before moving to the next milestone.
+
+The Agent MUST NOT postpone several completed milestones and commit them together merely because the overall feature is not finished.
+
+The Agent MUST NOT create empty, artificial, duplicate, whitespace-only, or meaningless commits merely to increase commit count.
+
+Example:
+
+    Migration → Test / Verify → COMMIT
+    Model → Test / Verify → COMMIT
+    Service / Interface → Test / Verify → COMMIT
+    Controller → Test / Verify → COMMIT
+    Frontend → Test / Verify → COMMIT
+
+A commit must represent the actual completed work at that point in development.
+
+The Agent MUST NOT wait until the entire feature is finished before creating commits.
+
+The Agent MUST NOT wait until the entire feature is finished before creating every commit when the feature contains multiple meaningful stages.
+
+For each meaningful milestone:
+
+    Implement
+        ↓
+    Test / Verify
+        ↓
+    Review changes
+        ↓
+    Commit
+        ↓
+    Continue
+
+A commit must represent a real completed development step.
+
+The Agent MUST NOT create one large final commit containing all feature work when the work naturally consists of multiple independent milestones.
+
+---
+
+## Verify Before Each Commit
+
+Before creating a milestone commit, the Agent MUST:
+
+1. Complete the milestone within the assigned scope.
+2. Run the relevant test or verification.
+3. Check `git status --short`.
+4. Review `git diff`.
+5. Identify files belonging to the current milestone.
+6. Stage only the required files or hunks.
+7. Inspect the staged diff.
+8. Run `git diff --cached --check`.
+9. Commit the milestone.
+10. Verify the created commit.
+
+The Agent MUST NOT blindly stage the entire repository when unrelated changes may exist.
+
+Avoid:
+
+```bash
+git add .
+```
+
+or:
+
+```bash
+git add -A
+```
+
+when those commands could include another member's changes.
+
+Prefer explicit paths or carefully controlled staging.
+
+Example:
+
+```bash
+git add -- resources/views/admin/dashboard.blade.php
+git diff --cached --check
+git diff --cached
+git commit -m "Cập nhật giao diện admin dashboard"
+git log -1 --oneline
+```
+
+The example paths are illustrative only. Use the actual files involved in the milestone.
+
+---
+
+## Testing Is Part of the Git Milestone
+
+A milestone is not considered complete merely because the code was written.
+
+The Agent MUST follow the project's testing rules before committing a meaningful milestone.
+
+The workflow is:
+
+    Implement
+        ↓
+    Create / Update Tests
+        ↓
+    Run Relevant Tests
+        ↓
+    Fix Failures
+        ↓
+    Verify
+        ↓
+    Commit
+
+Depending on the feature, this may include:
+
+- Test cases.
+- Feature Tests.
+- Unit Tests.
+- Frontend checks.
+- Database checks.
+- Build checks.
+- Search tests.
+- Authorization tests.
+- Authentication tests.
+
+The Agent MUST NOT knowingly commit a milestone with a failure caused by the current implementation.
+
+---
+
+## Commit Messages
+
+Commit messages must describe the actual completed change.
+
+Use the existing team's commit-message style.
+
+Vietnamese commit messages should be used when that is the established project convention.
+
+Examples:
+
+```text
+Thêm giao diện admin dashboard
+```
+
+```text
+Thêm CRUD user và test case
+```
+
+```text
+Sửa MVC admin dashboard, cập nhật unit test
+```
+
+```text
+Thêm tìm kiếm chuyến đi bằng Solr
+```
+
+```text
+Sửa lỗi responsive trang chủ
+```
+
+The Agent MUST NOT create misleading commit messages.
+
+---
+
+## Feature Completion Before Main Integration
+
+Before merging a member feature branch into `main`, the Agent MUST verify:
+
+- Assigned feature is complete.
+- All required functionality exists.
+- UI matches the provided design when applicable.
+- Desktop works.
+- Tablet works.
+- Mobile works.
+- Required tests exist.
+- Relevant tests pass.
+- Full test suite passes when required.
+- CI requirements are satisfied.
+- No known errors caused by the current feature remain.
+- No unrelated files were changed.
+- No other member's work was overwritten.
+- Git history is understandable.
+- The feature branch is clean.
+
+The Agent MUST NOT merge a knowingly incomplete feature into `main`.
+
+---
+
+## Review the Feature Branch Before Merge
+
+Before merging:
+
+```bash
+git status --short
+git log --oneline main..HEAD
+git diff --check main...HEAD
+```
+
+The Agent must verify that the commits:
+
+- Belong to the current feature.
+- Represent real development work.
+- Are in a sensible order.
+- Do not contain unrelated member work.
+- Do not contain fabricated commits.
+
+The Agent must ensure unrelated uncommitted changes are not included.
+
+---
+
+## Merge Member Branch Into Main
+
+When the feature branch passes the pre-merge verification:
+
+    <member>/<feature>
+            ↓
+          main
+
+The Agent may integrate the feature into `main` according to the team's established Git workflow and repository permissions.
+
+The Agent must preserve meaningful feature commits.
+
+The Agent MUST NOT:
+
+- Squash commits when doing so would destroy the project's meaningful development history.
+- Reset `main` to an older state.
+- Force-push.
+- Overwrite another member's work.
+- Resolve conflicts by guessing.
+
+A normal merge may be used when consistent with the repository's existing history.
+
+Example:
+
+```bash
+git switch main
+git merge --no-ff <member>/<feature>
+```
+
+The exact command must be determined from the actual repository state.
+
+If conflicts occur, the Agent MUST inspect them carefully.
+
+If a conflict could modify another member's work or business logic outside the current authorized scope, the Agent MUST stop and report the conflict.
+
+---
+
+## Verify Main After Integration
+
+A successful Git merge does NOT automatically mean that the application is correct.
+
+After integrating a feature into `main`, the Agent MUST verify the integrated project.
+
+The Agent must check:
+
+- The new feature works.
+- Existing features still work.
+- Required tests pass.
+- Full Laravel tests pass when applicable.
+- No merge conflict remains.
+- No unintended changes were introduced.
+- Existing member functionality remains intact.
+- Current SKILL.md rules remain satisfied.
+
+The Agent MUST treat:
+
+    Git Merge = successful integration of source history
+
+and:
+
+    Tests / CI = verification of application correctness
+
+as separate checks.
+
+---
+
+## Main → Master Integration
+
+The current project uses `master` as the final integration/deployment branch.
+
+The normal promotion flow is:
+
+    main
+      ↓
+    verification
+      ↓
+    master
+      ↓
+    CI
+      ↓
+    CD
+
+The Agent MUST NOT develop normal feature work directly on `master`.
+
+Before integrating `main` into `master`, the Agent MUST verify:
+
+1. `main` is in a valid state.
+2. Required tests pass.
+3. No known blocking errors remain.
+4. The current integrated features are ready for the project's deployment workflow.
+5. No unfinished feature is being unintentionally promoted.
+6. The current CI/CD configuration is compatible with the changes.
+
+The Agent MUST preserve existing Git history.
+
+---
+
+## CI/CD Is the Final Integration Gate
+
+The current project CI/CD workflow uses `master`.
+
+The Agent MUST treat CI/CD as part of the Git integration process.
+
+The expected flow is:
+
+    Feature Branch
+        ↓
+    main
+        ↓
+    master
+        ↓
+    CI
+        ↓
+    CD
+
+The Agent MUST NOT:
+
+- Disable CI tests.
+- Remove tests to make CI pass.
+- Skip required Docker validation.
+- Bypass Laravel tests.
+- Modify CI only to hide an application failure.
+- Claim CI passed when it was not actually verified.
+
+If CI fails because of the current implementation:
+
+    Read Failure
+        ↓
+    Identify Cause
+        ↓
+    Fix
+        ↓
+    Test
+        ↓
+    Commit Fix
+        ↓
+    Verify Again
+
+The Agent must fix the actual problem instead of weakening the validation.
+
+---
+
+## Master Must Remain Deployable
+
+Because `master` is used by the current CI/CD workflow, the Agent must treat it as a protected integration/deployment branch.
+
+The Agent MUST NOT intentionally place knowingly broken code on `master`.
+
+Before promotion:
+
+- Required tests must pass.
+- Required CI checks must pass when available.
+- Docker configuration must remain valid.
+- Database configuration must remain valid.
+- Application startup must remain valid.
+- Existing deployment behavior must not be intentionally broken.
+
+If the project requires a pull request or protected branch approval, the Agent must follow that requirement instead of bypassing it.
+
+---
+
+## Do Not Automatically Push Without Authorization
+
+The Agent may manage local Git history and local integration when permitted by the project's workflow.
+
+Pushing to a remote repository must follow the team's established authorization and repository rules.
+
+The Agent MUST NOT:
+
+- Force-push.
+- Overwrite remote branches.
+- Bypass branch protection.
+- Push another member's work.
+- Push to an unrelated branch.
+- Claim that a remote push succeeded unless it actually succeeded.
+
+If remote push is not authorized or cannot be performed safely:
+
+    Keep the correct local state
+        ↓
+    Record the state
+        ↓
+    Report what remains to be pushed
+
+Do not destroy local work merely because remote synchronization is unavailable.
+
+---
+
+## Cross-Member Protection During Git Operations
+
+Git operations must follow the multi-member protection rules in this SKILL.md.
+
+When another member has:
+
+- Uncommitted changes.
+- A feature branch.
+- A pending merge.
+- Existing implementation.
+- Existing tests.
+- Existing commits.
+
+The Agent MUST preserve that work.
+
+The Agent may inspect another member's branch and commits to understand dependencies.
+
+The Agent MUST NOT:
+
+- Reset their branch.
+- Delete their branch.
+- Rewrite their commits.
+- Force-push their branch.
+- Modify unrelated files.
+- Merge their unfinished feature merely to continue the current task.
+- Take ownership of their assigned feature.
+
+If the current feature depends on another member's unfinished work, the Agent must identify the dependency and continue only within the authorized scope.
+
+---
+
+## New Skill Retroactive Integration and Git
+
+When a new skill is added to `SKILL.md`, the Automatic New Skill Detection and Project-Wide Integration rules apply.
+
+The Agent must:
+
+    Detect New Skill
+        ↓
+    Scan Entire Project
+        ↓
+    Identify Affected Features
+        ↓
+    Identify Responsible Members
+        ↓
+    Inspect Relevant Branches
+        ↓
+    Apply Skill Within Authorized Scope
+        ↓
+    Create Required Tests
+        ↓
+    Verify
+        ↓
+    Commit Real Changes
+        ↓
+    Merge Into main
+        ↓
+    Verify main
+        ↓
+    Promote to master when appropriate
+        ↓
+    Verify CI/CD
+        ↓
+    Update Shared History
+
+The Agent MUST NOT create one artificial commit containing unrelated retroactive changes merely to show that a new skill was applied.
+
+Changes must remain understandable in Git history.
+
+---
+
+## Image-Based Frontend Development and Git
+
+When the user provides an image:
+
+    Image
+      ↓
+    Read SKILL.md
+      ↓
+    Read PROJECT_SPECIFICATIONS.md
+      ↓
+    Read Google Drive history
+      ↓
+    Inspect current project
+      ↓
+    Identify responsible member
+      ↓
+    Inspect Git state
+      ↓
+    Create / continue member feature branch
+      ↓
+    Implement or repair frontend
+      ↓
+    Match image
+      ↓
+    Test
+      ↓
+    Commit
+      ↓
+    Continue remaining milestones
+      ↓
+    Merge into main
+      ↓
+    Verify main
+      ↓
+    Integrate into master when appropriate
+      ↓
+    CI / CD
+      ↓
+    Update history
+
+If the same image is sent again later, the Agent must inspect the existing implementation and continue or repair it instead of automatically recreating the feature.
+
+Git history must be used together with Google Drive history to understand what was previously implemented.
+
+---
+
+## Interrupted Session Recovery
+
+If a coding session is interrupted:
+
+- Preserve the current branch.
+- Preserve existing commits.
+- Preserve uncommitted work when possible.
+- Record the current Git state.
+- Record the current milestone.
+- Record the feature branch.
+- Record the latest commit.
+- Record the next required action.
+- Update shared history when possible.
+
+When the user continues later:
+
+    Current Git State
+        +
+    Current Source Code
+        +
+    Google Drive History
+        +
+    Feature Branch
+        ↓
+    Continue From Current State
+
+The Agent MUST NOT restart the feature unnecessarily.
+
+The Agent MUST NOT create duplicate commits for work that already exists.
+
+---
+
+## Git History Must Be Reflected in Shared Memory
+
+After meaningful Git milestones and feature integration, the Agent MUST synchronize the actual Git state with the project's shared memory rules defined in the `# Shared Memory Integration` section.
+
+The Agent should record when applicable:
+
+- Member.
+- Feature.
+- Branch.
+- Milestone.
+- Commit hash.
+- Commit message.
+- Tests.
+- CI result.
+- Merge status.
+- Current state.
+- Remaining work.
+- Next authorized feature.
+- Conflicts or blockers.
+
+Git remains the source of truth for actual commits, merges, and branch state.
+
+Shared Memory / Google Drive remains the project-context and development-history layer.
+
+The Agent MUST NOT record or claim:
+
+- A commit that does not exist.
+- A merge that did not happen.
+- A push that did not happen.
+- A test that was not run.
+- CI success that was not verified.
+
+The detailed storage locations and shared-memory rules are governed by `# Shared Memory Integration` immediately following this Git section.
+
+---
+
+## Continue With the Next Assigned Feature
+
+After a feature has been successfully integrated into `main`, the Agent may continue with the next assigned feature only when the current instruction authorizes continued work.
+
+The next feature must start from the latest appropriate `main`.
+
+The workflow is:
+
+    Completed Feature
+        ↓
+    Merge Into main
+        ↓
+    Verify main
+        ↓
+    Identify Next Assigned Feature
+        ↓
+    Create / Continue Member Branch
+        ↓
+    Implement
+        ↓
+    Test
+        ↓
+    Commit
+        ↓
+    Repeat
+
+The Agent MUST NOT:
+
+- Invent another member's task.
+- Take an unassigned feature.
+- Continue indefinitely without authorization.
+- Start the next feature from the old completed feature branch.
+
+---
+
+## Final Git Workflow
+
+The complete project workflow is:
+
+    READ SKILL.md
+        ↓
+    READ PROJECT_SPECIFICATIONS.md
+        ↓
+    READ GOOGLE DRIVE HISTORY
+        ↓
+    IDENTIFY RESPONSIBLE MEMBER
+        ↓
+    INSPECT GIT STATE
+        ↓
+    CHECK MAIN
+        ↓
+    CREATE / CONTINUE MEMBER FEATURE BRANCH
+        ↓
+    IMPLEMENT
+        ↓
+    CREATE / UPDATE TESTS
+        ↓
+    VERIFY
+        ↓
+    COMMIT REAL MILESTONE
+        ↓
+    CONTINUE FEATURE
+        ↓
+    FINAL TEST
+        ↓
+    FEATURE BRANCH REVIEW
+        ↓
+    MERGE INTO MAIN
+        ↓
+    VERIFY MAIN
+        ↓
+    INTEGRATE MAIN INTO MASTER WHEN APPROPRIATE
+        ↓
+    CI
+        ↓
+    CD
+        ↓
+    UPDATE SHARED MEMORY
+        ↓
+    NEXT AUTHORIZED FEATURE
+
+---
+
+## Final Git Checklist
+
+Before considering a feature complete:
+
+- [ ] Correct member identified.
+- [ ] Correct repository identified.
+- [ ] Current Git state inspected.
+- [ ] Existing uncommitted work protected.
+- [ ] Correct member feature branch used.
+- [ ] Feature branch based on appropriate `main`.
+- [ ] Feature implemented within assigned scope.
+- [ ] Required tests created or updated.
+- [ ] Relevant tests passed.
+- [ ] Meaningful milestones committed during development.
+- [ ] Commit history represents real work.
+- [ ] No unrelated files included.
+- [ ] No other member's work overwritten.
+- [ ] Feature branch reviewed.
+- [ ] Feature merged into `main` according to project workflow.
+- [ ] `main` verified after integration.
+- [ ] `master` updated only when appropriate.
+- [ ] CI/CD requirements satisfied.
+- [ ] No known failure caused by the current feature remains.
+- [ ] Google Drive shared history updated.
+- [ ] Actual commit hashes recorded.
+- [ ] Actual merge status recorded.
+- [ ] Next feature starts from the latest appropriate `main`.
+
+---
+
+## Final Principle
+
+This Git section belongs between `# 13. Verification` and `# Shared Memory Integration`.
+
+The Agent MUST follow the Git workflow that actually exists in the repository.
+
+The project currently follows:
+
+    MEMBER
+      ↓
+    MEMBER FEATURE BRANCH
+      ↓
+    REAL COMMITS
+      ↓
+    main
+      ↓
+    master
+      ↓
+    CI / CD
+
+`main` is the development and integration branch.
+
+`master` is the final integration/deployment branch.
+
+The Agent MUST NOT replace this workflow with another Git strategy unless the project team explicitly changes the Git workflow.
+
+The Agent must protect other members' work, preserve real Git history, test before integration, verify `main`, and ensure that changes reaching `master` remain compatible with CI/CD.
+
+Git history must represent actual development.
+
+Google Drive history must preserve the team's development context.
+
+Both must remain consistent with the actual project state.
+
 # Shared Memory Integration
 
 The shared-memory rules below are part of the same skill and are mandatory.
