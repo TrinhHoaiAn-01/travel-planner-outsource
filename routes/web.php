@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\AuthController;
@@ -120,9 +121,11 @@ Route::prefix('admin')
         Route::put('/cities/{city}', [CityController::class, 'update'])->name('cities.update');
         Route::delete('/cities/{city}', [CityController::class, 'destroy'])->name('cities.destroy');
 
-        Route::get('/categories', function () {
-            return view('admin.placeholder', ['pageTitle' => 'Quản lý Danh mục (Categories)']);
-        })->name('categories.index');
+        // Quản lý Danh mục Du lịch (Admin Categories - Trần Văn Trọng)
+        Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+        Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+        Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+        Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
         Route::get('/destinations', function () {
             return view('admin.placeholder', ['pageTitle' => 'Quản lý Địa điểm (Destinations)']);
