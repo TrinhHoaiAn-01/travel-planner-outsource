@@ -1,0 +1,10 @@
+services:
+  app:
+    volumes:
+      - ./resources:/var/www/html/resources
+      - ./public:/var/www/html/public
+      - ./app:/var/www/html/app
+      - ./routes:/var/www/html/routes
+      - ./database:/var/www/html/database
+      - ./tests:/var/www/html/tests
+      - ./.env:/var/www/html/.env

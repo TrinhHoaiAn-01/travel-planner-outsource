@@ -1,0 +1,114 @@
+/* ==========================================================================
+   DESTINATION & DETAIL STYLES
+   ========================================================================== */
+
+.filter-sidebar {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+  position: sticky;
+  top: 90px;
+}
+
+.filter-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.destination-gallery-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: 200px 200px;
+  gap: 12px;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.destination-gallery-grid .gallery-item {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.destination-gallery-grid .gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: var(--transition-smooth);
+}
+
+.destination-gallery-grid .gallery-item:hover img {
+  transform: scale(1.06);
+}
+
+.destination-gallery-grid .gallery-item.main-item {
+  grid-row: span 2;
+}
+
+@media (max-width: 768px) {
+  .destination-gallery-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+  .destination-gallery-grid .gallery-item.main-item {
+    height: 280px;
+  }
+  .destination-gallery-grid .gallery-item:not(.main-item) {
+    display: none;
+  }
+}
+
+.info-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.85rem;
+  background: var(--bg-surface);
+  border-radius: var(--radius-pill);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-main);
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.info-chip i {
+  color: var(--primary);
+}
+
+.review-item {
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  margin-bottom: 1rem;
+}
+
+.review-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.star-rating {
+  color: #ffc107;
+}
+
+.star-rating-select i {
+  font-size: 1.6rem;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.star-rating-select i.active,
+.star-rating-select i:hover {
+  color: #ffc107;
+}
