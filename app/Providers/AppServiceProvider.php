@@ -54,6 +54,16 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\Interfaces\CityManagementServiceInterface::class,
             \App\Services\CityManagementService::class
         );
+
+        // Ràng buộc CategoryManagementServiceInterface & CategoryServiceInterface với CategoryManagementService (Trần Văn Trọng)
+        $this->app->bind(
+            \App\Services\Interfaces\CategoryManagementServiceInterface::class,
+            \App\Services\CategoryManagementService::class
+        );
+        $this->app->bind(
+            \App\Services\Interfaces\CategoryServiceInterface::class,
+            \App\Services\CategoryManagementService::class
+        );
     }
 
     /**
