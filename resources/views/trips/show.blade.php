@@ -473,21 +473,33 @@
 
             <!-- Khối Quản lý Mô tả và Ghi chú tổng quát của chuyến đi (Nghiệp vụ chức năng 4) -->
             <div class="card-custom p-4 mb-4">
-                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom gap-2">
+                    <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-card-text text-primary fs-4"></i>
-                        <span>Mô tả & Ghi chú mục tiêu chuyến đi</span>
-                    </h5>
-                    <a href="{{ route('trips.edit', $trip->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                        <i class="bi bi-pencil me-1"></i> Chỉnh sửa ghi chú
-                    </a>
+                        <h5 class="fw-bold mb-0 text-dark">Mô tả và Ghi chú mục tiêu chuyến đi</h5>
+                        @if($trip->description)
+                            <span class="badge bg-light text-muted border small">{{ mb_strlen($trip->description) }} ký tự</span>
+                        @endif
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#editTripNotesModal">
+                            <i class="bi bi-pencil-square me-1"></i> Sửa nhanh ghi chú
+                        </button>
+                        <a href="{{ route('trips.edit', $trip->id) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3" title="Chỉnh sửa toàn bộ thông tin">
+                            <i class="bi bi-sliders me-1"></i> Chi tiết khác
+                        </a>
+                    </div>
                 </div>
                 <div class="description-card">
                     @if($trip->description)
-                        <div class="text-dark" style="white-space: pre-line; font-size: 15px; line-height: 1.7;">{{ $trip->description }}</div>
+                        <div class="text-dark p-3 rounded-3 bg-light-subtle border border-light-subtle" style="white-space: pre-line; font-size: 15px; line-height: 1.7;">{{ $trip->description }}</div>
                     @else
-                        <div class="text-muted fst-italic">
-                            Chưa có mô tả hay ghi chú nào cho chuyến đi này. Bấm nút <strong>"Chỉnh sửa ghi chú"</strong> bên trên để thêm mục tiêu chuyến đi, lưu ý về hành lý, trang phục hoặc thời tiết!
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-journal-text fs-1 text-secondary opacity-50 mb-2 d-block"></i>
+                            <p class="mb-2">Chưa có mô tả hay ghi chú nào cho chuyến đi này.</p>
+                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#editTripNotesModal">
+                                <i class="bi bi-plus-lg me-1"></i> Thêm mô tả & ghi chú ngay
+                            </button>
                         </div>
                     @endif
                 </div>
@@ -572,6 +584,72 @@
         </div>
     </main>
 
+    <!-- Modal Quản Lý & Chỉnh Sửa Mô Tả / Ghi Chú Tổng Quát Chuyến Đi (Nguyễn Trần Thành) -->
+    <div class="modal fade" id="editTripNotesModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header bg-primary-subtle text-primary border-0 pb-2">
+                    <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+                        <i class="bi bi-journal-check fs-4"></i>
+                        <span>Quản lý Mô tả & Ghi chú tổng quát</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ route('trips.update-notes', $trip->id) }}" method="POST">
+                    @csrf
+                    @method('PATCH')
+                    <div class="modal-body p-4">
+                        <p class="text-muted small mb-3">
+                            Ghi chú mục tiêu hành trình, những điều cần lưu ý về hành lý, trang phục, các điểm hẹn đặc biệt hoặc thông tin liên hệ khẩn cấp.
+                        </p>
+
+                        <!-- Gợi ý mẫu nhanh -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted mb-1">Mẫu gợi ý nhanh:</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-sm btn-light border rounded-pill" onclick="appendNoteTemplate('🎯 Mục tiêu: Trải nghiệm ẩm thực địa phương, ngắm hoàng hôn và chụp ảnh kỷ niệm.\n')">
+                                    🎯 Mục tiêu
+                                </button>
+                                <button type="button" class="btn btn-sm btn-light border rounded-pill" onclick="appendNoteTemplate('🎒 Chuẩn bị: Kem chống nắng, kính râm, sạc dự phòng, CCCD và vé máy bay.\n')">
+                                    🎒 Hành lý
+                                </button>
+                                <button type="button" class="btn btn-sm btn-light border rounded-pill" onclick="appendNoteTemplate('⚠️ Lưu ý: Theo dõi dự báo thời tiết, lưu số điện thoại khách sạn và HDV.\n')">
+                                    ⚠️ Lưu ý
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="tripNotesTextarea" class="form-label small fw-bold text-dark">Nội dung ghi chú & mô tả</label>
+                            <textarea
+                                class="form-control"
+                                id="tripNotesTextarea"
+                                name="description"
+                                rows="6"
+                                maxlength="3000"
+                                placeholder="Nhập mục tiêu chuyến đi, lưu ý về hành lý, thời tiết hoặc kế hoạch dự phòng..."
+                                oninput="updateNotesCharCount()"
+                                style="font-size: 14.5px; line-height: 1.6;"
+                            >{{ old('description', $trip->description) }}</textarea>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center small text-muted">
+                            <button type="button" class="btn btn-link btn-sm text-danger text-decoration-none p-0" onclick="clearTripNotes()">
+                                <i class="bi bi-trash3 me-1"></i> Xóa nội dung
+                            </button>
+                            <span id="notesCharCounter">0 / 3000 ký tự</span>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-4 pt-0">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy bỏ</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm">
+                            <i class="bi bi-check2-circle me-1"></i> Lưu ghi chú
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Xác Nhận Xóa Chuyến Đi (Chuẩn theo detail.html & index.html) -->
     <div class="modal fade" id="deleteTripModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -609,5 +687,35 @@
 
     <!-- Bootstrap 5 Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function updateNotesCharCount() {
+            const textarea = document.getElementById('tripNotesTextarea');
+            const counter = document.getElementById('notesCharCounter');
+            if (textarea && counter) {
+                counter.textContent = `${textarea.value.length} / 3000 ký tự`;
+            }
+        }
+
+        function appendNoteTemplate(templateText) {
+            const textarea = document.getElementById('tripNotesTextarea');
+            if (textarea) {
+                textarea.value = (textarea.value ? textarea.value.trim() + '\n' : '') + templateText;
+                updateNotesCharCount();
+                textarea.focus();
+            }
+        }
+
+        function clearTripNotes() {
+            const textarea = document.getElementById('tripNotesTextarea');
+            if (textarea && confirm('Bạn có chắc chắn muốn xóa sạch nội dung ghi chú này?')) {
+                textarea.value = '';
+                updateNotesCharCount();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            updateNotesCharCount();
+        });
+    </script>
 </body>
 </html>

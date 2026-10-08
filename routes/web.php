@@ -52,6 +52,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/trips/{trip}', [TripController::class, 'show'])->name('trips.show');
     Route::get('/trips/{trip}/edit', [TripController::class, 'edit'])->name('trips.edit');
     Route::put('/trips/{trip}', [TripController::class, 'update'])->name('trips.update');
+    Route::patch('/trips/{trip}/notes', [TripController::class, 'updateNotes'])->name('trips.update-notes');
     Route::delete('/trips/{trip}', [TripController::class, 'destroy'])->name('trips.destroy');
     Route::post('/trips/{trip}/clone', [TripController::class, 'clone'])->name('trips.clone');
     Route::post('/trips/{trip}/reopen', [TripController::class, 'reopen'])->name('trips.reopen');

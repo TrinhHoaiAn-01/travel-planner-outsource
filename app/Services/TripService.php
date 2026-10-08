@@ -301,4 +301,17 @@ class TripService implements TripServiceInterface
         $trip->end_date = $newEndDate;
         $trip->save();
     }
+
+    /**
+     * Cập nhật mô tả và ghi chú tổng quát của chuyến đi.
+     */
+    public function updateTripNotes(int $tripId, ?string $notes): Trip
+    {
+        $trip = Trip::findOrFail($tripId);
+        $trip->description = $notes;
+        $trip->save();
+
+        return $trip->fresh();
+    }
 }
+
