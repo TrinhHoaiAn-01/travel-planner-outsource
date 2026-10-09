@@ -301,10 +301,10 @@
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="py-4 mt-5 bg-white border-top text-center text-muted small">
+    <!-- Footer Khớp 100% Giao diện chuẩn -->
+    <footer class="py-4 mt-5 text-center text-white-50 small" style="background-color: #0F172A;">
         <div class="container">
-            <p class="mb-0">&copy; 2026 Travel Planner Platform. Bản quyền thuộc về Nhóm B - Khoa CNTT TDC.</p>
+            <p class="mb-0 text-white-50">&copy; 2026 Travel Planner Travel Platform. All rights reserved.</p>
         </div>
     </footer>
 

@@ -153,35 +153,37 @@ class TripService implements TripServiceInterface
      */
     public function updateTrip(int $tripId, array $data): Trip
     {
-        $trip = Trip::findOrFail($tripId);
+        return DB::transaction(function () use ($tripId, $data) {
+            $trip = Trip::findOrFail($tripId);
 
-        if (isset($data['start_date']) && isset($data['end_date'])) {
-            if (! $this->validateTripDates($data['start_date'], $data['end_date'])) {
-                throw new InvalidArgumentException('Ngày bắt đầu không được sau ngày kết thúc.');
+            if (isset($data['start_date']) && isset($data['end_date'])) {
+                if (! $this->validateTripDates($data['start_date'], $data['end_date'])) {
+                    throw new InvalidArgumentException('Ngày bắt đầu không được sau ngày kết thúc.');
+                }
             }
-        }
 
-        // Chuẩn hóa mô tả và địa bàn trọng tâm
-        $description = $data['description'] ?? $trip->description;
-        if (! empty($data['destination_area']) && empty($data['description'])) {
-            $description = 'Địa bàn: ' . $data['destination_area'];
-        }
+            // Chuẩn hóa mô tả và địa bàn trọng tâm
+            $description = $data['description'] ?? $trip->description;
+            if (! empty($data['destination_area']) && empty($data['description'])) {
+                $description = 'Địa bàn: ' . $data['destination_area'];
+            }
 
-        $updateAttributes = [
-            'name' => $data['name'] ?? $trip->name,
-            'description' => $description,
-            'start_date' => $data['start_date'] ?? $trip->start_date,
-            'end_date' => $data['end_date'] ?? $trip->end_date,
-            'budget' => $data['budget'] ?? $trip->budget,
-        ];
+            $updateAttributes = [
+                'name' => $data['name'] ?? $trip->name,
+                'description' => $description,
+                'start_date' => $data['start_date'] ?? $trip->start_date,
+                'end_date' => $data['end_date'] ?? $trip->end_date,
+                'budget' => $data['budget'] ?? $trip->budget,
+            ];
 
-        if (isset($data['status'])) {
-            $updateAttributes['status'] = $data['status'];
-        }
+            if (isset($data['status'])) {
+                $updateAttributes['status'] = $data['status'];
+            }
 
-        $trip->update($updateAttributes);
+            $trip->update($updateAttributes);
 
-        return $trip->fresh();
+            return $trip->fresh();
+        });
     }
 
     /**
@@ -189,9 +191,11 @@ class TripService implements TripServiceInterface
      */
     public function deleteTrip(int $tripId): bool
     {
-        $trip = Trip::findOrFail($tripId);
+        return DB::transaction(function () use ($tripId) {
+            $trip = Trip::findOrFail($tripId);
 
-        return (bool) $trip->delete();
+            return (bool) $trip->delete();
+        });
     }
 
     /**

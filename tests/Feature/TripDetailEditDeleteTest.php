@@ -19,6 +19,8 @@ class TripDetailEditDeleteTest extends TestCase
     {
         parent::setUp();
 
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+
         $this->owner = User::factory()->create([
             'name' => 'Nguyễn Trần Thành',
             'email' => 'thanh.nguyen@travelplanner.test',

@@ -406,15 +406,18 @@
                                 @endif
                             </p>
                         </div>
-                        <div class="col-lg-4 text-lg-end">
-                            <div class="d-flex flex-wrap justify-content-lg-end gap-2">
-                                <a href="{{ route('trips.edit', $trip->id) }}" class="btn btn-light rounded-pill px-4 fw-semibold shadow-sm">
+                        <div class="col-lg-5 text-lg-end">
+                            <div class="d-flex flex-wrap justify-content-lg-end align-items-center gap-2">
+                                <a href="javascript:void(0)" class="btn btn-warning rounded-pill px-4 fw-bold shadow-sm text-dark d-inline-flex align-items-center" style="background-color: #F59E0B; border: none;">
+                                    <i class="bi bi-wallet2 me-2"></i> Quản lý Ngân sách
+                                </a>
+                                <a href="{{ route('trips.edit', $trip->id) }}" class="btn btn-light rounded-pill px-3 fw-semibold shadow-sm text-dark d-inline-flex align-items-center">
                                     <i class="bi bi-pencil me-1 text-primary"></i> Sửa Trip
                                 </a>
-                                <button type="button" class="btn btn-outline-danger bg-white text-danger rounded-pill px-3 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#deleteTripModal">
+                                <button type="button" class="btn btn-outline-danger bg-white text-danger rounded-pill px-3 fw-semibold shadow-sm d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#deleteTripModal">
                                     <i class="bi bi-trash me-1"></i> Xóa Trip
                                 </button>
-                                <a href="{{ route('trips.index') }}" class="btn btn-outline-light rounded-pill px-3">
+                                <a href="{{ route('trips.index') }}" class="btn btn-outline-light rounded-pill px-3 d-inline-flex align-items-center">
                                     <i class="bi bi-arrow-left me-1"></i> Quay lại
                                 </a>
                             </div>
@@ -520,11 +523,17 @@
                     @endfor
                 </ul>
 
-                <div>
-                    <a href="{{ route('trips.edit', $trip->id) }}" class="btn btn-outline-primary rounded-pill px-4 shadow-sm">
-                        <i class="bi bi-pencil-square me-1"></i> Cập nhật chuyến đi
-                    </a>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                        <i class="bi bi-plus-lg me-1"></i> Thêm hoạt động
+                    </button>
                 </div>
+            </div>
+
+            <!-- Notice Mẹo sắp xếp (Khớp 100% Hình 18) -->
+            <div class="alert alert-info py-2 px-3 small rounded-3 d-flex align-items-center mb-4" style="background-color: #E0F2FE; border-color: #BAE6FD; color: #0369A1;">
+                <i class="bi bi-info-circle-fill me-2 fs-5 text-primary"></i>
+                <span><strong>Mẹo sắp xếp:</strong> Bạn có thể giữ và kéo thả các hoạt động bên dưới để thay đổi thứ tự thời gian trong ngày!</span>
             </div>
 
             <!-- Tab Content (Itinerary Timeline) -->
@@ -562,6 +571,11 @@
                                                     <span class="badge badge-soft-secondary small">
                                                         <i class="bi bi-tag me-1"></i>{{ $item->activity_type ?? 'Tham quan' }}
                                                     </span>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-1">
+                                                    <button type="button" class="btn btn-sm btn-link text-muted p-1 drag-handle" title="Kéo thả"><i class="bi bi-grip-vertical fs-5"></i></button>
+                                                    <a href="{{ route('trips.edit', $trip->id) }}" class="btn btn-sm btn-outline-secondary p-1 px-2 rounded-circle" title="Sửa"><i class="bi bi-pencil"></i></a>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger p-1 px-2 rounded-circle" data-bs-toggle="modal" data-bs-target="#deleteTripModal" title="Xóa"><i class="bi bi-trash"></i></button>
                                                 </div>
                                             </div>
                                         </div>
@@ -678,10 +692,10 @@
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="py-4 mt-5 bg-white border-top text-center text-muted small">
+    <!-- Footer Khớp 100% Hình 18 -->
+    <footer class="py-4 mt-5 text-center text-white-50 small" style="background-color: #0F172A;">
         <div class="container">
-            <p class="mb-0">&copy; 2026 Travel Planner Platform. Bản quyền thuộc về Nhóm B - Khoa CNTT TDC.</p>
+            <p class="mb-0 text-white-50">&copy; 2026 Travel Planner Travel Platform. All rights reserved.</p>
         </div>
     </footer>
 

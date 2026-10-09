@@ -69,7 +69,7 @@ Route::middleware('auth')->group(function () {
 
 // Tuyến đăng nhập nhanh người dùng thường (Demo / Test)
 Route::get('/dev/login-as-user', function () {
-    $user = User::where('role', 'user')->first();
+    $user = User::where('email', 'user@travelplanner.test')->first() ?? User::where('role', 'user')->first();
     if (! $user) {
         $user = User::firstOrCreate(
             ['email' => 'user@travelplanner.test'],
