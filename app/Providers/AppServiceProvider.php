@@ -70,6 +70,18 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\Interfaces\UserManagementServiceInterface::class,
             \App\Services\UserManagementService::class
         );
+
+        // Ràng buộc BudgetServiceInterface với triển khai cụ thể BudgetService (Nguyễn Văn Thắng)
+        $this->app->bind(
+            \App\Services\Interfaces\BudgetServiceInterface::class,
+            \App\Services\BudgetService::class
+        );
+
+        // Ràng buộc ExpenseServiceInterface với triển khai cụ thể ExpenseService (Nguyễn Văn Thắng)
+        $this->app->bind(
+            \App\Services\Interfaces\ExpenseServiceInterface::class,
+            \App\Services\ExpenseService::class
+        );
     }
 
     /**

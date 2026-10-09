@@ -1151,7 +1151,7 @@
 
                         <!-- Footer -->
                         <div class="card-footer">
-                            <div class="budget-block">
+                            <a href="{{ route('trips.budget.show', $trip) }}" class="budget-block" style="text-decoration: none;" title="Quản lý ngân sách và chi tiêu">
                                 @if($isCompleted)
                                     <span class="budget-label">Tổng chi thực tế</span>
                                     <span class="budget-amount">{{ number_format($trip->expenses->sum('amount'), 0, ',', '.') }}đ</span>
@@ -1159,7 +1159,7 @@
                                     <span class="budget-label">Ngân sách dự kiến</span>
                                     <span class="budget-amount">{{ number_format($trip->budget, 0, ',', '.') }}đ</span>
                                 @endif
-                            </div>
+                            </a>
 
                             <div class="action-buttons">
                                 <a href="{{ route('trips.show', $trip->id) }}" class="btn-calendar-icon" title="Xem chi tiết lịch trình" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">
