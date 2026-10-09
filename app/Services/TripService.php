@@ -307,11 +307,14 @@ class TripService implements TripServiceInterface
      */
     public function updateTripNotes(int $tripId, ?string $notes): Trip
     {
-        $trip = Trip::findOrFail($tripId);
-        $trip->description = $notes;
-        $trip->save();
+        return DB::transaction(function () use ($tripId, $notes) {
+            $trip = Trip::findOrFail($tripId);
+            $trip->description = $notes;
+            $trip->save();
 
-        return $trip->fresh();
+            return $trip->fresh();
+        });
     }
 }
+
 
