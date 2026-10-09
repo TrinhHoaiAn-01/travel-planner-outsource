@@ -1,0 +1,14 @@
+services:
+  app:
+    pull_policy: never
+    volumes:
+      - ./app:/var/www/html/app
+      - ./resources:/var/www/html/resources
+      - ./routes:/var/www/html/routes
+      - ./database:/var/www/html/database
+      - ./public:/var/www/html/public
+      - ./tests:/var/www/html/tests
+      - ./bootstrap:/var/www/html/bootstrap
+      - ./config:/var/www/html/config
+      - ./.env:/var/www/html/.env
+
