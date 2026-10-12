@@ -202,7 +202,7 @@
                             <label for="startDate" class="form-label">Ngày bắt đầu <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="bi bi-calendar-event"></i></span>
-                                <input type="date" name="start_date" class="form-control @error('start_date') is-invalid @enderror" id="startDate" value="{{ old('start_date', $trip->start_date ? $trip->start_date->format('Y-m-d') : '') }}" required onchange="validateDates()">
+                                <input type="date" name="start_date" class="form-control @error('start_date') is-invalid @enderror" id="startDate" value="{{ old('start_date', $trip->start_date ? $trip->start_date->format('Y-m-d') : '') }}" required onchange="validateAndCalculateDates()">
                             </div>
                             @error('start_date')
                                 <div class="text-danger small mt-1">{{ $message }}</div>
@@ -212,11 +212,30 @@
                             <label for="endDate" class="form-label">Ngày kết thúc <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="bi bi-calendar-check"></i></span>
-                                <input type="date" name="end_date" class="form-control @error('end_date') is-invalid @enderror" id="endDate" value="{{ old('end_date', $trip->end_date ? $trip->end_date->format('Y-m-d') : '') }}" required onchange="validateDates()">
+                                <input type="date" name="end_date" class="form-control @error('end_date') is-invalid @enderror" id="endDate" value="{{ old('end_date', $trip->end_date ? $trip->end_date->format('Y-m-d') : '') }}" required onchange="validateAndCalculateDates()">
                             </div>
                             @error('end_date')
                                 <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
+                        </div>
+                    </div>
+
+                    <!-- Hộp phản hồi thời lượng tính toán theo thời gian thực (Real-time Duration Feedback Box) -->
+                    <div class="alert alert-light border shadow-sm p-3 rounded-3 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2" id="dateFeedbackBox">
+                        <div class="d-flex align-items-center gap-2 text-primary fw-semibold small">
+                            <i class="bi bi-clock-history fs-5"></i>
+                            <span>Thời lượng chuyến đi: <strong id="calculatedDuration" class="text-dark">{{ $trip->duration_label ?? 'Chưa xác định' }}</strong></span>
+                        </div>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2 fw-semibold" id="dateRangeBadge">
+                            {{ $trip->date_range_formatted ?? '' }}
+                        </span>
+                    </div>
+
+                    <!-- Cảnh báo lỗi ngày không hợp lệ chuẩn theo form.html và Phần 4.3 -->
+                    <div id="dateAlert" class="alert alert-danger alert-dismissible fade show rounded-3 mb-3 d-none" role="alert">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-exclamation-triangle-fill fs-5 text-danger"></i>
+                            <span id="dateAlertText" class="fw-semibold">Ngày bắt đầu không được lớn hơn ngày kết thúc!</span>
                         </div>
                     </div>
 
@@ -311,15 +330,112 @@
     <!-- Bootstrap 5 Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function validateDates() {
-            const start = document.getElementById('startDate').value;
-            const end = document.getElementById('endDate').value;
-            if (start && end && new Date(start) > new Date(end)) {
-                document.getElementById('endDate').setCustomValidity('Ngày kết thúc không được trước ngày bắt đầu.');
-            } else {
-                document.getElementById('endDate').setCustomValidity('');
+        // Hàm định dạng ngày hiển thị dd/mm/yyyy
+        function formatDisplayDate(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
             }
+            return dateStr;
         }
+
+        // Xử lý kiểm tra và tính toán ngày bắt đầu / ngày kết thúc theo thời gian thực (Phần 4.3 Quản lý chuyến đi)
+        function validateAndCalculateDates() {
+            const startInput = document.getElementById('startDate');
+            const endInput = document.getElementById('endDate');
+            const dateAlert = document.getElementById('dateAlert');
+            const dateFeedbackBox = document.getElementById('dateFeedbackBox');
+            const durationEl = document.getElementById('calculatedDuration');
+            const rangeEl = document.getElementById('dateRangeBadge');
+
+            if (!startInput || !endInput) return true;
+
+            const startVal = startInput.value;
+            const endVal = endInput.value;
+
+            // Tự động gán min cho ngày kết thúc để người dùng không chọn ngày trước ngày bắt đầu
+            if (startVal) {
+                endInput.min = startVal;
+            }
+
+            if (!startVal || !endVal) {
+                if (dateFeedbackBox) dateFeedbackBox.classList.add('d-none');
+                if (dateAlert) dateAlert.classList.add('d-none');
+                endInput.setCustomValidity('');
+                return true;
+            }
+
+            const startDate = new Date(startVal);
+            const endDate = new Date(endVal);
+
+            // Kiểm tra ràng buộc: Ngày bắt đầu không được lớn hơn ngày kết thúc
+            if (startDate > endDate) {
+                if (dateAlert) {
+                    dateAlert.classList.remove('d-none');
+                }
+                if (dateFeedbackBox) {
+                    dateFeedbackBox.classList.add('d-none');
+                }
+                endInput.setCustomValidity('Ngày kết thúc không được trước ngày bắt đầu.');
+                endInput.classList.add('is-invalid');
+                return false;
+            }
+
+            // Hợp lệ: Xóa cảnh báo lỗi và tính toán thời lượng
+            if (dateAlert) {
+                dateAlert.classList.add('d-none');
+            }
+            endInput.setCustomValidity('');
+            endInput.classList.remove('is-invalid');
+
+            const diffTime = Math.abs(endDate - startDate);
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            const diffNights = Math.max(0, diffDays - 1);
+
+            let durationLabel = `${diffDays} ngày`;
+            if (diffNights > 0) {
+                durationLabel = `${diffDays} ngày ${diffNights} đêm`;
+            }
+
+            if (durationEl) durationEl.textContent = durationLabel;
+            if (rangeEl) rangeEl.textContent = `${formatDisplayDate(startVal)} — ${formatDisplayDate(endVal)}`;
+            if (dateFeedbackBox) dateFeedbackBox.classList.remove('d-none');
+
+            return true;
+        }
+
+        // Tự động chạy khi tài liệu tải xong
+        document.addEventListener('DOMContentLoaded', function () {
+            const startInput = document.getElementById('startDate');
+            const endInput = document.getElementById('endDate');
+            const form = document.getElementById('tripEditForm');
+
+            if (startInput) {
+                startInput.addEventListener('change', validateAndCalculateDates);
+                startInput.addEventListener('input', validateAndCalculateDates);
+            }
+
+            if (endInput) {
+                endInput.addEventListener('change', validateAndCalculateDates);
+                endInput.addEventListener('input', validateAndCalculateDates);
+            }
+
+            // Tính toán ban đầu
+            validateAndCalculateDates();
+
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    if (!validateAndCalculateDates()) {
+                        e.preventDefault();
+                        const dateAlert = document.getElementById('dateAlert');
+                        if (dateAlert) {
+                            dateAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>
