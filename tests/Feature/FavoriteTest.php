@@ -14,6 +14,13 @@ class FavoriteTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+    }
+
     /**
      * Khách chưa đăng nhập không thể xem trang danh sách yêu thích
      */
