@@ -33,7 +33,7 @@ class UpdateTripRequest extends FormRequest
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
             'budget' => ['nullable', 'numeric', 'min:0'],
-            'status' => ['nullable', 'string', 'in:planned,ongoing,completed,cancelled'],
+            'status' => ['nullable', 'string', 'in:planned,ongoing,completed,cancelled,draft'],
             'destination_area' => ['nullable', 'string', 'max:255'],
             'cover_image' => ['nullable', 'string', 'max:2048'],
             'description' => ['nullable', 'string', 'max:3000'],
