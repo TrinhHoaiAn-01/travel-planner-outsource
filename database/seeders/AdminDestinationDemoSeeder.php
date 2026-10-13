@@ -85,7 +85,15 @@ class AdminDestinationDemoSeeder extends Seeder
                 'closing_time' => '22:00',
                 'address' => 'Thôn An Sơn, Xã Hòa Ninh, Huyện Hòa Vang, Đà Nẵng',
                 'description' => 'Quần thể du lịch nghỉ dưỡng kết hợp vui chơi giải trí đẳng cấp hàng đầu Việt Nam với Cầu Vàng nổi tiếng.',
-                'image' => 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=400&q=80',
+                'image' => 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=600&q=80',
+                'gallery_images' => [
+                    'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=600&q=80',
+                ],
                 'has_hotel' => true,
                 'hotel_name' => 'Mercure Danang French Village Bana Hills',
             ],
@@ -160,11 +168,21 @@ class AdminDestinationDemoSeeder extends Seeder
                 ]
             );
 
-            // Cập nhật ảnh đại diện (Primary image)
-            $destination->images()->updateOrCreate(
-                ['is_primary' => true],
-                ['image_path' => $destData['image']]
-            );
+            // Cập nhật thư viện hình ảnh
+            if (! empty($destData['gallery_images'])) {
+                $destination->images()->delete();
+                foreach ($destData['gallery_images'] as $index => $imgPath) {
+                    $destination->images()->create([
+                        'image_path' => $imgPath,
+                        'is_primary' => $index === 0,
+                    ]);
+                }
+            } else {
+                $destination->images()->updateOrCreate(
+                    ['is_primary' => true],
+                    ['image_path' => $destData['image']]
+                );
+            }
 
             // Cập nhật phòng khách sạn lưu trú
             if ($destData['has_hotel']) {

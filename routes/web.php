@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DestinationController;
+use App\Http\Controllers\Admin\DestinationImageController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
@@ -139,9 +140,11 @@ Route::prefix('admin')
         Route::put('/destinations/{destination}', [DestinationController::class, 'update'])->name('destinations.update');
         Route::delete('/destinations/{destination}', [DestinationController::class, 'destroy'])->name('destinations.destroy');
 
-        Route::get('/destination-images', function () {
-            return view('admin.placeholder', ['pageTitle' => 'Thư viện ảnh (Destination Images)']);
-        })->name('destination-images.index');
+        // Quản lý Thư viện Hình ảnh (Admin Destination Images - Trần Văn Trọng)
+        Route::get('/destination-images', [DestinationImageController::class, 'index'])->name('destination-images.index');
+        Route::post('/destination-images', [DestinationImageController::class, 'store'])->name('destination-images.store');
+        Route::post('/destination-images/{image}/set-primary', [DestinationImageController::class, 'setPrimary'])->name('destination-images.set-primary');
+        Route::delete('/destination-images/{image}', [DestinationImageController::class, 'destroy'])->name('destination-images.destroy');
 
         Route::get('/reviews', function () {
             return view('admin.placeholder', ['pageTitle' => 'Kiểm duyệt Đánh giá (Reviews)']);
