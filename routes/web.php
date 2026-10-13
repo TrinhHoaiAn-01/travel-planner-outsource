@@ -25,6 +25,8 @@ Route::get('/quick-search', [HomeController::class, 'quickSearch'])->name('desti
 Route::get('/destinations', [PublicDestinationController::class, 'index'])->name('destinations.index');
 Route::get('/destinations/{slug}', [PublicDestinationController::class, 'show'])->name('destinations.show');
 Route::get('/room-types/{roomType}', [PublicDestinationController::class, 'getRoomType'])->name('room-types.show');
+Route::get('/cities/{city}/destinations', [PublicDestinationController::class, 'byCity'])->name('cities.destinations');
+Route::get('/categories/{category}/destinations', [PublicDestinationController::class, 'byCategory'])->name('categories.destinations');
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TripController;

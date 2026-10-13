@@ -855,6 +855,17 @@
                         </select>
                     </div>
 
+                    <!-- 6. Số lượng mỗi trang -->
+                    <div class="filter-field">
+                        <label for="filterPerPage">📄 Hiển thị</label>
+                        <select name="per_page" id="filterPerPage" class="filter-select">
+                            <option value="6" {{ (request('per_page', $perPage ?? 6) == 6) ? 'selected' : '' }}>6 / trang</option>
+                            <option value="9" {{ (request('per_page') == 9) ? 'selected' : '' }}>9 / trang</option>
+                            <option value="12" {{ (request('per_page') == 12) ? 'selected' : '' }}>12 / trang</option>
+                            <option value="18" {{ (request('per_page') == 18) ? 'selected' : '' }}>18 / trang</option>
+                        </select>
+                    </div>
+
                     <!-- Nút Đặt lại / Tìm kiếm -->
                     <div class="filter-field">
                         <a href="{{ route('destinations.index') }}" class="btn-reset-filter" title="Đặt lại bộ lọc">
@@ -893,6 +904,18 @@
                     </div>
                 </div>
             </form>
+        </div>
+
+        <!-- Thanh thông tin thống kê phân trang -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+            @if($destinations->total() > 0)
+                <div class="pagination-info-text" style="font-size: 14px; color: #64748B;">
+                    Hiển thị <strong>{{ $destinations->firstItem() }}–{{ $destinations->lastItem() }}</strong> trong tổng số <strong>{{ $destinations->total() }}</strong> địa điểm
+                </div>
+                <div style="font-size: 13px; color: #64748B;">
+                    Trang <strong>{{ $destinations->currentPage() }}</strong> / <strong>{{ $destinations->lastPage() }}</strong>
+                </div>
+            @endif
         </div>
 
         <!-- 3. Lưới hiển thị danh sách địa điểm (3 Cột) -->
@@ -982,15 +1005,20 @@
         @if($destinations->hasPages())
             <div class="pagination-container">
                 <ul class="custom-pagination">
-                    {{-- Previous Page Link --}}
+                    {{-- Trang đầu --}}
+                    @if ($destinations->currentPage() > 1)
+                        <li><a href="{{ $destinations->url(1) }}" title="Trang đầu">&laquo; Đầu</a></li>
+                    @endif
+
+                    {{-- Trang trước --}}
                     @if ($destinations->onFirstPage())
                         <li class="disabled"><span>&lsaquo; Trước</span></li>
                     @else
                         <li><a href="{{ $destinations->previousPageUrl() }}" rel="prev">&lsaquo; Trước</a></li>
                     @endif
 
-                    {{-- Pagination Elements --}}
-                    @foreach ($destinations->getUrlRange(1, $destinations->lastPage()) as $page => $url)
+                    {{-- Các số trang (Hiển thị dải trang thông minh) --}}
+                    @foreach ($destinations->getUrlRange(max(1, $destinations->currentPage() - 2), min($destinations->lastPage(), $destinations->currentPage() + 2)) as $page => $url)
                         @if ($page == $destinations->currentPage())
                             <li class="active"><span>{{ $page }}</span></li>
                         @else
@@ -998,11 +1026,16 @@
                         @endif
                     @endforeach
 
-                    {{-- Next Page Link --}}
+                    {{-- Trang tiếp --}}
                     @if ($destinations->hasMorePages())
                         <li><a href="{{ $destinations->nextPageUrl() }}" rel="next">Tiếp &rsaquo;</a></li>
                     @else
                         <li class="disabled"><span>Tiếp &rsaquo;</span></li>
+                    @endif
+
+                    {{-- Trang cuối --}}
+                    @if ($destinations->currentPage() < $destinations->lastPage())
+                        <li><a href="{{ $destinations->url($destinations->lastPage()) }}" title="Trang cuối">Cuối &raquo;</a></li>
                     @endif
                 </ul>
             </div>
@@ -1013,7 +1046,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('destinationsFilterForm');
-            ['filterCity', 'filterCategory', 'filterBudget', 'filterSort'].forEach(function (id) {
+            ['filterCity', 'filterCategory', 'filterBudget', 'filterSort', 'filterPerPage'].forEach(function (id) {
                 const el = document.getElementById(id);
                 if (el) {
                     el.addEventListener('change', function () {
