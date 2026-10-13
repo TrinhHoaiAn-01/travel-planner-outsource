@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\DestinationImageController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DestinationController as PublicDestinationController;
 use App\Http\Controllers\HomeController;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -19,6 +20,11 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 // Tuyến API tìm kiếm nhanh gợi ý địa điểm & thành phố từ Trang chủ (Trần Văn Trọng)
 Route::get('/quick-search', [HomeController::class, 'quickSearch'])->name('destinations.quick-search');
+
+// Tuyến hiển thị nơi lưu trú, danh sách & chi tiết địa điểm và Room Type (Trần Văn Trọng)
+Route::get('/destinations', [PublicDestinationController::class, 'index'])->name('destinations.index');
+Route::get('/destinations/{slug}', [PublicDestinationController::class, 'show'])->name('destinations.show');
+Route::get('/room-types/{roomType}', [PublicDestinationController::class, 'getRoomType'])->name('room-types.show');
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TripController;
