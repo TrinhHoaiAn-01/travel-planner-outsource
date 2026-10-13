@@ -609,7 +609,7 @@
                 </a>
             </li>
             <li>
-                <a href="#destinations" class="nav-link">
+                <a href="{{ route('destinations.index') }}" class="nav-link">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                     Địa điểm
                 </a>
@@ -777,7 +777,7 @@
                                                 {{ $destination->entrance_fee > 0 ? number_format($destination->entrance_fee, 0, ',', '.') . 'đ' : 'Miễn phí' }}
                                             </div>
                                         </div>
-                                        <a href="#destinations" class="btn-detail-blue">Chi tiết</a>
+                                        <a href="{{ route('destinations.show', $destination->slug) }}" class="btn-detail-blue">Chi tiết</a>
                                     </div>
                                 </div>
                             </div>
@@ -828,7 +828,7 @@
                 </a>
 
                 <!-- 3. Resort & Spa -->
-                <a href="#destinations" class="cat-card-img" style="background-image: url('https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=500&q=80');">
+                <a href="{{ route('destinations.index', ['is_lodging' => 1]) }}" class="cat-card-img" style="background-image: url('https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=500&q=80');">
                     <div class="cat-card-content">
                         <div class="cat-card-title">Resort & Spa</div>
                         <div class="cat-card-count">65 nơi lưu trú</div>
@@ -868,7 +868,7 @@
                     <span class="sub-tag-blue">ĐIỂM ĐẾN HÀNG ĐẦU</span>
                     <h2 class="sec-title-main">Địa Điểm Nổi Bật</h2>
                 </div>
-                <a href="#destinations" class="btn-pill-outline">Khám phá thêm &rarr;</a>
+                <a href="{{ route('destinations.index') }}" class="btn-pill-outline">Khám phá thêm &rarr;</a>
             </div>
 
             <div class="destinations-grid-4">
@@ -902,7 +902,7 @@
                                         {{ $destination->entrance_fee > 0 ? number_format($destination->entrance_fee, 0, ',', '.') . 'đ' : 'Miễn phí' }}
                                     </div>
                                 </div>
-                                <a href="#" class="btn-detail-blue">Chi tiết</a>
+                                <a href="{{ route('destinations.show', $destination->slug) }}" class="btn-detail-blue">Chi tiết</a>
                             </div>
                         </div>
                     </div>
