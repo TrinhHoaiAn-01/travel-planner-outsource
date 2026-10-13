@@ -30,8 +30,12 @@ class DestinationController extends Controller
     public function index(Request $request): View
     {
         $filters = $request->only(['search', 'keyword', 'city_id', 'category_id', 'budget', 'is_lodging', 'sort']);
-        
-        $destinations = $this->destinationService->getDestinations($filters, 6);
+        $perPage = (int) $request->input('per_page', 6);
+        if (! in_array($perPage, [6, 9, 12, 18, 24])) {
+            $perPage = 6;
+        }
+
+        $destinations = $this->destinationService->getDestinations($filters, $perPage);
         $cities = $this->destinationService->getPopularCities(20);
         $categories = $this->destinationService->getCategories();
 
@@ -40,7 +44,38 @@ class DestinationController extends Controller
             'cities' => $cities,
             'categories' => $categories,
             'currentFilters' => $filters,
+            'perPage' => $perPage,
         ]);
+    }
+
+    /**
+     * Hiển thị danh sách địa điểm theo Tỉnh / Thành phố kèm phân trang.
+     *
+     * @param Request $request
+     * @param string $citySlug
+     * @return View
+     */
+    public function byCity(Request $request, string $citySlug): View
+    {
+        $city = \App\Models\City::where('slug', $citySlug)->orWhere('id', $citySlug)->firstOrFail();
+        $request->merge(['city_id' => $city->id]);
+
+        return $this->index($request);
+    }
+
+    /**
+     * Hiển thị danh sách địa điểm theo Danh mục du lịch kèm phân trang.
+     *
+     * @param Request $request
+     * @param string $categorySlug
+     * @return View
+     */
+    public function byCategory(Request $request, string $categorySlug): View
+    {
+        $category = \App\Models\Category::where('slug', $categorySlug)->orWhere('id', $categorySlug)->firstOrFail();
+        $request->merge(['category_id' => $category->id]);
+
+        return $this->index($request);
     }
 
     /**
