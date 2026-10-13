@@ -82,6 +82,12 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\Interfaces\DestinationImageServiceInterface::class,
             \App\Services\DestinationImageService::class
         );
+
+        // Ràng buộc ReviewModerationServiceInterface với ReviewModerationService (Trần Văn Trọng)
+        $this->app->bind(
+            \App\Services\Interfaces\ReviewModerationServiceInterface::class,
+            \App\Services\ReviewModerationService::class
+        );
     }
 
     /**

@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
                 AdminCityDemoSeeder::class,
                 AdminCategoryDemoSeeder::class,
                 AdminDestinationDemoSeeder::class,
+                AdminReviewDemoSeeder::class,
                 SampleTripDemoSeeder::class,
             ]);
         }
