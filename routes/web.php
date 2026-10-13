@@ -21,12 +21,14 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 // Tuyến API tìm kiếm nhanh gợi ý địa điểm & thành phố từ Trang chủ (Trần Văn Trọng)
 Route::get('/quick-search', [HomeController::class, 'quickSearch'])->name('destinations.quick-search');
 
-// Tuyến hiển thị nơi lưu trú, danh sách & chi tiết địa điểm và Room Type (Trần Văn Trọng)
+// Tuyến hiển thị nơi lưu trú, danh sách & chi tiết địa điểm, Room Type và Gallery ảnh (Trần Văn Trọng)
 Route::get('/destinations', [PublicDestinationController::class, 'index'])->name('destinations.index');
 Route::get('/destinations/{slug}', [PublicDestinationController::class, 'show'])->name('destinations.show');
+Route::get('/destinations/{slug}/gallery', [PublicDestinationController::class, 'gallery'])->name('destinations.gallery');
 Route::get('/room-types/{roomType}', [PublicDestinationController::class, 'getRoomType'])->name('room-types.show');
 Route::get('/cities/{city}/destinations', [PublicDestinationController::class, 'byCity'])->name('cities.destinations');
 Route::get('/categories/{category}/destinations', [PublicDestinationController::class, 'byCategory'])->name('categories.destinations');
+
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TripController;

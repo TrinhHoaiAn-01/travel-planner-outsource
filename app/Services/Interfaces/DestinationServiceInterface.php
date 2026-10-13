@@ -98,4 +98,13 @@ interface DestinationServiceInterface
      * @return Collection
      */
     public function getLodgingDestinations(int $limit = 6): Collection;
+
+    /**
+     * Lấy toàn bộ thư viện hình ảnh của địa điểm du lịch.
+     *
+     * @param Destination $destination
+     * @return Collection
+     */
+    public function getDestinationGallery(Destination $destination): Collection;
 }
+

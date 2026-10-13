@@ -347,4 +347,19 @@ class DestinationService implements DestinationServiceInterface
             ->limit($limit)
             ->get();
     }
+
+    /**
+     * Lấy toàn bộ thư viện hình ảnh của địa điểm du lịch.
+     *
+     * @param Destination $destination
+     * @return Collection
+     */
+    public function getDestinationGallery(Destination $destination): Collection
+    {
+        return $destination->images()
+            ->orderByDesc('is_primary')
+            ->orderBy('id', 'asc')
+            ->get();
+    }
 }
+

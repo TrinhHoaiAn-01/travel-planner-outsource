@@ -297,8 +297,9 @@
             transform: translateY(-1px);
         }
 
-        /* 3. Gallery Grid (1 Lớn + 4 Nhỏ) */
+        /* 3. Gallery Grid (1 Lớn + 4 Nhỏ) & Controls */
         .gallery-container {
+            position: relative;
             display: grid;
             grid-template-columns: 1.15fr 1fr;
             gap: 12px;
@@ -306,6 +307,14 @@
             overflow: hidden;
             margin: 24px 0 28px;
             height: 420px;
+            background: #0F172A;
+        }
+
+        .gallery-main-wrap {
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+            cursor: pointer;
         }
 
         .gallery-main-img {
@@ -324,17 +333,457 @@
             height: 100%;
         }
 
+        .gallery-sub-item {
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+            cursor: pointer;
+        }
+
         .gallery-sub-img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            cursor: pointer;
             transition: transform 0.3s ease;
         }
 
         .gallery-main-img:hover, .gallery-sub-img:hover {
-            transform: scale(1.02);
+            transform: scale(1.03);
         }
+
+        .gallery-more-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.68);
+            backdrop-filter: blur(2px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFFFFF;
+            font-size: 15px;
+            font-weight: 700;
+            transition: background 0.2s;
+        }
+
+        .gallery-sub-item:hover .gallery-more-overlay {
+            background: rgba(15, 23, 42, 0.82);
+        }
+
+        .btn-open-all-photos {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            background: rgba(255, 255, 255, 0.96);
+            color: #0F172A;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 24px;
+            padding: 8px 18px;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .btn-open-all-photos:hover {
+            background: #FFFFFF;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+            color: #0066FF;
+        }
+
+        /* 3.1 Gallery Lightbox Modal (Fullscreen Overlay) */
+        .gallery-lightbox-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px 30px;
+            color: #FFFFFF;
+        }
+
+        .gallery-lightbox-modal.active {
+            display: flex;
+        }
+
+        .lightbox-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            padding-bottom: 14px;
+        }
+
+        .lightbox-title-box h4 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #F8FAFC;
+            margin-bottom: 2px;
+        }
+
+        .lightbox-counter {
+            font-size: 13px;
+            color: #94A3B8;
+        }
+
+        .lightbox-close-btn {
+            background: rgba(255, 255, 255, 0.12);
+            border: none;
+            color: #FFFFFF;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .lightbox-close-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: rotate(90deg);
+        }
+
+        .lightbox-stage {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex: 1;
+            padding: 16px 0;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .lightbox-nav-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #FFFFFF;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .lightbox-nav-btn:hover {
+            background: #0066FF;
+            border-color: #0066FF;
+            transform: scale(1.08);
+        }
+
+        .lightbox-image-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            max-width: 82vw;
+            height: 64vh;
+        }
+
+        .lightbox-image-container img {
+            max-width: 100%;
+            max-height: 58vh;
+            border-radius: 12px;
+            object-fit: contain;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            transition: opacity 0.2s ease;
+        }
+
+        .lightbox-caption {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #CBD5E1;
+            text-align: center;
+            min-height: 20px;
+        }
+
+        .lightbox-thumbnails-strip {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            overflow-x: auto;
+            max-width: 100%;
+        }
+
+        .lightbox-thumb {
+            width: 68px;
+            height: 48px;
+            border-radius: 8px;
+            object-fit: cover;
+            opacity: 0.5;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .lightbox-thumb:hover {
+            opacity: 0.85;
+        }
+
+        .lightbox-thumb.active {
+            opacity: 1;
+            border-color: #0066FF;
+            transform: scale(1.05);
+        }
+
+        /* 6. Related Destinations (Địa Điểm Khám Phá Liên Quan - FR13) */
+        .related-destinations-section {
+            margin-top: 48px;
+            padding-top: 36px;
+            border-top: 1px solid #E2E8F0;
+        }
+
+        .section-title-wrap {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .btn-view-all-related {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0066FF;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: gap 0.2s;
+        }
+
+        .btn-view-all-related:hover {
+            gap: 8px;
+            text-decoration: underline;
+        }
+
+        .related-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .related-dest-card {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .related-dest-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            border-color: #CBD5E1;
+        }
+
+        .related-card-img-wrap {
+            position: relative;
+            height: 180px;
+            overflow: hidden;
+            background: #F1F5F9;
+        }
+
+        .related-card-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .related-dest-card:hover .related-card-img-wrap img {
+            transform: scale(1.04);
+        }
+
+        .related-badges-stack {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            z-index: 2;
+        }
+
+        .badge-cat-tag {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(4px);
+            color: #FFFFFF;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 12px;
+        }
+
+        .badge-hotel-tag {
+            background: rgba(16, 185, 129, 0.9);
+            backdrop-filter: blur(4px);
+            color: #FFFFFF;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 12px;
+        }
+
+        .fav-form-corner {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 3;
+        }
+
+        .btn-fav-small {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            transition: all 0.2s;
+        }
+
+        .btn-fav-small:hover {
+            transform: scale(1.1);
+            background: #FFFFFF;
+        }
+
+        .related-card-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .related-meta-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #64748B;
+            margin-bottom: 6px;
+        }
+
+        .related-city-name {
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .related-rating {
+            font-weight: 700;
+            color: #F59E0B;
+        }
+
+        .related-dest-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0F172A;
+            margin-bottom: 6px;
+            line-height: 1.35;
+        }
+
+        .related-dest-title a {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .related-dest-title a:hover {
+            color: #0066FF;
+        }
+
+        .related-dest-desc {
+            font-size: 13px;
+            color: #64748B;
+            line-height: 1.45;
+            margin-bottom: 14px;
+            flex: 1;
+        }
+
+        .related-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 12px;
+            border-top: 1px solid #F1F5F9;
+        }
+
+        .price-label-xs {
+            font-size: 11px;
+            color: #94A3B8;
+            display: block;
+        }
+
+        .price-val-sm {
+            font-size: 14px;
+            font-weight: 800;
+            color: #0066FF;
+        }
+
+        .btn-related-detail {
+            font-size: 12px;
+            font-weight: 700;
+            color: #0066FF;
+            background: #EBF5FF;
+            padding: 6px 12px;
+            border-radius: 16px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-related-detail:hover {
+            background: #0066FF;
+            color: #FFFFFF;
+        }
+
+        .related-empty-box {
+            background: #F8FAFC;
+            border: 1px dashed #CBD5E1;
+            border-radius: 16px;
+            padding: 36px 20px;
+            text-align: center;
+            color: #64748B;
+        }
+
+        @media (max-width: 1024px) {
+            .related-cards-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .related-cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
 
         /* 4. Highlight Pills Bar */
         .highlight-pills-bar {
@@ -929,7 +1378,7 @@
             </div>
         </div>
 
-        <!-- 3. Thư viện hình ảnh Gallery (1 Lớn + 4 Nhỏ y hệt Hình 13) -->
+        <!-- 3. Thư viện hình ảnh Gallery (1 Lớn + 4 Nhỏ y hệt Hình 13 + Nút Xem tất cả ảnh & Lightbox - FR12) -->
         @php
             $galleryImages = $destination->images->isNotEmpty() ? $destination->images->pluck('image_path')->all() : [];
             $primaryImg = $destination->primaryImage?->image_path ?? ($galleryImages[0] ?? 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1000');
@@ -945,17 +1394,32 @@
             while (count($subImages) < 4) {
                 $subImages[] = $defaultSampleImages[count($subImages)];
             }
+
+            // Danh sách toàn bộ ảnh phục vụ Lightbox
+            $lightboxPhotos = !empty($galleryImages) ? $galleryImages : array_merge([$primaryImg], $subImages);
         @endphp
         <div class="gallery-container">
-            <div>
+            <div class="gallery-main-wrap" onclick="openGalleryLightbox(0)" title="Xem ảnh lớn">
                 <img src="{{ $primaryImg }}" alt="{{ $destination->name }}" class="gallery-main-img" id="mainGalleryImg">
             </div>
             <div class="gallery-sub-grid">
-                @foreach($subImages as $sImg)
-                    <img src="{{ $sImg }}" alt="{{ $destination->name }}" class="gallery-sub-img" 
-                         onclick="document.getElementById('mainGalleryImg').src = this.src;">
+                @foreach($subImages as $index => $sImg)
+                    <div class="gallery-sub-item" onclick="openGalleryLightbox({{ $index + 1 }})" title="Xem hình ảnh">
+                        <img src="{{ $sImg }}" alt="{{ $destination->name }}" class="gallery-sub-img">
+                        @if($loop->last && count($galleryImages) > 5)
+                            <div class="gallery-more-overlay">
+                                <span>+{{ count($galleryImages) - 4 }} ảnh khác</span>
+                            </div>
+                        @endif
+                    </div>
                 @endforeach
             </div>
+
+            <!-- Nút Mở toàn bộ Gallery Hình ảnh (FR12) -->
+            <button type="button" class="btn-open-all-photos" onclick="openGalleryLightbox(0)" id="btnOpenGallery">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                <span>Xem tất cả {{ count($galleryImages) > 0 ? count($galleryImages) : 5 }} hình ảnh</span>
+            </button>
         </div>
 
         <!-- 4. Thanh Highlight Pills (Đánh giá, Giờ mở cửa, Giá vé, Khách sạn) -->
@@ -1189,6 +1653,99 @@
             </div>
 
         </div>
+
+        <!-- 6. Khối Địa Điểm Khám Phá Liên Quan (Related Destinations - FR13) -->
+        <div class="related-destinations-section" id="relatedDestinationsSection">
+            <div class="section-title-wrap">
+                <div>
+                    <span class="badge-cat-pill" style="margin-bottom: 6px;">Khám phá thêm</span>
+                    <h2 class="section-headline" style="margin-bottom: 4px;">📍 Địa Điểm Khám Phá Liên Quan</h2>
+                    <p style="font-size: 14px; color: #64748B;">
+                        Gợi ý các điểm đến hấp dẫn tương tự tại {{ $destination->city->name }} hoặc cùng danh mục {{ $destination->category->name ?? 'du lịch' }}
+                    </p>
+                </div>
+                @if($destination->city)
+                    <a href="{{ route('cities.destinations', $destination->city->slug) }}" class="btn-view-all-related">
+                        Xem tất cả tại {{ $destination->city->name }} &rsaquo;
+                    </a>
+                @endif
+            </div>
+
+            @if(isset($relatedDestinations) && $relatedDestinations->isNotEmpty())
+                <div class="related-cards-grid">
+                    @foreach($relatedDestinations as $rel)
+                        <div class="related-dest-card">
+                            <div class="related-card-img-wrap">
+                                @if($rel->primaryImage)
+                                    <img src="{{ $rel->primaryImage->image_path }}" alt="{{ $rel->name }}">
+                                @elseif($rel->images->isNotEmpty())
+                                    <img src="{{ $rel->images->first()->image_path }}" alt="{{ $rel->name }}">
+                                @else
+                                    <img src="https://images.unsplash.com/photo-1528127269322-539801943592?w=600" alt="{{ $rel->name }}">
+                                @endif
+
+                                <div class="related-badges-stack">
+                                    @if($rel->category)
+                                        <span class="badge-cat-tag">{{ $rel->category->name }}</span>
+                                    @endif
+                                    @if($rel->has_hotel)
+                                        <span class="badge-hotel-tag">🏨 Có nơi lưu trú</span>
+                                    @endif
+                                </div>
+
+                                <!-- Nút Lưu yêu thích nhanh -->
+                                <form action="{{ route('favorites.toggle', $rel->id) }}" method="POST" class="fav-form-corner">
+                                    @csrf
+                                    <button type="submit" class="btn-fav-small" title="Lưu yêu thích">🤍</button>
+                                </form>
+                            </div>
+
+                            <div class="related-card-body">
+                                <div class="related-meta-row">
+                                    <span class="related-city-name">📍 {{ $rel->city->name }}</span>
+                                    <span class="related-rating">⭐ {{ number_format($rel->rating, 1) }}</span>
+                                </div>
+
+                                <h4 class="related-dest-title">
+                                    <a href="{{ route('destinations.show', $rel->slug) }}">
+                                        {{ $rel->name }}
+                                    </a>
+                                </h4>
+
+                                <p class="related-dest-desc">
+                                    {{ \Illuminate\Support\Str::limit($rel->description ?? 'Điểm đến du lịch hấp dẫn với nhiều hoạt động trải nghiệm đặc sắc.', 80) }}
+                                </p>
+
+                                <div class="related-card-footer">
+                                    <div>
+                                        <span class="price-label-xs">Giá từ</span>
+                                        <div class="price-val-sm">
+                                            @if($rel->has_hotel && $rel->min_room_price)
+                                                {{ $rel->formatted_min_room_price }}
+                                            @elseif($rel->entrance_fee > 0)
+                                                {{ number_format($rel->entrance_fee, 0, ',', '.') }}đ
+                                            @else
+                                                Miễn phí
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <a href="{{ route('destinations.show', $rel->slug) }}" class="btn-related-detail">
+                                        Chi tiết &rsaquo;
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="related-empty-box">
+                    <p style="margin-bottom: 12px; font-weight: 500;">Chưa có địa điểm liên quan nào khác tại khu vực này.</p>
+                    <a href="{{ route('destinations.index') }}" class="btn-action-outline" style="display: inline-flex;">
+                        Khám phá tất cả địa điểm du lịch
+                    </a>
+                </div>
+            @endif
+        </div>
     </main>
 
     <!-- 8. Modal Chi Tiết Room Type -->
@@ -1300,8 +1857,111 @@
         </div>
     </div>
 
-    <!-- JavaScript Xử Lý Tương Tác & AJAX Modal Room Type -->
+    <!-- 10. Gallery Lightbox Modal Xem Ảnh Toàn Màn Hình (FR12) -->
+    <div class="gallery-lightbox-modal" id="galleryLightboxModal">
+        <div class="lightbox-header">
+            <div class="lightbox-title-box">
+                <h4>{{ $destination->name }}</h4>
+                <span class="lightbox-counter" id="lightboxCounter">Ảnh 1 / {{ count($lightboxPhotos) }}</span>
+            </div>
+            <button type="button" class="lightbox-close-btn" onclick="closeGalleryLightbox()" title="Đóng (Esc)">&times;</button>
+        </div>
+        <div class="lightbox-stage">
+            <button type="button" class="lightbox-nav-btn btn-prev" onclick="changeLightboxImage(-1)" title="Ảnh trước (←)">
+                &lsaquo;
+            </button>
+            <div class="lightbox-image-container">
+                <img src="{{ $lightboxPhotos[0] }}" id="lightboxActiveImg" alt="{{ $destination->name }}">
+                <p class="lightbox-caption" id="lightboxCaption">
+                    {{ $destination->name }} - Khám phá vẻ đẹp ấn tượng
+                </p>
+            </div>
+            <button type="button" class="lightbox-nav-btn btn-next" onclick="changeLightboxImage(1)" title="Ảnh tiếp theo (→)">
+                &rsaquo;
+            </button>
+        </div>
+        <div class="lightbox-thumbnails-strip" id="lightboxThumbnailsStrip">
+            @foreach($lightboxPhotos as $idx => $pUrl)
+                <img src="{{ $pUrl }}" alt="Thumb {{ $idx + 1 }}" 
+                     class="lightbox-thumb {{ $idx === 0 ? 'active' : '' }}" 
+                     onclick="setLightboxImage({{ $idx }})">
+            @endforeach
+        </div>
+    </div>
+
+    <!-- JavaScript Xử Lý Tương Tác, Gallery Lightbox & AJAX Modal Room Type -->
     <script>
+        // ================= Quản lý Gallery Lightbox (FR12) =================
+        const galleryPhotos = @json($lightboxPhotos);
+        let currentLightboxIndex = 0;
+
+        function openGalleryLightbox(index = 0) {
+            currentLightboxIndex = index;
+            const modal = document.getElementById('galleryLightboxModal');
+            if (modal) {
+                modal.classList.add('active');
+                updateLightboxView();
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeGalleryLightbox() {
+            const modal = document.getElementById('galleryLightboxModal');
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+
+        function changeLightboxImage(step) {
+            if (!galleryPhotos || galleryPhotos.length === 0) return;
+            currentLightboxIndex += step;
+            if (currentLightboxIndex < 0) {
+                currentLightboxIndex = galleryPhotos.length - 1;
+            } else if (currentLightboxIndex >= galleryPhotos.length) {
+                currentLightboxIndex = 0;
+            }
+            updateLightboxView();
+        }
+
+        function setLightboxImage(index) {
+            if (index >= 0 && index < galleryPhotos.length) {
+                currentLightboxIndex = index;
+                updateLightboxView();
+            }
+        }
+
+        function updateLightboxView() {
+            if (!galleryPhotos || galleryPhotos.length === 0) return;
+            const activeUrl = galleryPhotos[currentLightboxIndex];
+            const activeImg = document.getElementById('lightboxActiveImg');
+            const counter = document.getElementById('lightboxCounter');
+            
+            if (activeImg) {
+                activeImg.style.opacity = '0.3';
+                setTimeout(() => {
+                    activeImg.src = activeUrl;
+                    activeImg.style.opacity = '1';
+                }, 80);
+            }
+
+            if (counter) {
+                counter.innerText = `Ảnh ${currentLightboxIndex + 1} / ${galleryPhotos.length}`;
+            }
+
+            // Đồng bộ trạng thái active của thumbnails strip
+            const thumbs = document.querySelectorAll('.lightbox-thumb');
+            thumbs.forEach((thumb, idx) => {
+                if (idx === currentLightboxIndex) {
+                    thumb.classList.add('active');
+                    thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                } else {
+                    thumb.classList.remove('active');
+                }
+            });
+        }
+
+        // ================= Quản lý Room Type Modal & Widget =================
         let currentActiveRoomId = null;
 
         // Cập nhật giá trên widget khi người dùng chọn loại phòng trong dropdown
@@ -1405,13 +2065,24 @@
             alert('Đã ghi nhận yêu cầu đặt phòng! Nhân viên chăm sóc khách hàng sẽ liên hệ với bạn để hoàn tất xác nhận và xuất phiếu đặt phòng.');
         }
 
-        // Đóng modal khi nhấn phím Escape
+        // Đóng modal & điều hướng Lightbox khi nhấn phím
         document.addEventListener('keydown', function (e) {
+            const lightbox = document.getElementById('galleryLightboxModal');
+            const isLightboxActive = lightbox && lightbox.classList.contains('active');
+
             if (e.key === 'Escape') {
                 closeRoomTypeModal();
                 closeAddToTripModal();
+                closeGalleryLightbox();
+            } else if (isLightboxActive) {
+                if (e.key === 'ArrowLeft') {
+                    changeLightboxImage(-1);
+                } else if (e.key === 'ArrowRight') {
+                    changeLightboxImage(1);
+                }
             }
         });
     </script>
 </body>
 </html>
+
