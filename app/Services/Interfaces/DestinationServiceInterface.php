@@ -36,4 +36,21 @@ interface DestinationServiceInterface
      * @return array
      */
     public function getHomeStatistics(): array;
+
+    /**
+     * Tìm kiếm và lọc danh sách địa điểm theo từ khóa, thành phố, danh mục và khoảng giá.
+     *
+     * @param array<string, mixed> $filters
+     * @return Collection
+     */
+    public function searchDestinations(array $filters = []): Collection;
+
+    /**
+     * Tìm kiếm nhanh gợi ý địa điểm và thành phố cho thanh tìm kiếm (Quick Search Autocomplete).
+     *
+     * @param string $keyword
+     * @param int $limit
+     * @return array<string, mixed>
+     */
+    public function quickSearch(string $keyword, int $limit = 6): array;
 }
