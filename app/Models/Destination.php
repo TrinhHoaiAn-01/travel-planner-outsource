@@ -78,6 +78,18 @@ class Destination extends Model
         return $this->belongsToMany(User::class, 'favorites')->withPivot('created_at');
     }
 
+    public function roomTypes(): HasMany
+    {
+        return $this->hasMany(RoomType::class);
+    }
+
+    public function getHasHotelAttribute(): bool
+    {
+        return $this->relationLoaded('roomTypes')
+            ? $this->roomTypes->isNotEmpty()
+            : $this->roomTypes()->exists();
+    }
+
     public function scopeFeatured(Builder $query): Builder
     {
         return $query->where('is_featured', true);

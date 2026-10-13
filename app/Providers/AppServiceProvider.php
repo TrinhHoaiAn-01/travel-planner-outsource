@@ -70,6 +70,12 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\Interfaces\UserManagementServiceInterface::class,
             \App\Services\UserManagementService::class
         );
+
+        // Ràng buộc DestinationManagementServiceInterface với DestinationManagementService (Trần Văn Trọng)
+        $this->app->bind(
+            \App\Services\Interfaces\DestinationManagementServiceInterface::class,
+            \App\Services\DestinationManagementService::class
+        );
     }
 
     /**
