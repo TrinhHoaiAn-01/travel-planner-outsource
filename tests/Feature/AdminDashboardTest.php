@@ -144,4 +144,87 @@ class AdminDashboardTest extends TestCase
         $response->assertSee('Admin');
         $response->assertSee('Bảng điều khiển (Dashboard)');
     }
+
+    /**
+     * Khách vãng lai không có quyền xuất báo cáo và bị chuyển hướng đến trang đăng nhập.
+     */
+    public function test_guest_cannot_export_dashboard_report(): void
+    {
+        $response = $this->get(route('admin.dashboard.export'));
+
+        $response->assertStatus(302);
+        $response->assertRedirect('/login');
+    }
+
+    /**
+     * Người dùng thường (role user) bị chặn 403 Forbidden khi cố gắng xuất báo cáo thống kê.
+     */
+    public function test_regular_user_cannot_export_dashboard_report(): void
+    {
+        $user = new User([
+            'id' => 99,
+            'name' => 'Regular User',
+            'email' => 'user@test.com',
+            'role' => 'user',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('admin.dashboard.export'));
+
+        $response->assertStatus(403);
+    }
+
+    /**
+     * Quản trị viên (role admin) xuất thành công file báo cáo CSV với đầy đủ nội dung thống kê.
+     */
+    public function test_admin_user_can_export_dashboard_report_as_csv_file(): void
+    {
+        $admin = new User([
+            'id' => 1,
+            'name' => 'Administrator',
+            'email' => 'admin@travelplanner.com',
+            'role' => 'admin',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.dashboard.export'));
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+        $this->assertStringContainsString('attachment; filename="bao-cao-thong-ke-travel-planner-2026.csv"', (string)$response->headers->get('Content-Disposition'));
+
+        // Kiểm tra nội dung tiêu đề và các phần thống kê quan trọng
+        $content = $response->getContent();
+        $this->assertStringContainsString('BÁO CÁO THỐNG KÊ VẬN HÀNH HỆ THỐNG TRAVEL PLANNER', $content);
+        $this->assertStringContainsString('I. CHỈ SỐ THỐNG KÊ TỔNG QUAN (KPIs)', $content);
+        $this->assertStringContainsString('Tổng số người dùng', $content);
+        $this->assertStringContainsString('4.520', $content);
+        $this->assertStringContainsString('Tổng doanh thu', $content);
+        $this->assertStringContainsString('128.500.000 đ', $content);
+        $this->assertStringContainsString('II. THỐNG KÊ LƯỢT ĐẶT PHÒNG THEO THÁNG NĂM 2026', $content);
+        $this->assertStringContainsString('III. TỶ LỆ ĐẶT PHÒNG THEO LOẠI HÌNH LƯU TRÚ', $content);
+        $this->assertStringContainsString('Khách Sạn', $content);
+        $this->assertStringContainsString('IV. DANH SÁCH GIAO DỊCH ĐẶT PHÒNG GẦN ĐÂY', $content);
+        $this->assertStringContainsString('#BK-2026-0891', $content);
+    }
+
+    /**
+     * Kiểm tra giao diện Dashboard chứa nút liên kết Xuất Báo Cáo chính xác.
+     */
+    public function test_dashboard_view_contains_export_report_button_link(): void
+    {
+        $admin = new User([
+            'id' => 1,
+            'name' => 'Administrator',
+            'email' => 'admin@travelplanner.com',
+            'role' => 'admin',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.dashboard'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Xuất Báo Cáo');
+        $response->assertSee(route('admin.dashboard.export'));
+    }
 }

@@ -113,6 +113,7 @@ Route::prefix('admin')
     ->group(function () {
         // Bảng điều khiển chính (Dashboard)
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/export-report', [DashboardController::class, 'exportReport'])->name('dashboard.export');
 
         // Quản lý Người dùng hệ thống (Admin Users - Trần Văn Trọng)
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
