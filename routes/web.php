@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DestinationController;
 use App\Http\Controllers\Admin\DestinationImageController;
+use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
@@ -146,9 +147,12 @@ Route::prefix('admin')
         Route::post('/destination-images/{image}/set-primary', [DestinationImageController::class, 'setPrimary'])->name('destination-images.set-primary');
         Route::delete('/destination-images/{image}', [DestinationImageController::class, 'destroy'])->name('destination-images.destroy');
 
-        Route::get('/reviews', function () {
-            return view('admin.placeholder', ['pageTitle' => 'Kiểm duyệt Đánh giá (Reviews)']);
-        })->name('reviews.index');
+        // Kiểm duyệt Đánh giá Khách hàng (Admin Reviews - Trần Văn Trọng)
+        Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews.index');
+        Route::get('/reviews/{review}', [ReviewController::class, 'show'])->name('reviews.show');
+        Route::post('/reviews/{review}/approve', [ReviewController::class, 'approve'])->name('reviews.approve');
+        Route::post('/reviews/{review}/hide', [ReviewController::class, 'hide'])->name('reviews.hide');
+        Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
 
         Route::get('/bookings', function () {
             return view('admin.placeholder', ['pageTitle' => 'Quản lý Đơn đặt phòng (Bookings)']);
