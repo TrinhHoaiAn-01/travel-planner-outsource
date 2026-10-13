@@ -148,4 +148,43 @@ class DestinationController extends Controller
             ],
         ]);
     }
+
+    /**
+     * Lấy toàn bộ thư viện hình ảnh (Gallery) của địa điểm du lịch qua JSON API.
+     *
+     * @param string $slug
+     * @return JsonResponse
+     */
+    public function gallery(string $slug): JsonResponse
+    {
+        $destination = $this->destinationService->getDestinationBySlug($slug);
+
+        if (! $destination) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy địa điểm du lịch.',
+            ], 404);
+        }
+
+        $images = $this->destinationService->getDestinationGallery($destination);
+
+        return response()->json([
+            'success' => true,
+            'destination' => [
+                'id' => $destination->id,
+                'name' => $destination->name,
+                'slug' => $destination->slug,
+            ],
+            'total' => $images->count(),
+            'images' => $images->map(function ($img) {
+                return [
+                    'id' => $img->id,
+                    'image_path' => $img->image_path,
+                    'caption' => $img->caption,
+                    'is_primary' => (bool) $img->is_primary,
+                ];
+            }),
+        ]);
+    }
 }
+
