@@ -150,12 +150,14 @@ class HomeTest extends TestCase
             'city_id' => $city->id,
             'category_id' => $catBeach->id,
             'name' => 'Bãi Dài Cam Ranh',
+            'is_featured' => false,
         ]);
 
         Destination::factory()->create([
             'city_id' => $city->id,
             'category_id' => $catMountain->id,
             'name' => 'Đỉnh Hòn Bà',
+            'is_featured' => false,
         ]);
 
         $response = $this->get(route('home', ['category_id' => $catBeach->id]));
@@ -179,6 +181,7 @@ class HomeTest extends TestCase
             'category_id' => $category->id,
             'name' => 'Làng Chài Hàm Ninh',
             'entrance_fee' => 0,
+            'is_featured' => false,
         ]);
 
         // Giá vé trên 1.5tr
@@ -187,6 +190,7 @@ class HomeTest extends TestCase
             'category_id' => $category->id,
             'name' => 'Tour Du Thuyền VIP Phú Quốc',
             'entrance_fee' => 2500000,
+            'is_featured' => false,
         ]);
 
         // Lọc mức 1: Dưới 500.000đ

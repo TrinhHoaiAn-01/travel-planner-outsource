@@ -141,6 +141,7 @@
         /* 2. Hero Section */
         .hero-section {
             position: relative;
+            z-index: 40;
             background-image: linear-gradient(rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.65)), url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1600&q=80');
             background-size: cover;
             background-position: center 35%;
@@ -181,6 +182,8 @@
 
         /* Floating Search Card */
         .search-card-wrapper {
+            position: relative;
+            z-index: 50;
             max-width: 960px;
             margin: 0 auto;
             background: rgba(15, 23, 42, 0.65);
@@ -254,9 +257,9 @@
             right: 0;
             background: #FFFFFF;
             border-radius: 12px;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
             border: 1px solid #E2E8F0;
-            z-index: 120;
+            z-index: 1000;
             max-height: 380px;
             overflow-y: auto;
             text-align: left;
@@ -328,6 +331,8 @@
 
         /* 3. Common Sections */
         .main-container {
+            position: relative;
+            z-index: 1;
             max-width: 1200px;
             margin: 0 auto;
             padding: 50px 24px 70px;
@@ -664,7 +669,7 @@
         <!-- Floating Search Box Form -->
         <form action="{{ route('home') }}" method="GET" class="search-card-wrapper" id="homeSearchForm">
             <div class="search-grid">
-                <div class="search-field" style="position: relative;">
+                <div class="search-field" style="position: relative; z-index: 60;">
                     <label for="homeSearchKeyword">📍 Điểm đến / Thành phố</label>
                     <div class="search-input-box">
                         <input type="text"
