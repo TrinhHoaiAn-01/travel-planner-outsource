@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DestinationController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
@@ -129,9 +130,14 @@ Route::prefix('admin')
         Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
         Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
-        Route::get('/destinations', function () {
-            return view('admin.placeholder', ['pageTitle' => 'Quản lý Địa điểm (Destinations)']);
-        })->name('destinations.index');
+        // Quản lý Địa điểm Du lịch (Admin Destinations - Trần Văn Trọng)
+        Route::get('/destinations', [DestinationController::class, 'index'])->name('destinations.index');
+        Route::get('/destinations/create', [DestinationController::class, 'create'])->name('destinations.create');
+        Route::post('/destinations', [DestinationController::class, 'store'])->name('destinations.store');
+        Route::get('/destinations/{destination}', [DestinationController::class, 'show'])->name('destinations.show');
+        Route::get('/destinations/{destination}/edit', [DestinationController::class, 'edit'])->name('destinations.edit');
+        Route::put('/destinations/{destination}', [DestinationController::class, 'update'])->name('destinations.update');
+        Route::delete('/destinations/{destination}', [DestinationController::class, 'destroy'])->name('destinations.destroy');
 
         Route::get('/destination-images', function () {
             return view('admin.placeholder', ['pageTitle' => 'Thư viện ảnh (Destination Images)']);
