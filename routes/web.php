@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Route;
 //Ngocai
 // Tuyến trang chủ công khai (Public Home)
 Route::get('/', [HomeController::class, 'index'])->name('home');
+// Tuyến API tìm kiếm nhanh gợi ý địa điểm & thành phố từ Trang chủ (Trần Văn Trọng)
+Route::get('/quick-search', [HomeController::class, 'quickSearch'])->name('destinations.quick-search');
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TripController;
