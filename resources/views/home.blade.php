@@ -6,6 +6,8 @@
     <title>Travel Planner - Lên Lịch Trình & Khám Phá Những Vùng Đất Mới</title>
     <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -401,8 +403,8 @@
             position: absolute;
             top: 10px;
             right: 10px;
-            width: 32px;
-            height: 32px;
+            width: 34px;
+            height: 34px;
             background: #FFFFFF;
             border: none;
             border-radius: 50%;
@@ -412,6 +414,68 @@
             cursor: pointer;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
             font-size: 15px;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 10;
+        }
+
+        .btn-heart-fav:hover {
+            transform: scale(1.15);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.22);
+        }
+
+        .btn-heart-fav:active {
+            transform: scale(0.9);
+        }
+
+        .btn-heart-fav .heart-icon {
+            color: #94A3B8;
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+
+        .btn-heart-fav.favorited .heart-icon {
+            color: #EF4444;
+        }
+
+        .btn-heart-fav.animating .heart-icon {
+            transform: scale(1.3);
+        }
+
+        /* Floating Toast Notification */
+        .fav-toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .fav-toast {
+            pointer-events: auto;
+            background: #0F172A;
+            color: #FFFFFF;
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-size: 13.5px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+            animation: favToastSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        @keyframes favToastSlideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .fav-toast.hide {
+            opacity: 0;
+            transform: translateY(10px) scale(0.95);
         }
 
         .dest-body-content {
@@ -697,8 +761,14 @@
                 <a href="#destinations" class="btn-pill-outline">Khám phá thêm &rarr;</a>
             </div>
 
+            @php
+                $userFavoriteIds = Auth::check() ? Auth::user()->favorites()->pluck('destination_id')->toArray() : [];
+            @endphp
             <div class="destinations-grid-4">
                 @forelse($featuredDestinations as $destination)
+                    @php
+                        $isFav = in_array($destination->id, $userFavoriteIds);
+                    @endphp
                     <div class="dest-card-box">
                         <div class="dest-img-header">
                             @if($destination->primaryImage)
@@ -709,10 +779,13 @@
                             <span class="tag-dest-badge tag-blue-light">
                                 {{ $destination->category->name ?? 'Du lịch' }}
                             </span>
-                            <form action="{{ route('favorites.toggle', $destination->id) }}" method="POST" style="position: absolute; top: 12px; right: 12px; z-index: 5;">
-                                @csrf
-                                <button type="submit" class="btn-heart-fav" title="Lưu yêu thích">🤍</button>
-                            </form>
+                            <button type="button" 
+                                    class="btn-heart-fav {{ $isFav ? 'favorited' : '' }}" 
+                                    title="{{ $isFav ? 'Bỏ yêu thích' : 'Lưu yêu thích' }}"
+                                    data-destination-id="{{ $destination->id }}"
+                                    onclick="toggleFavorite(event, {{ $destination->id }})">
+                                <i class="fa-{{ $isFav ? 'solid' : 'regular' }} fa-heart heart-icon"></i>
+                            </button>
                         </div>
                         <div class="dest-body-content">
                             <div class="dest-meta-row">
@@ -742,5 +815,101 @@
 
     </div>
 
+    <!-- Floating Toast Container -->
+    <div id="favToastContainer" class="fav-toast-container"></div>
+
+    <script>
+        /**
+         * Xử lý Thêm / Gỡ địa điểm yêu thích bằng AJAX (Không tải lại trang)
+         */
+        function toggleFavorite(event, destinationId) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            @guest
+                window.location.href = "{{ route('login') }}";
+                return;
+            @endguest
+
+            const btn = event.currentTarget;
+            const icon = btn.querySelector('.heart-icon');
+            
+            // Hiệu ứng nảy icon khi người dùng click
+            btn.classList.add('animating');
+            setTimeout(() => btn.classList.remove('animating'), 200);
+
+            fetch("{{ url('/favorites/toggle') }}/" + destinationId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data || !data.success) {
+                    showFavoriteToast(data?.message || 'Có lỗi xảy ra, vui lòng thử lại.', 'error');
+                    return;
+                }
+
+                if (data.is_favorited) {
+                    btn.classList.add('favorited');
+                    btn.setAttribute('title', 'Bỏ yêu thích');
+                    icon.classList.remove('fa-regular');
+                    icon.classList.add('fa-solid');
+                    showFavoriteToast(data.message || 'Đã thêm vào danh sách yêu thích thành công!', 'success');
+                } else {
+                    btn.classList.remove('favorited');
+                    btn.setAttribute('title', 'Lưu yêu thích');
+                    icon.classList.remove('fa-solid');
+                    icon.classList.add('fa-regular');
+                    showFavoriteToast(data.message || 'Đã xóa địa điểm khỏi danh sách yêu thích.', 'info');
+                }
+            })
+            .catch(error => {
+                console.error('Error toggling favorite:', error);
+                showFavoriteToast('Không thể cập nhật yêu thích lúc này.', 'error');
+            });
+        }
+
+        /**
+         * Hiển thị thông báo nhỏ (Toast) ở góc màn hình không làm gián đoạn trải nghiệm
+         */
+        function showFavoriteToast(message, type = 'success') {
+            let container = document.getElementById('favToastContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'favToastContainer';
+                container.className = 'fav-toast-container';
+                document.body.appendChild(container);
+            }
+
+            const toast = document.createElement('div');
+            toast.className = 'fav-toast';
+
+            let iconHtml = '<i class="fa-solid fa-heart" style="color: #EF4444; font-size: 15px;"></i>';
+            if (type === 'info') {
+                iconHtml = '<i class="fa-regular fa-heart" style="color: #94A3B8; font-size: 15px;"></i>';
+            } else if (type === 'error') {
+                iconHtml = '<i class="fa-solid fa-circle-exclamation" style="color: #F87171; font-size: 15px;"></i>';
+            }
+
+            toast.innerHTML = `${iconHtml}<span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('hide');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
 </body>
 </html>
