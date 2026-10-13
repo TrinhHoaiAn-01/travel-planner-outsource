@@ -88,6 +88,7 @@ Route::prefix('admin')
     ->group(function () {
         // Bảng điều khiển chính (Dashboard)
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/export-report', [DashboardController::class, 'exportReport'])->name('dashboard.export');
 
         // Các tuyến chức năng quản trị hệ thống
         Route::get('/users', function () {
