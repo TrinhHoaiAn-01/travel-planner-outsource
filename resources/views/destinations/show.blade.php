@@ -1332,6 +1332,27 @@
             <span style="color: #0F172A; font-weight: 600;">{{ $destination->name }}</span>
         </div>
 
+        @if(session('success'))
+            <div style="background: #ECFDF5; border: 1px solid #10B981; color: #065F46; padding: 14px 20px; border-radius: 12px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; font-weight: 600; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>{{ session('success') }}</span>
+            </div>
+        @endif
+
+        @if($errors->any())
+            <div style="background: #FEF2F2; border: 1px solid #EF4444; color: #991B1B; padding: 14px 20px; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);">
+                <div style="font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <span>Không thể tạo đơn đặt phòng do các lỗi sau:</span>
+                </div>
+                <ul style="margin-left: 28px; font-size: 14px; line-height: 1.6;">
+                    @foreach($errors->all() as $err)
+                        <li>{{ $err }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <!-- Top Header: Huy hiệu & Nút thao tác -->
         <div class="detail-top-row">
             <div>
@@ -1604,39 +1625,76 @@
                     </div>
 
                     <!-- Form Đặt Phòng Nhanh -->
-                    <div class="widget-form-group">
-                        <label class="widget-form-label" for="widgetRoomTypeSelect">Loại phòng đề xuất</label>
-                        <select id="widgetRoomTypeSelect" class="widget-select" onchange="updateWidgetPrice(this)">
-                            @if($destination->roomTypes->isNotEmpty())
-                                @foreach($destination->roomTypes as $r)
-                                    <option value="{{ $r->id }}" data-price="{{ number_format($r->price_per_night, 0, ',', '.') }}đ">
-                                        {{ $r->name }} ({{ number_format($r->price_per_night, 0, ',', '.') }}đ)
-                                    </option>
-                                @endforeach
-                            @else
-                                <option value="default">Phòng Tiêu Chuẩn Deluxe (1.850.000đ)</option>
-                            @endif
-                        </select>
-                    </div>
+                    <form action="{{ route('bookings.store') }}" method="POST" id="bookingWidgetForm">
+                        @csrf
+                        <div class="widget-form-group">
+                            <label class="widget-form-label" for="widgetRoomTypeSelect">Loại phòng đề xuất</label>
+                            <select name="room_type_id" id="widgetRoomTypeSelect" class="widget-select" onchange="updateWidgetPrice(this)" required>
+                                @if($destination->roomTypes->isNotEmpty())
+                                    @foreach($destination->roomTypes as $r)
+                                        <option value="{{ $r->id }}" data-price="{{ number_format($r->price_per_night, 0, ',', '.') }}đ">
+                                            {{ $r->name }} ({{ number_format($r->price_per_night, 0, ',', '.') }}đ)
+                                        </option>
+                                    @endforeach
+                                @else
+                                    <option value="">Chưa có hạng phòng lưu trú</option>
+                                @endif
+                            </select>
+                        </div>
 
-                    <div class="widget-form-group">
-                        <div class="widget-dates-grid">
-                            <div>
-                                <label class="widget-form-label" for="checkInDate">Nhận phòng</label>
-                                <input type="date" id="checkInDate" class="widget-input" value="{{ date('Y-m-d') }}">
-                            </div>
-                            <div>
-                                <label class="widget-form-label" for="checkOutDate">Trả phòng</label>
-                                <input type="date" id="checkOutDate" class="widget-input" value="{{ date('Y-m-d', strtotime('+2 days')) }}">
+                        @auth
+                            @if(isset($userTrips) && $userTrips->isNotEmpty())
+                                <div class="widget-form-group">
+                                    <label class="widget-form-label" for="widgetTripSelect">Gắn vào Chuyến đi (tuỳ chọn)</label>
+                                    <select name="trip_id" id="widgetTripSelect" class="widget-select">
+                                        <option value="">-- Không gắn chuyến đi --</option>
+                                        @foreach($userTrips as $tripItem)
+                                            <option value="{{ $tripItem->id }}">
+                                                {{ $tripItem->title }} ({{ \Carbon\Carbon::parse($tripItem->start_date)->format('d/m') }} - {{ \Carbon\Carbon::parse($tripItem->end_date)->format('d/m/Y') }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            @endif
+                        @endauth
+
+                        <div class="widget-form-group">
+                            <div class="widget-dates-grid">
+                                <div>
+                                    <label class="widget-form-label" for="checkInDate">Nhận phòng</label>
+                                    <input type="date" name="check_in_date" id="checkInDate" class="widget-input" value="{{ date('Y-m-d') }}" min="{{ date('Y-m-d') }}" required>
+                                </div>
+                                <div>
+                                    <label class="widget-form-label" for="checkOutDate">Trả phòng</label>
+                                    <input type="date" name="check_out_date" id="checkOutDate" class="widget-input" value="{{ date('Y-m-d', strtotime('+2 days')) }}" min="{{ date('Y-m-d', strtotime('+1 day')) }}" required>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Nút Đặt phòng lưu trú -->
-                    <button type="button" class="btn-widget-primary" id="btnBookRoomNow" onclick="handleBookRoomSubmit()">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
-                        Đặt phòng lưu trú
-                    </button>
+                        <div class="widget-form-group">
+                            <label class="widget-form-label" for="widgetRoomCount">Số lượng phòng đặt</label>
+                            <input type="number" name="room_count" id="widgetRoomCount" class="widget-input" value="1" min="1" max="10" required>
+                        </div>
+
+                        <!-- Nút Đặt phòng lưu trú -->
+                        @auth
+                            @if($destination->roomTypes->isNotEmpty())
+                                <button type="submit" class="btn-widget-primary" id="btnBookRoomNow">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                                    Đặt phòng lưu trú
+                                </button>
+                            @else
+                                <button type="button" class="btn-widget-primary" style="opacity: 0.6; cursor: not-allowed;" disabled>
+                                    Chưa có phòng để đặt
+                                </button>
+                            @endif
+                        @else
+                            <a href="{{ route('login') }}" class="btn-widget-primary" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+                                Đăng nhập để đặt phòng
+                            </a>
+                        @endauth
+                    </form>
 
                     <!-- Nút Thêm vào Lịch trình Trip -->
                     <button type="button" class="btn-widget-secondary" onclick="openAddToTripModal()">
@@ -2040,7 +2098,10 @@
                     updateWidgetPrice(selectEl);
                 }
             }
-            handleBookRoomSubmit();
+            const widget = document.querySelector('.booking-widget-card');
+            if (widget) {
+                widget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         }
 
         // Mở và đóng modal thêm vào Trip
@@ -2050,19 +2111,6 @@
 
         function closeAddToTripModal() {
             document.getElementById('addToTripModal').classList.remove('active');
-        }
-
-        // Xử lý gửi đặt phòng
-        function handleBookRoomSubmit() {
-            const checkIn = document.getElementById('checkInDate').value;
-            const checkOut = document.getElementById('checkOutDate').value;
-            
-            if (checkIn && checkOut && checkIn > checkOut) {
-                alert('Ngày nhận phòng không được sau ngày trả phòng.');
-                return;
-            }
-
-            alert('Đã ghi nhận yêu cầu đặt phòng! Nhân viên chăm sóc khách hàng sẽ liên hệ với bạn để hoàn tất xác nhận và xuất phiếu đặt phòng.');
         }
 
         // Đóng modal & điều hướng Lightbox khi nhấn phím

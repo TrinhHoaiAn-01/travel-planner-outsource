@@ -654,6 +654,15 @@
         </div>
     </header>
 
+    @if(session('success'))
+        <div style="max-width: 1200px; margin: 20px auto 0; padding: 0 20px;">
+            <div style="background: #ECFDF5; border: 1px solid #10B981; color: #065F46; padding: 14px 20px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-weight: 600; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>{{ session('success') }}</span>
+            </div>
+        </div>
+    @endif
+
     <!-- 2. Hero Banner -->
     <section class="hero-section">
         <div class="badge-pill-hero">
