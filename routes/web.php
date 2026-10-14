@@ -14,6 +14,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BookingController;
 
 //Ngocai
 // Tuyến trang chủ công khai (Public Home)
@@ -87,6 +88,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/trips/{trip}/expenses', [\App\Http\Controllers\ExpenseController::class, 'store'])->name('trips.expenses.store');
     Route::patch('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'update'])->name('expenses.update');
     Route::delete('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'destroy'])->name('expenses.destroy');
+    Route::post('/bookings', [\App\Http\Controllers\BookingController::class, 'store'])->name('bookings.store');
 });
 
 // Tuyến đăng nhập nhanh người dùng thường (Demo / Test)
@@ -173,6 +175,8 @@ Route::prefix('admin')
         Route::post('/reviews/{review}/approve', [ReviewController::class, 'approve'])->name('reviews.approve');
         Route::post('/reviews/{review}/hide', [ReviewController::class, 'hide'])->name('reviews.hide');
         Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+
+
 
         Route::get('/bookings', function () {
             return view('admin.placeholder', ['pageTitle' => 'Quản lý Đơn đặt phòng (Bookings)']);

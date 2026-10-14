@@ -100,6 +100,12 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\Interfaces\ReviewModerationServiceInterface::class,
             \App\Services\ReviewModerationService::class
         );
+
+        // Ràng buộc BookingServiceInterface với BookingService (Nguyễn Văn Thắng)
+        $this->app->bind(
+            \App\Services\Interfaces\BookingServiceInterface::class,
+            \App\Services\BookingService::class
+        );
     }
 
     /**

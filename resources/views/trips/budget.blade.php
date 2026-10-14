@@ -846,7 +846,7 @@
             <span class="breadcrumb-sep">/</span>
             <a href="{{ route('trips.index') }}">Chuyến đi</a>
             <span class="breadcrumb-sep">/</span>
-            <a href="{{ route('trips.index') }}">Chi tiết chuyến đi</a>
+            <a href="{{ route('trips.show', $trip->id) }}">Chi tiết chuyến đi</a>
             <span class="breadcrumb-sep">/</span>
             <span>Quản lý Ngân sách</span>
         </nav>
