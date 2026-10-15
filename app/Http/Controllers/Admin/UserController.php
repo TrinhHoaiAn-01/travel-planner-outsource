@@ -106,6 +106,16 @@ class UserController extends Controller
     }
 
     /**
+     * Mở biểu mẫu tạo người dùng mới.
+     *
+     * @return View
+     */
+    public function create(): View
+    {
+        return view('admin.users.create');
+    }
+
+    /**
      * Xử lý thêm mới người dùng từ bảng điều khiển quản trị.
      *
      * @param StoreUserRequest $request
@@ -118,6 +128,28 @@ class UserController extends Controller
         return redirect()
             ->route('admin.users.index')
             ->with('success', 'Thêm mới người dùng thành công.');
+    }
+
+    /**
+     * Mở biểu mẫu chỉnh sửa thông tin người dùng.
+     *
+     * @param mixed $user
+     * @return View|RedirectResponse
+     */
+    public function edit(mixed $user): View|RedirectResponse
+    {
+        $userId = $user instanceof \App\Models\User ? $user->id : (int) $user;
+        $userDetails = $this->userService->getUserDetails($userId);
+
+        if (! $userDetails) {
+            return redirect()
+                ->route('admin.users.index')
+                ->with('error', 'Không tìm thấy thông tin người dùng.');
+        }
+
+        return view('admin.users.edit', [
+            'user' => $userDetails,
+        ]);
     }
 
     /**
@@ -136,7 +168,10 @@ class UserController extends Controller
                 ->route('admin.users.index')
                 ->with('success', 'Cập nhật thông tin người dùng thành công.');
         } catch (ValidationException $e) {
-            $errorMessage = $e->validator->errors()->first('is_active') ?? $e->getMessage();
+            $errorMessage = $e->validator->errors()->first('role')
+                ?? $e->validator->errors()->first('is_active')
+                ?? $e->validator->errors()->first()
+                ?? $e->getMessage();
 
             return redirect()
                 ->route('admin.users.index')
