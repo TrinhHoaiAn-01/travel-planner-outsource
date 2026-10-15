@@ -129,9 +129,12 @@ Route::prefix('admin')
 
         // Quản lý Người dùng hệ thống (Admin Users - Trịnh Hoài An)
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
         Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
+        Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
-        Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::match(['put', 'patch'], '/users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::patch('/users/{user}/status', [UserController::class, 'toggleStatus'])->name('users.update-status');
         Route::post('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
 
         // Quản lý Tỉnh / Thành phố (Admin Cities - Trần Văn Trọng)
