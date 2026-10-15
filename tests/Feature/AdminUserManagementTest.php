@@ -227,4 +227,104 @@ class AdminUserManagementTest extends TestCase
         $roleResponse->assertSee('Nguyễn Văn B');
         $roleResponse->assertDontSee('Trần Văn A');
     }
+
+    /**
+     * Admin lọc người dùng theo trạng thái hoạt động (Active / Disabled).
+     */
+    public function test_admin_can_filter_users_by_status(): void
+    {
+        $activeUser = User::factory()->create(['name' => 'Người Dùng Đang Hoạt Động', 'is_active' => true]);
+        $disabledUser = User::factory()->create(['name' => 'Người Dùng Bị Khóa', 'is_active' => false]);
+
+        // Lọc active
+        $responseActive = $this->actingAs($this->admin)->get(route('admin.users.index', ['status' => '1']));
+        $responseActive->assertOk();
+        $responseActive->assertSee('Người Dùng Đang Hoạt Động');
+        $responseActive->assertDontSee('Người Dùng Bị Khóa');
+
+        // Lọc disabled
+        $responseDisabled = $this->actingAs($this->admin)->get(route('admin.users.index', ['status' => '0']));
+        $responseDisabled->assertOk();
+        $responseDisabled->assertSee('Người Dùng Bị Khóa');
+    }
+
+    /**
+     * Admin tìm kiếm người dùng theo số điện thoại.
+     */
+    public function test_admin_can_search_users_by_phone(): void
+    {
+        User::factory()->create(['name' => 'Khách Hàng Có SĐT', 'phone' => '0912345678']);
+        User::factory()->create(['name' => 'Khách Hàng Khác', 'phone' => '0987654321']);
+
+        $response = $this->actingAs($this->admin)->get(route('admin.users.index', ['search' => '0912345678']));
+        $response->assertOk();
+        $response->assertSee('Khách Hàng Có SĐT');
+        $response->assertDontSee('Khách Hàng Khác');
+    }
+
+    /**
+     * Admin xem chi tiết người dùng thông qua API JSON (dùng cho modal hiển thị nhanh).
+     */
+    public function test_admin_can_view_user_details_via_json_api(): void
+    {
+        $target = User::factory()->create([
+            'name' => 'Nguyễn Thị Chi Tiết',
+            'email' => 'chitiet@travelplanner.test',
+            'phone' => '0901234567',
+            'role' => 'user',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($this->admin)
+            ->getJson(route('admin.users.show', $target->id));
+
+        $response->assertOk();
+        $response->assertJson([
+            'status' => 'success',
+            'data' => [
+                'id' => $target->id,
+                'name' => 'Nguyễn Thị Chi Tiết',
+                'email' => 'chitiet@travelplanner.test',
+                'phone' => '0901234567',
+                'role' => 'user',
+                'is_active' => true,
+            ],
+        ]);
+    }
+
+    /**
+     * Admin truy cập trực tiếp trang chi tiết người dùng (View Blade).
+     */
+    public function test_admin_can_view_user_details_page(): void
+    {
+        $target = User::factory()->create([
+            'name' => 'Trần Văn Chi Tiết Trang',
+            'email' => 'trangchitiet@travelplanner.test',
+            'role' => 'user',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($this->admin)->get(route('admin.users.show', $target->id));
+
+        $response->assertOk();
+        $response->assertSee('Chi Tiết Người Dùng');
+        $response->assertSee('Trần Văn Chi Tiết Trang');
+        $response->assertSee('trangchitiet@travelplanner.test');
+        $response->assertSee('Quay lại danh sách');
+    }
+
+    /**
+     * Xem người dùng không tồn tại trả về lỗi 404 cho JSON hoặc redirect lỗi cho Web.
+     */
+    public function test_view_non_existent_user_returns_error(): void
+    {
+        // JSON API trả về 404
+        $jsonResponse = $this->actingAs($this->admin)->getJson(route('admin.users.show', 999999));
+        $jsonResponse->assertNotFound();
+
+        // Web request redirect về index kèm flash error
+        $webResponse = $this->actingAs($this->admin)->get(route('admin.users.show', 999999));
+        $webResponse->assertRedirect(route('admin.users.index'));
+        $webResponse->assertSessionHas('error');
+    }
 }

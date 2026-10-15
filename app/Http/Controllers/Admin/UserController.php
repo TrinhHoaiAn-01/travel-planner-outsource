@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Services\Interfaces\UserManagementServiceInterface;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -32,8 +33,9 @@ class UserController extends Controller
     public function index(Request $request): View
     {
         $filters = [
-            'search' => $request->query('search', ''),
-            'role' => $request->query('role', 'all'),
+            'search' => trim((string) $request->query('search', '')),
+            'role' => (string) $request->query('role', 'all'),
+            'status' => (string) $request->query('status', 'all'),
         ];
 
         $users = $this->userService->getUsers($filters, 10);
@@ -43,6 +45,63 @@ class UserController extends Controller
             'users' => $users,
             'filters' => $filters,
             'counts' => $counts,
+        ]);
+    }
+
+    /**
+     * Xem thông tin chi tiết một tài khoản người dùng (hỗ trợ cả JSON cho modal và View cho truy cập trực tiếp).
+     *
+     * @param Request $request
+     * @param mixed $user
+     * @return View|JsonResponse|RedirectResponse
+     */
+    public function show(Request $request, mixed $user): View|JsonResponse|RedirectResponse
+    {
+        $userId = $user instanceof \App\Models\User ? $user->id : (int) $user;
+        $userDetails = $this->userService->getUserDetails($userId);
+
+        if (! $userDetails) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Không thể tải thông tin chi tiết người dùng.',
+                ], 404);
+            }
+
+            return redirect()
+                ->route('admin.users.index')
+                ->with('error', 'Không tìm thấy thông tin chi tiết người dùng.');
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'id' => $userDetails->id,
+                    'user_code' => $userDetails->user_code,
+                    'name' => $userDetails->name,
+                    'email' => $userDetails->email,
+                    'phone' => $userDetails->phone ?? 'Chưa cập nhật',
+                    'city' => $userDetails->city ?? 'Chưa cập nhật',
+                    'bio' => $userDetails->bio ?? 'Chưa cập nhật tiểu sử.',
+                    'role' => $userDetails->role,
+                    'role_label' => $userDetails->role_label,
+                    'is_active' => (bool) $userDetails->is_active,
+                    'status_label' => $userDetails->status_label,
+                    'avatar' => $userDetails->avatar,
+                    'email_verified_at' => $userDetails->email_verified_at ? $userDetails->email_verified_at->format('d/m/Y H:i') : 'Chưa xác thực',
+                    'created_at' => $userDetails->created_at ? $userDetails->created_at->format('d/m/Y H:i') : '15/01/2026',
+                    'updated_at' => $userDetails->updated_at ? $userDetails->updated_at->format('d/m/Y H:i') : '15/01/2026',
+                    'trips_count' => (int) ($userDetails->trips_count ?? 0),
+                    'reviews_count' => (int) ($userDetails->reviews_count ?? 0),
+                    'bookings_count' => (int) ($userDetails->bookings_count ?? 0),
+                    'favorites_count' => (int) ($userDetails->favorites_count ?? 0),
+                ],
+            ]);
+        }
+
+        return view('admin.users.show', [
+            'user' => $userDetails,
         ]);
     }
 

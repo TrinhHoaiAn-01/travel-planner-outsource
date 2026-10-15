@@ -83,6 +83,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsToMany(Destination::class, 'favorites')->withPivot('created_at');
     }
 
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
