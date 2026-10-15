@@ -89,6 +89,28 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Kiểm tra người dùng có vai trò thông thường (user) hay không.
+     */
+    public function isUser(): bool
+    {
+        return $this->role === 'user';
+    }
+
+    /**
+     * Kiểm tra người dùng có một trong các vai trò được chỉ định hay không.
+     *
+     * @param  string|array<int, string>  $roles
+     */
+    public function hasRole(string|array $roles): bool
+    {
+        if (is_string($roles)) {
+            $roles = array_map('trim', explode(',', $roles));
+        }
+
+        return in_array($this->role, $roles, true);
+    }
+
+    /**
      * Kiểm tra người dùng có đang ở trạng thái hoạt động hay không.
      */
     public function isActive(): bool
