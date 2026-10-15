@@ -22,12 +22,13 @@ class UserManagementService implements UserManagementServiceInterface
     {
         $query = User::query();
 
-        // Lọc theo từ khóa tìm kiếm (tên hoặc email)
+        // Lọc theo từ khóa tìm kiếm (tên, email hoặc số điện thoại)
         if (! empty($filters['search'])) {
-            $search = trim($filters['search']);
+            $search = trim((string) $filters['search']);
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
@@ -37,22 +38,23 @@ class UserManagementService implements UserManagementServiceInterface
         }
 
         // Lọc theo trạng thái
-        if (isset($filters['status']) && $filters['status'] !== 'all') {
-            $query->where('is_active', (bool) $filters['status']);
+        if (isset($filters['status']) && $filters['status'] !== 'all' && $filters['status'] !== '') {
+            $isActive = in_array((string) $filters['status'], ['1', 'true', 'active'], true);
+            $query->where('is_active', $isActive);
         }
 
         return $query->orderBy('id', 'asc')->paginate($perPage)->withQueryString();
     }
 
     /**
-     * Lấy thông tin chi tiết một người dùng theo ID.
+     * Lấy thông tin chi tiết một người dùng theo ID kèm số lượng quan hệ.
      *
      * @param int $userId
      * @return User|null
      */
     public function getUserDetails(int $userId): ?User
     {
-        return User::find($userId);
+        return User::withCount(['trips', 'reviews', 'favorites', 'bookings'])->find($userId);
     }
 
     /**

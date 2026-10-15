@@ -127,8 +127,9 @@ Route::prefix('admin')
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/export-report', [DashboardController::class, 'exportReport'])->name('dashboard.export');
 
-        // Quản lý Người dùng hệ thống (Admin Users - Trần Văn Trọng)
+        // Quản lý Người dùng hệ thống (Admin Users - Trịnh Hoài An)
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
         Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
         Route::post('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');

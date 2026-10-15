@@ -372,6 +372,47 @@
         transform: translateY(-1px);
     }
 
+    .btn-circle-view {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #E2E8F0;
+        background-color: #FFFFFF;
+        color: #0284C7;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-circle-view:hover {
+        border-color: #0284C7;
+        color: #0369A1;
+        background-color: #F0F9FF;
+        transform: translateY(-1px);
+    }
+
+    .btn-reset-filter {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 13px;
+        color: #EF4444;
+        text-decoration: none;
+        padding: 8px 12px;
+        border-radius: 8px;
+        background-color: #FEF2F2;
+        border: 1px solid #FECACA;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .btn-reset-filter:hover {
+        background-color: #FEE2E2;
+        color: #DC2626;
+    }
+
     /* Thông báo Flash Alert */
     .flash-alert-banner {
         padding: 12px 16px;
@@ -597,7 +638,7 @@
     {{-- Card Chứa Bộ lọc và Bảng dữ liệu --}}
     <div class="user-table-card">
 
-        {{-- Thanh tìm kiếm & Lọc vai trò --}}
+        {{-- Thanh tìm kiếm & Lọc vai trò, trạng thái --}}
         <form method="GET" action="{{ route('admin.users.index') }}" class="user-filter-bar">
             <div class="filter-left-controls">
                 <div class="search-input-wrap">
@@ -618,6 +659,18 @@
                     <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Quản trị viên (Admin)</option>
                     <option value="user" {{ request('role') == 'user' ? 'selected' : '' }}>Thành viên (Member)</option>
                 </select>
+
+                <select name="status" class="role-select-control" onchange="this.form.submit()">
+                    <option value="all" {{ request('status') == 'all' || request('status') === null ? 'selected' : '' }}>Tất cả trạng thái</option>
+                    <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Hoạt động (Active)</option>
+                    <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Đã khóa (Disabled)</option>
+                </select>
+
+                @if(request('search') || (request('role') && request('role') !== 'all') || (request('status') && request('status') !== 'all'))
+                    <a href="{{ route('admin.users.index') }}" class="btn-reset-filter" title="Làm mới bộ lọc">
+                        ✕ Xóa lọc
+                    </a>
+                @endif
             </div>
 
             <div class="user-count-summary">
@@ -643,7 +696,7 @@
                         {{-- Cột 1: Người dùng (Avatar + Tên + Mã định danh) --}}
                         <td>
                             <div class="user-profile-cell">
-                                <div class="user-avatar-wrap">
+                                <div class="user-avatar-wrap" style="cursor: pointer;" onclick="openViewUserModal({{ $user->id }})" title="Xem chi tiết {{ $user->name }}">
                                     @if($user->avatar)
                                         <img src="{{ $user->avatar }}" alt="{{ $user->name }}" class="user-avatar-img">
                                     @else
@@ -651,7 +704,11 @@
                                     @endif
                                 </div>
                                 <div>
-                                    <div class="user-name-text">{{ $user->name }}</div>
+                                    <div class="user-name-text">
+                                        <a href="javascript:void(0)" onclick="openViewUserModal({{ $user->id }})" style="color: inherit; text-decoration: none;" title="Xem chi tiết {{ $user->name }}" onmouseover="this.style.color='#2563EB'" onmouseout="this.style.color='#0F172A'">
+                                            {{ $user->name }}
+                                        </a>
+                                    </div>
                                     <div class="user-code-text">ID: {{ $user->user_code }}</div>
                                 </div>
                             </div>
@@ -688,6 +745,17 @@
                         {{-- Cột 6: Hành động --}}
                         <td>
                             <div class="user-actions-cell">
+                                {{-- Nút xem chi tiết (Eye icon) --}}
+                                <button type="button"
+                                        class="btn-circle-view"
+                                        title="Xem chi tiết người dùng"
+                                        onclick="openViewUserModal({{ $user->id }})">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                </button>
+
                                 @if($user->role === 'admin')
                                     {{-- Tài khoản Admin được bảo vệ đặc biệt --}}
                                     <span class="label-protected">Bảo vệ</span>
@@ -898,6 +966,26 @@
     </div>
 </div>
 
+{{-- MODAL 3: XEM CHI TIẾT NGƯỜI DÙNG --}}
+<div id="viewUserModal" class="custom-modal-backdrop">
+    <div class="custom-modal-box" style="max-width: 580px;">
+        <div class="custom-modal-header">
+            <h3 class="custom-modal-title">Thông Tin Chi Tiết Người Dùng</h3>
+            <button type="button" class="custom-modal-close" onclick="closeModal('viewUserModal')">&times;</button>
+        </div>
+        <div class="custom-modal-body" id="viewUserModalBody">
+            <div style="text-align: center; padding: 32px; color: #94A3B8;">Đang tải thông tin người dùng...</div>
+        </div>
+        <div class="custom-modal-footer">
+            <a href="#" id="viewFullUserLink" class="btn-secondary-cancel" style="text-decoration: none; display: inline-flex; align-items: center; gap: 4px; color: #2563EB;">
+                <span>Xem trang chi tiết</span>
+                <span>→</span>
+            </a>
+            <button type="button" class="btn-secondary-cancel" onclick="closeModal('viewUserModal')">Đóng</button>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
     function openCreateModal() {
@@ -923,6 +1011,97 @@
 
         document.getElementById('editCategoryModal')?.classList.remove('is-active');
         document.getElementById('editUserModal').classList.add('is-active');
+    }
+
+    function openViewUserModal(userId) {
+        const modalBody = document.getElementById('viewUserModalBody');
+        modalBody.innerHTML = '<div style="text-align: center; padding: 32px; color: #94A3B8;">Đang tải thông tin người dùng...</div>';
+        document.getElementById('viewFullUserLink').href = "{{ url('admin/users') }}/" + userId;
+        document.getElementById('viewUserModal').classList.add('is-active');
+
+        fetch("{{ url('admin/users') }}/" + userId, {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => {
+            if (!res.ok) {
+                throw new Error('Không thể tải thông tin chi tiết.');
+            }
+            return res.json();
+        })
+        .then(response => {
+            if (response.status === 'success') {
+                const u = response.data;
+                const roleBadge = u.role === 'admin'
+                    ? '<span class="badge-role-admin">Administrator</span>'
+                    : '<span class="badge-role-member">Member</span>';
+                const statusBadge = u.is_active
+                    ? '<span class="badge-status-active">Hoạt động (Active)</span>'
+                    : '<span class="badge-status-disabled">Đã khóa (Disabled)</span>';
+                const avatarHtml = u.avatar
+                    ? `<img src="${u.avatar}" alt="${u.name}" style="width: 100%; height: 100%; object-fit: cover;">`
+                    : `<span style="font-size: 22px; font-weight: 700; color: #2563EB;">${u.name.charAt(0).toUpperCase()}</span>`;
+
+                modalBody.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #F1F5F9;">
+                        <div style="width: 56px; height: 56px; border-radius: 50%; overflow: hidden; background-color: #EFF6FF; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+                            ${avatarHtml}
+                        </div>
+                        <div>
+                            <h4 style="font-size: 16px; font-weight: 700; color: #0F172A; margin: 0 0 4px 0;">${u.name}</h4>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 12px; color: #64748B; background: #F1F5F9; padding: 2px 8px; border-radius: 4px; font-weight: 600;">ID: ${u.user_code}</span>
+                                ${roleBadge}
+                                ${statusBadge}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;">
+                        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px; text-align: center;">
+                            <div style="font-size: 16px; font-weight: 700; color: #2563EB;">${u.trips_count}</div>
+                            <div style="font-size: 11px; color: #64748B;">Chuyến đi</div>
+                        </div>
+                        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px; text-align: center;">
+                            <div style="font-size: 16px; font-weight: 700; color: #059669;">${u.bookings_count}</div>
+                            <div style="font-size: 11px; color: #64748B;">Đặt phòng</div>
+                        </div>
+                        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px; text-align: center;">
+                            <div style="font-size: 16px; font-weight: 700; color: #D97706;">${u.reviews_count}</div>
+                            <div style="font-size: 11px; color: #64748B;">Đánh giá</div>
+                        </div>
+                        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px; text-align: center;">
+                            <div style="font-size: 16px; font-weight: 700; color: #DB2777;">${u.favorites_count}</div>
+                            <div style="font-size: 11px; color: #64748B;">Yêu thích</div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; font-size: 13px;">
+                        <div>
+                            <span style="display: block; color: #64748B; font-size: 11px; font-weight: 600; text-transform: uppercase;">Địa chỉ Email</span>
+                            <span style="color: #0F172A; font-weight: 500;">${u.email}</span>
+                        </div>
+                        <div>
+                            <span style="display: block; color: #64748B; font-size: 11px; font-weight: 600; text-transform: uppercase;">Số điện thoại</span>
+                            <span style="color: #0F172A; font-weight: 500;">${u.phone}</span>
+                        </div>
+                        <div>
+                            <span style="display: block; color: #64748B; font-size: 11px; font-weight: 600; text-transform: uppercase;">Tỉnh / Thành phố</span>
+                            <span style="color: #0F172A; font-weight: 500;">${u.city}</span>
+                        </div>
+                        <div>
+                            <span style="display: block; color: #64748B; font-size: 11px; font-weight: 600; text-transform: uppercase;">Ngày tham gia</span>
+                            <span style="color: #0F172A; font-weight: 500;">${u.created_at}</span>
+                        </div>
+                    </div>
+                `;
+            }
+        })
+        .catch(err => {
+            modalBody.innerHTML = '<div style="text-align: center; padding: 24px; color: #EF4444;">Không thể tải thông tin chi tiết. Vui lòng thử lại.</div>';
+        });
     }
 
     function closeModal(modalId) {
