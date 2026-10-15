@@ -89,6 +89,15 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Kiểm tra người dùng có đang ở trạng thái hoạt động hay không.
+     */
+    public function isActive(): bool
+    {
+        return (bool) $this->is_active;
+    }
+
+
+    /**
      * Mã định danh hiển thị chuẩn ảnh (#USR-xxx).
      */
     public function getUserCodeAttribute(): string

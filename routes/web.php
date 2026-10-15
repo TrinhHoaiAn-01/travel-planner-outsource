@@ -50,7 +50,7 @@ Route::middleware('guest')->group(function () {
 });
 
 // Các tuyến xác thực thông tin đăng ký / email (Dành cho tài khoản đã đăng nhập)
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/email/verify', [AuthController::class, 'showVerificationNotice'])->name('verification.notice');
     Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
     Route::post('/email/verification-notification', [AuthController::class, 'resendVerificationEmail'])->name('verification.send');
@@ -118,10 +118,10 @@ Route::get('/dev/login-as-admin', function () {
     return redirect()->route('admin.dashboard');
 })->name('dev.login.admin');
 
-// Nhóm các tuyến quản trị viên Admin (Bảo vệ bởi auth và admin middleware)
+// Nhóm các tuyến quản trị viên Admin (Bảo vệ bởi auth, active và admin middleware)
 Route::prefix('admin')
     ->name('admin.')
-    ->middleware(['auth', 'admin'])
+    ->middleware(['auth', 'active', 'admin'])
     ->group(function () {
         // Bảng điều khiển chính (Dashboard)
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
