@@ -529,19 +529,31 @@
                 </div>
             </div>
 
-            <!-- Days Tabs & Action Bar (Tái hiện detail.html) -->
+            <!-- Days Tabs & Action Bar (Tái hiện detail.html với số ngày linh hoạt theo chuyến đi) -->
             <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
-                <ul class="nav nav-pills gap-2" id="daysTab" role="tablist">
-                    @for($i = 1; $i <= min(7, max(1, $daysCount)); $i++)
-                        @php
-                            $dayDate = $trip->start_date ? (clone $trip->start_date)->addDays($i - 1)->format('d/m') : '';
-                        @endphp
+                @php
+                    // Lấy danh sách ngày chi tiết từ Controller hoặc tự sinh linh hoạt theo số ngày thực tế
+                    $computedDays = $daysList ?? [];
+                    if (empty($computedDays)) {
+                        for ($d = 1; $d <= max(1, $daysCount); $d++) {
+                            $dDate = $trip->start_date ? (clone $trip->start_date)->addDays($d - 1)->format('d/m') : '';
+                            $computedDays[] = [
+                                'day_number' => $d,
+                                'date' => $trip->start_date ? (clone $trip->start_date)->addDays($d - 1)->format('Y-m-d') : '',
+                                'formatted_date' => $dDate,
+                                'label' => "Ngày {$d}" . ($dDate ? " ({$dDate})" : ''),
+                            ];
+                        }
+                    }
+                @endphp
+                <ul class="nav nav-pills gap-2 flex-wrap" id="daysTab" role="tablist">
+                    @foreach($computedDays as $dayInfo)
                         <li class="nav-item">
-                            <button class="nav-link {{ $i === 1 ? 'active' : '' }} rounded-pill px-3 fw-bold" data-bs-toggle="pill" data-bs-target="#day{{ $i }}">
-                                Ngày {{ $i }} {{ $dayDate ? '(' . $dayDate . ')' : '' }}
+                            <button class="nav-link {{ $dayInfo['day_number'] === 1 ? 'active' : '' }} rounded-pill px-3 fw-bold" data-bs-toggle="pill" data-bs-target="#day{{ $dayInfo['day_number'] }}">
+                                {{ $dayInfo['label'] }}
                             </button>
                         </li>
-                    @endfor
+                    @endforeach
                 </ul>
 
                 <div class="d-flex align-items-center gap-2">
@@ -559,15 +571,16 @@
 
             <!-- Tab Content (Itinerary Timeline) -->
             <div class="tab-content" id="daysTabContent">
-                @for($i = 1; $i <= min(7, max(1, $daysCount)); $i++)
+                @foreach($computedDays as $dayInfo)
                     @php
+                        $i = $dayInfo['day_number'];
                         $dayItems = $trip->itineraryItems->where('day_number', $i);
                     @endphp
                     <div class="tab-pane fade {{ $i === 1 ? 'show active' : '' }}" id="day{{ $i }}">
                         <div class="card-custom p-4">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h5 class="fw-bold mb-0 text-primary">
-                                    <i class="bi bi-calendar-check me-2"></i>Lịch trình Ngày {{ $i }}
+                                    <i class="bi bi-calendar-check me-2"></i>Lịch trình {{ $dayInfo['label'] }}
                                 </h5>
                                 <span class="badge badge-travelplanner badge-soft-primary">{{ $dayItems->count() }} Hoạt động</span>
                             </div>
@@ -605,7 +618,7 @@
                             @else
                                 <div class="text-center py-5">
                                     <i class="bi bi-calendar-plus text-primary fs-1 mb-2 d-block"></i>
-                                    <h6 class="fw-bold">Chưa có hoạt động nào trong Ngày {{ $i }}</h6>
+                                    <h6 class="fw-bold">Chưa có hoạt động nào trong {{ $dayInfo['label'] }}</h6>
                                     <p class="text-muted small mb-3">Lịch trình chi tiết theo từng giờ của ngày này hiện đang được sắp xếp.</p>
                                     <a href="{{ route('trips.edit', $trip->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
                                         <i class="bi bi-pencil me-1"></i> Chỉnh sửa thông tin Trip
@@ -614,7 +627,7 @@
                             @endif
                         </div>
                     </div>
-                @endfor
+                @endforeach
             </div>
         </div>
     </main>
@@ -696,6 +709,81 @@
                         <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm">
                             <i class="bi bi-check2-circle me-1"></i> Lưu ghi chú
                         </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Chỉnh Sửa Nhanh Mô Tả & Ghi Chú Tổng Quát Của Chuyến Đi -->
+    <div class="modal fade" id="editTripNotesModal" tabindex="-1" aria-labelledby="editTripNotesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <form action="{{ route('trips.update-notes', $trip->id) }}" method="POST">
+                    @csrf
+                    @method('PATCH')
+                    <div class="modal-header bg-primary text-white border-0 py-3 px-4">
+                        <h5 class="modal-title fw-bold d-flex align-items-center gap-2" id="editTripNotesModalLabel">
+                            <i class="bi bi-pencil-square fs-5"></i>
+                            Quản lý mô tả & Ghi chú mục tiêu chuyến đi
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <!-- Mẹo gợi ý & Gắn mẫu nhanh -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-dark small mb-2 d-flex justify-content-between align-items-center">
+                                <span>Gợi ý chèn mẫu nhanh vào ghi chú:</span>
+                                <span class="text-muted small" id="notesCharCounter">{{ mb_strlen($trip->description ?? '') }} / 3000 ký tự</span>
+                            </label>
+                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="appendNoteTemplate('🎯 Mục tiêu: ')">
+                                    <i class="bi bi-bullseye me-1"></i> Mục tiêu
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="appendNoteTemplate('🎒 Hành lý: ')">
+                                    <i class="bi bi-backpack me-1"></i> Hành lý
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3" onclick="appendNoteTemplate('⚠️ Lưu ý: ')">
+                                    <i class="bi bi-exclamation-triangle me-1"></i> Lưu ý
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3" onclick="appendNoteTemplate('📞 Số khẩn cấp: ')">
+                                    <i class="bi bi-telephone me-1"></i> Số khẩn cấp
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="appendNoteTemplate('☀️ Thời tiết: ')">
+                                    <i class="bi bi-cloud-sun me-1"></i> Thời tiết
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Ô nhập Textarea -->
+                        <div class="mb-3">
+                            <label for="tripNotesTextarea" class="form-label fw-semibold text-dark small">Nội dung mô tả & ghi chú chi tiết</label>
+                            <textarea name="description"
+                                      id="tripNotesTextarea"
+                                      class="form-control rounded-3 p-3 @error('description') is-invalid @enderror"
+                                      rows="8"
+                                      maxlength="3000"
+                                      placeholder="Nhập mục tiêu chuyến đi, những điều cần ghi nhớ, danh sách đồ dùng mang theo, phân công thành viên hoặc lưu ý trang phục..."
+                                      oninput="updateNotesCharCount()">{{ old('description', $trip->description) }}</textarea>
+                            @error('description')
+                                <div class="invalid-feedback d-block mt-2">{{ $message }}</div>
+                            @enderror
+                            <div class="form-text text-muted small mt-2">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Ghi chú này sẽ được hiển thị nổi bật tại trang chi tiết để các thành viên dễ dàng theo dõi. Tối đa 3000 ký tự.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-4 pt-0 d-flex justify-content-between align-items-center">
+                        <button type="button" class="btn btn-link text-danger text-decoration-none px-0 small" onclick="clearTripNotes()">
+                            <i class="bi bi-eraser me-1"></i> Xóa sạch nội dung
+                        </button>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy bỏ</button>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm">
+                                <i class="bi bi-check2-circle me-1"></i> Lưu ghi chú
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
