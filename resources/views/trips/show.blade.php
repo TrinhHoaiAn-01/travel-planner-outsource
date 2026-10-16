@@ -429,7 +429,7 @@
                         </div>
                         <div class="col-lg-5 text-lg-end">
                             <div class="d-flex flex-wrap justify-content-lg-end align-items-center gap-2">
-                                <a href="javascript:void(0)" class="btn btn-warning rounded-pill px-4 fw-bold shadow-sm text-dark d-inline-flex align-items-center" style="background-color: #F59E0B; border: none;">
+                                <a href="{{ route('trips.budget.show', $trip->id) }}" class="btn btn-warning rounded-pill px-4 fw-bold shadow-sm text-dark d-inline-flex align-items-center" style="background-color: #F59E0B; border: none;">
                                     <i class="bi bi-wallet2 me-2"></i> Quản lý Ngân sách
                                 </a>
                                 <a href="{{ route('trips.edit', $trip->id) }}" class="btn btn-light rounded-pill px-3 fw-semibold shadow-sm text-dark d-inline-flex align-items-center">
