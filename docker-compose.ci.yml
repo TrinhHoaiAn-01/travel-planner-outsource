@@ -23,11 +23,9 @@ services:
       mysql:
         condition: service_healthy
 
-    command: >
-      sh -c "
-        php artisan migrate --force &&
-        apache2-foreground
-      "
+    # The CI workflow runs migrations before tests; keep startup migration-free
+    # so two migration processes cannot race against the same database.
+    command: apache2-foreground
 
   mysql:
     image: mysql:8.4

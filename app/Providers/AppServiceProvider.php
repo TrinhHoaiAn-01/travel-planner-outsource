@@ -70,6 +70,24 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\Interfaces\UserManagementServiceInterface::class,
             \App\Services\UserManagementService::class
         );
+
+        // Ràng buộc DestinationManagementServiceInterface với DestinationManagementService (Trần Văn Trọng)
+        $this->app->bind(
+            \App\Services\Interfaces\DestinationManagementServiceInterface::class,
+            \App\Services\DestinationManagementService::class
+        );
+
+        // Ràng buộc DestinationImageServiceInterface với DestinationImageService (Trần Văn Trọng)
+        $this->app->bind(
+            \App\Services\Interfaces\DestinationImageServiceInterface::class,
+            \App\Services\DestinationImageService::class
+        );
+
+        // Ràng buộc ReviewModerationServiceInterface với ReviewModerationService (Trần Văn Trọng)
+        $this->app->bind(
+            \App\Services\Interfaces\ReviewModerationServiceInterface::class,
+            \App\Services\ReviewModerationService::class
+        );
     }
 
     /**

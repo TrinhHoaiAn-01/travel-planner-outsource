@@ -2,10 +2,14 @@ FROM php:8.3-apache
 
 RUN apt-get update \
     && apt-get install -y \
+        libjpeg62-turbo-dev \
+        libpng-dev \
         libzip-dev \
         unzip \
         zip \
+    && docker-php-ext-configure gd --with-jpeg \
     && docker-php-ext-install \
+        gd \
         pdo_mysql \
         zip \
     && apt-get clean \

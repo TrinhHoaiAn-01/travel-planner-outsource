@@ -553,7 +553,12 @@
                     </svg>
                     <span>Đánh giá (Reviews)</span>
                 </div>
-                <span class="nav-badge-pill">3</span>
+                @php
+                    $sidebarPendingReviewsCount = \App\Models\Review::where('status', \App\Models\Review::STATUS_PENDING)->count();
+                @endphp
+                @if($sidebarPendingReviewsCount > 0)
+                    <span class="nav-badge-pill">{{ $sidebarPendingReviewsCount }}</span>
+                @endif
             </a>
         </nav>
 

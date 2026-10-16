@@ -141,6 +141,7 @@
         /* 2. Hero Section */
         .hero-section {
             position: relative;
+            z-index: 40;
             background-image: linear-gradient(rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.65)), url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1600&q=80');
             background-size: cover;
             background-position: center 35%;
@@ -181,6 +182,8 @@
 
         /* Floating Search Card */
         .search-card-wrapper {
+            position: relative;
+            z-index: 50;
             max-width: 960px;
             margin: 0 auto;
             background: rgba(15, 23, 42, 0.65);
@@ -246,8 +249,90 @@
             background: #0052CC;
         }
 
+        /* Dropdown gợi ý tìm kiếm nhanh */
+        .quick-search-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+            border: 1px solid #E2E8F0;
+            z-index: 1000;
+            max-height: 380px;
+            overflow-y: auto;
+            text-align: left;
+            padding: 8px 0;
+        }
+
+        .quick-search-header {
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748B;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            padding: 8px 16px 4px;
+        }
+
+        .quick-search-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 16px;
+            color: #0F172A;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+            gap: 10px;
+        }
+
+        .quick-search-item:hover {
+            background-color: #F1F5F9;
+        }
+
+        .quick-item-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #0F172A;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .quick-item-subtitle {
+            font-size: 12px;
+            color: #64748B;
+            margin-top: 2px;
+        }
+
+        .quick-item-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: #EFF6FF;
+            color: #0066FF;
+            white-space: nowrap;
+        }
+
+        .quick-search-divider {
+            height: 1px;
+            background: #F1F5F9;
+            margin: 6px 0;
+        }
+
+        .quick-search-empty {
+            padding: 18px 16px;
+            text-align: center;
+            color: #64748B;
+            font-size: 13px;
+        }
+
         /* 3. Common Sections */
         .main-container {
+            position: relative;
+            z-index: 1;
             max-width: 1200px;
             margin: 0 auto;
             padding: 50px 24px 70px;
@@ -524,7 +609,7 @@
                 </a>
             </li>
             <li>
-                <a href="#destinations" class="nav-link">
+                <a href="{{ route('destinations.index') }}" class="nav-link">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                     Địa điểm
                 </a>
@@ -581,50 +666,139 @@
             Khám phá hàng ngàn điểm đến ngoạn mục, lưu giữ địa điểm yêu thích và tự động tối ưu hóa ngân sách chuyến đi của bạn.
         </p>
 
-        <!-- Floating Search Box -->
-        <div class="search-card-wrapper">
+        <!-- Floating Search Box Form -->
+        <form action="{{ route('home') }}" method="GET" class="search-card-wrapper" id="homeSearchForm">
             <div class="search-grid">
-                <div class="search-field">
-                    <label>📍 Điểm đến / Thành phố</label>
+                <div class="search-field" style="position: relative; z-index: 60;">
+                    <label for="homeSearchKeyword">📍 Điểm đến / Thành phố</label>
                     <div class="search-input-box">
-                        <input type="text" placeholder="Ví dụ: Đà Nẵng, Phú Quốc...">
+                        <input type="text"
+                               name="keyword"
+                               id="homeSearchKeyword"
+                               value="{{ request('keyword') }}"
+                               placeholder="Ví dụ: Đà Nẵng, Phú Quốc, Bà Nà..."
+                               autocomplete="off">
                     </div>
+                    <!-- Dropdown gợi ý tìm kiếm nhanh (Quick Search Autocomplete) -->
+                    <div id="quickSearchDropdown" class="quick-search-dropdown" style="display: none;"></div>
                 </div>
 
                 <div class="search-field">
-                    <label>🗂️ Danh mục</label>
+                    <label for="homeSearchCategory">🗂️ Danh mục</label>
                     <div class="search-input-box">
-                        <select>
+                        <select name="category_id" id="homeSearchCategory">
                             <option value="">Tất cả danh mục</option>
                             @foreach($categories as $cat)
-                                <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                                <option value="{{ $cat->id }}" {{ (string)request('category_id') === (string)$cat->id ? 'selected' : '' }}>
+                                    {{ $cat->name }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
                 </div>
 
                 <div class="search-field">
-                    <label>💵 Mức ngân sách</label>
+                    <label for="homeSearchBudget">💵 Mức ngân sách</label>
                     <div class="search-input-box">
-                        <select>
+                        <select name="budget" id="homeSearchBudget">
                             <option value="">Tất cả mức giá</option>
-                            <option value="1">Dưới 500.000đ</option>
-                            <option value="2">500.000đ - 1.500.000đ</option>
-                            <option value="3">Trên 1.500.000đ</option>
+                            <option value="1" {{ request('budget') == '1' ? 'selected' : '' }}>Dưới 500.000đ</option>
+                            <option value="2" {{ request('budget') == '2' ? 'selected' : '' }}>500.000đ - 1.500.000đ</option>
+                            <option value="3" {{ request('budget') == '3' ? 'selected' : '' }}>Trên 1.500.000đ</option>
                         </select>
                     </div>
                 </div>
 
-                <button class="btn-search-hero">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <button type="submit" class="btn-search-hero" id="btnSubmitSearch">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
                     Tìm kiếm
                 </button>
             </div>
-        </div>
+        </form>
     </section>
 
     <!-- Main Content Container -->
     <div class="main-container">
+
+        @if($hasSearch)
+            <!-- Kết Quả Tìm Kiếm Nhanh Từ Trang Chủ -->
+            <section id="search-results-section" style="margin-bottom: 55px; scroll-margin-top: 80px;">
+                <div class="section-header-wrap">
+                    <div>
+                        <span class="sub-tag-blue">KẾT QUẢ TÌM KIẾM NHANH</span>
+                        <h2 class="sec-title-main">
+                            @if(request('keyword'))
+                                Kết quả cho "{{ request('keyword') }}"
+                            @else
+                                Kết Quả Lọc Địa Điểm
+                            @endif
+                            <span style="font-size: 16px; font-weight: 600; color: #0066FF; margin-left: 8px;">
+                                ({{ $searchResults ? $searchResults->count() : 0 }} địa điểm)
+                            </span>
+                        </h2>
+                    </div>
+                    <a href="{{ route('home') }}" class="btn-pill-outline" style="border-color: #94A3B8; color: #64748B;">
+                        ✕ Xóa tìm kiếm
+                    </a>
+                </div>
+
+                @if($searchResults && $searchResults->isNotEmpty())
+                    <div class="destinations-grid-4">
+                        @foreach($searchResults as $destination)
+                            <div class="dest-card-box">
+                                <div class="dest-img-header">
+                                    @if($destination->primaryImage)
+                                        <img src="{{ $destination->primaryImage->image_path }}" alt="{{ $destination->name }}">
+                                    @else
+                                        <img src="https://images.unsplash.com/photo-1528127269322-539801943592?w=600" alt="{{ $destination->name }}">
+                                    @endif
+                                    <span class="tag-dest-badge tag-blue-light">
+                                        {{ $destination->category->name ?? 'Du lịch' }}
+                                    </span>
+                                    <form action="{{ route('favorites.toggle', $destination->id) }}" method="POST" style="position: absolute; top: 12px; right: 12px; z-index: 5;">
+                                        @csrf
+                                        <button type="submit" class="btn-heart-fav" title="Lưu yêu thích">🤍</button>
+                                    </form>
+                                </div>
+                                <div class="dest-body-content">
+                                    <div class="dest-meta-row">
+                                        <span class="dest-city-text">📍 {{ $destination->city->name ?? 'Việt Nam' }}</span>
+                                        <span class="dest-rating-pill">⭐ {{ number_format($destination->rating, 1) }}</span>
+                                    </div>
+                                    <h3 class="dest-card-name">{{ $destination->name }}</h3>
+                                    <p class="dest-card-desc">{{ $destination->description }}</p>
+                                    <div class="dest-card-footer">
+                                        <div>
+                                            <span class="price-label-small">Từ</span>
+                                            <div class="price-val-blue">
+                                                {{ $destination->entrance_fee > 0 ? number_format($destination->entrance_fee, 0, ',', '.') . 'đ' : 'Miễn phí' }}
+                                            </div>
+                                        </div>
+                                        <a href="{{ route('destinations.show', $destination->slug) }}" class="btn-detail-blue">Chi tiết</a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div style="background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 16px; padding: 48px 24px; text-align: center;">
+                        <div style="font-size: 38px; margin-bottom: 12px;">🔍</div>
+                        <h3 style="font-size: 18px; font-weight: 700; color: #0F172A; margin-bottom: 6px;">
+                            Không tìm thấy địa điểm nào phù hợp
+                        </h3>
+                        <p style="color: #64748B; font-size: 14px; margin-bottom: 20px;">
+                            Không có kết quả nào khớp với tiêu chí tìm kiếm. Hãy thử từ khóa khác như "Đà Nẵng", "Hà Nội", "Hạ Long"...
+                        </p>
+                        <a href="{{ route('home') }}" class="btn-detail-blue" style="display: inline-block;">
+                            Xem tất cả địa điểm
+                        </a>
+                    </div>
+                @endif
+            </section>
+        @endif
 
         <!-- 3. Section: Danh Mục Phổ Biến (Grid 6 cột) -->
         <section style="margin-bottom: 50px;">
@@ -654,7 +828,7 @@
                 </a>
 
                 <!-- 3. Resort & Spa -->
-                <a href="#destinations" class="cat-card-img" style="background-image: url('https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=500&q=80');">
+                <a href="{{ route('destinations.index', ['is_lodging' => 1]) }}" class="cat-card-img" style="background-image: url('https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=500&q=80');">
                     <div class="cat-card-content">
                         <div class="cat-card-title">Resort & Spa</div>
                         <div class="cat-card-count">65 nơi lưu trú</div>
@@ -694,7 +868,7 @@
                     <span class="sub-tag-blue">ĐIỂM ĐẾN HÀNG ĐẦU</span>
                     <h2 class="sec-title-main">Địa Điểm Nổi Bật</h2>
                 </div>
-                <a href="#destinations" class="btn-pill-outline">Khám phá thêm &rarr;</a>
+                <a href="{{ route('destinations.index') }}" class="btn-pill-outline">Khám phá thêm &rarr;</a>
             </div>
 
             <div class="destinations-grid-4">
@@ -728,7 +902,7 @@
                                         {{ $destination->entrance_fee > 0 ? number_format($destination->entrance_fee, 0, ',', '.') . 'đ' : 'Miễn phí' }}
                                     </div>
                                 </div>
-                                <a href="#" class="btn-detail-blue">Chi tiết</a>
+                                <a href="{{ route('destinations.show', $destination->slug) }}" class="btn-detail-blue">Chi tiết</a>
                             </div>
                         </div>
                     </div>
@@ -742,5 +916,134 @@
 
     </div>
 
+    <!-- JavaScript Xử Lý Tìm Kiếm Nhanh & Gợi Ý Autocomplete -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById('homeSearchKeyword');
+            const searchForm = document.getElementById('homeSearchForm');
+            const dropdown = document.getElementById('quickSearchDropdown');
+            let debounceTimer = null;
+
+            if (searchInput && dropdown) {
+                searchInput.addEventListener('input', function () {
+                    const query = this.value.trim();
+                    clearTimeout(debounceTimer);
+
+                    if (query.length < 1) {
+                        dropdown.style.display = 'none';
+                        dropdown.innerHTML = '';
+                        return;
+                    }
+
+                    debounceTimer = setTimeout(() => {
+                        fetch(`{{ route('destinations.quick-search') }}?keyword=${encodeURIComponent(query)}`)
+                            .then(res => res.json())
+                            .then(data => {
+                                renderQuickSearchDropdown(data);
+                            })
+                            .catch(err => {
+                                console.error('Lỗi tìm kiếm nhanh:', err);
+                            });
+                    }, 250);
+                });
+
+                // Đóng dropdown khi nhấp ra ngoài
+                document.addEventListener('click', function (e) {
+                    if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                        dropdown.style.display = 'none';
+                    }
+                });
+
+                // Đóng dropdown khi nhấn Escape
+                searchInput.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape') {
+                        dropdown.style.display = 'none';
+                    }
+                });
+            }
+
+            function renderQuickSearchDropdown(data) {
+                const hasCities = data.cities && data.cities.length > 0;
+                const hasDestinations = data.destinations && data.destinations.length > 0;
+
+                if (!hasCities && !hasDestinations) {
+                    dropdown.innerHTML = `<div class="quick-search-empty">Không tìm thấy địa điểm hoặc thành phố nào khớp với "<strong>${escapeHtml(data.keyword)}</strong>".</div>`;
+                    dropdown.style.display = 'block';
+                    return;
+                }
+
+                let html = '';
+
+                // Danh sách thành phố phù hợp
+                if (hasCities) {
+                    html += `<div class="quick-search-header">🏙️ Thành phố</div>`;
+                    data.cities.forEach(city => {
+                        html += `
+                            <div class="quick-search-item" data-type="city" data-name="${escapeHtml(city.name)}">
+                                <div class="quick-item-title">
+                                    <span>🏙️</span>
+                                    <span>${escapeHtml(city.name)}</span>
+                                </div>
+                                <span class="quick-item-badge">${city.destinations_count} địa điểm</span>
+                            </div>
+                        `;
+                    });
+                }
+
+                if (hasCities && hasDestinations) {
+                    html += `<div class="quick-search-divider"></div>`;
+                }
+
+                // Danh sách địa điểm du lịch phù hợp
+                if (hasDestinations) {
+                    html += `<div class="quick-search-header">📍 Địa điểm du lịch</div>`;
+                    data.destinations.forEach(dest => {
+                        html += `
+                            <div class="quick-search-item" data-type="destination" data-name="${escapeHtml(dest.name)}">
+                                <div>
+                                    <div class="quick-item-title">
+                                        <span>📍</span>
+                                        <span>${escapeHtml(dest.name)}</span>
+                                    </div>
+                                    <div class="quick-item-subtitle">${escapeHtml(dest.city_name)} &bull; ${escapeHtml(dest.category_name)}</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span class="quick-item-badge" style="background: #FEF3C7; color: #B45309;">⭐ ${dest.rating}</span>
+                                    <div style="font-size: 11px; color: #0066FF; font-weight: 700; margin-top: 3px;">${escapeHtml(dest.formatted_price)}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                dropdown.innerHTML = html;
+                dropdown.style.display = 'block';
+
+                // Gắn sự kiện khi nhấp vào mục gợi ý
+                dropdown.querySelectorAll('.quick-search-item').forEach(item => {
+                    item.addEventListener('click', function () {
+                        const name = this.getAttribute('data-name');
+                        searchInput.value = name;
+                        dropdown.style.display = 'none';
+                        searchForm.submit();
+                    });
+                });
+            }
+
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            @if($hasSearch)
+                // Tự động cuộn đến khu vực kết quả tìm kiếm nếu có tham số tìm kiếm
+                const resultsSection = document.getElementById('search-results-section');
+                if (resultsSection) {
+                    resultsSection.scrollIntoView({ behavior: 'smooth' });
+                }
+            @endif
+        });
+    </script>
 </body>
 </html>

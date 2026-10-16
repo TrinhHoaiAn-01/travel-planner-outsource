@@ -3,8 +3,12 @@
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DestinationController;
+use App\Http\Controllers\Admin\DestinationImageController;
+use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DestinationController as PublicDestinationController;
 use App\Http\Controllers\HomeController;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -14,6 +18,17 @@ use Illuminate\Support\Facades\Route;
 //Ngocai
 // Tuyến trang chủ công khai (Public Home)
 Route::get('/', [HomeController::class, 'index'])->name('home');
+// Tuyến API tìm kiếm nhanh gợi ý địa điểm & thành phố từ Trang chủ (Trần Văn Trọng)
+Route::get('/quick-search', [HomeController::class, 'quickSearch'])->name('destinations.quick-search');
+
+// Tuyến hiển thị nơi lưu trú, danh sách & chi tiết địa điểm, Room Type và Gallery ảnh (Trần Văn Trọng)
+Route::get('/destinations', [PublicDestinationController::class, 'index'])->name('destinations.index');
+Route::get('/destinations/{slug}', [PublicDestinationController::class, 'show'])->name('destinations.show');
+Route::get('/destinations/{slug}/gallery', [PublicDestinationController::class, 'gallery'])->name('destinations.gallery');
+Route::get('/room-types/{roomType}', [PublicDestinationController::class, 'getRoomType'])->name('room-types.show');
+Route::get('/cities/{city}/destinations', [PublicDestinationController::class, 'byCity'])->name('cities.destinations');
+Route::get('/categories/{category}/destinations', [PublicDestinationController::class, 'byCategory'])->name('categories.destinations');
+
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TripController;
@@ -35,7 +50,7 @@ Route::middleware('guest')->group(function () {
 });
 
 // Các tuyến xác thực thông tin đăng ký / email (Dành cho tài khoản đã đăng nhập)
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/email/verify', [AuthController::class, 'showVerificationNotice'])->name('verification.notice');
     Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
     Route::post('/email/verification-notification', [AuthController::class, 'resendVerificationEmail'])->name('verification.send');
@@ -103,18 +118,23 @@ Route::get('/dev/login-as-admin', function () {
     return redirect()->route('admin.dashboard');
 })->name('dev.login.admin');
 
-// Nhóm các tuyến quản trị viên Admin (Bảo vệ bởi auth và admin middleware)
+// Nhóm các tuyến quản trị viên Admin (Bảo vệ bởi auth, active và admin middleware)
 Route::prefix('admin')
     ->name('admin.')
-    ->middleware(['auth', 'admin'])
+    ->middleware(['auth', 'active', 'admin'])
     ->group(function () {
         // Bảng điều khiển chính (Dashboard)
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/export-report', [DashboardController::class, 'exportReport'])->name('dashboard.export');
 
-        // Quản lý Người dùng hệ thống (Admin Users - Trần Văn Trọng)
+        // Quản lý Người dùng hệ thống (Admin Users - Trịnh Hoài An)
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+        Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
+        Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
-        Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::match(['put', 'patch'], '/users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::patch('/users/{user}/status', [UserController::class, 'toggleStatus'])->name('users.update-status');
         Route::post('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
 
         // Quản lý Tỉnh / Thành phố (Admin Cities - Trần Văn Trọng)
@@ -129,17 +149,27 @@ Route::prefix('admin')
         Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
         Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
-        Route::get('/destinations', function () {
-            return view('admin.placeholder', ['pageTitle' => 'Quản lý Địa điểm (Destinations)']);
-        })->name('destinations.index');
+        // Quản lý Địa điểm Du lịch (Admin Destinations - Trần Văn Trọng)
+        Route::get('/destinations', [DestinationController::class, 'index'])->name('destinations.index');
+        Route::get('/destinations/create', [DestinationController::class, 'create'])->name('destinations.create');
+        Route::post('/destinations', [DestinationController::class, 'store'])->name('destinations.store');
+        Route::get('/destinations/{destination}', [DestinationController::class, 'show'])->name('destinations.show');
+        Route::get('/destinations/{destination}/edit', [DestinationController::class, 'edit'])->name('destinations.edit');
+        Route::put('/destinations/{destination}', [DestinationController::class, 'update'])->name('destinations.update');
+        Route::delete('/destinations/{destination}', [DestinationController::class, 'destroy'])->name('destinations.destroy');
 
-        Route::get('/destination-images', function () {
-            return view('admin.placeholder', ['pageTitle' => 'Thư viện ảnh (Destination Images)']);
-        })->name('destination-images.index');
+        // Quản lý Thư viện Hình ảnh (Admin Destination Images - Trần Văn Trọng)
+        Route::get('/destination-images', [DestinationImageController::class, 'index'])->name('destination-images.index');
+        Route::post('/destination-images', [DestinationImageController::class, 'store'])->name('destination-images.store');
+        Route::post('/destination-images/{image}/set-primary', [DestinationImageController::class, 'setPrimary'])->name('destination-images.set-primary');
+        Route::delete('/destination-images/{image}', [DestinationImageController::class, 'destroy'])->name('destination-images.destroy');
 
-        Route::get('/reviews', function () {
-            return view('admin.placeholder', ['pageTitle' => 'Kiểm duyệt Đánh giá (Reviews)']);
-        })->name('reviews.index');
+        // Kiểm duyệt Đánh giá Khách hàng (Admin Reviews - Trần Văn Trọng)
+        Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews.index');
+        Route::get('/reviews/{review}', [ReviewController::class, 'show'])->name('reviews.show');
+        Route::post('/reviews/{review}/approve', [ReviewController::class, 'approve'])->name('reviews.approve');
+        Route::post('/reviews/{review}/hide', [ReviewController::class, 'hide'])->name('reviews.hide');
+        Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
 
         Route::get('/bookings', function () {
             return view('admin.placeholder', ['pageTitle' => 'Quản lý Đơn đặt phòng (Bookings)']);
