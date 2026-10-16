@@ -160,6 +160,10 @@ class TripService implements TripServiceInterface
                 if (! $this->validateTripDates($data['start_date'], $data['end_date'])) {
                     throw new InvalidArgumentException('Ngày bắt đầu không được sau ngày kết thúc.');
                 }
+
+                // Xử lý thay đổi ngày và tự động bảo toàn các hoạt động lịch trình khi số ngày thay đổi
+                $this->handleTripDateChange($tripId, $data['start_date'], $data['end_date']);
+                $trip->refresh();
             }
 
             // Chuẩn hóa mô tả và địa bàn trọng tâm
@@ -171,8 +175,6 @@ class TripService implements TripServiceInterface
             $updateAttributes = [
                 'name' => $data['name'] ?? $trip->name,
                 'description' => $description,
-                'start_date' => $data['start_date'] ?? $trip->start_date,
-                'end_date' => $data['end_date'] ?? $trip->end_date,
                 'budget' => $data['budget'] ?? $trip->budget,
             ];
 
@@ -290,20 +292,116 @@ class TripService implements TripServiceInterface
 
     /**
      * Xử lý khi ngày của chuyến đi bị thay đổi.
+     * Kiểm tra tính hợp lệ và tự động bảo toàn các hoạt động lịch trình nếu số ngày bị rút ngắn.
      */
     public function handleTripDateChange(int $tripId, ?string $newStartDate, ?string $newEndDate): void
     {
-        $trip = Trip::findOrFail($tripId);
+        DB::transaction(function () use ($tripId, $newStartDate, $newEndDate) {
+            $trip = Trip::with('itineraryItems')->findOrFail($tripId);
 
-        if ($newStartDate !== null && $newEndDate !== null) {
-            if (! $this->validateTripDates($newStartDate, $newEndDate)) {
-                throw new InvalidArgumentException('Ngày bắt đầu không được sau ngày kết thúc.');
+            if ($newStartDate !== null && $newEndDate !== null) {
+                if (! $this->validateTripDates($newStartDate, $newEndDate)) {
+                    throw new InvalidArgumentException('Ngày bắt đầu không được sau ngày kết thúc.');
+                }
+
+                $newTotalDays = (int) \Carbon\Carbon::parse($newStartDate)->diffInDays(\Carbon\Carbon::parse($newEndDate)) + 1;
+
+                // Xử lý bảo toàn dữ liệu: Nếu chuyến đi bị rút ngắn ngày, chuyển các hoạt động ở ngày vượt quá về ngày cuối cùng mới
+                if ($trip->itineraryItems->isNotEmpty()) {
+                    foreach ($trip->itineraryItems as $item) {
+                        if ($item->day_number > $newTotalDays) {
+                            $item->day_number = $newTotalDays;
+                            $item->save();
+                        }
+                    }
+                }
             }
+
+            $trip->start_date = $newStartDate;
+            $trip->end_date = $newEndDate;
+            $trip->save();
+        });
+    }
+
+    /**
+     * Tính toán thời lượng chuyến đi (số ngày, số đêm, nhãn hiển thị và tính hợp lệ) từ ngày bắt đầu và kết thúc.
+     */
+    public function calculateTripDuration(?string $startDate, ?string $endDate): array
+    {
+        if (empty($startDate) || empty($endDate)) {
+            return [
+                'days' => 0,
+                'nights' => 0,
+                'label' => 'Chưa xác định thời lượng',
+                'is_valid' => false,
+            ];
         }
 
-        $trip->start_date = $newStartDate;
-        $trip->end_date = $newEndDate;
-        $trip->save();
+        if (! $this->validateTripDates($startDate, $endDate)) {
+            return [
+                'days' => 0,
+                'nights' => 0,
+                'label' => 'Ngày kết thúc không được trước ngày bắt đầu',
+                'is_valid' => false,
+            ];
+        }
+
+        $start = \Carbon\Carbon::parse($startDate);
+        $end = \Carbon\Carbon::parse($endDate);
+        $days = (int) $start->diffInDays($end) + 1;
+        $nights = max(0, $days - 1);
+
+        $label = $nights > 0 ? "{$days} ngày {$nights} đêm" : "{$days} ngày";
+
+        return [
+            'days' => $days,
+            'nights' => $nights,
+            'label' => $label,
+            'is_valid' => true,
+        ];
+    }
+
+    /**
+     * Lấy danh sách chi tiết các ngày của chuyến đi (từ Ngày 1 đến Ngày N kèm ngày trong tuần tiếng Việt).
+     */
+    public function getTripDaysList(int $tripId): array
+    {
+        $trip = Trip::findOrFail($tripId);
+
+        if (! $trip->start_date || ! $trip->end_date) {
+            return [];
+        }
+
+        $days = [];
+        $totalDays = (int) $trip->start_date->diffInDays($trip->end_date) + 1;
+
+        $vietnameseDays = [
+            'Monday' => 'Thứ Hai',
+            'Tuesday' => 'Thứ Ba',
+            'Wednesday' => 'Thứ Tư',
+            'Thursday' => 'Thứ Năm',
+            'Friday' => 'Thứ Sáu',
+            'Saturday' => 'Thứ Bảy',
+            'Sunday' => 'Chủ Nhật',
+        ];
+
+        for ($i = 1; $i <= $totalDays; $i++) {
+            $currentDate = (clone $trip->start_date)->addDays($i - 1);
+            $dayNameEnglish = $currentDate->format('l');
+            $dayNameVietnamese = $vietnameseDays[$dayNameEnglish] ?? $dayNameEnglish;
+
+            $days[] = [
+                'day_number' => $i,
+                'date' => $currentDate->format('Y-m-d'),
+                'formatted_date' => $currentDate->format('d/m/Y'),
+                'short_date' => $currentDate->format('d/m'),
+                'full_date' => $currentDate->format('d/m/Y'),
+                'day_name' => $dayNameVietnamese,
+                'label' => "Ngày {$i} ({$currentDate->format('d/m')} - {$dayNameVietnamese})",
+            ];
+        }
+
+        return $days;
     }
 
     /**

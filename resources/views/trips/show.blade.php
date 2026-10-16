@@ -529,19 +529,31 @@
                 </div>
             </div>
 
-            <!-- Days Tabs & Action Bar (Tái hiện detail.html) -->
+            <!-- Days Tabs & Action Bar (Tái hiện detail.html với số ngày linh hoạt theo chuyến đi) -->
             <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
-                <ul class="nav nav-pills gap-2" id="daysTab" role="tablist">
-                    @for($i = 1; $i <= min(7, max(1, $daysCount)); $i++)
-                        @php
-                            $dayDate = $trip->start_date ? (clone $trip->start_date)->addDays($i - 1)->format('d/m') : '';
-                        @endphp
+                @php
+                    // Lấy danh sách ngày chi tiết từ Controller hoặc tự sinh linh hoạt theo số ngày thực tế
+                    $computedDays = $daysList ?? [];
+                    if (empty($computedDays)) {
+                        for ($d = 1; $d <= max(1, $daysCount); $d++) {
+                            $dDate = $trip->start_date ? (clone $trip->start_date)->addDays($d - 1)->format('d/m') : '';
+                            $computedDays[] = [
+                                'day_number' => $d,
+                                'date' => $trip->start_date ? (clone $trip->start_date)->addDays($d - 1)->format('Y-m-d') : '',
+                                'formatted_date' => $dDate,
+                                'label' => "Ngày {$d}" . ($dDate ? " ({$dDate})" : ''),
+                            ];
+                        }
+                    }
+                @endphp
+                <ul class="nav nav-pills gap-2 flex-wrap" id="daysTab" role="tablist">
+                    @foreach($computedDays as $dayInfo)
                         <li class="nav-item">
-                            <button class="nav-link {{ $i === 1 ? 'active' : '' }} rounded-pill px-3 fw-bold" data-bs-toggle="pill" data-bs-target="#day{{ $i }}">
-                                Ngày {{ $i }} {{ $dayDate ? '(' . $dayDate . ')' : '' }}
+                            <button class="nav-link {{ $dayInfo['day_number'] === 1 ? 'active' : '' }} rounded-pill px-3 fw-bold" data-bs-toggle="pill" data-bs-target="#day{{ $dayInfo['day_number'] }}">
+                                {{ $dayInfo['label'] }}
                             </button>
                         </li>
-                    @endfor
+                    @endforeach
                 </ul>
 
                 <div class="d-flex align-items-center gap-2">
@@ -559,15 +571,16 @@
 
             <!-- Tab Content (Itinerary Timeline) -->
             <div class="tab-content" id="daysTabContent">
-                @for($i = 1; $i <= min(7, max(1, $daysCount)); $i++)
+                @foreach($computedDays as $dayInfo)
                     @php
+                        $i = $dayInfo['day_number'];
                         $dayItems = $trip->itineraryItems->where('day_number', $i);
                     @endphp
                     <div class="tab-pane fade {{ $i === 1 ? 'show active' : '' }}" id="day{{ $i }}">
                         <div class="card-custom p-4">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h5 class="fw-bold mb-0 text-primary">
-                                    <i class="bi bi-calendar-check me-2"></i>Lịch trình Ngày {{ $i }}
+                                    <i class="bi bi-calendar-check me-2"></i>Lịch trình {{ $dayInfo['label'] }}
                                 </h5>
                                 <span class="badge badge-travelplanner badge-soft-primary">{{ $dayItems->count() }} Hoạt động</span>
                             </div>
@@ -605,7 +618,7 @@
                             @else
                                 <div class="text-center py-5">
                                     <i class="bi bi-calendar-plus text-primary fs-1 mb-2 d-block"></i>
-                                    <h6 class="fw-bold">Chưa có hoạt động nào trong Ngày {{ $i }}</h6>
+                                    <h6 class="fw-bold">Chưa có hoạt động nào trong {{ $dayInfo['label'] }}</h6>
                                     <p class="text-muted small mb-3">Lịch trình chi tiết theo từng giờ của ngày này hiện đang được sắp xếp.</p>
                                     <a href="{{ route('trips.edit', $trip->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
                                         <i class="bi bi-pencil me-1"></i> Chỉnh sửa thông tin Trip
@@ -614,7 +627,7 @@
                             @endif
                         </div>
                     </div>
-                @endfor
+                @endforeach
             </div>
         </div>
     </main>
