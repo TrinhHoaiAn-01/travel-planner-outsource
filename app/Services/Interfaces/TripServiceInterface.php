@@ -101,14 +101,25 @@ interface TripServiceInterface
     public function reopenTrip(int $tripId): Trip;
 
     /**
-     * Xử lý khi ngày của chuyến đi bị thay đổi.
+     * Lấy thông tin chi tiết các hoạt động lịch trình phụ thuộc bị ảnh hưởng khi thay đổi hoặc rút ngắn ngày chuyến đi.
      *
      * @param int $tripId Mã định danh chuyến đi
      * @param string|null $newStartDate Ngày bắt đầu mới
      * @param string|null $newEndDate Ngày kết thúc mới
-     * @return void
+     * @return array Mảng chứa: is_shortened, old_total_days, new_total_days, target_day, affected_count, affected_items
      */
-    public function handleTripDateChange(int $tripId, ?string $newStartDate, ?string $newEndDate): void;
+    public function getAffectedItineraryItems(int $tripId, ?string $newStartDate, ?string $newEndDate): array;
+
+    /**
+     * Xử lý khi ngày của chuyến đi bị thay đổi hoặc rút ngắn khi có lịch trình phụ thuộc.
+     * Tự động bảo toàn dữ liệu bằng cách dời an toàn các hoạt động vượt quá số ngày về ngày cuối cùng mới và tái cấu trúc thứ tự hiển thị.
+     *
+     * @param int $tripId Mã định danh chuyến đi
+     * @param string|null $newStartDate Ngày bắt đầu mới
+     * @param string|null $newEndDate Ngày kết thúc mới
+     * @return array Kết quả xử lý: [date_changed, is_shortened, reassigned_count, affected_items, target_day, message]
+     */
+    public function handleTripDateChange(int $tripId, ?string $newStartDate, ?string $newEndDate): array;
 
     /**
      * Cập nhật mô tả và ghi chú tổng quát của chuyến đi.

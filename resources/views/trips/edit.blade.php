@@ -262,6 +262,32 @@
                         </div>
                     </div>
 
+                    <!-- Cảnh báo và xử lý lịch trình phụ thuộc khi rút ngắn thời lượng chuyến đi (Phần 4.3 Quản lý chuyến đi) -->
+                    <div id="itineraryDependencyWarningBox" class="alert alert-warning border border-warning-subtle rounded-4 p-3 mb-4 d-none shadow-sm" role="alert">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="text-warning-emphasis fs-4 mt-1">
+                                <i class="bi bi-exclamation-diamond-fill"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <h6 class="fw-bold text-dark mb-0">Lưu ý: Có hoạt động lịch trình phụ thuộc bị ảnh hưởng do rút ngắn ngày</h6>
+                                    <span class="badge bg-warning text-dark px-2 py-1 rounded-pill fw-semibold" id="affectedBadge">
+                                        <span id="affectedCountText">0</span> hoạt động
+                                    </span>
+                                </div>
+                                <p class="small text-secondary mb-2" id="affectedNoticeText">
+                                    Thời lượng chuyến đi mới bị rút ngắn so với lịch trình hiện tại. Hệ thống sẽ <strong>tự động bảo toàn an toàn 100%</strong> toàn bộ các hoạt động ở các ngày vượt quá bằng cách chuyển chúng về <strong>Ngày <span id="targetDayNotice">cuối cùng</span></strong> ngay khi bạn lưu chuyến đi.
+                                </p>
+                                <div class="bg-white rounded-3 p-2 border border-warning-subtle small shadow-sm" id="affectedItemsListContainer">
+                                    <div class="fw-semibold text-muted mb-1 small text-uppercase"><i class="bi bi-arrow-repeat me-1 text-primary"></i> Danh sách hoạt động sẽ được tự động dời ngày:</div>
+                                    <ul class="mb-0 ps-3 text-dark small" id="affectedItemsList">
+                                        <!-- Danh sách hoạt động do JavaScript điền vào -->
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Ngân sách dự kiến & Trạng thái -->
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
@@ -428,6 +454,7 @@
                     dateFeedbackBox.classList.add('d-none');
                 }
                 endInput.setCustomValidity('Ngày kết thúc không được trước ngày bắt đầu.');
+                checkItineraryDependencies(0);
                 return false;
             } else {
                 if (dateAlert) {
@@ -451,7 +478,44 @@
             if (rangeEl) rangeEl.textContent = `${formatDisplayDate(startVal)} — ${formatDisplayDate(endVal)}`;
             if (dateFeedbackBox) dateFeedbackBox.classList.remove('d-none');
 
+            // Kiểm tra các hoạt động lịch trình phụ thuộc khi số ngày chuyến đi thay đổi
+            checkItineraryDependencies(diffDays);
+
             return true;
+        }
+
+        // Dữ liệu các hoạt động lịch trình phụ thuộc hiện có của chuyến đi
+        const tripItineraryItems = {!! json_encode($itineraryItemsList ?? [], JSON_UNESCAPED_UNICODE) !!};
+        const originalTotalDays = {{ (int) $trip->total_days }};
+
+        // Hàm kiểm tra các hoạt động lịch trình bị ảnh hưởng khi rút ngắn chuyến đi
+        function checkItineraryDependencies(newDays) {
+            const warningBox = document.getElementById('itineraryDependencyWarningBox');
+            const affectedCountText = document.getElementById('affectedCountText');
+            const targetDayNotice = document.getElementById('targetDayNotice');
+            const affectedItemsList = document.getElementById('affectedItemsList');
+
+            if (!warningBox) return;
+
+            // Chỉ kích hoạt khi chuyến đi thực sự bị rút ngắn số ngày và có hoạt động ở các ngày thừa
+            if (newDays > 0 && originalTotalDays > 0 && newDays < originalTotalDays && tripItineraryItems.length > 0) {
+                const affected = tripItineraryItems.filter(item => item.day_number > newDays);
+                if (affected.length > 0) {
+                    warningBox.classList.remove('d-none');
+                    if (affectedCountText) affectedCountText.textContent = affected.length;
+                    if (targetDayNotice) targetDayNotice.textContent = newDays;
+                    if (affectedItemsList) {
+                        affectedItemsList.innerHTML = affected.map(item => {
+                            const timeStr = item.start_time ? ` (${item.start_time}${item.end_time ? ' - ' + item.end_time : ''})` : '';
+                            return `<li class="mb-1"><span class="badge bg-secondary me-1">Ngày ${item.day_number}</span> <strong>${item.destination_name}</strong>${timeStr} <i class="bi bi-arrow-right text-warning-emphasis mx-1"></i> Sẽ dời về <strong class="text-primary">Ngày ${newDays}</strong></li>`;
+                        }).join('');
+                    }
+                    return;
+                }
+            }
+
+            // Nếu không bị rút ngắn hoặc không có hoạt động phụ thuộc nào bị thừa ngày
+            warningBox.classList.add('d-none');
         }
 
         // Tương thích với onchange trên input
