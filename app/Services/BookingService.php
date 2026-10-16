@@ -7,6 +7,7 @@ use App\Models\RoomType;
 use App\Models\Trip;
 use App\Services\Interfaces\BookingServiceInterface;
 use Carbon\Carbon;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -116,5 +117,65 @@ class BookingService implements BookingServiceInterface
                 ]);
             }
         }
+    }
+
+    /**
+     * Lấy danh sách các đơn đặt phòng của người dùng kèm phân trang và lọc theo trạng thái.
+     */
+    public function getUserBookings(int $userId, ?string $status = null, int $perPage = 10): LengthAwarePaginator
+    {
+        $query = Booking::with(['roomType.destination.city', 'trip', 'payments'])
+            ->where('user_id', $userId)
+            ->latest();
+
+        if ($status && $status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        return $query->paginate($perPage);
+    }
+
+    /**
+     * Lấy thông tin chi tiết một đơn đặt phòng của người dùng.
+     */
+    public function getBookingDetails(int $bookingId, int $userId): Booking
+    {
+        return Booking::with(['roomType.destination.city', 'trip', 'payments', 'itineraryItems'])
+            ->where('id', $bookingId)
+            ->where('user_id', $userId)
+            ->firstOrFail();
+    }
+
+    /**
+     * Hủy đơn đặt phòng theo quy tắc nghiệp vụ (BR-11).
+     */
+    public function cancelBooking(int $bookingId, int $userId): Booking
+    {
+        $booking = Booking::where('id', $bookingId)
+            ->where('user_id', $userId)
+            ->firstOrFail();
+
+        // 1. Kiểm tra đơn đã bị hủy trước đó chưa
+        if ($booking->status === 'cancelled') {
+            throw ValidationException::withMessages([
+                'status' => 'Đơn đặt phòng này đã được hủy trước đó.',
+            ]);
+        }
+
+        // 2. Kiểm tra ngày nhận phòng: Không cho phép hủy khi đã tới hoặc qua ngày nhận phòng
+        if ($booking->check_in_date && Carbon::parse($booking->check_in_date)->isPast() && !Carbon::parse($booking->check_in_date)->isToday()) {
+            throw ValidationException::withMessages([
+                'status' => 'Không thể hủy đơn đặt phòng khi đã qua ngày nhận phòng.',
+            ]);
+        }
+
+        // 3. Cập nhật trạng thái sang cancelled trong transaction
+        return DB::transaction(function () use ($booking) {
+            $booking->update([
+                'status' => 'cancelled',
+            ]);
+
+            return $booking;
+        });
     }
 }

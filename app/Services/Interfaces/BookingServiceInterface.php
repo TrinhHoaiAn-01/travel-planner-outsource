@@ -3,6 +3,7 @@
 namespace App\Services\Interfaces;
 
 use App\Models\Booking;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface BookingServiceInterface
 {
@@ -30,4 +31,19 @@ interface BookingServiceInterface
      * Kiểm tra thời gian đặt phòng phải nằm trong thời gian của chuyến đi.
      */
     public function validateBookingDates(?int $tripId, string $checkIn, string $checkOut, int $userId): void;
+
+    /**
+     * Lấy danh sách các đơn đặt phòng của người dùng kèm bộ lọc trạng thái và phân trang.
+     */
+    public function getUserBookings(int $userId, ?string $status = null, int $perPage = 10): LengthAwarePaginator;
+
+    /**
+     * Lấy thông tin chi tiết một đơn đặt phòng của người dùng.
+     */
+    public function getBookingDetails(int $bookingId, int $userId): Booking;
+
+    /**
+     * Hủy đơn đặt phòng theo quy tắc nghiệp vụ (BR-11).
+     */
+    public function cancelBooking(int $bookingId, int $userId): Booking;
 }
