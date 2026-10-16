@@ -11,6 +11,13 @@ class TripCreateTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Vô hiệu hóa kiểm tra CSRF token trong môi trường test để tập trung kiểm thử logic nghiệp vụ
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+    }
+
     /**
      * Khách vãng lai (Guest) chưa đăng nhập không thể truy cập màn hình tạo chuyến đi và bị chuyển hướng về login.
      */

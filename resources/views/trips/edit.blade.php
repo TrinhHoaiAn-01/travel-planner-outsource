@@ -243,6 +243,25 @@
                         </div>
                     </div>
 
+                    <!-- Hộp thông báo thời lượng tính toán theo thời gian thực (Real-time Duration Feedback Box) -->
+                    <div class="alert alert-light border rounded-3 p-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2" id="dateFeedbackBox">
+                        <div class="d-flex align-items-center gap-2 text-primary fw-semibold fs-6">
+                            <i class="bi bi-clock-history"></i>
+                            <span>Thời lượng chuyến đi: <strong class="text-dark" id="calculatedDuration">{{ $trip->duration_label }}</strong></span>
+                        </div>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold" id="dateRangeBadge">
+                            {{ $trip->date_range_formatted }}
+                        </span>
+                    </div>
+
+                    <!-- Cảnh báo lỗi ngày không hợp lệ chuẩn theo form.html và Phần 4.3 -->
+                    <div id="dateAlert" class="alert alert-danger alert-dismissible fade d-none mb-4" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                            <span id="dateAlertText" class="fw-semibold">Ngày bắt đầu không được lớn hơn ngày kết thúc!</span>
+                        </div>
+                    </div>
+
                     <!-- Ngân sách dự kiến & Trạng thái -->
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
@@ -361,15 +380,83 @@
     <!-- Bootstrap 5 Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Hàm kiểm tra tính hợp lệ của ngày tháng theo thời gian thực
-        function validateDates() {
-            const start = document.getElementById('startDate').value;
-            const end = document.getElementById('endDate').value;
-            if (start && end && new Date(start) > new Date(end)) {
-                document.getElementById('endDate').setCustomValidity('Ngày kết thúc không được trước ngày bắt đầu.');
-            } else {
-                document.getElementById('endDate').setCustomValidity('');
+        // Hàm định dạng ngày hiển thị dd/mm/yyyy từ chuỗi yyyy-mm-dd
+        function formatDisplayDate(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
             }
+            return dateStr;
+        }
+
+        // Kiểm tra tính hợp lệ và tự động tính toán thời lượng số ngày, số đêm theo thời gian thực (Phần 4.3 Quản lý chuyến đi)
+        function validateAndCalculateDates() {
+            const startInput = document.getElementById('startDate');
+            const endInput = document.getElementById('endDate');
+            const dateAlert = document.getElementById('dateAlert');
+            const dateFeedbackBox = document.getElementById('dateFeedbackBox');
+            const durationEl = document.getElementById('calculatedDuration');
+            const rangeEl = document.getElementById('dateRangeBadge');
+
+            if (!startInput || !endInput) return true;
+
+            const startVal = startInput.value;
+            const endVal = endInput.value;
+
+            // Ràng buộc min ngày kết thúc phải từ ngày bắt đầu
+            if (startVal) {
+                endInput.min = startVal;
+            }
+
+            if (!startVal || !endVal) {
+                if (dateFeedbackBox) dateFeedbackBox.classList.add('d-none');
+                if (dateAlert) dateAlert.classList.add('d-none');
+                return true;
+            }
+
+            const startDate = new Date(startVal);
+            const endDate = new Date(endVal);
+
+            // Kiểm tra: ngày bắt đầu không được lớn hơn ngày kết thúc
+            if (startDate > endDate) {
+                if (dateAlert) {
+                    dateAlert.classList.remove('d-none');
+                    dateAlert.classList.add('show');
+                }
+                if (dateFeedbackBox) {
+                    dateFeedbackBox.classList.add('d-none');
+                }
+                endInput.setCustomValidity('Ngày kết thúc không được trước ngày bắt đầu.');
+                return false;
+            } else {
+                if (dateAlert) {
+                    dateAlert.classList.add('d-none');
+                    dateAlert.classList.remove('show');
+                }
+                endInput.setCustomValidity('');
+            }
+
+            // Tính toán chính xác số ngày và số đêm
+            const diffTime = Math.abs(endDate - startDate);
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            const diffNights = Math.max(0, diffDays - 1);
+
+            let durationLabel = `${diffDays} ngày`;
+            if (diffNights > 0) {
+                durationLabel = `${diffDays} ngày ${diffNights} đêm`;
+            }
+
+            if (durationEl) durationEl.textContent = durationLabel;
+            if (rangeEl) rangeEl.textContent = `${formatDisplayDate(startVal)} — ${formatDisplayDate(endVal)}`;
+            if (dateFeedbackBox) dateFeedbackBox.classList.remove('d-none');
+
+            return true;
+        }
+
+        // Tương thích với onchange trên input
+        function validateDates() {
+            return validateAndCalculateDates();
         }
 
         // Xử lý kiểm tra các trường nhập liệu không hợp lệ phía Client
@@ -381,6 +468,21 @@
             const validationModalElement = document.getElementById('clientValidationModal');
             const validationModalList = document.getElementById('clientValidationModalList');
             const btnModalOk = document.getElementById('btnModalOk');
+            const startInput = document.getElementById('startDate');
+            const endInput = document.getElementById('endDate');
+
+            // Lắng nghe sự kiện thay đổi ngày
+            if (startInput) {
+                startInput.addEventListener('input', validateAndCalculateDates);
+                startInput.addEventListener('change', validateAndCalculateDates);
+            }
+            if (endInput) {
+                endInput.addEventListener('input', validateAndCalculateDates);
+                endInput.addEventListener('change', validateAndCalculateDates);
+            }
+
+            // Tính toán thời lượng ban đầu
+            validateAndCalculateDates();
 
             let validationModal = null;
             if (validationModalElement && typeof bootstrap !== 'undefined') {
