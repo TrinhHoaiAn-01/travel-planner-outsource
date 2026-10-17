@@ -156,13 +156,14 @@ class TripService implements TripServiceInterface
         return DB::transaction(function () use ($tripId, $data) {
             $trip = Trip::findOrFail($tripId);
 
+            $dateChangeResult = null;
             if (isset($data['start_date']) && isset($data['end_date'])) {
                 if (! $this->validateTripDates($data['start_date'], $data['end_date'])) {
                     throw new InvalidArgumentException('Ngày bắt đầu không được sau ngày kết thúc.');
                 }
 
                 // Xử lý thay đổi ngày và tự động bảo toàn các hoạt động lịch trình khi số ngày thay đổi
-                $this->handleTripDateChange($tripId, $data['start_date'], $data['end_date']);
+                $dateChangeResult = $this->handleTripDateChange($tripId, $data['start_date'], $data['end_date']);
                 $trip->refresh();
             }
 
@@ -184,7 +185,12 @@ class TripService implements TripServiceInterface
 
             $trip->update($updateAttributes);
 
-            return $trip->fresh();
+            $freshTrip = $trip->fresh();
+            if ($dateChangeResult !== null) {
+                $freshTrip->dateChangeResult = $dateChangeResult;
+            }
+
+            return $freshTrip;
         });
     }
 
@@ -308,35 +314,125 @@ class TripService implements TripServiceInterface
     }
 
     /**
-     * Xử lý khi ngày của chuyến đi bị thay đổi.
-     * Kiểm tra tính hợp lệ và tự động bảo toàn các hoạt động lịch trình nếu số ngày bị rút ngắn.
+     * Lấy thông tin chi tiết các hoạt động lịch trình phụ thuộc bị ảnh hưởng khi thay đổi hoặc rút ngắn ngày chuyến đi.
      */
-    public function handleTripDateChange(int $tripId, ?string $newStartDate, ?string $newEndDate): void
+    public function getAffectedItineraryItems(int $tripId, ?string $newStartDate, ?string $newEndDate): array
     {
-        DB::transaction(function () use ($tripId, $newStartDate, $newEndDate) {
-            $trip = Trip::with('itineraryItems')->findOrFail($tripId);
+        $trip = Trip::with(['itineraryItems.destination'])->findOrFail($tripId);
+        $oldTotalDays = $trip->total_days;
+
+        if (empty($newStartDate) || empty($newEndDate) || ! $this->validateTripDates($newStartDate, $newEndDate)) {
+            return [
+                'is_shortened' => false,
+                'old_total_days' => $oldTotalDays,
+                'new_total_days' => 0,
+                'target_day' => 0,
+                'affected_count' => 0,
+                'affected_items' => [],
+            ];
+        }
+
+        $newTotalDays = (int) \Carbon\Carbon::parse($newStartDate)->diffInDays(\Carbon\Carbon::parse($newEndDate)) + 1;
+        $isShortened = ($oldTotalDays > 0) && ($newTotalDays < $oldTotalDays);
+
+        $affectedItems = [];
+        if ($isShortened && $trip->itineraryItems->isNotEmpty()) {
+            $filtered = $trip->itineraryItems
+                ->filter(fn ($item) => $item->day_number > $newTotalDays)
+                ->sortBy(fn ($item) => $item->day_number * 1000 + $item->sort_order);
+
+            foreach ($filtered as $item) {
+                $affectedItems[] = [
+                    'id' => $item->id,
+                    'original_day_number' => $item->day_number,
+                    'target_day_number' => $newTotalDays,
+                    'destination_id' => $item->destination_id,
+                    'destination_name' => $item->destination ? $item->destination->name : 'Điểm tham quan #' . $item->destination_id,
+                    'start_time' => $item->start_time ? substr($item->start_time, 0, 5) : null,
+                    'end_time' => $item->end_time ? substr($item->end_time, 0, 5) : null,
+                    'note' => $item->note,
+                    'sort_order' => $item->sort_order,
+                ];
+            }
+        }
+
+        return [
+            'is_shortened' => $isShortened,
+            'old_total_days' => $oldTotalDays,
+            'new_total_days' => $newTotalDays,
+            'target_day' => $newTotalDays,
+            'affected_count' => count($affectedItems),
+            'affected_items' => $affectedItems,
+        ];
+    }
+
+    /**
+     * Xử lý khi ngày của chuyến đi bị thay đổi hoặc rút ngắn khi có lịch trình phụ thuộc.
+     * Tự động bảo toàn dữ liệu bằng cách dời an toàn các hoạt động vượt quá số ngày về ngày cuối cùng mới và tái cấu trúc thứ tự hiển thị.
+     */
+    public function handleTripDateChange(int $tripId, ?string $newStartDate, ?string $newEndDate): array
+    {
+        return DB::transaction(function () use ($tripId, $newStartDate, $newEndDate) {
+            $trip = Trip::with(['itineraryItems.destination'])->findOrFail($tripId);
 
             if ($newStartDate !== null && $newEndDate !== null) {
                 if (! $this->validateTripDates($newStartDate, $newEndDate)) {
                     throw new InvalidArgumentException('Ngày bắt đầu không được sau ngày kết thúc.');
                 }
+            }
 
-                $newTotalDays = (int) \Carbon\Carbon::parse($newStartDate)->diffInDays(\Carbon\Carbon::parse($newEndDate)) + 1;
+            $affectedInfo = $this->getAffectedItineraryItems($tripId, $newStartDate, $newEndDate);
+            $reassignedCount = 0;
+            $reassignedItems = [];
 
-                // Xử lý bảo toàn dữ liệu: Nếu chuyến đi bị rút ngắn ngày, chuyển các hoạt động ở ngày vượt quá về ngày cuối cùng mới
-                if ($trip->itineraryItems->isNotEmpty()) {
-                    foreach ($trip->itineraryItems as $item) {
-                        if ($item->day_number > $newTotalDays) {
-                            $item->day_number = $newTotalDays;
-                            $item->save();
-                        }
-                    }
+            if ($affectedInfo['is_shortened'] && $affectedInfo['affected_count'] > 0) {
+                $targetDay = $affectedInfo['target_day'];
+
+                // Tìm thứ tự sắp xếp lớn nhất hiện có ở ngày đích để xếp các hoạt động chuyển về tiếp nối phía sau
+                $currentMaxSortOrder = (int) ($trip->itineraryItems
+                    ->where('day_number', $targetDay)
+                    ->max('sort_order') ?? 0);
+
+                // Lấy các mục cần di dời, sắp xếp theo ngày cũ và thứ tự cũ để bảo toàn logic thời gian
+                $itemsToReassign = $trip->itineraryItems
+                    ->filter(fn ($item) => $item->day_number > $targetDay)
+                    ->sortBy(fn ($item) => $item->day_number * 1000 + $item->sort_order);
+
+                foreach ($itemsToReassign as $item) {
+                    $item->day_number = $targetDay;
+                    $item->sort_order = ++$currentMaxSortOrder;
+                    $item->save();
+
+                    $reassignedCount++;
+                    $reassignedItems[] = [
+                        'id' => $item->id,
+                        'destination_name' => $item->destination ? $item->destination->name : 'Điểm tham quan #' . $item->destination_id,
+                        'day_number' => $targetDay,
+                        'sort_order' => $item->sort_order,
+                    ];
                 }
             }
 
+            // Cập nhật khoảng ngày mới cho chuyến đi
             $trip->start_date = $newStartDate;
             $trip->end_date = $newEndDate;
             $trip->save();
+
+            $message = 'Thời gian chuyến đi đã được cập nhật thành công.';
+            if ($reassignedCount > 0) {
+                $message = "Chuyến đi đã được rút ngắn từ {$affectedInfo['old_total_days']} ngày xuống {$affectedInfo['new_total_days']} ngày. Đã tự động bảo toàn {$reassignedCount} hoạt động lịch trình sang Ngày {$affectedInfo['target_day']}.";
+            }
+
+            return [
+                'date_changed' => true,
+                'is_shortened' => $affectedInfo['is_shortened'],
+                'old_total_days' => $affectedInfo['old_total_days'],
+                'new_total_days' => $affectedInfo['new_total_days'],
+                'reassigned_count' => $reassignedCount,
+                'reassigned_items' => $reassignedItems,
+                'target_day' => $affectedInfo['target_day'],
+                'message' => $message,
+            ];
         });
     }
 
@@ -353,7 +449,6 @@ class TripService implements TripServiceInterface
                 'is_valid' => false,
             ];
         }
-
         if (! $this->validateTripDates($startDate, $endDate)) {
             return [
                 'days' => 0,

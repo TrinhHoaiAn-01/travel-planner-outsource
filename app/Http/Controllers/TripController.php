@@ -100,29 +100,61 @@ class TripController extends Controller
 
     /**
      * Hiển thị màn hình chỉnh sửa thông tin chuyến đi.
+     * Tải kèm các hoạt động lịch trình phụ thuộc để người dùng nắm rõ khi có thay đổi ngày.
      */
     public function edit(Trip $trip): View
     {
         Gate::authorize('update', $trip);
 
+        // Nạp trước danh sách hoạt động lịch trình và điểm đến tương ứng
+        $trip->load(['itineraryItems.destination']);
+        $affectedPreview = $this->tripService->getAffectedItineraryItems(
+            $trip->id,
+            $trip->start_date ? $trip->start_date->format('Y-m-d') : null,
+            $trip->end_date ? $trip->end_date->format('Y-m-d') : null
+        );
+
+        $itineraryItemsList = $trip->itineraryItems->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'day_number' => (int) $item->day_number,
+                'destination_name' => $item->destination ? $item->destination->name : 'Điểm tham quan #' . $item->destination_id,
+                'start_time' => $item->start_time ? substr($item->start_time, 0, 5) : '',
+                'end_time' => $item->end_time ? substr($item->end_time, 0, 5) : '',
+                'note' => $item->note,
+                'sort_order' => (int) $item->sort_order,
+            ];
+        })->values()->toArray();
+
         return view('trips.edit', [
             'trip' => $trip,
+            'affectedPreview' => $affectedPreview,
+            'itineraryItemsList' => $itineraryItemsList,
         ]);
     }
 
     /**
      * Cập nhật thông tin chuyến đi qua Form Request và Service Interface.
+     * Tự động phản hồi thông điệp chi tiết nếu có hoạt động lịch trình được bảo toàn do rút ngắn ngày.
      */
     public function update(UpdateTripRequest $request, Trip $trip): RedirectResponse
     {
         Gate::authorize('update', $trip);
 
         $validatedData = $request->validated();
-        $this->tripService->updateTrip($trip->id, $validatedData);
+        $updatedTrip = $this->tripService->updateTrip($trip->id, $validatedData);
+
+        // Thông điệp mặc định khi cập nhật thành công
+        $successMessage = 'Cập nhật chuyến đi thành công!';
+
+        // Nếu có hoạt động lịch trình phụ thuộc được tự động bảo toàn dời ngày an toàn
+        if (isset($updatedTrip->dateChangeResult['reassigned_count']) && $updatedTrip->dateChangeResult['reassigned_count'] > 0) {
+            $successMessage = $updatedTrip->dateChangeResult['message'];
+        }
 
         return redirect()
             ->route('trips.show', $trip->id)
-            ->with('success', 'Cập nhật chuyến đi thành công!');
+            ->with('success', $successMessage);
     }
 
     /**
