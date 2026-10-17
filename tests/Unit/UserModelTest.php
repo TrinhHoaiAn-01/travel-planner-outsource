@@ -29,6 +29,36 @@ class UserModelTest extends TestCase
     }
 
     /**
+     * Kiểm thử các phương thức phân quyền và kiểm tra trạng thái hoạt động của User model.
+     */
+    public function test_user_role_and_active_helper_methods(): void
+    {
+        $admin = new User([
+            'role' => 'admin',
+            'is_active' => true,
+        ]);
+
+        $user = new User([
+            'role' => 'user',
+            'is_active' => false,
+        ]);
+
+        $this->assertTrue($admin->isAdmin());
+        $this->assertFalse($admin->isUser());
+        $this->assertTrue($admin->hasRole('admin'));
+        $this->assertFalse($admin->hasRole('user'));
+        $this->assertTrue($admin->hasRole(['admin', 'editor']));
+        $this->assertTrue($admin->hasRole('editor, admin'));
+        $this->assertTrue($admin->isActive());
+
+        $this->assertFalse($user->isAdmin());
+        $this->assertTrue($user->isUser());
+        $this->assertTrue($user->hasRole('user'));
+        $this->assertFalse($user->hasRole('admin'));
+        $this->assertFalse($user->isActive());
+    }
+
+    /**
      * Kiểm thử các trường fillable của User model.
      */
     public function test_user_fillable_attributes(): void

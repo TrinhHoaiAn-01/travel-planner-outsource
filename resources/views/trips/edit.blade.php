@@ -163,24 +163,47 @@
                     <p class="text-muted small mb-0">Cập nhật thông tin chi tiết, thời gian, ngân sách và ghi chú mục tiêu cho chuyến đi của bạn</p>
                 </div>
 
-                <!-- Validation Error Notification -->
+                <!-- Thông báo lỗi xác thực từ máy chủ (Server-side validation) kèm nút OK -->
                 @if($errors->any())
-                    <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+                    <div class="alert alert-danger alert-dismissible fade show rounded-4 mb-4 shadow-sm border border-danger-subtle" role="alert" id="serverValidationAlert">
                         <div class="d-flex align-items-center gap-2 mb-2">
-                            <i class="bi bi-exclamation-triangle-fill fs-5"></i>
-                            <strong class="fw-bold">Vui lòng kiểm tra lại thông tin:</strong>
+                            <i class="bi bi-exclamation-triangle-fill fs-5 text-danger"></i>
+                            <strong class="fw-bold text-danger">Thông tin nhập không hợp lệ, vui lòng kiểm tra lại:</strong>
                         </div>
-                        <ul class="mb-0 ps-3 small">
+                        <ul class="mb-3 ps-3 small text-danger-emphasis">
                             @foreach($errors->all() as $error)
                                 <li>{{ $error }}</li>
                             @endforeach
                         </ul>
+                        <!-- Nút OK nằm ngay trong thông báo để người dùng xác nhận và đóng thông báo -->
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-danger btn-sm px-4 fw-semibold rounded-pill shadow-sm" data-bs-dismiss="alert">
+                                OK
+                            </button>
+                        </div>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif
 
+                <!-- Thông báo lỗi kiểm tra phía người dùng (Client-side validation) kèm nút OK (Chỉ hiển thị khi có trường nhập không hợp lệ) -->
+                <div class="alert alert-danger alert-dismissible fade show rounded-4 mb-4 shadow-sm border border-danger-subtle d-none" role="alert" id="clientValidationErrorAlert">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-exclamation-octagon-fill fs-5 text-danger"></i>
+                        <strong class="fw-bold text-danger">Dữ liệu nhập không hợp lệ, vui lòng kiểm tra lại:</strong>
+                    </div>
+                    <ul class="mb-3 ps-3 small text-danger-emphasis" id="clientValidationErrorsList">
+                        <!-- Danh sách lỗi do JavaScript chèn vào khi người dùng nhập sai -->
+                    </ul>
+                    <!-- Nút OK đóng thông báo và chuyển con trỏ chuột đến trường nhập sai đầu tiên -->
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-danger btn-sm px-4 fw-semibold rounded-pill shadow-sm" id="btnDismissClientAlert">
+                            OK
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Form Chỉnh sửa chuyến đi (Method PUT / PATCH) -->
-                <form action="{{ route('trips.update', $trip->id) }}" method="POST" id="tripEditForm">
+                <form action="{{ route('trips.update', $trip->id) }}" method="POST" id="tripEditForm" novalidate>
                     @csrf
                     @method('PUT')
 
@@ -202,7 +225,7 @@
                             <label for="startDate" class="form-label">Ngày bắt đầu <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="bi bi-calendar-event"></i></span>
-                                <input type="date" name="start_date" class="form-control @error('start_date') is-invalid @enderror" id="startDate" value="{{ old('start_date', $trip->start_date ? $trip->start_date->format('Y-m-d') : '') }}" required onchange="validateAndCalculateDates()">
+                                <input type="date" name="start_date" class="form-control @error('start_date') is-invalid @enderror" id="startDate" value="{{ old('start_date', $trip->start_date ? $trip->start_date->format('Y-m-d') : '') }}" required onchange="validateDates()">
                             </div>
                             @error('start_date')
                                 <div class="text-danger small mt-1">{{ $message }}</div>
@@ -212,7 +235,7 @@
                             <label for="endDate" class="form-label">Ngày kết thúc <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="bi bi-calendar-check"></i></span>
-                                <input type="date" name="end_date" class="form-control @error('end_date') is-invalid @enderror" id="endDate" value="{{ old('end_date', $trip->end_date ? $trip->end_date->format('Y-m-d') : '') }}" required onchange="validateAndCalculateDates()">
+                                <input type="date" name="end_date" class="form-control @error('end_date') is-invalid @enderror" id="endDate" value="{{ old('end_date', $trip->end_date ? $trip->end_date->format('Y-m-d') : '') }}" required onchange="validateDates()">
                             </div>
                             @error('end_date')
                                 <div class="text-danger small mt-1">{{ $message }}</div>
@@ -220,21 +243,21 @@
                         </div>
                     </div>
 
-                    <!-- Hộp phản hồi thời lượng tính toán theo thời gian thực (Real-time Duration Feedback Box) -->
-                    <div class="alert alert-light border shadow-sm p-3 rounded-3 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2" id="dateFeedbackBox">
-                        <div class="d-flex align-items-center gap-2 text-primary fw-semibold small">
-                            <i class="bi bi-clock-history fs-5"></i>
-                            <span>Thời lượng chuyến đi: <strong id="calculatedDuration" class="text-dark">{{ $trip->duration_label ?? 'Chưa xác định' }}</strong></span>
+                    <!-- Hộp thông báo thời lượng tính toán theo thời gian thực (Real-time Duration Feedback Box) -->
+                    <div class="alert alert-light border rounded-3 p-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2" id="dateFeedbackBox">
+                        <div class="d-flex align-items-center gap-2 text-primary fw-semibold fs-6">
+                            <i class="bi bi-clock-history"></i>
+                            <span>Thời lượng chuyến đi: <strong class="text-dark" id="calculatedDuration">{{ $trip->duration_label }}</strong></span>
                         </div>
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2 fw-semibold" id="dateRangeBadge">
-                            {{ $trip->date_range_formatted ?? '' }}
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold" id="dateRangeBadge">
+                            {{ $trip->date_range_formatted }}
                         </span>
                     </div>
 
                     <!-- Cảnh báo lỗi ngày không hợp lệ chuẩn theo form.html và Phần 4.3 -->
-                    <div id="dateAlert" class="alert alert-danger alert-dismissible fade show rounded-3 mb-3 d-none" role="alert">
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="bi bi-exclamation-triangle-fill fs-5 text-danger"></i>
+                    <div id="dateAlert" class="alert alert-danger alert-dismissible fade d-none mb-4" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
                             <span id="dateAlertText" class="fw-semibold">Ngày bắt đầu không được lớn hơn ngày kết thúc!</span>
                         </div>
                     </div>
@@ -320,6 +343,33 @@
         </div>
     </main>
 
+    <!-- Modal Thông Báo Lỗi Nhập Liệu Hiện Ra Trên Màn Hình Kèm Nút OK (Chỉ hiển thị khi trường nhập không hợp lệ) -->
+    <div class="modal fade" id="clientValidationModal" tabindex="-1" aria-labelledby="clientValidationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header bg-danger text-white border-0 py-3">
+                    <h5 class="modal-title fw-bold d-flex align-items-center gap-2" id="clientValidationModalLabel">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span>Thông Báo Lỗi Nhập Liệu</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-secondary small mb-3">Vui lòng kiểm tra và sửa lại các trường thông tin chưa hợp lệ sau:</p>
+                    <ul class="mb-0 ps-3 small text-danger fw-medium" id="clientValidationModalList">
+                        <!-- Danh sách lỗi đưa vào động -->
+                    </ul>
+                </div>
+                <!-- Nút OK ngay trong thông báo lỗi để người dùng đóng thông báo và sửa lỗi -->
+                <div class="modal-footer border-0 p-4 pt-0 d-flex justify-content-end">
+                    <button type="button" class="btn btn-danger px-4 rounded-pill fw-semibold shadow-sm" data-bs-dismiss="modal" id="btnModalOk">
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer Khớp 100% Giao diện chuẩn -->
     <footer class="py-4 mt-5 text-center text-white-50 small" style="background-color: #0F172A;">
         <div class="container">
@@ -330,7 +380,7 @@
     <!-- Bootstrap 5 Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Hàm định dạng ngày hiển thị dd/mm/yyyy
+        // Hàm định dạng ngày hiển thị dd/mm/yyyy từ chuỗi yyyy-mm-dd
         function formatDisplayDate(dateStr) {
             if (!dateStr) return '';
             const parts = dateStr.split('-');
@@ -340,7 +390,7 @@
             return dateStr;
         }
 
-        // Xử lý kiểm tra và tính toán ngày bắt đầu / ngày kết thúc theo thời gian thực (Phần 4.3 Quản lý chuyến đi)
+        // Kiểm tra tính hợp lệ và tự động tính toán thời lượng số ngày, số đêm theo thời gian thực (Phần 4.3 Quản lý chuyến đi)
         function validateAndCalculateDates() {
             const startInput = document.getElementById('startDate');
             const endInput = document.getElementById('endDate');
@@ -354,7 +404,7 @@
             const startVal = startInput.value;
             const endVal = endInput.value;
 
-            // Tự động gán min cho ngày kết thúc để người dùng không chọn ngày trước ngày bắt đầu
+            // Ràng buộc min ngày kết thúc phải từ ngày bắt đầu
             if (startVal) {
                 endInput.min = startVal;
             }
@@ -362,33 +412,32 @@
             if (!startVal || !endVal) {
                 if (dateFeedbackBox) dateFeedbackBox.classList.add('d-none');
                 if (dateAlert) dateAlert.classList.add('d-none');
-                endInput.setCustomValidity('');
                 return true;
             }
 
             const startDate = new Date(startVal);
             const endDate = new Date(endVal);
 
-            // Kiểm tra ràng buộc: Ngày bắt đầu không được lớn hơn ngày kết thúc
+            // Kiểm tra: ngày bắt đầu không được lớn hơn ngày kết thúc
             if (startDate > endDate) {
                 if (dateAlert) {
                     dateAlert.classList.remove('d-none');
+                    dateAlert.classList.add('show');
                 }
                 if (dateFeedbackBox) {
                     dateFeedbackBox.classList.add('d-none');
                 }
                 endInput.setCustomValidity('Ngày kết thúc không được trước ngày bắt đầu.');
-                endInput.classList.add('is-invalid');
                 return false;
+            } else {
+                if (dateAlert) {
+                    dateAlert.classList.add('d-none');
+                    dateAlert.classList.remove('show');
+                }
+                endInput.setCustomValidity('');
             }
 
-            // Hợp lệ: Xóa cảnh báo lỗi và tính toán thời lượng
-            if (dateAlert) {
-                dateAlert.classList.add('d-none');
-            }
-            endInput.setCustomValidity('');
-            endInput.classList.remove('is-invalid');
-
+            // Tính toán chính xác số ngày và số đêm
             const diffTime = Math.abs(endDate - startDate);
             const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
             const diffNights = Math.max(0, diffDays - 1);
@@ -405,32 +454,178 @@
             return true;
         }
 
-        // Tự động chạy khi tài liệu tải xong
+        // Tương thích với onchange trên input
+        function validateDates() {
+            return validateAndCalculateDates();
+        }
+
+        // Xử lý kiểm tra các trường nhập liệu không hợp lệ phía Client
         document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('tripEditForm');
+            const clientAlert = document.getElementById('clientValidationErrorAlert');
+            const clientErrorsList = document.getElementById('clientValidationErrorsList');
+            const btnDismissClientAlert = document.getElementById('btnDismissClientAlert');
+            const validationModalElement = document.getElementById('clientValidationModal');
+            const validationModalList = document.getElementById('clientValidationModalList');
+            const btnModalOk = document.getElementById('btnModalOk');
             const startInput = document.getElementById('startDate');
             const endInput = document.getElementById('endDate');
-            const form = document.getElementById('tripEditForm');
 
+            // Lắng nghe sự kiện thay đổi ngày
             if (startInput) {
-                startInput.addEventListener('change', validateAndCalculateDates);
                 startInput.addEventListener('input', validateAndCalculateDates);
+                startInput.addEventListener('change', validateAndCalculateDates);
             }
-
             if (endInput) {
-                endInput.addEventListener('change', validateAndCalculateDates);
                 endInput.addEventListener('input', validateAndCalculateDates);
+                endInput.addEventListener('change', validateAndCalculateDates);
             }
 
-            // Tính toán ban đầu
+            // Tính toán thời lượng ban đầu
             validateAndCalculateDates();
+
+            let validationModal = null;
+            if (validationModalElement && typeof bootstrap !== 'undefined') {
+                validationModal = new bootstrap.Modal(validationModalElement);
+            }
+
+            let firstInvalidElement = null;
+
+            // Xử lý đóng thông báo lỗi và đưa con trỏ đến ô nhập không hợp lệ đầu tiên
+            function handleDismissErrorAlert() {
+                if (clientAlert) {
+                    clientAlert.classList.add('d-none');
+                }
+                if (firstInvalidElement) {
+                    firstInvalidElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstInvalidElement.focus();
+                }
+            }
+
+            if (btnDismissClientAlert) {
+                btnDismissClientAlert.addEventListener('click', handleDismissErrorAlert);
+            }
+
+            if (btnModalOk) {
+                btnModalOk.addEventListener('click', function () {
+                    if (validationModal) {
+                        validationModal.hide();
+                    }
+                    if (firstInvalidElement) {
+                        firstInvalidElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        firstInvalidElement.focus();
+                    }
+                });
+            }
+
+            // Xóa viền đỏ cảnh báo khi người dùng bắt đầu chỉnh sửa lại dữ liệu
+            const inputsToTrack = ['tripName', 'startDate', 'endDate', 'estimatedBudget', 'tripDescription'];
+            inputsToTrack.forEach(function (id) {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', function () {
+                        el.classList.remove('is-invalid');
+                    });
+                }
+            });
 
             if (form) {
                 form.addEventListener('submit', function (e) {
-                    if (!validateAndCalculateDates()) {
+                    const errors = [];
+                    firstInvalidElement = null;
+
+                    // 1. Kiểm tra trường Tên chuyến đi (bắt buộc, không để trống, tối đa 255 ký tự)
+                    const nameInput = document.getElementById('tripName');
+                    const nameVal = nameInput ? nameInput.value.trim() : '';
+                    if (!nameVal) {
+                        errors.push({ element: nameInput, message: 'Vui lòng nhập tên chuyến đi.' });
+                    } else if (nameVal.length > 255) {
+                        errors.push({ element: nameInput, message: 'Tên chuyến đi không được vượt quá 255 ký tự.' });
+                    }
+
+                    // 2. Kiểm tra trường Ngày bắt đầu (bắt buộc)
+                    const startDateInput = document.getElementById('startDate');
+                    const startVal = startDateInput ? startDateInput.value : '';
+                    if (!startVal) {
+                        errors.push({ element: startDateInput, message: 'Vui lòng chọn ngày bắt đầu chuyến đi.' });
+                    }
+
+                    // 3. Kiểm tra trường Ngày kết thúc (bắt buộc)
+                    const endDateInput = document.getElementById('endDate');
+                    const endVal = endDateInput ? endDateInput.value : '';
+                    if (!endVal) {
+                        errors.push({ element: endDateInput, message: 'Vui lòng chọn ngày kết thúc chuyến đi.' });
+                    }
+
+                    // 4. Kiểm tra logic ngày: Ngày kết thúc không được trước ngày bắt đầu
+                    if (startVal && endVal) {
+                        const startDate = new Date(startVal);
+                        const endDate = new Date(endVal);
+                        if (startDate > endDate) {
+                            errors.push({ element: endDateInput, message: 'Ngày kết thúc không được trước ngày bắt đầu.' });
+                        }
+                    }
+
+                    // 5. Kiểm tra trường Tổng ngân sách dự kiến (không được âm nếu có nhập)
+                    const budgetInput = document.getElementById('estimatedBudget');
+                    if (budgetInput && budgetInput.value !== '') {
+                        const budgetVal = Number(budgetInput.value);
+                        if (isNaN(budgetVal) || budgetVal < 0) {
+                            errors.push({ element: budgetInput, message: 'Tổng ngân sách dự kiến không được nhỏ hơn 0 VNĐ.' });
+                        }
+                    }
+
+                    // 6. Kiểm tra trường Mô tả và ghi chú mục tiêu (tối đa 3000 ký tự)
+                    const descInput = document.getElementById('tripDescription');
+                    if (descInput && descInput.value.length > 3000) {
+                        errors.push({ element: descInput, message: 'Mô tả và ghi chú chuyến đi không được vượt quá 3000 ký tự.' });
+                    }
+
+                    // LƯU Ý QUAN TRỌNG: Chỉ thêm / hiển thị thông báo lỗi nếu có trường nhập không hợp lệ
+                    if (errors.length > 0) {
                         e.preventDefault();
-                        const dateAlert = document.getElementById('dateAlert');
-                        if (dateAlert) {
-                            dateAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                        // Xóa cờ lỗi cũ và đánh dấu viền đỏ các trường không hợp lệ
+                        inputsToTrack.forEach(function (id) {
+                            const el = document.getElementById(id);
+                            if (el) el.classList.remove('is-invalid');
+                        });
+
+                        errors.forEach(function (err) {
+                            if (err.element) {
+                                err.element.classList.add('is-invalid');
+                            }
+                        });
+
+                        firstInvalidElement = errors[0].element;
+
+                        // Hiển thị khung thông báo lỗi kèm nút OK ở đầu form trên màn hình
+                        if (clientErrorsList) {
+                            clientErrorsList.innerHTML = errors.map(function (err) {
+                                return '<li>' + err.message + '</li>';
+                            }).join('');
+                        }
+                        if (clientAlert) {
+                            clientAlert.classList.remove('d-none');
+                            clientAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+
+                        // Hiển thị modal thông báo lỗi hiện ra ngay trên màn hình kèm nút OK
+                        if (validationModalList) {
+                            validationModalList.innerHTML = errors.map(function (err) {
+                                return '<li class="mb-1">' + err.message + '</li>';
+                            }).join('');
+                        }
+                        if (validationModal) {
+                            validationModal.show();
+                        }
+                    } else {
+                        // Nếu tất cả các trường nhập đều hợp lệ: Ẩn thông báo lỗi hoàn toàn, cho phép gửi form bình thường
+                        if (clientAlert) {
+                            clientAlert.classList.add('d-none');
+                        }
+                        if (validationModal) {
+                            validationModal.hide();
                         }
                     }
                 });

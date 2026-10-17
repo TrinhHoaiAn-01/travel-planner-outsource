@@ -528,7 +528,7 @@
                 </div>
 
                 <!-- Cảnh báo lỗi ngày không hợp lệ chuẩn theo form.html và Phần 4.3 -->
-                <div id="dateAlert" class="alert-error mb-4" style="display: none; align-items: center; justify-content: space-between;">
+                <div id="dateAlert" class="alert-error mb-4" style="display: none; align-items: center; justify-content: space-between; background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 12px; padding: 12px 16px;">
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="10"></circle>
@@ -653,7 +653,7 @@
     </main>
 
     <script>
-        // Xử lý kiểm tra và tính toán ngày bắt đầu / ngày kết thúc theo thời gian thực (Phần 4.3 Quản lý chuyến đi)
+        // Hàm định dạng ngày hiển thị dd/mm/yyyy từ chuỗi yyyy-mm-dd
         function formatDisplayDate(dateStr) {
             if (!dateStr) return '';
             const parts = dateStr.split('-');
@@ -663,6 +663,7 @@
             return dateStr;
         }
 
+        // Kiểm tra logic ngày và tự động tính toán số ngày, số đêm theo thời gian thực (Phần 4.3 Quản lý chuyến đi)
         function validateAndCalculateDates() {
             const startDateInput = document.getElementById('start_date');
             const endDateInput = document.getElementById('end_date');

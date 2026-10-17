@@ -22,12 +22,13 @@ class UserManagementService implements UserManagementServiceInterface
     {
         $query = User::query();
 
-        // Lọc theo từ khóa tìm kiếm (tên hoặc email)
+        // Lọc theo từ khóa tìm kiếm (tên, email hoặc số điện thoại)
         if (! empty($filters['search'])) {
-            $search = trim($filters['search']);
+            $search = trim((string) $filters['search']);
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
@@ -37,22 +38,23 @@ class UserManagementService implements UserManagementServiceInterface
         }
 
         // Lọc theo trạng thái
-        if (isset($filters['status']) && $filters['status'] !== 'all') {
-            $query->where('is_active', (bool) $filters['status']);
+        if (isset($filters['status']) && $filters['status'] !== 'all' && $filters['status'] !== '') {
+            $isActive = in_array((string) $filters['status'], ['1', 'true', 'active'], true);
+            $query->where('is_active', $isActive);
         }
 
         return $query->orderBy('id', 'asc')->paginate($perPage)->withQueryString();
     }
 
     /**
-     * Lấy thông tin chi tiết một người dùng theo ID.
+     * Lấy thông tin chi tiết một người dùng theo ID kèm số lượng quan hệ.
      *
      * @param int $userId
      * @return User|null
      */
     public function getUserDetails(int $userId): ?User
     {
-        return User::find($userId);
+        return User::withCount(['trips', 'reviews', 'favorites', 'bookings'])->find($userId);
     }
 
     /**
@@ -69,6 +71,9 @@ class UserManagementService implements UserManagementServiceInterface
                 'email' => strtolower(trim($data['email'])),
                 'password' => Hash::make($data['password']),
                 'role' => $data['role'] ?? 'user',
+                'phone' => ! empty($data['phone']) ? trim($data['phone']) : null,
+                'city' => ! empty($data['city']) ? trim($data['city']) : null,
+                'bio' => ! empty($data['bio']) ? trim($data['bio']) : null,
                 'is_active' => isset($data['is_active']) ? (bool) $data['is_active'] : true,
                 'email_verified_at' => now(),
             ]);
@@ -101,18 +106,75 @@ class UserManagementService implements UserManagementServiceInterface
                 $updateData['password'] = Hash::make($data['password']);
             }
 
+            if (array_key_exists('phone', $data)) {
+                $updateData['phone'] = ! empty($data['phone']) ? trim($data['phone']) : null;
+            }
+
+            if (array_key_exists('city', $data)) {
+                $updateData['city'] = ! empty($data['city']) ? trim($data['city']) : null;
+            }
+
+            if (array_key_exists('bio', $data)) {
+                $updateData['bio'] = ! empty($data['bio']) ? trim($data['bio']) : null;
+            }
+
+            $currentAuthId = auth()->id();
+
+            // Ràng buộc bảo vệ quyền Quản trị viên (Table 25)
+            // 1. Chặn Admin tự xóa quyền quản trị của chính mình
+            if ($user->role === 'admin' && isset($data['role']) && $data['role'] !== 'admin') {
+                if ($currentAuthId && $currentAuthId === $user->id) {
+                    throw ValidationException::withMessages([
+                        'role' => 'Không thể tự hủy bỏ quyền Quản trị viên của chính tài khoản đang đăng nhập.',
+                    ]);
+                }
+
+                // 2. Chặn thao tác làm mất Admin hoạt động cuối cùng của hệ thống
+                $otherActiveAdminCount = User::where('role', 'admin')
+                    ->where('is_active', true)
+                    ->where('id', '!=', $user->id)
+                    ->count();
+
+                if ($otherActiveAdminCount === 0) {
+                    throw ValidationException::withMessages([
+                        'role' => 'Hệ thống phải duy trì ít nhất một Quản trị viên đang hoạt động, không thể hạ quyền tài khoản này.',
+                    ]);
+                }
+            }
+
             if (isset($data['role'])) {
                 $updateData['role'] = $data['role'];
             }
 
             if (isset($data['is_active'])) {
+                $newIsActive = (bool) $data['is_active'];
+
+                // Chặn Admin tự khóa tài khoản của chính mình
+                if ($currentAuthId && $currentAuthId === $user->id && ! $newIsActive) {
+                    throw ValidationException::withMessages([
+                        'is_active' => 'Không thể tự vô hiệu hóa tài khoản của chính mình.',
+                    ]);
+                }
+
                 // Không cho phép khóa tài khoản admin
-                if ($user->role === 'admin' && ! (bool) $data['is_active']) {
+                if ($user->role === 'admin' && ! $newIsActive) {
+                    $otherActiveAdminCount = User::where('role', 'admin')
+                        ->where('is_active', true)
+                        ->where('id', '!=', $user->id)
+                        ->count();
+
+                    if ($otherActiveAdminCount === 0) {
+                        throw ValidationException::withMessages([
+                            'is_active' => 'Hệ thống phải duy trì ít nhất một Quản trị viên đang hoạt động, không thể khóa tài khoản này.',
+                        ]);
+                    }
+
                     throw ValidationException::withMessages([
                         'is_active' => 'Không thể vô hiệu hóa tài khoản Quản trị viên (Administrator).',
                     ]);
                 }
-                $updateData['is_active'] = (bool) $data['is_active'];
+
+                $updateData['is_active'] = $newIsActive;
             }
 
             $user->update($updateData);

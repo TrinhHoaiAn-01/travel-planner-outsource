@@ -161,7 +161,7 @@ class TripService implements TripServiceInterface
                     throw new InvalidArgumentException('Ngày bắt đầu không được sau ngày kết thúc.');
                 }
 
-                // Xử lý thay đổi ngày và bảo toàn các hoạt động lịch trình khi số ngày thay đổi
+                // Xử lý thay đổi ngày và tự động bảo toàn các hoạt động lịch trình khi số ngày thay đổi
                 $this->handleTripDateChange($tripId, $data['start_date'], $data['end_date']);
                 $trip->refresh();
             }
@@ -292,7 +292,7 @@ class TripService implements TripServiceInterface
 
     /**
      * Xử lý khi ngày của chuyến đi bị thay đổi.
-     * Kiểm tra tính hợp lệ và xử lý an toàn các hoạt động trong lịch trình nếu số ngày bị thu hẹp.
+     * Kiểm tra tính hợp lệ và tự động bảo toàn các hoạt động lịch trình nếu số ngày bị rút ngắn.
      */
     public function handleTripDateChange(int $tripId, ?string $newStartDate, ?string $newEndDate): void
     {
@@ -306,7 +306,7 @@ class TripService implements TripServiceInterface
 
                 $newTotalDays = (int) \Carbon\Carbon::parse($newStartDate)->diffInDays(\Carbon\Carbon::parse($newEndDate)) + 1;
 
-                // Xử lý bảo toàn dữ liệu: Nếu chuyến đi bị rút ngắn ngày, chuyển các hoạt động ở ngày vượt quá về ngày cuối cùng
+                // Xử lý bảo toàn dữ liệu: Nếu chuyến đi bị rút ngắn ngày, chuyển các hoạt động ở ngày vượt quá về ngày cuối cùng mới
                 if ($trip->itineraryItems->isNotEmpty()) {
                     foreach ($trip->itineraryItems as $item) {
                         if ($item->day_number > $newTotalDays) {

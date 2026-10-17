@@ -42,6 +42,7 @@ class Trip extends Model
 
     /**
      * Tính toán tổng số ngày của chuyến đi (bao gồm cả ngày bắt đầu và kết thúc).
+     * Ví dụ: 10/10 đến 15/10 là 6 ngày.
      */
     public function getTotalDaysAttribute(): int
     {
@@ -53,7 +54,8 @@ class Trip extends Model
     }
 
     /**
-     * Tính toán tổng số đêm của chuyến đi (số ngày trừ 1, tối thiểu 0 đêm).
+     * Tính toán tổng số đêm của chuyến đi (bằng số ngày trừ 1, tối thiểu 0 đêm).
+     * Ví dụ: 6 ngày sẽ có 5 đêm.
      */
     public function getTotalNightsAttribute(): int
     {
@@ -65,7 +67,7 @@ class Trip extends Model
     }
 
     /**
-     * Trả về chuỗi mô tả thời lượng chuẩn tiếng Việt (ví dụ: '6 ngày 5 đêm' hoặc '1 ngày').
+     * Trả về chuỗi thời lượng chuẩn tiếng Việt (ví dụ: '6 ngày 5 đêm' hoặc '1 ngày').
      */
     public function getDurationLabelAttribute(): string
     {
@@ -84,7 +86,7 @@ class Trip extends Model
     }
 
     /**
-     * Định dạng khoảng ngày bắt đầu - ngày kết thúc theo chuẩn Việt Nam (dd/mm/yyyy - dd/mm/yyyy).
+     * Định dạng khoảng ngày bắt đầu — ngày kết thúc theo chuẩn Việt Nam (dd/mm/yyyy — dd/mm/yyyy).
      */
     public function getDateRangeFormattedAttribute(): string
     {
@@ -99,7 +101,7 @@ class Trip extends Model
     }
 
     /**
-     * Kiểm tra khoảng thời gian ngày bắt đầu và ngày kết thúc có hợp lệ hay không.
+     * Kiểm tra khoảng thời gian ngày bắt đầu và kết thúc có hợp lệ (bắt đầu <= kết thúc).
      */
     public function isDatesValid(): bool
     {
@@ -111,7 +113,7 @@ class Trip extends Model
     }
 
     /**
-     * Kiểm tra chuyến đi có đang diễn ra tại thời điểm hiện tại hay không.
+     * Kiểm tra chuyến đi có đang diễn ra hôm nay hay không.
      */
     public function isOngoing(): bool
     {

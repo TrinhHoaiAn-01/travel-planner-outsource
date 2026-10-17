@@ -83,10 +83,46 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsToMany(Destination::class, 'favorites')->withPivot('created_at');
     }
 
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
     }
+
+    /**
+     * Kiểm tra người dùng có vai trò thông thường (user) hay không.
+     */
+    public function isUser(): bool
+    {
+        return $this->role === 'user';
+    }
+
+    /**
+     * Kiểm tra người dùng có một trong các vai trò được chỉ định hay không.
+     *
+     * @param  string|array<int, string>  $roles
+     */
+    public function hasRole(string|array $roles): bool
+    {
+        if (is_string($roles)) {
+            $roles = array_map('trim', explode(',', $roles));
+        }
+
+        return in_array($this->role, $roles, true);
+    }
+
+    /**
+     * Kiểm tra người dùng có đang ở trạng thái hoạt động hay không.
+     */
+    public function isActive(): bool
+    {
+        return (bool) $this->is_active;
+    }
+
 
     /**
      * Mã định danh hiển thị chuẩn ảnh (#USR-xxx).

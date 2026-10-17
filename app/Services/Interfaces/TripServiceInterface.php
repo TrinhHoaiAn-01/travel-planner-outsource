@@ -129,7 +129,7 @@ interface TripServiceInterface
     public function calculateTripDuration(?string $startDate, ?string $endDate): array;
 
     /**
-     * Lấy danh sách chi tiết các ngày của chuyến đi (từ Ngày 1 đến Ngày N kèm ngày trong tuần).
+     * Lấy danh sách chi tiết các ngày của chuyến đi (từ Ngày 1 đến Ngày N kèm ngày trong tuần tiếng Việt).
      *
      * @param int $tripId Mã định danh chuyến đi
      * @return array Mảng chứa danh sách các ngày với day_number, date, formatted_date, day_name, label

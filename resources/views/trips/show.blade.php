@@ -348,6 +348,27 @@
                 </div>
             @endif
 
+            <!-- Thông báo lỗi xác thực từ máy chủ kèm nút OK (Chỉ hiển thị khi có lỗi) -->
+            @if($errors->any())
+                <div class="alert alert-danger alert-dismissible fade show rounded-4 mb-4 shadow-sm border border-danger-subtle" role="alert" id="serverValidationAlert">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-exclamation-triangle-fill fs-5 text-danger"></i>
+                        <strong class="fw-bold text-danger">Thông tin nhập không hợp lệ, vui lòng kiểm tra lại:</strong>
+                    </div>
+                    <ul class="mb-3 ps-3 small text-danger-emphasis">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-danger btn-sm px-4 fw-semibold rounded-pill shadow-sm" data-bs-dismiss="alert">
+                            OK
+                        </button>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
             @php
                 // Xác định ảnh bìa theo vùng miền hoặc ảnh mặc định
                 $bannerImage = 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=1400&q=80';
@@ -408,7 +429,7 @@
                         </div>
                         <div class="col-lg-5 text-lg-end">
                             <div class="d-flex flex-wrap justify-content-lg-end align-items-center gap-2">
-                                <a href="javascript:void(0)" class="btn btn-warning rounded-pill px-4 fw-bold shadow-sm text-dark d-inline-flex align-items-center" style="background-color: #F59E0B; border: none;">
+                                <a href="{{ route('trips.budget.show', $trip->id) }}" class="btn btn-warning rounded-pill px-4 fw-bold shadow-sm text-dark d-inline-flex align-items-center" style="background-color: #F59E0B; border: none;">
                                     <i class="bi bi-wallet2 me-2"></i> Quản lý Ngân sách
                                 </a>
                                 <a href="{{ route('trips.edit', $trip->id) }}" class="btn btn-light rounded-pill px-3 fw-semibold shadow-sm text-dark d-inline-flex align-items-center">
@@ -508,16 +529,17 @@
                 </div>
             </div>
 
-            <!-- Days Tabs & Action Bar (Tái hiện detail.html) -->
+            <!-- Days Tabs & Action Bar (Tái hiện detail.html với số ngày linh hoạt theo chuyến đi) -->
             <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
                 @php
-                    // Chuẩn hóa danh sách các ngày chi tiết từ ngày bắt đầu đến ngày kết thúc
-                    $computedDays = !empty($daysList) ? $daysList : [];
+                    // Lấy danh sách ngày chi tiết từ Controller hoặc tự sinh linh hoạt theo số ngày thực tế
+                    $computedDays = $daysList ?? [];
                     if (empty($computedDays)) {
                         for ($d = 1; $d <= max(1, $daysCount); $d++) {
                             $dDate = $trip->start_date ? (clone $trip->start_date)->addDays($d - 1)->format('d/m') : '';
                             $computedDays[] = [
                                 'day_number' => $d,
+                                'date' => $trip->start_date ? (clone $trip->start_date)->addDays($d - 1)->format('Y-m-d') : '',
                                 'formatted_date' => $dDate,
                                 'label' => "Ngày {$d}" . ($dDate ? " ({$dDate})" : ''),
                             ];
@@ -621,10 +643,27 @@
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="{{ route('trips.update-notes', $trip->id) }}" method="POST">
+                <form action="{{ route('trips.update-notes', $trip->id) }}" method="POST" id="editTripNotesForm">
                     @csrf
                     @method('PATCH')
                     <div class="modal-body p-4">
+                        <!-- Thông báo lỗi khi trường nhập không hợp lệ kèm nút OK (Chỉ hiển thị khi có lỗi) -->
+                        <div id="notesClientErrorAlert" class="alert alert-danger alert-dismissible fade show rounded-3 mb-3 d-none" role="alert">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="bi bi-exclamation-octagon-fill fs-5 text-danger"></i>
+                                <strong class="fw-bold text-danger">Trường nhập không hợp lệ:</strong>
+                            </div>
+                            <p class="mb-3 ps-3 small text-danger-emphasis mb-2" id="notesClientErrorMessage">
+                                Nội dung mô tả và ghi chú không được vượt quá 3000 ký tự.
+                            </p>
+                            <!-- Nút OK nằm ngay trong thông báo để đóng và tập trung lại vào trường nhập -->
+                            <div class="d-flex justify-content-end">
+                                <button type="button" class="btn btn-danger btn-sm px-4 fw-semibold rounded-pill shadow-sm" id="btnDismissNotesAlert">
+                                    OK
+                                </button>
+                            </div>
+                        </div>
+
                         <p class="text-muted small mb-3">
                             Ghi chú mục tiêu hành trình, những điều cần lưu ý về hành lý, trang phục, các điểm hẹn đặc biệt hoặc thông tin liên hệ khẩn cấp.
                         </p>
@@ -816,6 +855,52 @@
 
         document.addEventListener('DOMContentLoaded', function () {
             updateNotesCharCount();
+
+            // Xử lý kiểm tra trường ghi chú không hợp lệ kèm thông báo và nút OK
+            const notesForm = document.getElementById('editTripNotesForm');
+            const notesAlert = document.getElementById('notesClientErrorAlert');
+            const notesBtnDismiss = document.getElementById('btnDismissNotesAlert');
+            const textarea = document.getElementById('tripNotesTextarea');
+
+            // Xử lý nút OK: đóng thông báo lỗi và đưa con trỏ vào ô nhập
+            if (notesBtnDismiss && notesAlert) {
+                notesBtnDismiss.addEventListener('click', function () {
+                    notesAlert.classList.add('d-none');
+                    if (textarea) textarea.focus();
+                });
+            }
+
+            // Xóa viền đỏ cảnh báo khi người dùng bắt đầu chỉnh sửa lại
+            if (textarea) {
+                textarea.addEventListener('input', function () {
+                    if (textarea.value.length <= 3000) {
+                        textarea.classList.remove('is-invalid');
+                        if (notesAlert) notesAlert.classList.add('d-none');
+                    }
+                });
+            }
+
+            // Kiểm tra khi submit form
+            if (notesForm) {
+                notesForm.addEventListener('submit', function (e) {
+                    // LƯU Ý QUAN TRỌNG: Chỉ thêm / hiển thị thông báo nếu trường nhập không hợp lệ
+                    if (textarea && textarea.value.length > 3000) {
+                        e.preventDefault();
+                        if (notesAlert) {
+                            notesAlert.classList.remove('d-none');
+                        }
+                        textarea.classList.add('is-invalid');
+                    } else {
+                        // Nếu hợp lệ: Ẩn thông báo lỗi, cho phép gửi form bình thường
+                        if (notesAlert) {
+                            notesAlert.classList.add('d-none');
+                        }
+                        if (textarea) {
+                            textarea.classList.remove('is-invalid');
+                        }
+                    }
+                });
+            }
         });
     </script>
 </body>
