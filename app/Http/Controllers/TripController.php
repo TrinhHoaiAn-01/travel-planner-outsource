@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreTripRequest;
 use App\Http\Requests\UpdateTripNotesRequest;
 use App\Http\Requests\UpdateTripRequest;
+use App\Http\Requests\UpdateTripStatusRequest;
 use App\Models\Trip;
 use App\Services\Interfaces\TripServiceInterface;
 use Illuminate\Http\RedirectResponse;
@@ -69,7 +70,7 @@ class TripController extends Controller
     {
         $validatedData = $request->validated();
         $validatedData['user_id'] = Auth::id();
-        $validatedData['status'] = Trip::STATUS_PLANNED;
+        $validatedData['status'] = $request->input('status', Trip::STATUS_PLANNED);
 
         $trip = $this->tripService->createTrip($validatedData);
 
@@ -180,6 +181,34 @@ class TripController extends Controller
         return redirect()
             ->route('trips.show', $trip->id)
             ->with('success', 'Đã cập nhật mô tả và ghi chú tổng quát chuyến đi thành công!');
+    }
+
+    /**
+     * Cập nhật trạng thái của chuyến đi (nháp, đã lập kế hoạch, hoàn thành...).
+     * Phục vụ chức năng Quản lý trạng thái chuyến đi của Nguyễn Trần Thành.
+     */
+    public function updateStatus(UpdateTripStatusRequest $request, Trip $trip): RedirectResponse
+    {
+        // Phân quyền theo Policy chống lỗ hổng IDOR (BR-01 & BR-03)
+        Gate::authorize('update', $trip);
+
+        // Lấy trạng thái mới từ Form Request đã được xác thực
+        $newStatus = $request->validated('status');
+
+        // Gọi Service Interface xử lý thay đổi trạng thái
+        $this->tripService->updateTripStatus($trip->id, $newStatus);
+
+        // Chuẩn bị nhãn tiếng Việt tương ứng cho flash message
+        $statusLabels = [
+            Trip::STATUS_DRAFT => 'Bản nháp',
+            Trip::STATUS_PLANNED => 'Đã lên kế hoạch',
+            Trip::STATUS_ONGOING => 'Đang diễn ra',
+            Trip::STATUS_COMPLETED => 'Đã hoàn thành',
+            Trip::STATUS_CANCELLED => 'Đã hủy',
+        ];
+        $statusText = $statusLabels[$newStatus] ?? $newStatus;
+
+        return back()->with('success', "Cập nhật trạng thái chuyến đi thành \"{$statusText}\" thành công!");
     }
 }
 

@@ -406,9 +406,57 @@
                 <div class="hero-overlay"></div>
                 <div class="hero-content">
                     <div class="row align-items-center">
-                        <div class="col-lg-8">
-                            <div class="d-flex flex-wrap gap-2 mb-2">
-                                <span class="badge badge-travelplanner {{ $statusClass }}">{{ $statusText }}</span>
+                        <div class="col-lg-7">
+                            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                                <!-- Dropdown tương tác thay đổi trạng thái chuyến đi trực quan -->
+                                <div class="dropdown d-inline-block">
+                                    <button class="badge badge-travelplanner {{ $statusClass }} dropdown-toggle border-0 shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Nhấp để thay đổi trạng thái chuyến đi">
+                                        <i class="bi bi-flag-fill me-1"></i> {{ $statusText }}
+                                    </button>
+                                    <ul class="dropdown-menu shadow border-0 rounded-3 mt-1" style="min-width: 210px;">
+                                        <li><h6 class="dropdown-header small text-muted text-uppercase fw-bold">Chuyển trạng thái:</h6></li>
+                                        <li>
+                                            <form action="{{ route('trips.update-status', $trip->id) }}" method="POST">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="status" value="draft">
+                                                <button type="submit" class="dropdown-item d-flex align-items-center gap-2 {{ $trip->status === 'draft' ? 'active' : '' }}">
+                                                    <span class="badge bg-light text-dark border">Nháp</span> Bản nháp (Đang soạn thảo)
+                                                </button>
+                                            </form>
+                                        </li>
+                                        <li>
+                                            <form action="{{ route('trips.update-status', $trip->id) }}" method="POST">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="status" value="planned">
+                                                <button type="submit" class="dropdown-item d-flex align-items-center gap-2 {{ $trip->status === 'planned' ? 'active' : '' }}">
+                                                    <span class="badge bg-primary text-white">Sắp tới</span> Đã lên kế hoạch
+                                                </button>
+                                            </form>
+                                        </li>
+                                        <li>
+                                            <form action="{{ route('trips.update-status', $trip->id) }}" method="POST">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="status" value="ongoing">
+                                                <button type="submit" class="dropdown-item d-flex align-items-center gap-2 {{ $trip->status === 'ongoing' ? 'active' : '' }}">
+                                                    <span class="badge bg-warning text-dark">Diễn ra</span> Đang diễn ra
+                                                </button>
+                                            </form>
+                                        </li>
+                                        <li>
+                                            <form action="{{ route('trips.update-status', $trip->id) }}" method="POST">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="status" value="completed">
+                                                <button type="submit" class="dropdown-item d-flex align-items-center gap-2 {{ $trip->status === 'completed' ? 'active' : '' }}">
+                                                    <span class="badge bg-success text-white">Xong</span> Đã hoàn thành
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
                                 <span class="badge badge-travelplanner bg-light text-dark shadow-sm">
                                     <i class="bi bi-clock me-1 text-primary"></i>{{ $daysCount }} ngày {{ $nightsCount }} đêm
                                 </span>
@@ -427,8 +475,35 @@
                                 @endif
                             </p>
                         </div>
-                        <div class="col-lg-5 text-lg-end">
-                            <div class="d-flex flex-wrap justify-content-lg-end align-items-center gap-2">
+                        <div class="col-lg-5 text-lg-end mt-3 mt-lg-0">
+                                <!-- Nút thao tác chuyển đổi trạng thái nhanh theo ngữ cảnh -->
+                                @if($trip->status === 'draft')
+                                    <form action="{{ route('trips.update-status', $trip->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="status" value="planned">
+                                        <button type="submit" class="btn btn-primary rounded-pill px-3 fw-semibold shadow-sm text-white d-inline-flex align-items-center">
+                                            <i class="bi bi-send-check me-1"></i> Lên Kế Hoạch
+                                        </button>
+                                    </form>
+                                @elseif($trip->status === 'planned' || $trip->status === 'ongoing')
+                                    <form action="{{ route('trips.update-status', $trip->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="status" value="completed">
+                                        <button type="submit" class="btn btn-success rounded-pill px-3 fw-semibold shadow-sm text-white d-inline-flex align-items-center">
+                                            <i class="bi bi-check2-circle me-1"></i> Hoàn Thành
+                                        </button>
+                                    </form>
+                                @elseif($trip->status === 'completed')
+                                    <form action="{{ route('trips.reopen', $trip->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-info rounded-pill px-3 fw-semibold shadow-sm text-dark d-inline-flex align-items-center">
+                                            <i class="bi bi-arrow-repeat me-1"></i> Mở Lại Chuyến Đi
+                                        </button>
+                                    </form>
+                                @endif
+
                                 <a href="{{ route('trips.budget.show', $trip->id) }}" class="btn btn-warning rounded-pill px-4 fw-bold shadow-sm text-dark d-inline-flex align-items-center" style="background-color: #F59E0B; border: none;">
                                     <i class="bi bi-wallet2 me-2"></i> Quản lý Ngân sách
                                 </a>

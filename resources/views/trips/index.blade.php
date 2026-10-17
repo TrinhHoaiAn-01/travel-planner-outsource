@@ -988,6 +988,10 @@
                    class="status-pill {{ $currentStatus === 'all' || empty($currentStatus) ? 'active' : '' }}">
                     Tất cả ({{ $counts['all'] ?? 0 }})
                 </a>
+                <a href="{{ route('trips.index', array_merge(request()->query(), ['status' => 'draft'])) }}"
+                   class="status-pill {{ $currentStatus === 'draft' ? 'active' : '' }}">
+                    Bản nháp ({{ $counts['draft'] ?? 0 }})
+                </a>
                 <a href="{{ route('trips.index', array_merge(request()->query(), ['status' => 'planned'])) }}"
                    class="status-pill {{ $currentStatus === 'planned' ? 'active' : '' }}">
                     Sắp tới ({{ $counts['planned'] ?? 0 }})
@@ -1098,6 +1102,48 @@
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                 Chỉnh sửa chuyến đi
                             </a>
+
+                            <!-- Chuyển đổi trạng thái nhanh (Quản lý trạng thái: Nháp - Lập kế hoạch - Hoàn thành) -->
+                            @if($trip->status === \App\Models\Trip::STATUS_DRAFT)
+                                <form action="{{ route('trips.update-status', $trip->id) }}" method="POST">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="planned">
+                                    <button type="submit" class="menu-item-btn" style="color: #0066FF;">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                        Lên kế hoạch (Sắp tới)
+                                    </button>
+                                </form>
+                            @elseif($trip->status === \App\Models\Trip::STATUS_PLANNED)
+                                <form action="{{ route('trips.update-status', $trip->id) }}" method="POST">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="completed">
+                                    <button type="submit" class="menu-item-btn" style="color: #059669;">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                        Đánh dấu Hoàn thành
+                                    </button>
+                                </form>
+                                <form action="{{ route('trips.update-status', $trip->id) }}" method="POST">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="draft">
+                                    <button type="submit" class="menu-item-btn" style="color: #64748B;">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                                        Chuyển về Bản nháp
+                                    </button>
+                                </form>
+                            @elseif($trip->status === 'ongoing')
+                                <form action="{{ route('trips.update-status', $trip->id) }}" method="POST">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="completed">
+                                    <button type="submit" class="menu-item-btn" style="color: #059669;">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                        Đánh dấu Hoàn thành
+                                    </button>
+                                </form>
+                            @endif
 
                             <!-- Nhân bản chuyến đi (Nguyễn Trần Thành) -->
                             <form action="{{ route('trips.clone', $trip->id) }}" method="POST">
@@ -1369,6 +1415,23 @@
                               id="modal_description"
                               class="form-textarea"
                               placeholder="Chuyến đi 6 ngày 5 đêm khám phá các điểm nổi tiếng tại Đà Nẵng và Hội An. Dự kiến tham quan Bà Nà Hills, tắm biển Mỹ Khê, chèo SUP ngắm bình minh và thưởng thức đặc sản mì Quảng, bánh mì Phượng.">Chuyến đi 6 ngày 5 đêm khám phá các điểm nổi tiếng tại Đà Nẵng và Hội An. Dự kiến tham quan Bà Nà Hills, tắm biển Mỹ Khê, chèo SUP ngắm bình minh và thưởng thức đặc sản mì Quảng, bánh mì Phượng.</textarea>
+                </div>
+
+                <!-- Trạng thái khởi tạo: Lập kế hoạch hoặc Bản nháp -->
+                <div class="form-group">
+                    <label class="form-label">
+                        Trạng thái ban đầu
+                    </label>
+                    <div style="display: flex; gap: 20px; padding: 10px 14px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13.5px; font-weight: 500; color: #0F172A;">
+                            <input type="radio" name="status" value="planned" checked style="accent-color: #0066FF;">
+                            <span>Sắp tới (Đã lên kế hoạch)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13.5px; font-weight: 500; color: #64748B;">
+                            <input type="radio" name="status" value="draft" style="accent-color: #0066FF;">
+                            <span>Lưu bản nháp (Đang soạn thảo)</span>
+                        </label>
+                    </div>
                 </div>
 
                 <!-- Nút thao tác -->

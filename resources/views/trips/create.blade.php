@@ -636,6 +636,23 @@
                     @enderror
                 </div>
 
+                <!-- Trạng thái khởi tạo: Lập kế hoạch hoặc Bản nháp -->
+                <div class="form-group">
+                    <label class="form-label">
+                        Trạng thái ban đầu
+                    </label>
+                    <div style="display: flex; gap: 20px; padding: 12px 16px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 500; color: #0F172A;">
+                            <input type="radio" name="status" value="planned" {{ old('status', 'planned') === 'planned' ? 'checked' : '' }} style="accent-color: #0066FF;">
+                            <span>Sắp tới (Đã lên kế hoạch)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 500; color: #64748B;">
+                            <input type="radio" name="status" value="draft" {{ old('status') === 'draft' ? 'checked' : '' }} style="accent-color: #0066FF;">
+                            <span>Lưu bản nháp (Đang soạn thảo)</span>
+                        </label>
+                    </div>
+                </div>
+
                 <!-- Nút thao tác -->
                 <div class="form-actions">
                     <a href="{{ route('trips.index') }}" class="btn-cancel">Hủy bỏ</a>

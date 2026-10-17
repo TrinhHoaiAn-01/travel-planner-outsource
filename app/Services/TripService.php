@@ -201,15 +201,32 @@ class TripService implements TripServiceInterface
     }
 
     /**
-     * Cập nhật trạng thái của chuyến đi.
+     * Cập nhật trạng thái của chuyến đi (draft, planned, ongoing, completed, cancelled).
+     * Bọc DB::transaction để đảm bảo tính toàn vẹn dữ liệu.
      */
     public function updateTripStatus(int $tripId, string $status): Trip
     {
-        $trip = Trip::findOrFail($tripId);
-        $trip->status = $status;
-        $trip->save();
+        return DB::transaction(function () use ($tripId, $status) {
+            // Danh sách các trạng thái chuyến đi được phép
+            $validStatuses = [
+                Trip::STATUS_DRAFT,
+                Trip::STATUS_PLANNED,
+                Trip::STATUS_ONGOING,
+                Trip::STATUS_COMPLETED,
+                Trip::STATUS_CANCELLED,
+            ];
 
-        return $trip;
+            // Kiểm tra trạng thái có nằm trong danh sách cho phép không
+            if (! in_array($status, $validStatuses, true)) {
+                throw new InvalidArgumentException('Trạng thái chuyến đi không hợp lệ.');
+            }
+
+            $trip = Trip::findOrFail($tripId);
+            $trip->status = $status;
+            $trip->save();
+
+            return $trip->fresh();
+        });
     }
 
     /**
