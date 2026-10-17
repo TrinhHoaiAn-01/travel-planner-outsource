@@ -42,4 +42,12 @@ interface DashboardServiceInterface
      * @return array<int, array<string, mixed>>
      */
     public function getRecentBookings(int $limit = 5): array;
+
+    /**
+     * Xuất dữ liệu báo cáo thống kê Dashboard ra định dạng tệp CSV.
+     *
+     * @param int $year
+     * @return string
+     */
+    public function exportReportData(int $year = 2026): string;
 }

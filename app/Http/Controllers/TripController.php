@@ -89,10 +89,12 @@ class TripController extends Controller
 
         $tripDetails = $this->tripService->getTripDetails($trip->id);
         $summary = $this->tripService->getTripSummary($trip->id);
+        $daysList = $this->tripService->getTripDaysList($trip->id);
 
         return view('trips.show', [
             'trip' => $tripDetails,
             'summary' => $summary,
+            'daysList' => $daysList,
         ]);
     }
 

@@ -513,6 +513,32 @@
                     </div>
                 </div>
 
+                <!-- Hộp thông báo thời lượng tính toán theo thời gian thực (Real-time Duration Feedback Box) -->
+                <div class="date-feedback-card mb-4" id="dateFeedbackBox" style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px; color: #0066FF; font-size: 13.5px; font-weight: 600;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span>Thời lượng chuyến đi: <strong id="calculatedDuration" style="color: #0F172A;">6 ngày 5 đêm</strong></span>
+                    </div>
+                    <span id="dateRangeBadge" style="background: rgba(0, 102, 255, 0.1); color: #0066FF; border: 1px solid rgba(0, 102, 255, 0.2); padding: 4px 12px; border-radius: 9999px; font-size: 12.5px; font-weight: 600;">
+                        10/10/2026 — 15/10/2026
+                    </span>
+                </div>
+
+                <!-- Cảnh báo lỗi ngày không hợp lệ chuẩn theo form.html và Phần 4.3 -->
+                <div id="dateAlert" class="alert-error mb-4" style="display: none; align-items: center; justify-content: space-between; background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 12px; padding: 12px 16px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <span id="dateAlertText" style="font-weight: 600; color: #991B1B;">Ngày bắt đầu không được lớn hơn ngày kết thúc!</span>
+                    </div>
+                </div>
+
                 <!-- Tổng ngân sách & Địa bàn trọng tâm -->
                 <div class="form-row-2">
                     <div class="form-group">
@@ -643,5 +669,110 @@
         </div>
     </main>
 
+    <script>
+        // Hàm định dạng ngày hiển thị dd/mm/yyyy từ chuỗi yyyy-mm-dd
+        function formatDisplayDate(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            return dateStr;
+        }
+
+        // Kiểm tra logic ngày và tự động tính toán số ngày, số đêm theo thời gian thực (Phần 4.3 Quản lý chuyến đi)
+        function validateAndCalculateDates() {
+            const startDateInput = document.getElementById('start_date');
+            const endDateInput = document.getElementById('end_date');
+            const dateAlert = document.getElementById('dateAlert');
+            const dateFeedbackBox = document.getElementById('dateFeedbackBox');
+            const durationEl = document.getElementById('calculatedDuration');
+            const rangeEl = document.getElementById('dateRangeBadge');
+
+            if (!startDateInput || !endDateInput) return true;
+
+            const startVal = startDateInput.value;
+            const endVal = endDateInput.value;
+
+            // Tự động gán min cho ngày kết thúc để người dùng không chọn ngày trước ngày bắt đầu
+            if (startVal) {
+                endDateInput.min = startVal;
+            }
+
+            if (!startVal || !endVal) {
+                if (dateFeedbackBox) dateFeedbackBox.style.display = 'none';
+                if (dateAlert) dateAlert.style.display = 'none';
+                return true;
+            }
+
+            const startDate = new Date(startVal);
+            const endDate = new Date(endVal);
+
+            // Kiểm tra ràng buộc: Ngày bắt đầu không được lớn hơn ngày kết thúc
+            if (startDate > endDate) {
+                if (dateAlert) {
+                    dateAlert.style.display = 'flex';
+                }
+                if (dateFeedbackBox) {
+                    dateFeedbackBox.style.display = 'none';
+                }
+                endDateInput.closest('.input-wrapper')?.classList.add('has-error');
+                return false;
+            }
+
+            // Hợp lệ: Tính toán chính xác số ngày và số đêm
+            if (dateAlert) {
+                dateAlert.style.display = 'none';
+            }
+            endDateInput.closest('.input-wrapper')?.classList.remove('has-error');
+
+            const diffTime = Math.abs(endDate - startDate);
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            const diffNights = Math.max(0, diffDays - 1);
+
+            let durationLabel = `${diffDays} ngày`;
+            if (diffNights > 0) {
+                durationLabel = `${diffDays} ngày ${diffNights} đêm`;
+            }
+
+            if (durationEl) durationEl.textContent = durationLabel;
+            if (rangeEl) rangeEl.textContent = `${formatDisplayDate(startVal)} — ${formatDisplayDate(endVal)}`;
+            if (dateFeedbackBox) dateFeedbackBox.style.display = 'flex';
+
+            return true;
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const startInput = document.getElementById('start_date');
+            const endInput = document.getElementById('end_date');
+            const form = document.querySelector('form');
+
+            if (startInput) {
+                startInput.addEventListener('change', validateAndCalculateDates);
+                startInput.addEventListener('input', validateAndCalculateDates);
+            }
+
+            if (endInput) {
+                endInput.addEventListener('change', validateAndCalculateDates);
+                endInput.addEventListener('input', validateAndCalculateDates);
+            }
+
+            // Tính toán ngay khi tải trang ban đầu
+            validateAndCalculateDates();
+
+            // Ngăn chặn submit form nếu dữ liệu ngày không hợp lệ
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    if (!validateAndCalculateDates()) {
+                        e.preventDefault();
+                        const dateAlert = document.getElementById('dateAlert');
+                        if (dateAlert) {
+                            dateAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

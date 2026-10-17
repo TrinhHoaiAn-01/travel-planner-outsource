@@ -14,7 +14,7 @@ class TripCreateTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
+        // Vô hiệu hóa kiểm tra CSRF token trong môi trường test để tập trung kiểm thử logic nghiệp vụ
         $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
     }
 
