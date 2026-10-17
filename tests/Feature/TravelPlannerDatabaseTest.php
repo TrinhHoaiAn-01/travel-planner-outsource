@@ -21,7 +21,7 @@ class TravelPlannerDatabaseTest extends TestCase
         $this->assertTrue(Schema::hasColumns('destinations', [
             'city_id',
             'category_id',
-            'price',
+            'entrance_fee',
             'rating',
             'is_featured',
         ]));

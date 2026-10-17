@@ -16,5 +16,17 @@ class DatabaseSeeder extends Seeder
             CatalogSeeder::class,
             TravelDataSeeder::class,
         ]);
+
+        if (! app()->runningUnitTests()) {
+            $this->call([
+                AdminUserDemoSeeder::class,
+                AdminCityDemoSeeder::class,
+                AdminCategoryDemoSeeder::class,
+                AdminDestinationDemoSeeder::class,
+                AdminReviewDemoSeeder::class,
+                SampleTripDemoSeeder::class,
+                BookingDemoSeeder::class,
+            ]);
+        }
     }
 }

@@ -2,10 +2,10 @@ name: Travel Planner CI
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "**" ]
 
   pull_request:
-    branches: [ "master" ]
+    branches: [ "**" ]
 
 permissions:
   contents: read
@@ -45,8 +45,13 @@ jobs:
       - name: Check Containers
         run: docker compose -f docker-compose.ci.yml ps
 
+      - name: Prepare test environment
+        run: docker compose -f docker-compose.ci.yml exec -T app cp .env.example .env
+
       - name: Check Database
-        run: docker compose -f docker-compose.ci.yml exec -T app php artisan migrate:status
+        run: |
+          docker compose -f docker-compose.ci.yml exec -T app php artisan migrate --force
+          docker compose -f docker-compose.ci.yml exec -T app php artisan migrate:status
 
       - name: Check Docker Resources
         run: |

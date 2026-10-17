@@ -4,10 +4,13 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Services\Interfaces\AuthServiceInterface;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\ValidationException;
 
 class AuthService implements AuthServiceInterface
 {
@@ -163,5 +166,62 @@ class AuthService implements AuthServiceInterface
         $this->refreshCaptcha();
 
         return $isValid;
+    }
+
+    /**
+     * Gửi liên kết đặt lại mật khẩu cho tài khoản người dùng qua email.
+     * Tuân thủ quy chuẩn bảo mật: dùng thông báo chung để tránh rò rỉ sự tồn tại của email.
+     *
+     * @param array<string, mixed> $data
+     * @return string
+     */
+    public function sendPasswordResetLink(array $data): string
+    {
+        $normalizedEmail = strtolower(trim((string) $data['email']));
+
+        // Gửi liên kết đặt lại mật khẩu qua Password Broker của Laravel
+        Password::broker()->sendResetLink(['email' => $normalizedEmail]);
+
+        // Luôn trả về thông báo chung theo yêu cầu bảo mật trong tài liệu đặc tả
+        return 'Nếu email được đăng ký, hướng dẫn đặt lại mật khẩu sẽ được gửi đến email của bạn.';
+    }
+
+    /**
+     * Đặt lại mật khẩu mới cho tài khoản người dùng bằng mã token xác thực.
+     *
+     * @param array<string, mixed> $data
+     * @return string
+     * @throws ValidationException
+     */
+    public function resetPassword(array $data): string
+    {
+        $credentials = [
+            'email' => strtolower(trim((string) $data['email'])),
+            'password' => (string) $data['password'],
+            'password_confirmation' => (string) $data['password_confirmation'],
+            'token' => (string) $data['token'],
+        ];
+
+        // Thực hiện đặt lại mật khẩu và cập nhật vào cơ sở dữ liệu
+        $status = Password::broker()->reset($credentials, function (User $user, string $password) {
+            $user->password = Hash::make($password);
+            $user->save();
+
+            event(new PasswordReset($user));
+        });
+
+        if ($status === Password::PASSWORD_RESET) {
+            return 'Đặt lại mật khẩu thành công. Vui lòng đăng nhập với mật khẩu mới.';
+        }
+
+        if ($status === Password::INVALID_TOKEN) {
+            throw ValidationException::withMessages([
+                'token' => 'Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.',
+            ]);
+        }
+
+        throw ValidationException::withMessages([
+            'email' => 'Địa chỉ email không hợp lệ hoặc không tìm thấy tài khoản.',
+        ]);
     }
 }

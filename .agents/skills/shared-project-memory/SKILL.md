@@ -877,6 +877,919 @@ Compatible Implementation
 
 The Agent must never break another member's implementation merely because the current member did not originally develop that functionality.
 
+## 11.3 Cross-Member Reference-Only Development
+
+When the current member's feature depends on functionality owned or implemented by another member, but the current member does not own that functionality, the Agent must use the other member's implementation as a read-only reference.
+
+The Agent must:
+
+1. Identify the dependent functionality from `PROJECT_SPECIFICATIONS.md`.
+
+2. Identify the member responsible for that functionality.
+
+3. Read the responsible member's relevant shared history.
+
+4. Inspect the current source code of that functionality.
+
+5. Analyze the existing:
+   - Business logic.
+   - Architecture.
+   - Service Interfaces.
+   - Services.
+   - Models.
+   - Policies.
+   - Form Requests.
+   - Routes.
+   - Data flow.
+   - Authorization rules.
+   - Validation rules.
+   - Relevant tests.
+
+6. Use the existing implementation as a read-only reference when developing the current member's feature.
+
+7. Implement the current feature using the existing business rules, contracts, architecture, and integration behavior where applicable.
+
+### Strict Read-Only Rule
+
+The other member's implementation is READ-ONLY.
+
+The Agent MUST NOT:
+
+- Modify the other member's code.
+- Rewrite the other member's code.
+- Refactor the other member's code.
+- Rename the other member's files, classes, methods, variables, routes, or models.
+- Delete the other member's code.
+- Move the other member's files.
+- Reformat the other member's code unnecessarily.
+- Add features to the other member's implementation.
+- Fix unrelated bugs in the other member's implementation.
+- Change the other member's business logic.
+- Change the other member's database structure.
+- Change the other member's routes or APIs.
+- Overwrite the other member's files.
+- Revert the other member's changes.
+
+The Agent may only READ, ANALYZE, and REFERENCE the other member's implementation.
+
+### Current Feature Scope
+
+The Agent must modify only the files belonging to the current member's requested feature.
+
+Example:
+
+Admin functionality
+        ↓
+READ ONLY
+        ↓
+Analyze Admin implementation
+        ↓
+Use Admin implementation as reference
+        ↓
+Develop current member's Login functionality
+        ↓
+Modify only Login-related files
+
+The Agent must never modify Admin code merely because Login depends on Admin.
+
+### Dependency Rule
+
+If the current feature depends on another member's functionality:
+
+1. Read the existing implementation.
+2. Understand its business rules and contracts.
+3. Reuse the existing contracts where possible.
+4. Implement the integration inside the current member's own scope.
+5. Do not modify the dependency's implementation.
+
+If the dependency cannot support the current feature without modifying the other member's code:
+
+1. Stop before modifying the other member's files.
+2. Identify the exact dependency.
+3. Report the conflict.
+4. Do not automatically modify or overwrite the other member's implementation.
+
+### Source Priority
+
+When analyzing another member's functionality:
+
+1. Current source code.
+2. Current project configuration.
+3. Shared project history.
+4. Git history.
+
+The current source code is the final authority for what currently exists.
+
+Shared history is used to understand previous decisions, business rules, and implementation context.
+
+### Final Rule
+
+The Agent may read and use another member's code as a reference, but must never modify that member's implementation while working on the current member's feature.
+
+READ the other member's code.
+
+ANALYZE the other member's code.
+
+USE it as a reference.
+
+BUILD the current feature independently within the current member's scope.
+
+DO NOT MODIFY the other member's code.
+
+## 11.4 Interrupted Session Recovery
+
+The Agent must support automatic recovery when a coding session is interrupted unexpectedly.
+
+An interruption may occur because of:
+
+- Internet connection loss.
+- API connection failure.
+- Token or context limit reached.
+- Antigravity session termination.
+- Agent process interruption.
+- Application crash.
+- User accidentally closes the session.
+- Any other interruption that stops the Agent before the requested task is completed.
+
+The Agent must treat an interrupted coding session as an incomplete session, not as a completed task.
+
+### Before and During Coding
+
+When starting a substantial coding task, especially an Image-to-Code task, the Agent should establish enough shared session state to allow the work to be recovered.
+
+The Agent must keep track of:
+
+- Original user request.
+- Original user-supplied image or screen requirement.
+- Assigned member.
+- Feature being implemented.
+- Relevant business rules.
+- Relevant previous member history.
+- Files being modified.
+- Files already modified.
+- Implementation completed so far.
+- Implementation still remaining.
+- Tests already executed.
+- Test results.
+- Errors encountered.
+- Current implementation state.
+- Next required action.
+
+The Agent must not consider the task complete until the implementation and verification have been completed.
+
+### Interrupted Session State
+
+If the Agent detects that the session is ending or may be interrupted while work is incomplete, it must preserve the current progress in the shared history whenever the environment still allows writing.
+
+The incomplete session must be recorded as an interrupted/in-progress session.
+
+The history should contain:
+
+```text
+Status: Interrupted - In Progress
+```
+
+## 11.5 Function Completion, Test Case, Unit Test and CI/CD Validation
+
+After completing every function, feature, or meaningful code change, the Agent must automatically perform testing and CI/CD validation before considering the work complete.
+
+### Mandatory Testing Workflow
+
+For every completed function or feature, the Agent must:
+
+1. Analyze the function's expected behavior and business requirements.
+2. Create appropriate test cases covering:
+   - Happy path
+   - Validation failure
+   - Authorization failure
+   - Authentication failure when applicable
+   - Boundary cases
+   - Invalid input
+   - Relevant business rules
+   - Relevant error cases
+3. Create or update Laravel tests for the function.
+4. Create Unit Tests when the logic is suitable for isolated unit testing.
+5. Create or update Feature Tests when the function involves:
+   - HTTP requests
+   - Controllers
+   - Routes
+   - Authentication
+   - Authorization
+   - Form Requests
+   - Policies
+   - Database operations
+   - Full business workflows
+6. Run the tests locally.
+7. Fix all failures caused by the current implementation.
+8. Re-run the tests until all relevant tests pass.
+9. Validate the CI workflow using the project's actual CI configuration.
+10. Verify that the CI workflow can successfully:
+    - Build Docker
+    - Start required containers
+    - Connect to the database
+    - Run migrations
+    - Run Laravel tests
+    - Finish without errors
+11. Verify the CD workflow remains compatible with the successful CI result.
+12. Only consider the function complete when the required tests pass and CI/CD is expected to pass.
+
+### Test Coverage Rule
+
+Tests must verify behavior, not merely execute code.
+
+The Agent must test the actual expected result of the function, including:
+- HTTP status
+- Redirect behavior
+- Validation errors
+- Database changes
+- Returned data
+- Authorization behavior
+- Authentication behavior
+- Business rules
+- Error handling
+
+Do not create meaningless tests whose only purpose is increasing test count.
+
+### Laravel Test Rule
+
+Prefer Laravel Feature Tests for application behavior involving HTTP, authentication, authorization, database operations, controllers, services, and complete business flows.
+
+Use Unit Tests for isolated business logic that can be tested independently without the Laravel HTTP/database workflow.
+
+When both are appropriate, use both.
+
+### CI Rule
+
+The Agent must inspect the project's actual CI configuration before modifying or adding tests.
+
+For the current Travel Planner project, CI currently:
+- Runs on push to `master`
+- Runs on pull requests to `master`
+- Builds using `docker-compose.ci.yml`
+- Starts the Docker environment
+- Checks the database
+- Runs `php artisan test`
+- Stops Docker after completion
+
+The Agent must ensure newly created tests are compatible with this CI environment.
+
+The CI configuration is the source of truth for how tests are executed.
+
+### CI Failure Self-Repair
+
+If CI fails after a function is completed, the Agent must:
+
+1. Read the CI failure output.
+2. Identify the actual failure.
+3. Determine whether the failure is caused by:
+   - Application code
+   - Test code
+   - Database setup
+   - Docker configuration
+   - Environment configuration
+   - Dependencies
+   - CI configuration
+   - Existing unrelated code
+4. If the failure is caused by the current feature, fix it.
+5. Re-run the relevant tests.
+6. Re-run the complete test suite.
+7. Re-check CI configuration.
+8. Continue until the current feature does not introduce CI failures.
+
+The Agent must not simply remove, skip, disable, or weaken a failing test to make CI pass.
+
+### 100% CI Pass Rule
+
+Before reporting a function as completed, the Agent must ensure that the complete required CI test suite passes.
+
+Target state:
+
+Tests: PASS
+Laravel Feature Tests: PASS
+Laravel Unit Tests: PASS
+Docker CI environment: PASS
+Database setup: PASS
+CI workflow: PASS
+CD dependency: PASS
+
+The Agent must never report a feature as fully completed while knowingly leaving a CI failure caused by the current implementation.
+
+### CI/CD Modification Rule
+
+When a newly implemented function requires changes to CI/CD configuration, the Agent may update the CI/CD configuration only when the change is necessary for the current project requirements.
+
+Any CI/CD modification must:
+1. Preserve existing project behavior.
+2. Not remove existing required tests.
+3. Not disable existing validation.
+4. Not bypass Docker validation.
+5. Not bypass Laravel tests.
+6. Not weaken security or deployment checks.
+7. Be tested before completion.
+
+### Existing Test Protection
+
+The Agent must not delete, disable, skip, or rewrite existing tests merely to make a new feature pass.
+
+If an existing test fails because the intended business behavior has legitimately changed, the Agent must:
+1. Identify the affected requirement.
+2. Verify the change against the project specification.
+3. Update the test only when the new behavior is actually correct.
+4. Preserve unrelated test coverage.
+
+### Other Member CI/Test Protection
+
+When working on another member's feature dependency, the Agent may read and execute existing tests but must not modify that member's tests or CI/CD configuration unless the user explicitly authorizes modification.
+
+If the current feature cannot pass CI without modifying another member's protected implementation or tests, stop and report the dependency conflict instead of automatically changing their code.
+
+### Final Function Completion Checklist
+
+Before declaring the function complete:
+
+- [ ] Function implemented
+- [ ] Business rules verified
+- [ ] Test cases created
+- [ ] Feature Tests created/updated where required
+- [ ] Unit Tests created/updated where appropriate
+- [ ] Local tests passed
+- [ ] Full Laravel test suite passed
+- [ ] Docker CI environment verified
+- [ ] CI configuration verified
+- [ ] CI/CD compatibility verified
+- [ ] No existing tests unnecessarily removed or weakened
+- [ ] No other member's protected code modified
+- [ ] No known CI failure caused by the current feature
+- [ ] Shared project history updated
+
+Only after all applicable checks pass may the Agent report the function as completed.
+
+## 11.6 Automatic New Skill Detection and Project-Wide Integration
+
+The Agent MUST automatically detect and apply every new skill or rule added to SKILL.md.
+
+This rule applies to all future skills added after this SKILL.md was created.
+
+### New Skill Detection
+
+Whenever SKILL.md contains a new skill, rule, requirement, workflow, architecture rule, testing rule, security rule, CI/CD rule, or technology requirement, the Agent MUST treat it as a new mandatory project requirement.
+
+The Agent must not assume that the new skill only applies to future code.
+
+The new skill MUST be retroactively applied to the existing project.
+
+### Automatic Full Project Scan
+
+After detecting a new skill, the Agent MUST recursively scan the entire project directory.
+
+The Agent must determine:
+
+1. Which existing features are affected.
+2. Which files are affected.
+3. Which implementations already comply.
+4. Which implementations partially comply.
+5. Which implementations do not comply.
+6. Which required components are missing.
+7. Which tests are missing.
+8. Which configuration is missing.
+9. Which CI/CD changes are required.
+10. Which dependencies or integrations are required.
+
+The Agent MUST NOT limit the scan to the current user's feature.
+
+### Automatic Integration
+
+If the new skill is missing from any applicable part of the project, the Agent MUST automatically implement and integrate it.
+
+The Agent must:
+
+1. Identify the missing requirement.
+2. Create the required implementation.
+3. Integrate it into the existing architecture.
+4. Preserve existing business logic.
+5. Preserve existing functionality.
+6. Follow MVC and Service Interface rules.
+7. Respect multi-member ownership rules.
+8. Create or update required tests.
+9. Run tests.
+10. Fix failures.
+11. Verify CI/CD.
+12. Perform a full project re-scan.
+
+The Agent MUST NOT only report missing requirements.
+
+If a required component is missing and it is within the Agent's authorized scope, the Agent MUST create it.
+
+### Existing Project Rule
+
+A feature implemented before a new skill was added is NOT automatically considered compliant.
+
+Example:
+
+Existing project:
+
+    Login
+    User CRUD
+    Booking
+    Search
+    Admin
+
+New skill:
+
+    "Every function must have tests."
+
+The Agent MUST automatically inspect:
+
+    Login
+    User CRUD
+    Booking
+    Search
+    Admin
+
+and create the missing tests.
+
+### Future Skill Rule
+
+This mechanism MUST continue working for every future skill added to SKILL.md.
+
+Example:
+
+Today:
+    Test Case + Unit Test + CI/CD skill
+
+Later:
+    Apache Solr skill
+
+Later:
+    API Documentation skill
+
+Later:
+    Security Testing skill
+
+Later:
+    Caching skill
+
+For every newly added skill:
+
+    Detect New Skill
+        ↓
+    Read Skill Requirement
+        ↓
+    Scan Entire Project
+        ↓
+    Find Missing / Non-Compliant Areas
+        ↓
+    Automatically Implement
+        ↓
+    Integrate
+        ↓
+    Create / Update Tests
+        ↓
+    Run Tests
+        ↓
+    Fix Failures
+        ↓
+    Verify CI/CD
+        ↓
+    Full Project Re-Scan
+        ↓
+    Skill Fully Applied
+
+### No Manual Activation
+
+The user MUST NOT need to explicitly tell the Agent:
+
+"Apply the new skill to the old code."
+
+The addition of the skill to SKILL.md itself is the activation signal.
+
+The Agent must automatically detect that the project may contain existing code that predates the new skill.
+
+### No Partial Adoption
+
+The Agent MUST NOT apply the new skill only to:
+
+- The next function
+- The current feature
+- Recently modified files
+- New files
+- Files mentioned by the user
+- Files changed in the latest commit
+
+The Agent must apply the new skill to every applicable existing part of the project.
+
+### Compliance Classification
+
+During the full project scan, each affected component must be classified as:
+
+COMPLIANT
+    → Already follows the new skill.
+
+INCOMPLETE
+    → Partially follows the new skill and must be completed.
+
+NON-COMPLIANT
+    → Violates the new skill and must be fixed.
+
+MISSING
+    → Required component does not exist and must be created.
+
+BLOCKED
+    → Cannot safely modify because of ownership, dependency, authorization, or another explicit project restriction.
+
+The Agent must automatically resolve COMPLIANT, INCOMPLETE, NON-COMPLIANT, and MISSING items whenever they are within the current authorized scope.
+
+BLOCKED items must be reported instead of being silently ignored.
+
+### Full Project Verification
+
+After integration, the Agent MUST perform another full recursive project scan.
+
+The Agent must verify that:
+
+- The new skill is applied everywhere applicable.
+- Required implementations exist.
+- Missing components have been created.
+- Existing implementations have been updated where required.
+- Required tests exist.
+- Tests pass.
+- CI passes.
+- CD remains compatible.
+- Existing business rules remain intact.
+- Existing member ownership rules remain intact.
+- No unnecessary unrelated changes were introduced.
+
+The Agent MUST NOT declare the new skill fully integrated while applicable MISSING, INCOMPLETE, or NON-COMPLIANT items remain.
+
+### Continuous Skill Enforcement
+
+SKILL.md is a living project specification.
+
+Every time SKILL.md is changed:
+
+    READ UPDATED SKILL.md
+        ↓
+    DETECT NEW / CHANGED RULES
+        ↓
+    COMPARE AGAINST ENTIRE PROJECT
+        ↓
+    AUTOMATICALLY APPLY CHANGES
+        ↓
+    TEST
+        ↓
+    VERIFY CI/CD
+        ↓
+    RE-SCAN ENTIRE PROJECT
+
+This process MUST happen automatically for every future skill added to SKILL.md.
+
+### Final Principle
+
+Adding a new skill to SKILL.md means:
+
+    "Apply this skill to the entire project now and continue enforcing it for all future development."
+
+The Agent MUST automatically detect, scan, implement, integrate, test, verify, and enforce every newly added skill.
+
+DO NOT WAIT FOR THE USER TO ASK FOR RETROACTIVE APPLICATION.
+DO NOT ONLY REPORT MISSING IMPLEMENTATION.
+AUTOMATICALLY APPLY THE NEW SKILL TO THE ENTIRE PROJECT.
+
+## 11.7 Image Re-Submission, Existing Feature Detection and Automatic Completion
+
+When the user provides an image or screenshot of a UI, feature, page, workflow, or application requirement, the Agent MUST NOT assume that the feature is new.
+
+The Agent must determine whether the image represents:
+
+1. A completely new feature.
+2. An existing feature that is already implemented.
+3. A partially implemented feature.
+4. A previously implemented feature that is broken.
+5. A previously requested feature that was interrupted or incomplete.
+6. A feature implemented by another member.
+7. A feature that exists in source code but does not fully match the image or project requirements.
+
+### Image Identity Rule
+
+If the user sends the same image again, or an image representing the same feature, the Agent MUST automatically recognize that the feature may already exist.
+
+The Agent MUST NOT automatically recreate the feature from scratch.
+
+Instead, the Agent must investigate the current project state and shared project history before making changes.
+
+### Mandatory Investigation
+
+Whenever an image is provided, the Agent MUST inspect:
+
+1. The entire relevant project source code.
+2. The current project structure.
+3. Existing routes.
+4. Existing Controllers.
+5. Existing Services.
+6. Existing Service Interfaces.
+7. Existing Models.
+8. Existing Form Requests.
+9. Existing Policies and authorization rules.
+10. Existing Blade Views.
+11. Existing JavaScript/CSS/frontend implementation.
+12. Existing database migrations and schema when relevant.
+13. Existing tests.
+14. Existing CI/CD configuration.
+15. `PROJECT_SPECIFICATIONS.md`.
+16. Relevant shared Google Drive project history.
+17. Previous session history related to the image or feature.
+18. Previous implementation decisions.
+19. Existing member ownership information.
+
+The Agent must use the current source code and current project state as the authority for what currently exists.
+
+Shared history must be used to understand previous work, decisions, ownership, unfinished work, and intended behavior.
+
+### Google Drive History Rule
+
+When processing an image, the Agent MUST check the shared `history-conversation-agent` folder and relevant historical records.
+
+The Agent must search for:
+
+- Previous sessions involving the same feature.
+- Previous sessions involving the same image.
+- Previous implementation attempts.
+- Previous errors.
+- Previous unfinished work.
+- Previous member ownership.
+- Previous business decisions.
+- Previous test results.
+- Previous CI/CD failures.
+- Previous UI implementation decisions.
+
+The Agent must not assume that the latest conversation contains the complete project history.
+
+### Existing Feature Decision
+
+After inspecting the project and history, the Agent must classify the image feature as:
+
+NEW
+    → Feature does not exist.
+
+EXISTING
+    → Feature already exists and appears complete.
+
+PARTIAL
+    → Feature exists but is missing functionality or UI.
+
+BROKEN
+    → Feature exists but does not work correctly.
+
+OUTDATED
+    → Feature exists but does not comply with current SKILL.md,
+      PROJECT_SPECIFICATIONS.md, or current business requirements.
+
+INTERRUPTED
+    → Previous implementation exists but was not completed.
+
+### New Feature Behavior
+
+If the feature is NEW:
+
+1. Analyze the image.
+2. Read `PROJECT_SPECIFICATIONS.md`.
+3. Check relevant project history.
+4. Identify the responsible member.
+5. Determine required business logic.
+6. Design the required architecture.
+7. Implement the UI.
+8. Implement the required backend functionality.
+9. Follow MVC and Service Interface rules.
+10. Apply all mandatory skills in SKILL.md.
+11. Create required tests.
+12. Verify CI/CD.
+13. Update shared history.
+
+### Existing Feature Behavior
+
+If the feature already exists, the Agent MUST NOT recreate it unnecessarily.
+
+The Agent must inspect the existing implementation and compare it against:
+
+- The provided image.
+- `PROJECT_SPECIFICATIONS.md`.
+- Current SKILL.md rules.
+- Existing business rules.
+- Existing source code.
+- Existing shared history.
+- Existing tests.
+- Existing CI/CD requirements.
+
+The Agent must identify:
+
+- Missing UI
+- Missing functionality
+- Incorrect UI
+- Incorrect business logic
+- Missing validation
+- Missing authorization
+- Missing tests
+- Broken routes
+- Broken database behavior
+- Broken integration
+- CI/CD failures
+- Security issues
+- Violations of any mandatory skill
+
+The Agent must automatically fix applicable problems within the current member's authorized scope.
+
+### Existing Feature Completion Rule
+
+If the feature exists but is incomplete:
+
+    DO NOT RECREATE FROM SCRATCH
+
+Instead:
+
+    EXISTING CODE
+        ↓
+    ANALYZE
+        ↓
+    COMPARE WITH IMAGE
+        ↓
+    COMPARE WITH REQUIREMENTS
+        ↓
+    IDENTIFY MISSING PARTS
+        ↓
+    IMPLEMENT MISSING PARTS
+        ↓
+    TEST
+        ↓
+    VERIFY CI/CD
+
+### Existing Feature Bug-Fix Rule
+
+If the feature exists but contains errors, the Agent must automatically investigate and fix the errors according to the mandatory rules in SKILL.md.
+
+The Agent must not wait for the user to explicitly say:
+
+"Find the bug."
+
+The image itself is sufficient to trigger comparison between the expected feature and the current implementation.
+
+### Existing Feature Quality Rule
+
+If the feature already exists but does not satisfy the current SKILL.md requirements, the Agent must bring it into compliance.
+
+For example:
+
+If the feature exists but:
+- Has no Feature Tests
+- Has no Unit Tests where appropriate
+- Does not use Apache Solr for required searching
+- Violates MVC
+- Does not use Service Interfaces
+- Has incorrect authorization
+- Does not follow current naming rules
+- Has incomplete CI/CD
+- Has incomplete validation
+
+The Agent must automatically correct the applicable issue.
+
+### Same Image Sent Again
+
+If an image that was previously provided is sent again on a later day or later session:
+
+The Agent MUST assume that existing implementation may already exist and perform a fresh project-wide investigation.
+
+The Agent must:
+
+1. Search shared history for the previous image/feature.
+2. Inspect previous implementation history.
+3. Inspect the current source code.
+4. Determine what changed since the previous implementation.
+5. Compare the current implementation with the image.
+6. Detect missing or broken functionality.
+7. Automatically continue, repair, or complete the feature.
+8. Avoid duplicating existing functionality.
+9. Preserve newer valid changes made by other members.
+10. Apply all current SKILL.md rules.
+
+The Agent MUST continue from the current project state rather than blindly starting over.
+
+### No Unnecessary Reimplementation
+
+The Agent MUST NOT:
+
+- Delete a working implementation merely because the image was sent again.
+- Recreate existing Controllers unnecessarily.
+- Recreate existing Services unnecessarily.
+- Recreate existing Interfaces unnecessarily.
+- Recreate existing Models unnecessarily.
+- Recreate existing Views unnecessarily.
+- Duplicate routes.
+- Duplicate database tables.
+- Duplicate functionality.
+- Overwrite newer valid implementation.
+- Revert another member's valid changes.
+
+The Agent must modify only what is necessary to make the existing feature correct and compliant.
+
+### Multi-Member Rule
+
+If the existing implementation belongs to another member:
+
+1. Identify the responsible member.
+2. Read their relevant shared history.
+3. Inspect their current implementation.
+4. Treat their implementation according to the existing ownership and protection rules.
+5. Use it as read-only reference when the current feature depends on it.
+6. Do not overwrite or refactor their implementation without authorization.
+7. Implement missing functionality within the current member's scope whenever possible.
+
+If the requested image requires modifying another member's protected implementation, the Agent must identify the conflict before making unauthorized changes.
+
+### Current SKILL.md Priority
+
+Every image-based implementation must follow ALL currently active rules in SKILL.md.
+
+The Agent must not use an old implementation as a reason to ignore newer skills.
+
+If a new skill was added after the original implementation, the Agent must retroactively apply that skill to the existing feature.
+
+### Automatic Test and CI/CD Rule
+
+After modifying or completing an existing image-based feature, the Agent MUST:
+
+1. Create missing test cases.
+2. Create missing Feature Tests.
+3. Create missing Unit Tests when appropriate.
+4. Run relevant tests.
+5. Run the complete test suite.
+6. Fix failures.
+7. Verify CI configuration.
+8. Verify CD compatibility.
+9. Ensure no known failure remains caused by the current implementation.
+10. Update shared project history.
+
+### Final Image Processing Rule
+
+Every image must trigger this decision process:
+
+    IMAGE RECEIVED
+        ↓
+    READ CURRENT SKILL.md
+        ↓
+    READ PROJECT_SPECIFICATIONS.md
+        ↓
+    SEARCH GOOGLE DRIVE HISTORY
+        ↓
+    SCAN CURRENT PROJECT
+        ↓
+    IDENTIFY EXISTING IMPLEMENTATION
+        ↓
+    CLASSIFY:
+        NEW / EXISTING / PARTIAL / BROKEN / OUTDATED / INTERRUPTED
+        ↓
+    IF NEW:
+        DESIGN + IMPLEMENT
+        ↓
+    IF EXISTING:
+        ANALYZE + COMPARE + FIX
+        ↓
+    IF PARTIAL:
+        COMPLETE
+        ↓
+    IF BROKEN:
+        REPAIR
+        ↓
+    IF OUTDATED:
+        APPLY CURRENT SKILL.md RULES
+        ↓
+    TEST
+        ↓
+    CI/CD
+        ↓
+    UPDATE GOOGLE DRIVE HISTORY
+        ↓
+    FINAL VERIFICATION
+
+### Final Principle
+
+The image is a specification/reference, not an instruction to blindly recreate the UI.
+
+When the same image is provided again, the Agent must understand:
+
+"Check what already exists, understand what was previously done, identify what is missing or wrong, and automatically complete or repair it according to the latest SKILL.md rules."
+
+The Agent MUST inspect before implementing.
+
+The Agent MUST reuse valid existing work.
+
+The Agent MUST automatically create missing functionality.
+
+The Agent MUST automatically fix applicable problems.
+
+The Agent MUST NOT unnecessarily recreate existing functionality.
+
+The Agent MUST apply all current and future mandatory skills.
+
+
 # 12. Error Handling and Self-Repair
 
 When an implementation produces an error:
@@ -933,6 +1846,1111 @@ unless the result was actually verified.
 
 ---
 
+# Mandatory Git Workflow: Member Branch → Main → Master → CI/CD
+
+This Git workflow is part of the project-wide development rules and MUST be applied together with the existing Verification and Shared Memory Integration rules in `SKILL.md`.
+
+The Agent MUST manage Git as part of the development workflow.
+
+Git must reflect the actual development process of the project.
+
+The current project uses the following integration flow:
+
+    Member Feature Branch
+            ↓
+         Commits
+            ↓
+           main
+            ↓
+          master
+            ↓
+         CI / CD
+
+`main` is the development and team integration branch.
+
+`master` is the final integration/deployment branch used by the current CI/CD workflow.
+
+The Agent MUST follow the repository's actual Git structure and existing workflow.
+
+The Agent MUST NOT invent a different Git workflow when the repository already has an established workflow.
+
+Git manages source-code history.
+
+The Google Drive synchronized folder manages shared team context, session history, ownership, decisions, and development records.
+
+---
+
+## Identify the Responsible Member and Check Git Safety
+
+Before modifying code, the Agent MUST:
+
+1. Read `PROJECT_SPECIFICATIONS.md` from `history-conversation-agent` when available.
+2. Read the relevant current state and latest member session.
+3. Identify the member responsible for the requested feature.
+4. Confirm that the working directory is the correct Git repository.
+5. Inspect `git status --short`.
+6. Inspect the current branch.
+7. Inspect local and remote branches.
+8. Inspect recent `main` history.
+9. Inspect relevant feature branches.
+10. Inspect `master` history when integration is relevant.
+11. Check the current CI/CD branch configuration.
+12. Check the Git author identity.
+13. Detect uncommitted and untracked changes.
+14. Protect changes belonging to the user or other members.
+
+The Agent MUST NOT:
+
+- Run `git init` to bypass an existing repository.
+- Create a second Git repository.
+- Reset another member's work.
+- Delete another member's work.
+- Overwrite uncommitted changes.
+- Automatically stash another member's work.
+- Force-push.
+- Rewrite another member's history.
+- Commit as another member.
+- Change Git identity without authorization.
+- Include unrelated changes in the current member's commit.
+
+If the Git state, member ownership, repository, or integration state cannot be safely determined, the Agent MUST stop the affected Git operation and report the blocker.
+
+The Agent MUST NOT guess.
+
+---
+
+## Understand the Project's Branch Structure
+
+The current project uses:
+
+    main
+        ↓
+    master
+        ↓
+    CI / CD
+
+Member work is developed through member-specific feature branches.
+
+The repository currently uses branch names such as:
+
+    van_trong/admin-dashboard
+    van_trong/crud-user
+    van_trong/set-rule
+    hoai_an/<feature>
+    tran_thanh/<feature>
+
+The Agent MUST follow the branch naming pattern already established by the repository.
+
+The Agent MUST NOT force a different naming convention such as:
+
+    feature/member-a/<feature>
+
+when the repository already uses:
+
+    <member>/<feature>
+
+The actual Git repository is the source of truth for branch naming.
+
+---
+
+## One Member Feature Branch Per Assigned Feature
+
+Each assigned feature should have its own member feature branch.
+
+Example:
+
+    main
+      ↓
+    van_trong/admin-dashboard
+
+or:
+
+    main
+      ↓
+    van_trong/crud-user
+
+A branch represents one assigned feature or one logically related implementation scope.
+
+The Agent MUST NOT:
+
+- Put unrelated features into the same feature branch.
+- Reuse a completed feature branch for an unrelated feature.
+- Take another member's feature.
+- Create duplicate branches unnecessarily.
+
+If an unfinished branch already exists for the requested feature, the Agent MUST inspect and safely continue that branch instead of creating a duplicate.
+
+---
+
+## Start New Feature Work From the Latest Main
+
+Before starting a new feature, the Agent MUST inspect the latest available `main`.
+
+The normal workflow is:
+
+    main
+      ↓
+    create / continue member branch
+      ↓
+    implement feature
+
+When a remote exists, the Agent may safely synchronize `main` before creating a feature branch.
+
+Example:
+
+```bash
+git switch main
+git pull --ff-only origin main
+```
+
+Only use the remote command when `origin/main` exists and the fast-forward operation is safe.
+
+The Agent MUST NOT:
+
+- Force-pull.
+- Reset local `main` to remote.
+- Overwrite divergent history.
+- Delete local work to make synchronization possible.
+
+If local and remote history diverge, stop and investigate.
+
+---
+
+## Continue an Existing Feature Safely
+
+If the requested feature already has a branch:
+
+    <member>/<feature>
+
+The Agent MUST inspect:
+
+- Current branch status.
+- Existing commits.
+- Existing implementation.
+- Uncommitted changes.
+- Previous session history.
+- Google Drive history.
+- Feature ownership.
+- Current `main` changes.
+
+If the branch contains unfinished work belonging to the current feature:
+
+    Existing Branch
+          ↓
+       Inspect
+          ↓
+       Continue
+
+The Agent MUST NOT create a duplicate feature branch unnecessarily.
+
+If the feature was already merged and completed, the next feature MUST start from the latest appropriate `main`.
+
+---
+
+## Plan Real Development Milestones
+
+Before implementing a feature, the Agent MUST divide the assigned work into real, sequential, verifiable milestones when the feature is large enough to justify multiple milestones.
+
+Examples:
+
+    Milestone 1
+    Database / Model / Migration
+
+    Milestone 2
+    Service / Interface / Business Logic
+
+    Milestone 3
+    Controller / Request / Authorization
+
+    Milestone 4
+    Blade / Frontend
+
+    Milestone 5
+    Tests / CI fixes
+
+The milestone structure MUST reflect the actual feature.
+
+The Agent MUST NOT invent functionality merely to create additional commits.
+
+A small feature may have fewer commits when there are not enough meaningful development stages.
+
+The Agent MUST NOT create:
+
+- Empty commits.
+- Artificial commits.
+- Whitespace-only commits.
+- Meaningless comment changes.
+- Fake milestones.
+- Duplicate changes.
+
+Git history must represent real development.
+
+---
+
+## Commit During Development
+
+The Agent MUST use meaningful functional milestones as the primary unit of Git commits.
+
+A commit represents a meaningful part of the requested work that has been completed, verified, and is ready to be preserved in Git history.
+
+The Agent MUST NOT treat individual files, classes, methods, migrations, models, controllers, or other technical components as automatic commit boundaries.
+
+The Agent MUST follow this workflow:
+
+    Start Feature
+        ↓
+    Implement Functional Milestone
+        ↓
+    Test / Verify Functional Milestone
+        ↓
+    Commit Functional Milestone
+        ↓
+    Continue Feature
+        ↓
+    Implement Next Functional Milestone
+        ↓
+    Test / Verify
+        ↓
+    Commit
+        ↓
+    Continue
+
+A functional milestone may be, depending on the actual feature:
+
+- A completed frontend interface.
+- A completed business function.
+- A completed user flow.
+- A completed CRUD function.
+- A completed authentication function.
+- A completed authorization function.
+- A completed validation flow.
+- A completed search function.
+- A completed API integration.
+- A completed database-backed function.
+- A completed integration between existing components.
+- A completed bug fix that represents a meaningful functional change.
+- Any other logically complete and verifiable part of the assigned feature.
+
+For example, when implementing Login:
+
+    Login UI
+        ↓
+    UI Test / Verify
+        ↓
+    COMMIT: Complete Login UI
+
+    Login Business Logic
+        ↓
+    Test / Verify
+        ↓
+    COMMIT: Complete Login
+
+    Login Validation / Error Handling
+        ↓
+    Test / Verify
+        ↓
+    COMMIT: Complete Login Validation
+
+    Login Integration / Final Verification
+        ↓
+    Test
+        ↓
+    COMMIT when a meaningful final change exists
+
+The Agent MUST commit the functional milestone immediately after that milestone is completed and successfully verified.
+
+The Agent MUST NOT wait until the entire feature is finished before committing completed functional milestones.
+
+For example, the Agent MUST NOT do:
+
+    Login UI
+        ↓
+    Login Business Logic
+        ↓
+    Login Validation
+        ↓
+    Login Integration
+        ↓
+    One Large Commit
+
+Instead, the Agent should preserve the completed functional milestones separately:
+
+    Login UI
+        ↓
+    Verify
+        ↓
+    COMMIT
+
+    Login Business Logic
+        ↓
+    Verify
+        ↓
+    COMMIT
+
+    Login Validation
+        ↓
+    Verify
+        ↓
+    COMMIT
+
+    Login Integration
+        ↓
+    Verify
+        ↓
+    COMMIT
+
+The Agent MAY modify multiple technical files within one functional milestone.
+
+For example, completing Login Business Logic may require changes to:
+
+- Migration
+- Model
+- Interface
+- Service
+- Request
+- Controller
+- Routes
+- Tests
+
+These changes SHOULD normally be committed together when they collectively complete the same functional milestone.
+
+The Agent MUST NOT create separate commits merely because these components are technically different.
+
+The Agent MUST NOT create artificial commits only to increase the number of commits.
+
+The Agent MUST NOT create:
+
+- File-based commits without a meaningful functional milestone.
+- Empty commits.
+- Whitespace-only commits.
+- Comment-only commits without functional meaning.
+- Duplicate commits.
+- Artificial milestone commits.
+- Commits containing unrelated work.
+
+If a functional milestone is incomplete, the Agent MUST continue working on that milestone rather than committing incomplete functionality.
+
+If verification fails, the Agent MUST fix the problem and verify again before creating the milestone commit.
+
+The Agent MUST review the staged changes before committing and ensure that the commit contains only changes belonging to the completed functional milestone.
+
+The commit message MUST describe the completed functional milestone.
+
+Examples:
+
+    Hoàn thành giao diện Login
+
+    Hoàn thành chức năng Login
+
+    Hoàn thành validation Login
+
+    Hoàn thành CRUD User
+
+    Hoàn thành tìm kiếm User
+
+    Hoàn thành phân quyền User
+
+    Hoàn thành Admin Dashboard
+
+Git history MUST therefore represent the actual functional development progress of the feature.
+
+The intended principle is:
+
+    Functional Work Completed
+        ↓
+    Verification Passed
+        ↓
+    Commit Immediately
+        ↓
+    Continue Next Functional Work
+
+---
+
+## Verify Before Each Commit
+
+Before creating a milestone commit, the Agent MUST:
+
+1. Complete the milestone within the assigned scope.
+2. Run the relevant test or verification.
+3. Check `git status --short`.
+4. Review `git diff`.
+5. Identify files belonging to the current milestone.
+6. Stage only the required files or hunks.
+7. Inspect the staged diff.
+8. Run `git diff --cached --check`.
+9. Commit the milestone.
+10. Verify the created commit.
+
+The Agent MUST NOT blindly stage the entire repository when unrelated changes may exist.
+
+Avoid:
+
+```bash
+git add .
+```
+
+or:
+
+```bash
+git add -A
+```
+
+when those commands could include another member's changes.
+
+Prefer explicit paths or carefully controlled staging.
+
+Example:
+
+```bash
+git add -- resources/views/admin/dashboard.blade.php
+git diff --cached --check
+git diff --cached
+git commit -m "Cập nhật giao diện admin dashboard"
+git log -1 --oneline
+```
+
+The example paths are illustrative only. Use the actual files involved in the milestone.
+
+---
+
+## Testing Is Part of the Git Milestone
+
+A milestone is not considered complete merely because the code was written.
+
+The Agent MUST follow the project's testing rules before committing a meaningful milestone.
+
+The workflow is:
+
+    Implement
+        ↓
+    Create / Update Tests
+        ↓
+    Run Relevant Tests
+        ↓
+    Fix Failures
+        ↓
+    Verify
+        ↓
+    Commit
+
+Depending on the feature, this may include:
+
+- Test cases.
+- Feature Tests.
+- Unit Tests.
+- Frontend checks.
+- Database checks.
+- Build checks.
+- Search tests.
+- Authorization tests.
+- Authentication tests.
+
+The Agent MUST NOT knowingly commit a milestone with a failure caused by the current implementation.
+
+---
+
+## Commit Messages
+
+Commit messages must describe the actual completed change.
+
+Use the existing team's commit-message style.
+
+Vietnamese commit messages should be used when that is the established project convention.
+
+Examples:
+
+```text
+Thêm giao diện admin dashboard
+```
+
+```text
+Thêm CRUD user và test case
+```
+
+```text
+Sửa MVC admin dashboard, cập nhật unit test
+```
+
+```text
+Thêm tìm kiếm chuyến đi bằng Solr
+```
+
+```text
+Sửa lỗi responsive trang chủ
+```
+
+The Agent MUST NOT create misleading commit messages.
+
+---
+
+## Feature Completion Before Main Integration
+
+Before merging a member feature branch into `main`, the Agent MUST verify:
+
+- Assigned feature is complete.
+- All required functionality exists.
+- UI matches the provided design when applicable.
+- Desktop works.
+- Tablet works.
+- Mobile works.
+- Required tests exist.
+- Relevant tests pass.
+- Full test suite passes when required.
+- CI requirements are satisfied.
+- No known errors caused by the current feature remain.
+- No unrelated files were changed.
+- No other member's work was overwritten.
+- Git history is understandable.
+- The feature branch is clean.
+
+The Agent MUST NOT merge a knowingly incomplete feature into `main`.
+
+---
+
+## Review the Feature Branch Before Merge
+
+Before merging:
+
+```bash
+git status --short
+git log --oneline main..HEAD
+git diff --check main...HEAD
+```
+
+The Agent must verify that the commits:
+
+- Belong to the current feature.
+- Represent real development work.
+- Are in a sensible order.
+- Do not contain unrelated member work.
+- Do not contain fabricated commits.
+
+The Agent must ensure unrelated uncommitted changes are not included.
+
+---
+
+## Merge Member Branch Into Main
+
+When the feature branch passes the pre-merge verification:
+
+    <member>/<feature>
+            ↓
+          main
+
+The Agent may integrate the feature into `main` according to the team's established Git workflow and repository permissions.
+
+The Agent must preserve meaningful feature commits.
+
+The Agent MUST NOT:
+
+- Squash commits when doing so would destroy the project's meaningful development history.
+- Reset `main` to an older state.
+- Force-push.
+- Overwrite another member's work.
+- Resolve conflicts by guessing.
+
+A normal merge may be used when consistent with the repository's existing history.
+
+Example:
+
+```bash
+git switch main
+git merge --no-ff <member>/<feature>
+```
+
+The exact command must be determined from the actual repository state.
+
+If conflicts occur, the Agent MUST inspect them carefully.
+
+If a conflict could modify another member's work or business logic outside the current authorized scope, the Agent MUST stop and report the conflict.
+
+---
+
+## Verify Main After Integration
+
+A successful Git merge does NOT automatically mean that the application is correct.
+
+After integrating a feature into `main`, the Agent MUST verify the integrated project.
+
+The Agent must check:
+
+- The new feature works.
+- Existing features still work.
+- Required tests pass.
+- Full Laravel tests pass when applicable.
+- No merge conflict remains.
+- No unintended changes were introduced.
+- Existing member functionality remains intact.
+- Current SKILL.md rules remain satisfied.
+
+The Agent MUST treat:
+
+    Git Merge = successful integration of source history
+
+and:
+
+    Tests / CI = verification of application correctness
+
+as separate checks.
+
+---
+
+## Main → Master Integration
+
+The current project uses `master` as the final integration/deployment branch.
+
+The normal promotion flow is:
+
+    main
+      ↓
+    verification
+      ↓
+    master
+      ↓
+    CI
+      ↓
+    CD
+
+The Agent MUST NOT develop normal feature work directly on `master`.
+
+Before integrating `main` into `master`, the Agent MUST verify:
+
+1. `main` is in a valid state.
+2. Required tests pass.
+3. No known blocking errors remain.
+4. The current integrated features are ready for the project's deployment workflow.
+5. No unfinished feature is being unintentionally promoted.
+6. The current CI/CD configuration is compatible with the changes.
+
+The Agent MUST preserve existing Git history.
+
+---
+
+## CI/CD Is the Final Integration Gate
+
+The current project CI/CD workflow uses `master`.
+
+The Agent MUST treat CI/CD as part of the Git integration process.
+
+The expected flow is:
+
+    Feature Branch
+        ↓
+    main
+        ↓
+    master
+        ↓
+    CI
+        ↓
+    CD
+
+The Agent MUST NOT:
+
+- Disable CI tests.
+- Remove tests to make CI pass.
+- Skip required Docker validation.
+- Bypass Laravel tests.
+- Modify CI only to hide an application failure.
+- Claim CI passed when it was not actually verified.
+
+If CI fails because of the current implementation:
+
+    Read Failure
+        ↓
+    Identify Cause
+        ↓
+    Fix
+        ↓
+    Test
+        ↓
+    Commit Fix
+        ↓
+    Verify Again
+
+The Agent must fix the actual problem instead of weakening the validation.
+
+---
+
+## Master Must Remain Deployable
+
+Because `master` is used by the current CI/CD workflow, the Agent must treat it as a protected integration/deployment branch.
+
+The Agent MUST NOT intentionally place knowingly broken code on `master`.
+
+Before promotion:
+
+- Required tests must pass.
+- Required CI checks must pass when available.
+- Docker configuration must remain valid.
+- Database configuration must remain valid.
+- Application startup must remain valid.
+- Existing deployment behavior must not be intentionally broken.
+
+If the project requires a pull request or protected branch approval, the Agent must follow that requirement instead of bypassing it.
+
+---
+
+## Do Not Automatically Push Without Authorization
+
+The Agent may manage local Git history and local integration when permitted by the project's workflow.
+
+Pushing to a remote repository must follow the team's established authorization and repository rules.
+
+The Agent MUST NOT:
+
+- Force-push.
+- Overwrite remote branches.
+- Bypass branch protection.
+- Push another member's work.
+- Push to an unrelated branch.
+- Claim that a remote push succeeded unless it actually succeeded.
+
+If remote push is not authorized or cannot be performed safely:
+
+    Keep the correct local state
+        ↓
+    Record the state
+        ↓
+    Report what remains to be pushed
+
+Do not destroy local work merely because remote synchronization is unavailable.
+
+---
+
+## Cross-Member Protection During Git Operations
+
+Git operations must follow the multi-member protection rules in this SKILL.md.
+
+When another member has:
+
+- Uncommitted changes.
+- A feature branch.
+- A pending merge.
+- Existing implementation.
+- Existing tests.
+- Existing commits.
+
+The Agent MUST preserve that work.
+
+The Agent may inspect another member's branch and commits to understand dependencies.
+
+The Agent MUST NOT:
+
+- Reset their branch.
+- Delete their branch.
+- Rewrite their commits.
+- Force-push their branch.
+- Modify unrelated files.
+- Merge their unfinished feature merely to continue the current task.
+- Take ownership of their assigned feature.
+
+If the current feature depends on another member's unfinished work, the Agent must identify the dependency and continue only within the authorized scope.
+
+---
+
+## New Skill Retroactive Integration and Git
+
+When a new skill is added to `SKILL.md`, the Automatic New Skill Detection and Project-Wide Integration rules apply.
+
+The Agent must:
+
+    Detect New Skill
+        ↓
+    Scan Entire Project
+        ↓
+    Identify Affected Features
+        ↓
+    Identify Responsible Members
+        ↓
+    Inspect Relevant Branches
+        ↓
+    Apply Skill Within Authorized Scope
+        ↓
+    Create Required Tests
+        ↓
+    Verify
+        ↓
+    Commit Real Changes
+        ↓
+    Merge Into main
+        ↓
+    Verify main
+        ↓
+    Promote to master when appropriate
+        ↓
+    Verify CI/CD
+        ↓
+    Update Shared History
+
+The Agent MUST NOT create one artificial commit containing unrelated retroactive changes merely to show that a new skill was applied.
+
+Changes must remain understandable in Git history.
+
+---
+
+## Image-Based Frontend Development and Git
+
+When the user provides an image:
+
+    Image
+      ↓
+    Read SKILL.md
+      ↓
+    Read PROJECT_SPECIFICATIONS.md
+      ↓
+    Read Google Drive history
+      ↓
+    Inspect current project
+      ↓
+    Identify responsible member
+      ↓
+    Inspect Git state
+      ↓
+    Create / continue member feature branch
+      ↓
+    Implement or repair frontend
+      ↓
+    Match image
+      ↓
+    Test
+      ↓
+    Commit
+      ↓
+    Continue remaining milestones
+      ↓
+    Merge into main
+      ↓
+    Verify main
+      ↓
+    Integrate into master when appropriate
+      ↓
+    CI / CD
+      ↓
+    Update history
+
+If the same image is sent again later, the Agent must inspect the existing implementation and continue or repair it instead of automatically recreating the feature.
+
+Git history must be used together with Google Drive history to understand what was previously implemented.
+
+---
+
+## Interrupted Session Recovery
+
+If a coding session is interrupted:
+
+- Preserve the current branch.
+- Preserve existing commits.
+- Preserve uncommitted work when possible.
+- Record the current Git state.
+- Record the current milestone.
+- Record the feature branch.
+- Record the latest commit.
+- Record the next required action.
+- Update shared history when possible.
+
+When the user continues later:
+
+    Current Git State
+        +
+    Current Source Code
+        +
+    Google Drive History
+        +
+    Feature Branch
+        ↓
+    Continue From Current State
+
+The Agent MUST NOT restart the feature unnecessarily.
+
+The Agent MUST NOT create duplicate commits for work that already exists.
+
+---
+
+## Git History Must Be Reflected in Shared Memory
+
+After meaningful Git milestones and feature integration, the Agent MUST synchronize the actual Git state with the project's shared memory rules defined in the `# Shared Memory Integration` section.
+
+The Agent should record when applicable:
+
+- Member.
+- Feature.
+- Branch.
+- Milestone.
+- Commit hash.
+- Commit message.
+- Tests.
+- CI result.
+- Merge status.
+- Current state.
+- Remaining work.
+- Next authorized feature.
+- Conflicts or blockers.
+
+Git remains the source of truth for actual commits, merges, and branch state.
+
+Shared Memory / Google Drive remains the project-context and development-history layer.
+
+The Agent MUST NOT record or claim:
+
+- A commit that does not exist.
+- A merge that did not happen.
+- A push that did not happen.
+- A test that was not run.
+- CI success that was not verified.
+
+The detailed storage locations and shared-memory rules are governed by `# Shared Memory Integration` immediately following this Git section.
+
+---
+
+## Continue With the Next Assigned Feature
+
+After a feature has been successfully integrated into `main`, the Agent may continue with the next assigned feature only when the current instruction authorizes continued work.
+
+The next feature must start from the latest appropriate `main`.
+
+The workflow is:
+
+    Completed Feature
+        ↓
+    Merge Into main
+        ↓
+    Verify main
+        ↓
+    Identify Next Assigned Feature
+        ↓
+    Create / Continue Member Branch
+        ↓
+    Implement
+        ↓
+    Test
+        ↓
+    Commit
+        ↓
+    Repeat
+
+The Agent MUST NOT:
+
+- Invent another member's task.
+- Take an unassigned feature.
+- Continue indefinitely without authorization.
+- Start the next feature from the old completed feature branch.
+
+---
+
+## Final Git Workflow
+
+The complete project workflow is:
+
+    READ SKILL.md
+        ↓
+    READ PROJECT_SPECIFICATIONS.md
+        ↓
+    READ GOOGLE DRIVE HISTORY
+        ↓
+    IDENTIFY RESPONSIBLE MEMBER
+        ↓
+    INSPECT GIT STATE
+        ↓
+    CHECK MAIN
+        ↓
+    CREATE / CONTINUE MEMBER FEATURE BRANCH
+        ↓
+    IMPLEMENT
+        ↓
+    CREATE / UPDATE TESTS
+        ↓
+    VERIFY
+        ↓
+    COMMIT REAL MILESTONE
+        ↓
+    CONTINUE FEATURE
+        ↓
+    FINAL TEST
+        ↓
+    FEATURE BRANCH REVIEW
+        ↓
+    MERGE INTO MAIN
+        ↓
+    VERIFY MAIN
+        ↓
+    INTEGRATE MAIN INTO MASTER WHEN APPROPRIATE
+        ↓
+    CI
+        ↓
+    CD
+        ↓
+    UPDATE SHARED MEMORY
+        ↓
+    NEXT AUTHORIZED FEATURE
+
+---
+
+## Final Git Checklist
+
+Before considering a feature complete:
+
+- [ ] Correct member identified.
+- [ ] Correct repository identified.
+- [ ] Current Git state inspected.
+- [ ] Existing uncommitted work protected.
+- [ ] Correct member feature branch used.
+- [ ] Feature branch based on appropriate `main`.
+- [ ] Feature implemented within assigned scope.
+- [ ] Required tests created or updated.
+- [ ] Relevant tests passed.
+- [ ] Meaningful milestones committed during development.
+- [ ] Commit history represents real work.
+- [ ] No unrelated files included.
+- [ ] No other member's work overwritten.
+- [ ] Feature branch reviewed.
+- [ ] Feature merged into `main` according to project workflow.
+- [ ] `main` verified after integration.
+- [ ] `master` updated only when appropriate.
+- [ ] CI/CD requirements satisfied.
+- [ ] No known failure caused by the current feature remains.
+- [ ] Google Drive shared history updated.
+- [ ] Actual commit hashes recorded.
+- [ ] Actual merge status recorded.
+- [ ] Next feature starts from the latest appropriate `main`.
+
+---
+
+## Final Principle
+
+This Git section belongs between `# 13. Verification` and `# Shared Memory Integration`.
+
+The Agent MUST follow the Git workflow that actually exists in the repository.
+
+The project currently follows:
+
+    MEMBER
+      ↓
+    MEMBER FEATURE BRANCH
+      ↓
+    REAL COMMITS
+      ↓
+    main
+      ↓
+    master
+      ↓
+    CI / CD
+
+`main` is the development and integration branch.
+
+`master` is the final integration/deployment branch.
+
+The Agent MUST NOT replace this workflow with another Git strategy unless the project team explicitly changes the Git workflow.
+
+The Agent must protect other members' work, preserve real Git history, test before integration, verify `main`, and ensure that changes reaching `master` remain compatible with CI/CD.
+
+Git history must represent actual development.
+
+Google Drive history must preserve the team's development context.
+
+Both must remain consistent with the actual project state.
+
+---
+
 # Shared Memory Integration
 
 The shared-memory rules below are part of the same skill and are mandatory.
@@ -986,6 +3004,196 @@ history-conversation-agent/
     └── ...
 
 ---
+
+## 2.1 Search Engine Requirement
+
+All searching functionality in the project MUST use Apache Solr Search Engine.
+
+### Mandatory Apache Solr Rule
+
+Whenever a feature requires searching, filtering, querying, text matching, full-text search, or search suggestions, the Agent must use Apache Solr as the search engine.
+
+This includes:
+- Global search
+- Search by keyword
+- Full-text search
+- Product/entity search
+- User search
+- Destination search
+- Hotel search
+- Travel search
+- Autocomplete/search suggestions
+- Search with multiple conditions
+- Fuzzy search
+- Relevance-based search
+- Search result ranking
+
+### Forbidden Search Implementations
+
+The Agent MUST NOT implement application searching using:
+- Laravel collection filtering
+- PHP loops for searching database records
+- `LIKE '%keyword%'` as the primary search engine
+- `WHERE LIKE` as the primary search implementation
+- MySQL full-text search as a replacement for Solr
+- Elasticsearch
+- Other search engines
+- Client-side JavaScript searching for server-side application data
+
+Database queries may still be used for exact filtering, authorization, data retrieval, or other non-search operations, but search functionality itself must be handled by Apache Solr.
+
+### Search Architecture
+
+Search functionality must follow the project's MVC + Service Interface architecture.
+
+Recommended flow:
+
+User Request
+    ↓
+Controller
+    ↓
+Form Request / Validation
+    ↓
+Search Service Interface
+    ↓
+Search Service
+    ↓
+Apache Solr
+    ↓
+Search Results
+    ↓
+Controller
+    ↓
+Blade / API Response
+
+The Controller must remain thin.
+
+Search logic must not be placed directly inside Controllers.
+
+### Apache Solr Integration
+
+When implementing a search feature, the Agent must:
+
+1. Check whether Apache Solr is already configured in the project.
+2. Inspect existing Solr configuration.
+3. Inspect existing Solr cores/collections.
+4. Inspect existing indexing logic.
+5. Inspect existing Search Services and Interfaces.
+6. Reuse existing Solr architecture when available.
+7. Create the required Solr integration only when it does not already exist.
+8. Keep Solr-specific logic inside the appropriate Service layer.
+9. Follow existing project naming and architecture rules.
+10. Never introduce another search engine when Solr is already the project standard.
+
+### Search Indexing
+
+When a searchable entity is created, updated, or deleted, the Agent must consider whether the Solr index must also be updated.
+
+The Agent must ensure that:
+- New searchable records can be indexed.
+- Updated searchable records are synchronized with Solr.
+- Deleted records are removed from Solr when required.
+- Search results do not depend on stale indexed data.
+- Index synchronization follows the project's existing architecture.
+
+### Search Result Requirements
+
+Search results must use Apache Solr's search capabilities where applicable, including:
+- Keyword matching
+- Relevance scoring
+- Ranking
+- Pagination
+- Sorting
+- Filtering/faceting
+- Fuzzy matching
+- Prefix matching
+- Partial matching
+- Highlighting
+- Autocomplete
+
+Only implement capabilities that are required by the current feature.
+
+Do not add unnecessary search complexity.
+
+### Search Performance
+
+The Agent must not retrieve the entire database table and perform searching in PHP.
+
+Bad:
+
+    Model::all()->filter(...)
+
+Bad:
+
+    Model::where('name', 'like', "%{$keyword}%")->get();
+
+Good:
+
+    Controller
+        → Search Service
+        → Apache Solr
+        → Search Results
+
+The database remains the source of persistent application data.
+
+Apache Solr is the search engine.
+
+### Search Testing
+
+Every search feature must include appropriate tests.
+
+Tests must verify:
+- Search request validation
+- Keyword handling
+- Search result correctness
+- Empty search results
+- Relevant matching behavior
+- Pagination when applicable
+- Filtering when applicable
+- Authorization when applicable
+- Solr integration behavior
+- Error handling when Solr is unavailable
+
+Search tests must not bypass the application's Search Service architecture.
+
+### Search Failure Handling
+
+If Apache Solr is unavailable or returns an error, the Agent must:
+
+1. Detect the failure.
+2. Handle the error according to the project's error-handling rules.
+3. Return an appropriate application response.
+4. Log the relevant error when required.
+5. Never silently replace Solr with MySQL `LIKE` search or another search engine.
+
+A fallback search implementation may only be introduced if the user explicitly requests it.
+
+### Search Dependency Protection
+
+If Apache Solr configuration, indexing logic, or Search Services were created by another member:
+
+- Read and analyze the existing implementation.
+- Use it as a read-only reference when required.
+- Reuse existing contracts and architecture.
+- Do not rewrite or replace the existing Solr implementation.
+- Do not introduce another search engine.
+- Do not modify another member's protected code unless explicitly authorized.
+
+### Final Search Rule
+
+If the feature contains searching, the Agent MUST use Apache Solr.
+
+SEARCH FUNCTION
+    ↓
+APACHE SOLR
+    ↓
+SEARCH SERVICE
+    ↓
+CONTROLLER
+    ↓
+RESPONSE
+
+Never implement primary application search using database `LIKE`, PHP filtering, or another search engine.
 
 ## 3. Finding the Shared Folder
 
@@ -1262,6 +3470,8 @@ What is now complete and what remains.
 The next useful action for another member.
 
 ---
+
+
 
 ## 12. Session Numbering
 

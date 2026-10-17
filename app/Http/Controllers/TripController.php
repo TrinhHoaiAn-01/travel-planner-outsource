@@ -2,9 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreTripRequest;
+use App\Http\Requests\UpdateTripNotesRequest;
+use App\Http\Requests\UpdateTripRequest;
+use App\Models\Trip;
 use App\Services\Interfaces\TripServiceInterface;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class TripController extends Controller
@@ -47,4 +53,133 @@ class TripController extends Controller
             'endDate' => $filters['end_date'],
         ]);
     }
+
+    /**
+     * Hiển thị màn hình tạo chuyến đi mới.
+     */
+    public function create(): View
+    {
+        return view('trips.create');
+    }
+
+    /**
+     * Xử lý lưu chuyến đi mới qua Form Request và Service Interface.
+     */
+    public function store(StoreTripRequest $request): RedirectResponse
+    {
+        $validatedData = $request->validated();
+        $validatedData['user_id'] = Auth::id();
+        $validatedData['status'] = Trip::STATUS_PLANNED;
+
+        $trip = $this->tripService->createTrip($validatedData);
+
+        return redirect()
+            ->route('trips.index')
+            ->with('success', 'Tạo chuyến đi mới thành công!');
+    }
+
+    /**
+     * Hiển thị chi tiết chuyến đi của người dùng.
+     * Tuân thủ quy tắc bảo mật BR-01 và BR-03 chống lỗi IDOR.
+     */
+    public function show(Trip $trip): View
+    {
+        Gate::authorize('view', $trip);
+
+        $tripDetails = $this->tripService->getTripDetails($trip->id);
+        $summary = $this->tripService->getTripSummary($trip->id);
+        $daysList = $this->tripService->getTripDaysList($trip->id);
+
+        return view('trips.show', [
+            'trip' => $tripDetails,
+            'summary' => $summary,
+            'daysList' => $daysList,
+        ]);
+    }
+
+    /**
+     * Hiển thị màn hình chỉnh sửa thông tin chuyến đi.
+     */
+    public function edit(Trip $trip): View
+    {
+        Gate::authorize('update', $trip);
+
+        return view('trips.edit', [
+            'trip' => $trip,
+        ]);
+    }
+
+    /**
+     * Cập nhật thông tin chuyến đi qua Form Request và Service Interface.
+     */
+    public function update(UpdateTripRequest $request, Trip $trip): RedirectResponse
+    {
+        Gate::authorize('update', $trip);
+
+        $validatedData = $request->validated();
+        $this->tripService->updateTrip($trip->id, $validatedData);
+
+        return redirect()
+            ->route('trips.show', $trip->id)
+            ->with('success', 'Cập nhật chuyến đi thành công!');
+    }
+
+    /**
+     * Xóa chuyến đi khỏi hệ thống.
+     */
+    public function destroy(Trip $trip): RedirectResponse
+    {
+        Gate::authorize('delete', $trip);
+
+        $this->tripService->deleteTrip($trip->id);
+
+        return redirect()
+            ->route('trips.index')
+            ->with('success', 'Xóa chuyến đi thành công!');
+    }
+
+    /**
+     * Nhân bản chuyến đi đã có (Nghiệp vụ của Nguyễn Trần Thành).
+     */
+    public function clone(Trip $trip): RedirectResponse
+    {
+        Gate::authorize('view', $trip);
+
+        $this->tripService->cloneTrip($trip->id);
+
+        return redirect()
+            ->route('trips.index')
+            ->with('success', 'Đã nhân bản chuyến đi thành công!');
+    }
+
+    /**
+     * Mở lại chuyến đi đã hoàn thành (Nghiệp vụ của Nguyễn Trần Thành).
+     */
+    public function reopen(Trip $trip): RedirectResponse
+    {
+        Gate::authorize('update', $trip);
+
+        $this->tripService->reopenTrip($trip->id);
+
+        return redirect()
+            ->route('trips.index')
+            ->with('success', 'Đã mở lại chuyến đi thành công!');
+    }
+
+    /**
+     * Cập nhật nhanh mô tả và ghi chú tổng quát của chuyến đi.
+     * Thuộc chức năng Quản lý mô tả và ghi chú tổng quát của Nguyễn Trần Thành.
+     */
+    public function updateNotes(UpdateTripNotesRequest $request, Trip $trip): RedirectResponse
+    {
+        Gate::authorize('update', $trip);
+
+        $description = $request->validated('description');
+        $this->tripService->updateTripNotes($trip->id, $description);
+
+        return redirect()
+            ->route('trips.show', $trip->id)
+            ->with('success', 'Đã cập nhật mô tả và ghi chú tổng quát chuyến đi thành công!');
+    }
 }
+
