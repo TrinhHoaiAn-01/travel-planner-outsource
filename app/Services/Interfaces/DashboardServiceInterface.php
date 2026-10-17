@@ -14,9 +14,18 @@ interface DashboardServiceInterface
     /**
      * Lấy dữ liệu biểu đồ đặt chuyến đi và booking theo từng tháng trong năm 2026.
      *
+     * @param int $year
      * @return array<string, mixed>
      */
     public function getMonthlyStatistics(int $year = 2026): array;
+
+    /**
+     * Lấy tỷ lệ đặt phòng theo loại hình lưu trú và dịch vụ.
+     *
+     * @param int $limit
+     * @return array<int, array<string, mixed>>
+     */
+    public function getBookingCategories(int $limit = 4): array;
 
     /**
      * Lấy danh sách điểm đến phổ biến nhất kèm tỷ lệ phần trăm.
@@ -33,4 +42,12 @@ interface DashboardServiceInterface
      * @return array<int, array<string, mixed>>
      */
     public function getRecentBookings(int $limit = 5): array;
+
+    /**
+     * Xuất dữ liệu báo cáo thống kê Dashboard ra định dạng tệp CSV.
+     *
+     * @param int $year
+     * @return string
+     */
+    public function exportReportData(int $year = 2026): string;
 }

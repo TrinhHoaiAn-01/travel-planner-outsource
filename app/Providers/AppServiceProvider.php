@@ -29,6 +29,83 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\Interfaces\TripServiceInterface::class,
             \App\Services\TripService::class
         );
+
+        //Ngocai
+        // Ràng buộc DestinationServiceInterface với triển khai cụ thể DestinationService
+        $this->app->bind(
+            \App\Services\Interfaces\DestinationServiceInterface::class,
+            \App\Services\DestinationService::class
+        );
+
+        // Ràng buộc FavoriteServiceInterface với triển khai cụ thể FavoriteService
+        $this->app->bind(
+            \App\Services\Interfaces\FavoriteServiceInterface::class,
+            \App\Services\FavoriteService::class
+        );
+
+        // Ràng buộc ProfileServiceInterface với triển khai cụ thể ProfileService (Trịnh Hoài An)
+        $this->app->bind(
+            \App\Services\Interfaces\ProfileServiceInterface::class,
+            \App\Services\ProfileService::class
+        );
+
+        // Ràng buộc CityManagementServiceInterface với triển khai cụ thể CityManagementService (Trần Văn Trọng)
+        $this->app->bind(
+            \App\Services\Interfaces\CityManagementServiceInterface::class,
+            \App\Services\CityManagementService::class
+        );
+
+        // Ràng buộc CategoryManagementServiceInterface & CategoryServiceInterface với CategoryManagementService (Trần Văn Trọng)
+        $this->app->bind(
+            \App\Services\Interfaces\CategoryManagementServiceInterface::class,
+            \App\Services\CategoryManagementService::class
+        );
+        $this->app->bind(
+            \App\Services\Interfaces\CategoryServiceInterface::class,
+            \App\Services\CategoryManagementService::class
+        );
+
+        // Ràng buộc UserManagementServiceInterface với triển khai cụ thể UserManagementService (Trần Văn Trọng)
+        $this->app->bind(
+            \App\Services\Interfaces\UserManagementServiceInterface::class,
+            \App\Services\UserManagementService::class
+        );
+
+        // Ràng buộc BudgetServiceInterface với triển khai cụ thể BudgetService (Nguyễn Văn Thắng)
+        $this->app->bind(
+            \App\Services\Interfaces\BudgetServiceInterface::class,
+            \App\Services\BudgetService::class
+        );
+
+        // Ràng buộc ExpenseServiceInterface với triển khai cụ thể ExpenseService (Nguyễn Văn Thắng)
+        $this->app->bind(
+            \App\Services\Interfaces\ExpenseServiceInterface::class,
+            \App\Services\ExpenseService::class
+        );
+
+        // Ràng buộc DestinationManagementServiceInterface với DestinationManagementService (Trần Văn Trọng)
+        $this->app->bind(
+            \App\Services\Interfaces\DestinationManagementServiceInterface::class,
+            \App\Services\DestinationManagementService::class
+        );
+
+        // Ràng buộc DestinationImageServiceInterface với DestinationImageService (Trần Văn Trọng)
+        $this->app->bind(
+            \App\Services\Interfaces\DestinationImageServiceInterface::class,
+            \App\Services\DestinationImageService::class
+        );
+
+        // Ràng buộc ReviewModerationServiceInterface với ReviewModerationService (Trần Văn Trọng)
+        $this->app->bind(
+            \App\Services\Interfaces\ReviewModerationServiceInterface::class,
+            \App\Services\ReviewModerationService::class
+        );
+
+        // Ràng buộc BookingServiceInterface với BookingService (Nguyễn Văn Thắng)
+        $this->app->bind(
+            \App\Services\Interfaces\BookingServiceInterface::class,
+            \App\Services\BookingService::class
+        );
     }
 
     /**

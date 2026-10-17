@@ -78,6 +78,41 @@ class Destination extends Model
         return $this->belongsToMany(User::class, 'favorites')->withPivot('created_at');
     }
 
+    public function roomTypes(): HasMany
+    {
+        return $this->hasMany(RoomType::class);
+    }
+
+    public function getHasHotelAttribute(): bool
+    {
+        return $this->relationLoaded('roomTypes')
+            ? $this->roomTypes->isNotEmpty()
+            : $this->roomTypes()->exists();
+    }
+
+    /**
+     * Lấy giá phòng thấp nhất từ danh sách các loại phòng (Room Types).
+     */
+    public function getMinRoomPriceAttribute(): ?float
+    {
+        if ($this->relationLoaded('roomTypes')) {
+            $minPrice = $this->roomTypes->min('price_per_night');
+            return $minPrice !== null ? (float) $minPrice : null;
+        }
+
+        $minPrice = $this->roomTypes()->min('price_per_night');
+        return $minPrice !== null ? (float) $minPrice : null;
+    }
+
+    /**
+     * Định dạng giá phòng thấp nhất theo định dạng VND.
+     */
+    public function getFormattedMinRoomPriceAttribute(): ?string
+    {
+        $minPrice = $this->min_room_price;
+        return $minPrice !== null ? number_format($minPrice, 0, ',', '.') . 'đ' : null;
+    }
+
     public function scopeFeatured(Builder $query): Builder
     {
         return $query->where('is_featured', true);

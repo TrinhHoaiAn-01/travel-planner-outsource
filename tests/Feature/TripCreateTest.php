@@ -11,6 +11,13 @@ class TripCreateTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Vô hiệu hóa kiểm tra CSRF token trong môi trường test để tập trung kiểm thử logic nghiệp vụ
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+    }
+
     /**
      * Khách vãng lai (Guest) chưa đăng nhập không thể truy cập màn hình tạo chuyến đi và bị chuyển hướng về login.
      */
@@ -69,14 +76,13 @@ class TripCreateTest extends TestCase
         $response->assertRedirect(route('trips.index'));
         $response->assertSessionHas('success');
 
-        $this->assertDatabaseHas('trips', [
-            'user_id' => $user->id,
-            'name' => 'Hành trình Khám phá Đà Nẵng - Hội An',
-            'start_date' => '2026-10-10',
-            'end_date' => '2026-10-15',
-            'budget' => 15000000,
-            'status' => Trip::STATUS_PLANNED,
-        ]);
+        $trip = Trip::where('name', 'Hành trình Khám phá Đà Nẵng - Hội An')->first();
+        $this->assertNotNull($trip);
+        $this->assertEquals($user->id, $trip->user_id);
+        $this->assertEquals('2026-10-10', $trip->start_date->format('Y-m-d'));
+        $this->assertEquals('2026-10-15', $trip->end_date->format('Y-m-d'));
+        $this->assertEquals(15000000, $trip->budget);
+        $this->assertEquals(Trip::STATUS_PLANNED, $trip->status);
     }
 
     /**

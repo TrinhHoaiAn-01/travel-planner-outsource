@@ -109,4 +109,31 @@ interface TripServiceInterface
      * @return void
      */
     public function handleTripDateChange(int $tripId, ?string $newStartDate, ?string $newEndDate): void;
+
+    /**
+     * Cập nhật mô tả và ghi chú tổng quát của chuyến đi.
+     *
+     * @param int $tripId Mã định danh chuyến đi
+     * @param string|null $notes Nội dung mô tả hoặc ghi chú mới
+     * @return Trip
+     */
+    public function updateTripNotes(int $tripId, ?string $notes): Trip;
+
+    /**
+     * Tính toán thời lượng chuyến đi (số ngày, số đêm, nhãn hiển thị và tính hợp lệ) từ ngày bắt đầu và kết thúc.
+     *
+     * @param string|null $startDate Ngày bắt đầu
+     * @param string|null $endDate Ngày kết thúc
+     * @return array Mảng chứa: days, nights, label, is_valid
+     */
+    public function calculateTripDuration(?string $startDate, ?string $endDate): array;
+
+    /**
+     * Lấy danh sách chi tiết các ngày của chuyến đi (từ Ngày 1 đến Ngày N kèm ngày trong tuần tiếng Việt).
+     *
+     * @param int $tripId Mã định danh chuyến đi
+     * @return array Mảng chứa danh sách các ngày với day_number, date, formatted_date, day_name, label
+     */
+    public function getTripDaysList(int $tripId): array;
 }
+
