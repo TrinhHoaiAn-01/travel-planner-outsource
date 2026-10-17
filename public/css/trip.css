@@ -1,0 +1,94 @@
+/* ==========================================================================
+   TRIP & ITINERARY & BUDGET STYLES
+   ========================================================================== */
+
+.itinerary-timeline {
+  position: relative;
+  padding-left: 2rem;
+  margin-top: 1.5rem;
+}
+
+.itinerary-timeline::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 9px;
+  width: 2px;
+  background: #e2e8f0;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 1.75rem;
+  background: #ffffff;
+  padding: 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+  cursor: grab;
+}
+
+.timeline-item:active {
+  cursor: grabbing;
+}
+
+.timeline-item:hover {
+  border-color: var(--primary-light);
+  box-shadow: var(--shadow-md);
+}
+
+.timeline-item.dragging {
+  opacity: 0.5;
+  border: 2px dashed var(--primary);
+  background: var(--primary-light);
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -2rem;
+  top: 1.25rem;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid var(--primary);
+  z-index: 2;
+}
+
+.timeline-time {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+}
+
+.budget-metric-card {
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  background: #ffffff;
+  transition: var(--transition);
+}
+
+.budget-metric-card .icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  margin-bottom: 1rem;
+}
+
+.drag-handle {
+  color: var(--text-light);
+  cursor: grab;
+  padding: 0.25rem 0.5rem;
+}
+
+.drag-handle:hover {
+  color: var(--text-main);
+}
