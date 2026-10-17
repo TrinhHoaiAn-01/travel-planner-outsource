@@ -19,6 +19,8 @@ class TripDetailEditDeleteTest extends TestCase
     {
         parent::setUp();
 
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+
         $this->owner = User::factory()->create([
             'name' => 'Nguyễn Trần Thành',
             'email' => 'thanh.nguyen@travelplanner.test',
@@ -217,5 +219,56 @@ class TripDetailEditDeleteTest extends TestCase
         $this->assertDatabaseMissing('trips', [
             'id' => $this->trip->id,
         ]);
+    }
+
+    /**
+     * Màn hình chỉnh sửa chuyến đi chuẩn bị sẵn khối thông báo lỗi và modal kèm nút OK.
+     */
+    public function test_edit_trip_screen_renders_validation_alert_and_modal_with_ok_button(): void
+    {
+        $response = $this->actingAs($this->owner)->get(route('trips.edit', $this->trip->id));
+
+        $response->assertOk();
+        $response->assertSee('clientValidationErrorAlert');
+        $response->assertSee('clientValidationModal');
+        $response->assertSee('OK');
+    }
+
+    /**
+     * Khi có lỗi xác thực từ máy chủ, màn hình chỉnh sửa hiển thị thông báo lỗi kèm nút OK.
+     */
+    public function test_edit_trip_screen_displays_server_error_alert_with_ok_button_when_errors_occur(): void
+    {
+        // Khi không có lỗi, khung thông báo serverValidationAlert không hiển thị
+        $response = $this->actingAs($this->owner)->get(route('trips.edit', $this->trip->id));
+        $response->assertOk();
+        $response->assertDontSee('id="serverValidationAlert"', false);
+
+        // Giả lập session có lỗi
+        $errorBag = new \Illuminate\Support\MessageBag(['name' => ['Vui lòng nhập tên chuyến đi.']]);
+        $viewErrorBag = new \Illuminate\Support\ViewErrorBag();
+        $viewErrorBag->put('default', $errorBag);
+
+        $responseWithErrors = $this->actingAs($this->owner)
+            ->withSession(['errors' => $viewErrorBag])
+            ->get(route('trips.edit', $this->trip->id));
+
+        $responseWithErrors->assertOk();
+        $responseWithErrors->assertSee('serverValidationAlert');
+        $responseWithErrors->assertSee('Vui lòng nhập tên chuyến đi.');
+        $responseWithErrors->assertSee('OK');
+    }
+
+    /**
+     * Màn hình chi tiết chuyến đi có modal ghi chú chứa khối thông báo lỗi kèm nút OK.
+     */
+    public function test_trip_detail_screen_renders_notes_modal_with_error_alert_and_ok_button(): void
+    {
+        $response = $this->actingAs($this->owner)->get(route('trips.show', $this->trip->id));
+
+        $response->assertOk();
+        $response->assertSee('notesClientErrorAlert');
+        $response->assertSee('btnDismissNotesAlert');
+        $response->assertSee('OK');
     }
 }

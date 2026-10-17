@@ -70,6 +70,42 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\Interfaces\UserManagementServiceInterface::class,
             \App\Services\UserManagementService::class
         );
+
+        // Ràng buộc BudgetServiceInterface với triển khai cụ thể BudgetService (Nguyễn Văn Thắng)
+        $this->app->bind(
+            \App\Services\Interfaces\BudgetServiceInterface::class,
+            \App\Services\BudgetService::class
+        );
+
+        // Ràng buộc ExpenseServiceInterface với triển khai cụ thể ExpenseService (Nguyễn Văn Thắng)
+        $this->app->bind(
+            \App\Services\Interfaces\ExpenseServiceInterface::class,
+            \App\Services\ExpenseService::class
+        );
+
+        // Ràng buộc DestinationManagementServiceInterface với DestinationManagementService (Trần Văn Trọng)
+        $this->app->bind(
+            \App\Services\Interfaces\DestinationManagementServiceInterface::class,
+            \App\Services\DestinationManagementService::class
+        );
+
+        // Ràng buộc DestinationImageServiceInterface với DestinationImageService (Trần Văn Trọng)
+        $this->app->bind(
+            \App\Services\Interfaces\DestinationImageServiceInterface::class,
+            \App\Services\DestinationImageService::class
+        );
+
+        // Ràng buộc ReviewModerationServiceInterface với ReviewModerationService (Trần Văn Trọng)
+        $this->app->bind(
+            \App\Services\Interfaces\ReviewModerationServiceInterface::class,
+            \App\Services\ReviewModerationService::class
+        );
+
+        // Ràng buộc BookingServiceInterface với BookingService (Nguyễn Văn Thắng)
+        $this->app->bind(
+            \App\Services\Interfaces\BookingServiceInterface::class,
+            \App\Services\BookingService::class
+        );
     }
 
     /**
