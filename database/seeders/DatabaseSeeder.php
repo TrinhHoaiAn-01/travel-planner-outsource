@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
                 AdminDestinationDemoSeeder::class,
                 AdminReviewDemoSeeder::class,
                 SampleTripDemoSeeder::class,
+                BookingDemoSeeder::class,
             ]);
         }
     }

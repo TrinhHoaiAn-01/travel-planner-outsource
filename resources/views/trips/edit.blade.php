@@ -287,7 +287,6 @@
                             </div>
                         </div>
                     </div>
-
                     <!-- Ngân sách dự kiến & Trạng thái -->
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
@@ -517,7 +516,6 @@
             // Nếu không bị rút ngắn hoặc không có hoạt động phụ thuộc nào bị thừa ngày
             warningBox.classList.add('d-none');
         }
-
         // Tương thích với onchange trên input
         function validateDates() {
             return validateAndCalculateDates();

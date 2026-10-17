@@ -432,7 +432,6 @@ class TripService implements TripServiceInterface
                 'is_valid' => false,
             ];
         }
-
         if (! $this->validateTripDates($startDate, $endDate)) {
             return [
                 'days' => 0,
