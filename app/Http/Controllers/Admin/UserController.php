@@ -202,4 +202,48 @@ class UserController extends Controller
                 ->with('error', $errorMessage);
         }
     }
+
+    /**
+     * Xóa mềm (Soft Delete) tài khoản người dùng khỏi hệ thống.
+     *
+     * @param int $id
+     * @return RedirectResponse
+     */
+    public function destroy(int $id): RedirectResponse
+    {
+        try {
+            $this->userService->deleteUser($id);
+
+            return redirect()
+                ->route('admin.users.index')
+                ->with('success', 'Xóa mềm tài khoản người dùng thành công.');
+        } catch (ValidationException $e) {
+            $errorMessage = $e->validator->errors()->first('user') ?? $e->getMessage();
+
+            return redirect()
+                ->route('admin.users.index')
+                ->with('error', $errorMessage);
+        }
+    }
+
+    /**
+     * Khôi phục tài khoản người dùng đã bị xóa mềm.
+     *
+     * @param int $id
+     * @return RedirectResponse
+     */
+    public function restore(int $id): RedirectResponse
+    {
+        try {
+            $user = $this->userService->restoreUser($id);
+
+            return redirect()
+                ->route('admin.users.index')
+                ->with('success', "Khôi phục tài khoản '{$user->name}' thành công.");
+        } catch (\Throwable $e) {
+            return redirect()
+                ->route('admin.users.index')
+                ->with('error', 'Không thể khôi phục tài khoản người dùng.');
+        }
+    }
 }

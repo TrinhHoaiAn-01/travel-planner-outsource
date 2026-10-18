@@ -372,6 +372,27 @@
         transform: translateY(-1px);
     }
 
+    .btn-circle-delete {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #FECACA;
+        background-color: #FFFFFF;
+        color: #EF4444;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-circle-delete:hover {
+        border-color: #DC2626;
+        color: #DC2626;
+        background-color: #FEF2F2;
+        transform: translateY(-1px);
+    }
+
     .btn-circle-view {
         width: 32px;
         height: 32px;
@@ -664,6 +685,7 @@
                     <option value="all" {{ request('status') == 'all' || request('status') === null ? 'selected' : '' }}>Tất cả trạng thái</option>
                     <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Hoạt động (Active)</option>
                     <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Đã khóa (Disabled)</option>
+                    <option value="trashed" {{ request('status') === 'trashed' ? 'selected' : '' }}>Đã xóa mềm (Trashed)</option>
                 </select>
 
                 @if(request('search') || (request('role') && request('role') !== 'all') || (request('status') && request('status') !== 'all'))
@@ -687,7 +709,7 @@
                     <th style="width: 140px;">Vai trò</th>
                     <th style="width: 160px;">Ngày tham gia</th>
                     <th style="width: 180px;">Trạng thái</th>
-                    <th class="col-actions" style="width: 160px;">Hành động</th>
+                    <th class="col-actions" style="width: 180px;">Hành động</th>
                 </tr>
             </thead>
             <tbody>
@@ -735,7 +757,9 @@
 
                         {{-- Cột 5: Trạng thái --}}
                         <td>
-                            @if($user->is_active)
+                            @if($user->trashed())
+                                <span class="badge-status-disabled" style="background-color: #F1F5F9; color: #64748B;">Đã xóa mềm</span>
+                            @elseif($user->is_active)
                                 <span class="badge-status-active">Hoạt động (Active)</span>
                             @else
                                 <span class="badge-status-disabled">Đã khóa (Disabled)</span>
@@ -756,11 +780,23 @@
                                     </svg>
                                 </button>
 
-                                @if($user->role === 'admin')
-                                    {{-- Tài khoản Admin được bảo vệ đặc biệt --}}
+                                @if($user->trashed())
+                                    {{-- Nút khôi phục tài khoản đã xóa mềm --}}
+                                    <form method="POST" action="{{ route('admin.users.restore', $user->id) }}" style="display: inline;">
+                                        @csrf
+                                        <button type="submit" class="btn-status-toggle btn-unlock" title="Khôi phục tài khoản này">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="1 4 1 10 7 10"></polyline>
+                                                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                                            </svg>
+                                            <span>Khôi phục</span>
+                                        </button>
+                                    </form>
+                                @elseif($user->role === 'admin' && auth()->id() === $user->id)
+                                    {{-- Tài khoản Admin đang đăng nhập được bảo vệ đặc biệt --}}
                                     <span class="label-protected">Bảo vệ</span>
                                 @else
-                                    {{-- Nút Khóa / Mở khóa cho Member --}}
+                                    {{-- Nút Khóa / Mở khóa cho User --}}
                                     <form method="POST" action="{{ route('admin.users.toggle-status', $user->id) }}" style="display: inline;">
                                         @csrf
                                         @if($user->is_active)
@@ -798,6 +834,19 @@
                                             <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
                                         </svg>
                                     </button>
+
+                                    {{-- Nút xóa mềm (Soft Delete) --}}
+                                    <form method="POST" action="{{ route('admin.users.destroy', $user->id) }}" style="display: inline;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa mềm người dùng này không? Dữ liệu liên quan vẫn được bảo lưu an toàn.')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-circle-delete" title="Xóa mềm người dùng">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M3 6h18"/>
+                                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                                            </svg>
+                                        </button>
+                                    </form>
                                 @endif
                             </div>
                         </td>
