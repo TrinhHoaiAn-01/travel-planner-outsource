@@ -113,7 +113,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
         Schema::defaultStringLength(191);
+
+        // Đăng ký tường minh các Policy kiểm soát quyền sở hữu và bảo mật dữ liệu (BR-01 đến BR-20)
+        \Illuminate\Support\Facades\Gate::policy(\App\Models\ItineraryItem::class, \App\Policies\ItineraryPolicy::class);
+        \Illuminate\Support\Facades\Gate::policy(\App\Models\Review::class, \App\Policies\ReviewPolicy::class);
+        \Illuminate\Support\Facades\Gate::policy(\App\Models\User::class, \App\Policies\UserPolicy::class);
+        \Illuminate\Support\Facades\Gate::policy(\App\Models\Trip::class, \App\Policies\TripPolicy::class);
+        \Illuminate\Support\Facades\Gate::policy(\App\Models\Booking::class, \App\Policies\BookingPolicy::class);
+        \Illuminate\Support\Facades\Gate::policy(\App\Models\Expense::class, \App\Policies\ExpensePolicy::class);
     }
 }

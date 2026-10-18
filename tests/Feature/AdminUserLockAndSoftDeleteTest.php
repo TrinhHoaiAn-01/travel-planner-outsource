@@ -73,7 +73,7 @@ class AdminUserLockAndSoftDeleteTest extends TestCase
         $response = $this->actingAs($this->member)->get(route('profile.show'));
 
         $response->assertRedirect(route('login'));
-        $response->assertSessionHas('error', 'Tài khoản của bạn đã bị khóa hoặc ngừng hoạt động. Vui lòng liên hệ quản trị viên.');
+        $response->assertSessionHas('error', 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.');
         $this->assertGuest();
     }
 
