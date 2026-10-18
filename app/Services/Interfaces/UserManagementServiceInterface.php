@@ -55,4 +55,20 @@ interface UserManagementServiceInterface
      * @return array
      */
     public function getUserCounts(): array;
+
+    /**
+     * Xóa mềm (Soft Delete) tài khoản người dùng khỏi hệ thống.
+     *
+     * @param int $userId
+     * @return bool
+     */
+    public function deleteUser(int $userId): bool;
+
+    /**
+     * Khôi phục tài khoản người dùng đã bị xóa mềm.
+     *
+     * @param int $userId
+     * @return User
+     */
+    public function restoreUser(int $userId): User;
 }

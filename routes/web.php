@@ -150,6 +150,8 @@ Route::prefix('admin')
         Route::match(['put', 'patch'], '/users/{user}', [UserController::class, 'update'])->name('users.update');
         Route::patch('/users/{user}/status', [UserController::class, 'toggleStatus'])->name('users.update-status');
         Route::post('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+        Route::post('/users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
 
         // Quản lý Tỉnh / Thành phố (Admin Cities - Trần Văn Trọng)
         Route::get('/cities', [CityController::class, 'index'])->name('cities.index');

@@ -39,22 +39,26 @@ class UserManagementService implements UserManagementServiceInterface
 
         // Lọc theo trạng thái
         if (isset($filters['status']) && $filters['status'] !== 'all' && $filters['status'] !== '') {
-            $isActive = in_array((string) $filters['status'], ['1', 'true', 'active'], true);
-            $query->where('is_active', $isActive);
+            if (in_array((string) $filters['status'], ['trashed', 'deleted'], true)) {
+                $query->onlyTrashed();
+            } else {
+                $isActive = in_array((string) $filters['status'], ['1', 'true', 'active'], true);
+                $query->where('is_active', $isActive);
+            }
         }
 
         return $query->orderBy('id', 'asc')->paginate($perPage)->withQueryString();
     }
 
     /**
-     * Lấy thông tin chi tiết một người dùng theo ID kèm số lượng quan hệ.
+     * Lấy thông tin chi tiết một người dùng theo ID kèm số lượng quan hệ (hỗ trợ cả tài khoản đã xóa mềm).
      *
      * @param int $userId
      * @return User|null
      */
     public function getUserDetails(int $userId): ?User
     {
-        return User::withCount(['trips', 'reviews', 'favorites', 'bookings'])->find($userId);
+        return User::withTrashed()->withCount(['trips', 'reviews', 'favorites', 'bookings'])->find($userId);
     }
 
     /**
@@ -222,6 +226,63 @@ class UserManagementService implements UserManagementServiceInterface
             'disabled' => User::where('is_active', false)->count(),
             'admins' => User::where('role', 'admin')->count(),
             'members' => User::where('role', 'user')->count(),
+            'deleted' => User::onlyTrashed()->count(),
         ];
+    }
+
+    /**
+     * Xóa mềm (Soft Delete) tài khoản người dùng khỏi hệ thống.
+     * Bảo toàn tính toàn vẹn dữ liệu cho các bảng quan hệ phụ thuộc (BR-17).
+     * Chặn Admin tự xóa chính mình và chặn xóa Admin cuối cùng của hệ thống.
+     *
+     * @param int $userId
+     * @return bool
+     * @throws ValidationException
+     */
+    public function deleteUser(int $userId): bool
+    {
+        return DB::transaction(function () use ($userId) {
+            $user = User::findOrFail($userId);
+            $currentAuthId = auth()->id();
+
+            // Chặn Admin tự xóa tài khoản của chính mình
+            if ($currentAuthId && $currentAuthId === $user->id) {
+                throw ValidationException::withMessages([
+                    'user' => 'Không thể tự xóa tài khoản của chính mình.',
+                ]);
+            }
+
+            // Chặn xóa tài khoản Quản trị viên hoạt động cuối cùng của hệ thống
+            if ($user->role === 'admin') {
+                $otherActiveAdminCount = User::where('role', 'admin')
+                    ->where('is_active', true)
+                    ->where('id', '!=', $user->id)
+                    ->count();
+
+                if ($otherActiveAdminCount === 0) {
+                    throw ValidationException::withMessages([
+                        'user' => 'Hệ thống phải duy trì ít nhất một Quản trị viên đang hoạt động, không thể xóa tài khoản này.',
+                    ]);
+                }
+            }
+
+            return (bool) $user->delete();
+        });
+    }
+
+    /**
+     * Khôi phục tài khoản người dùng đã bị xóa mềm.
+     *
+     * @param int $userId
+     * @return User
+     */
+    public function restoreUser(int $userId): User
+    {
+        return DB::transaction(function () use ($userId) {
+            $user = User::onlyTrashed()->findOrFail($userId);
+            $user->restore();
+
+            return $user;
+        });
     }
 }
