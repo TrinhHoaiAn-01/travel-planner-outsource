@@ -2,10 +2,12 @@ name: Travel Planner CI
 
 on:
   push:
-    branches: [ "**" ]
+    branches-ignore: [ "deployment" ]
 
   pull_request:
     branches: [ "**" ]
+
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -29,7 +31,7 @@ jobs:
     steps:
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Check Docker
         run: |
@@ -67,3 +69,11 @@ jobs:
       - name: Stop Docker
         if: always()
         run: docker compose -f docker-compose.ci.yml down -v
+
+  publish:
+    needs: laravel-tests
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    permissions:
+      contents: write
+      packages: write
+    uses: ./.github/workflows/laravel-cd.yml

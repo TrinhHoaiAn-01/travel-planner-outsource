@@ -1,18 +1,13 @@
 #!/bin/sh
+set -eu
 
-set -e
+mkdir -p storage/app/public storage/app/private storage/logs \
+    storage/framework/cache/data storage/framework/sessions storage/framework/views
+chown -R www-data:www-data storage bootstrap/cache
 
-echo "Waiting for MySQL..."
+if [ "$1" = "apache2-foreground" ]; then
+    php artisan config:cache
+    php artisan view:cache
+fi
 
-until php artisan db:show >/dev/null 2>&1
-do
-    sleep 2
-done
-
-echo "MySQL is ready."
-
-php artisan migrate --force
-
-echo "Laravel database is ready."
-
-exec apache2-foreground
+exec "$@"
