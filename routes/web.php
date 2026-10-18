@@ -196,4 +196,8 @@ Route::prefix('admin')
         Route::get('/bookings/{booking}', function ($booking) {
             return view('admin.placeholder', ['pageTitle' => "Chi tiết Đơn đặt phòng #{$booking}"]);
         })->name('bookings.show');
+
+        // Quản lý Nhật ký hoạt động hệ thống (Activity Logs - Trịnh Hoài An)
+        Route::get('/activity-logs', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('activity-logs.index');
+        Route::get('/activity-logs/{activityLog}', [\App\Http\Controllers\Admin\ActivityLogController::class, 'show'])->name('activity-logs.show');
     });

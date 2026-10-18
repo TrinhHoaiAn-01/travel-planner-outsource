@@ -106,6 +106,12 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\Interfaces\BookingServiceInterface::class,
             \App\Services\BookingService::class
         );
+
+        // Ràng buộc ActivityLogServiceInterface với triển khai cụ thể ActivityLogService (Trịnh Hoài An)
+        $this->app->bind(
+            \App\Services\Interfaces\ActivityLogServiceInterface::class,
+            \App\Services\ActivityLogService::class
+        );
     }
 
     /**
