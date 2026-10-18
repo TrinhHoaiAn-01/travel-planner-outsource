@@ -560,6 +560,18 @@
                     <span class="nav-badge-pill">{{ $sidebarPendingReviewsCount }}</span>
                 @endif
             </a>
+
+            <!-- BẢO MẬT & HỆ THỐNG -->
+            <div class="nav-group-title">BẢO MẬT & HỆ THỐNG</div>
+            <a href="{{ route('admin.activity-logs.index') }}" class="nav-item {{ request()->routeIs('admin.activity-logs.*') ? 'active' : '' }}">
+                <div class="nav-item-content">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    <span>Nhật ký (Logs)</span>
+                </div>
+            </a>
         </nav>
 
         <!-- User Profile Widget -->

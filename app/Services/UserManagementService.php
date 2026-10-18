@@ -70,7 +70,7 @@ class UserManagementService implements UserManagementServiceInterface
     public function createUser(array $data): User
     {
         return DB::transaction(function () use ($data) {
-            return User::create([
+            $createdUser = User::create([
                 'name' => trim($data['name']),
                 'email' => strtolower(trim($data['email'])),
                 'password' => Hash::make($data['password']),
@@ -81,6 +81,17 @@ class UserManagementService implements UserManagementServiceInterface
                 'is_active' => isset($data['is_active']) ? (bool) $data['is_active'] : true,
                 'email_verified_at' => now(),
             ]);
+
+            // Ghi nhật ký quản trị tạo tài khoản người dùng
+            app(\App\Services\Interfaces\ActivityLogServiceInterface::class)->logActivity(
+                auth()->id(),
+                'user_created',
+                'User',
+                $createdUser->id,
+                ['email' => $createdUser->email, 'role' => $createdUser->role]
+            );
+
+            return $createdUser;
         });
     }
 
@@ -183,6 +194,15 @@ class UserManagementService implements UserManagementServiceInterface
 
             $user->update($updateData);
 
+            // Ghi nhật ký quản trị cập nhật tài khoản
+            app(\App\Services\Interfaces\ActivityLogServiceInterface::class)->logActivity(
+                auth()->id(),
+                'user_updated',
+                'User',
+                $user->id,
+                ['email' => $user->email]
+            );
+
             return $user;
         });
     }
@@ -208,6 +228,16 @@ class UserManagementService implements UserManagementServiceInterface
 
             $user->is_active = ! $user->is_active;
             $user->save();
+
+            // Ghi nhật ký khóa hoặc mở khóa tài khoản người dùng
+            $action = $user->is_active ? 'user_unlocked' : 'user_locked';
+            app(\App\Services\Interfaces\ActivityLogServiceInterface::class)->logActivity(
+                auth()->id(),
+                $action,
+                'User',
+                $user->id,
+                ['email' => $user->email, 'is_active' => $user->is_active]
+            );
 
             return $user;
         });
@@ -266,7 +296,20 @@ class UserManagementService implements UserManagementServiceInterface
                 }
             }
 
-            return (bool) $user->delete();
+            $deleted = (bool) $user->delete();
+
+            // Ghi nhật ký quản trị xóa mềm tài khoản
+            if ($deleted) {
+                app(\App\Services\Interfaces\ActivityLogServiceInterface::class)->logActivity(
+                    auth()->id(),
+                    'user_deleted',
+                    'User',
+                    $user->id,
+                    ['email' => $user->email]
+                );
+            }
+
+            return $deleted;
         });
     }
 
@@ -281,6 +324,15 @@ class UserManagementService implements UserManagementServiceInterface
         return DB::transaction(function () use ($userId) {
             $user = User::onlyTrashed()->findOrFail($userId);
             $user->restore();
+
+            // Ghi nhật ký quản trị khôi phục tài khoản
+            app(\App\Services\Interfaces\ActivityLogServiceInterface::class)->logActivity(
+                auth()->id(),
+                'user_restored',
+                'User',
+                $user->id,
+                ['email' => $user->email]
+            );
 
             return $user;
         });
