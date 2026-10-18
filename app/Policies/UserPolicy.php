@@ -31,4 +31,44 @@ class UserPolicy
     {
         return $currentUser->id === $targetUser->id;
     }
+
+    /**
+     * Xác định quyền quản lý danh sách người dùng hệ thống (Admin).
+     */
+    public function viewAny(User $currentUser): bool
+    {
+        return $currentUser->isAdmin();
+    }
+
+    /**
+     * Xác định quyền tạo tài khoản người dùng mới (Admin).
+     */
+    public function create(User $currentUser): bool
+    {
+        return $currentUser->isAdmin();
+    }
+
+    /**
+     * Xác định quyền xóa người dùng (Admin, không thể tự xóa chính mình).
+     */
+    public function delete(User $currentUser, User $targetUser): bool
+    {
+        return $currentUser->isAdmin() && $currentUser->id !== $targetUser->id;
+    }
+
+    /**
+     * Xác định quyền khóa/mở khóa tài khoản (Admin, không thể tự khóa chính mình).
+     */
+    public function toggleStatus(User $currentUser, User $targetUser): bool
+    {
+        return $currentUser->isAdmin() && $currentUser->id !== $targetUser->id;
+    }
+
+    /**
+     * Xác định quyền quản trị người dùng tổng quát.
+     */
+    public function manage(User $currentUser): bool
+    {
+        return $currentUser->isAdmin();
+    }
 }

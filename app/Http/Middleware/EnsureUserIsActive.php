@@ -39,12 +39,12 @@ class EnsureUserIsActive
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Tài khoản của bạn đã bị khóa hoặc ngừng hoạt động. Vui lòng liên hệ quản trị viên.',
+                    'message' => 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.',
                 ], 403);
             }
 
             return redirect()->route('login')
-                ->with('error', 'Tài khoản của bạn đã bị khóa hoặc ngừng hoạt động. Vui lòng liên hệ quản trị viên.');
+                ->with('error', 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.');
         }
 
         return $next($request);
