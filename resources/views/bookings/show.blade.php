@@ -653,6 +653,35 @@
                         </tr>
                     </table>
                 </div>
+
+                @if($booking->payments && $booking->payments->isNotEmpty())
+                    <!-- 3. Lịch sử thanh toán -->
+                    <div class="content-card">
+                        <div class="card-header-line">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg>
+                            <h2 class="card-title">Lịch Sử Giao Dịch Thanh Toán</h2>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            @foreach($booking->payments as $payment)
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-md); flex-wrap: wrap; gap: 8px;">
+                                    <div>
+                                        <div style="font-weight: 700; color: var(--secondary); font-size: 14px;">Mã: {{ $payment->transaction_id }}</div>
+                                        <div style="font-size: 12.5px; color: var(--text-muted);">
+                                            {{ strtoupper($payment->payment_method) }} &bull; {{ \Carbon\Carbon::parse($payment->payment_date ?? $payment->created_at)->format('H:i d/m/Y') }}
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <span style="font-weight: 800; color: #059669; font-size: 15px;">{{ number_format($payment->amount, 0, ',', '.') }}đ</span>
+                                        <a href="{{ route('payments.show', $payment->id) }}" style="background: white; border: 1px solid var(--border-color); padding: 5px 12px; border-radius: 6px; font-size: 12.5px; font-weight: 600; text-decoration: none; color: var(--primary);">
+                                            Biên lai
+                                        </a>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <!-- Cột Phải: Tóm tắt chi phí & Nút hành động -->
@@ -694,6 +723,13 @@
                     </div>
 
                     <div class="actions-stack">
+                        @if($booking->status === 'pending')
+                            <a href="{{ route('payments.create', $booking->id) }}" class="btn-action-primary" style="background: linear-gradient(135deg, #10B981, #059669); color: white;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg>
+                                Thanh Toán Ngay ({{ number_format($booking->total_price, 0, ',', '.') }}đ)
+                            </a>
+                        @endif
+
                         <a href="{{ route('bookings.index') }}" class="btn-action-secondary">
                             &larr; Quay lại danh sách Booking
                         </a>

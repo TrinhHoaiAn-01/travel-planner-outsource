@@ -105,5 +105,20 @@ class BookingDemoSeeder extends Seeder
                 'updated_at' => Carbon::parse('2026-10-02 14:15:00'),
             ]
         );
+
+        // 5. Giao dịch thanh toán mẫu (Payment Demo)
+        $bookingHalong = Booking::where('booking_code', 'BK-2026-HALONG')->first();
+        if ($bookingHalong) {
+            \App\Models\Payment::updateOrCreate(
+                ['transaction_id' => 'TXN-HALONG-DEMO'],
+                [
+                    'booking_id' => $bookingHalong->id,
+                    'amount' => $bookingHalong->total_price,
+                    'payment_method' => 'vnpay',
+                    'status' => 'completed',
+                    'payment_date' => Carbon::now()->subDays(1),
+                ]
+            );
+        }
     }
 }

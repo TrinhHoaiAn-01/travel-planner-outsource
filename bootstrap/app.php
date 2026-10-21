@@ -17,6 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.active' => \App\Http\Middleware\EnsureUserIsActive::class,
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
+
+        // Miễn trừ kiểm tra mã bảo vệ CSRF cho Webhook IPN nhận từ máy chủ MoMo
+        $middleware->validateCsrfTokens(except: [
+            'payments/momo/ipn',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->report(function (\Throwable $e) {

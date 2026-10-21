@@ -46,4 +46,14 @@ interface BookingServiceInterface
      * Hủy đơn đặt phòng theo quy tắc nghiệp vụ (BR-11).
      */
     public function cancelBooking(int $bookingId, int $userId): Booking;
+
+    /**
+     * Cập nhật trạng thái đơn đặt phòng theo quy trình nghiệp vụ (Admin / Hệ thống).
+     */
+    public function updateBookingStatus(int $bookingId, string $status): Booking;
+
+    /**
+     * Lấy toàn bộ danh sách đơn đặt phòng phục vụ quản trị (lọc trạng thái, tìm kiếm, phân trang).
+     */
+    public function getAllBookings(?string $status = null, ?string $search = null, int $perPage = 10): LengthAwarePaginator;
 }

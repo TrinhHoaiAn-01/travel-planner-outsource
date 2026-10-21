@@ -178,4 +178,48 @@ class BookingService implements BookingServiceInterface
             return $booking;
         });
     }
+
+    /**
+     * Cập nhật trạng thái đơn đặt phòng theo quy trình nghiệp vụ (Admin / Hệ thống).
+     */
+    public function updateBookingStatus(int $bookingId, string $status): Booking
+    {
+        $booking = Booking::findOrFail($bookingId);
+
+        return DB::transaction(function () use ($booking, $status) {
+            $booking->update([
+                'status' => $status,
+            ]);
+
+            return $booking;
+        });
+    }
+
+    /**
+     * Lấy toàn bộ danh sách đơn đặt phòng phục vụ quản trị (lọc trạng thái, tìm kiếm, phân trang).
+     */
+    public function getAllBookings(?string $status = null, ?string $search = null, int $perPage = 10): LengthAwarePaginator
+    {
+        $query = Booking::with(['user', 'trip', 'roomType.destination', 'payments'])
+            ->latest('id');
+
+        if (!empty($status)) {
+            $query->where('status', $status);
+        }
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('booking_code', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($uq) use ($search) {
+                        $uq->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('roomType.destination', function ($dq) use ($search) {
+                        $dq->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        return $query->paginate($perPage);
+    }
 }

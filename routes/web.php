@@ -94,7 +94,21 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/bookings', [\App\Http\Controllers\BookingController::class, 'store'])->name('bookings.store');
     Route::get('/bookings/{booking}', [\App\Http\Controllers\BookingController::class, 'show'])->name('bookings.show');
     Route::patch('/bookings/{booking}/cancel', [\App\Http\Controllers\BookingController::class, 'cancel'])->name('bookings.cancel');
+
+    // Quản lý Thanh toán (Payments - Nguyễn Văn Thắng - STT 9, 10)
+    Route::get('/bookings/{booking}/payment', [\App\Http\Controllers\PaymentController::class, 'create'])->name('payments.create');
+    Route::post('/bookings/{booking}/payment', [\App\Http\Controllers\PaymentController::class, 'store'])->name('payments.store');
+    Route::post('/bookings/{booking}/payment/momo', [\App\Http\Controllers\PaymentController::class, 'payWithMoMo'])->name('payments.momo.process');
+    Route::get('/payments/{payment}', [\App\Http\Controllers\PaymentController::class, 'show'])->name('payments.show');
+
+    // Kiểm tra trạng thái thanh toán thời gian thực & giả lập nhận tiền (Realtime Polling & Simulator)
+    Route::get('/bookings/{booking}/payment-status', [\App\Http\Controllers\PaymentController::class, 'checkStatus'])->name('payments.status');
+    Route::post('/bookings/{booking}/simulate-receive', [\App\Http\Controllers\PaymentController::class, 'simulateReceive'])->name('payments.simulate-receive');
 });
+
+// Tuyến tiếp nhận phản hồi từ cổng thanh toán MoMo (Callback & Webhook IPN)
+Route::get('/payments/momo/callback', [\App\Http\Controllers\PaymentController::class, 'handleMoMoCallback'])->name('payments.momo.callback');
+Route::post('/payments/momo/ipn', [\App\Http\Controllers\PaymentController::class, 'handleMoMoIpn'])->name('payments.momo.ipn');
 
 // Tuyến đăng nhập nhanh người dùng thường (Demo / Test)
 Route::get('/dev/login-as-user', function () {
@@ -189,13 +203,15 @@ Route::prefix('admin')
 
 
 
-        Route::get('/bookings', function () {
-            return view('admin.placeholder', ['pageTitle' => 'Quản lý Đơn đặt phòng (Bookings)']);
-        })->name('bookings.index');
+        // Quản lý Đơn đặt phòng (Admin Bookings - Nguyễn Văn Thắng - STT 11)
+        Route::get('/bookings', [\App\Http\Controllers\Admin\BookingController::class, 'index'])->name('bookings.index');
+        Route::get('/bookings/{booking}', [\App\Http\Controllers\Admin\BookingController::class, 'show'])->name('bookings.show');
+        Route::patch('/bookings/{booking}/status', [\App\Http\Controllers\Admin\BookingController::class, 'updateStatus'])->name('bookings.update-status');
 
-        Route::get('/bookings/{booking}', function ($booking) {
-            return view('admin.placeholder', ['pageTitle' => "Chi tiết Đơn đặt phòng #{$booking}"]);
-        })->name('bookings.show');
+        // Quản lý Giao dịch thanh toán (Admin Payments - Nguyễn Văn Thắng - STT 11)
+        Route::get('/payments', [\App\Http\Controllers\Admin\PaymentController::class, 'index'])->name('payments.index');
+        Route::get('/payments/{payment}', [\App\Http\Controllers\Admin\PaymentController::class, 'show'])->name('payments.show');
+        Route::patch('/payments/{payment}/status', [\App\Http\Controllers\Admin\PaymentController::class, 'updateStatus'])->name('payments.update-status');
 
         // Quản lý Nhật ký hoạt động hệ thống (Activity Logs - Trịnh Hoài An)
         Route::get('/activity-logs', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('activity-logs.index');

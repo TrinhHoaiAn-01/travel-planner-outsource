@@ -41,4 +41,22 @@ class BookingPolicy
 
         return true;
     }
+
+    /**
+     * Xác định người dùng có quyền thanh toán cho đơn đặt phòng hay không (BR-11, BR-21).
+     */
+    public function pay(User $user, Booking $booking): bool
+    {
+        // Chỉ chính chủ sở hữu đơn mới có quyền thanh toán
+        if ((int) $user->id !== (int) $booking->user_id) {
+            return false;
+        }
+
+        // Đơn đã hủy không được phép thanh toán
+        if ($booking->status === 'cancelled') {
+            return false;
+        }
+
+        return true;
+    }
 }
