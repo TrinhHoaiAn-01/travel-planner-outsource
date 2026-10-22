@@ -7,6 +7,7 @@ use App\Models\ItineraryItem;
 use App\Models\Trip;
 use App\Services\Interfaces\ItineraryServiceInterface;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -74,7 +75,8 @@ class ItineraryService implements ItineraryServiceInterface
                 'destination.category',
                 'destination.primaryImage',
             ])
-            ->orderByRaw('COALESCE(start_time, "23:59:59") ASC')
+            ->orderByRaw('CASE WHEN start_time IS NULL THEN 1 ELSE 0 END ASC')
+            ->orderBy('start_time', 'asc')
             ->orderBy('sort_order', 'asc')
             ->orderBy('id', 'asc')
             ->get();
@@ -234,6 +236,9 @@ class ItineraryService implements ItineraryServiceInterface
             ]);
         }
 
+        // Tự động sắp xếp lại thứ tự theo thời gian
+        $this->resequenceDayItems($trip, $dayNumber);
+
         return $item;
     }
 
@@ -267,6 +272,7 @@ class ItineraryService implements ItineraryServiceInterface
     public function updateActivity(ItineraryItem $itinerary, array $data): ItineraryItem
     {
         $trip = $itinerary->trip;
+        $oldDay = (int) $itinerary->day_number;
 
         // 1. Tính tổng số ngày của chuyến đi
         $daysCount = 1;
@@ -274,7 +280,7 @@ class ItineraryService implements ItineraryServiceInterface
             $daysCount = max(1, $trip->start_date->diffInDays($trip->end_date) + 1);
         }
 
-        // 2. Kiểm tra ngày nằm trong phạm vi chuyến đi
+        // 2. Kiểm tra ngày nằm trong phạm vi chuyến đi (Chức năng 8)
         $dayNumber = isset($data['day_number']) ? (int) $data['day_number'] : (int) $itinerary->day_number;
         if ($dayNumber < 1 || $dayNumber > $daysCount) {
             throw ValidationException::withMessages([
@@ -282,7 +288,7 @@ class ItineraryService implements ItineraryServiceInterface
             ]);
         }
 
-        // 3. Chuẩn hóa khung giờ bắt đầu và kết thúc
+        // 3. Chuẩn hóa khung giờ bắt đầu và kết thúc (Chức năng 8)
         $startTime = !empty($data['start_time']) ? substr($data['start_time'], 0, 5) : ($itinerary->start_time ? substr($itinerary->start_time, 0, 5) : null);
         $endTime = !empty($data['end_time']) ? substr($data['end_time'], 0, 5) : ($itinerary->end_time ? substr($itinerary->end_time, 0, 5) : null);
 
@@ -336,6 +342,12 @@ class ItineraryService implements ItineraryServiceInterface
             'note' => array_key_exists('note', $data) ? $data['note'] : $itinerary->note,
         ]);
 
+        // 6. Tự động chuẩn hóa lại thứ tự sắp xếp theo thời gian (Chức năng 8, FR21)
+        $this->resequenceDayItems($trip, $dayNumber);
+        if ($oldDay !== $dayNumber) {
+            $this->resequenceDayItems($trip, $oldDay);
+        }
+
         return $itinerary;
     }
 
@@ -348,7 +360,88 @@ class ItineraryService implements ItineraryServiceInterface
      */
     public function deleteActivity(ItineraryItem $itinerary): bool
     {
-        return (bool) $itinerary->delete();
+        $trip = $itinerary->trip;
+        $dayNumber = (int) $itinerary->day_number;
+        $deleted = (bool) $itinerary->delete();
+
+        if ($trip) {
+            $this->resequenceDayItems($trip, $dayNumber);
+        }
+
+        return $deleted;
+    }
+
+    /**
+     * Thay đổi thứ tự hiển thị các hoạt động trong một ngày của chuyến đi (FR21).
+     * Tuyến: PATCH /trips/{trip}/itinerary/reorder (Bảng 22 Báo cáo Đồ án - Chức năng 8).
+     *
+     * @param Trip $trip
+     * @param int $dayNumber
+     * @param array<int> $itemIds Danh sách ID hoạt động theo thứ tự mới
+     * @return bool
+     * @throws ValidationException
+     */
+    public function reorderActivities(Trip $trip, int $dayNumber, array $itemIds): bool
+    {
+        $existingItems = $trip->itineraryItems()
+            ->where('day_number', $dayNumber)
+            ->pluck('id')
+            ->toArray();
+
+        if (count($existingItems) !== count($itemIds)) {
+            throw ValidationException::withMessages([
+                'item_ids' => 'Danh sách sắp xếp không khớp với số lượng hoạt động trong ngày.',
+            ]);
+        }
+
+        if (count($itemIds) !== count(array_unique($itemIds))) {
+            throw ValidationException::withMessages([
+                'item_ids' => 'Danh sách hoạt động chứa ID trùng lặp.',
+            ]);
+        }
+
+        sort($existingItems);
+        $checkIds = $itemIds;
+        sort($checkIds);
+        if ($existingItems !== $checkIds) {
+            throw ValidationException::withMessages([
+                'item_ids' => 'Danh sách chứa mục không thuộc về ngày hoặc chuyến đi này.',
+            ]);
+        }
+
+        DB::transaction(function () use ($itemIds) {
+            foreach ($itemIds as $index => $id) {
+                ItineraryItem::where('id', $id)->update(['sort_order' => $index + 1]);
+            }
+        });
+
+        return true;
+    }
+
+    /**
+     * Tự động chuẩn hóa thứ tự hoạt động (sort_order) liên tục theo thời gian từ sớm đến muộn.
+     *
+     * @param Trip $trip
+     * @param int $dayNumber
+     * @return void
+     */
+    private function resequenceDayItems(Trip $trip, int $dayNumber): void
+    {
+        $items = $trip->itineraryItems()
+            ->where('day_number', $dayNumber)
+            ->reorder()
+            ->orderByRaw('CASE WHEN start_time IS NULL THEN 1 ELSE 0 END ASC')
+            ->orderBy('start_time', 'asc')
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        foreach ($items as $index => $item) {
+            $newOrder = $index + 1;
+            if ($item->sort_order !== $newOrder) {
+                $item->update(['sort_order' => $newOrder]);
+            }
+        }
     }
 
     /**

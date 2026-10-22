@@ -69,4 +69,15 @@ interface ItineraryServiceInterface
      * @return bool
      */
     public function deleteActivity(\App\Models\ItineraryItem $itinerary): bool;
+
+    /**
+     * Thay đổi thứ tự hiển thị các hoạt động trong một ngày của chuyến đi (FR21).
+     * Tuyến: PATCH /trips/{trip}/itinerary/reorder (Bảng 22 Báo cáo Đồ án - Chức năng 8).
+     *
+     * @param \App\Models\Trip $trip
+     * @param int $dayNumber
+     * @param array<int> $itemIds Danh sách ID hoạt động theo thứ tự mới
+     * @return bool
+     */
+    public function reorderActivities(\App\Models\Trip $trip, int $dayNumber, array $itemIds): bool;
 }

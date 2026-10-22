@@ -134,13 +134,17 @@ class ItineraryController extends Controller
         // 1. Kiểm tra quyền sở hữu Trip chứa {itinerary}
         Gate::authorize('update', $itinerary->trip);
 
-        // 2. Gọi Service thực hiện cập nhật và kiểm tra xung đột thời gian (FR19, FR20)
+        $oldDay = (int) $itinerary->day_number;
         $item = $this->itineraryService->updateActivity($itinerary, $request->validated());
+
+        $msg = ($oldDay !== (int) $item->day_number)
+            ? 'Đã chuyển hoạt động "' . ($item->custom_title ?: 'hoạt động') . '" sang Ngày ' . $item->day_number . ' thành công!'
+            : 'Đã cập nhật hoạt động "' . ($item->custom_title ?: 'thành công') . '" trong lịch trình Ngày ' . $item->day_number . '!';
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Cập nhật hoạt động "' . ($item->custom_title ?: 'thành công') . '" thành công!',
+                'message' => $msg,
                 'item' => $item,
             ]);
         }
@@ -148,7 +152,7 @@ class ItineraryController extends Controller
         // 3. Chuyển hướng về trang xem lịch trình kèm thông báo thành công
         return redirect()
             ->route('itinerary.index', ['trip' => $itinerary->trip_id, 'day_number' => $item->day_number])
-            ->with('success', 'Đã cập nhật hoạt động "' . ($item->custom_title ?: 'thành công') . '" trong lịch trình Ngày ' . $item->day_number . '!');
+            ->with('success', $msg);
     }
 
     /**
@@ -182,5 +186,34 @@ class ItineraryController extends Controller
         return redirect()
             ->route('itinerary.index', ['trip' => $tripId, 'day_number' => $dayNumber])
             ->with('success', 'Đã xóa hoạt động "' . $activityTitle . '" khỏi lịch trình thành công!');
+    }
+
+    /**
+     * Thay đổi thứ tự hiển thị các hoạt động trong một ngày của chuyến đi (FR21).
+     * Tuyến: PATCH /trips/{trip}/itinerary/reorder (Bảng 22 trong báo cáo - Chức năng 8).
+     *
+     * @param Request $request
+     * @param Trip $trip
+     * @return JsonResponse
+     */
+    public function reorder(Request $request, Trip $trip): JsonResponse
+    {
+        // 1. Kiểm tra quyền sở hữu Trip
+        Gate::authorize('update', $trip);
+
+        // 2. Xác thực danh sách ID theo thứ tự
+        $validated = $request->validate([
+            'day_number' => ['required', 'integer', 'min:1'],
+            'item_ids' => ['required', 'array'],
+            'item_ids.*' => ['required', 'integer'],
+        ]);
+
+        // 3. Sắp xếp lại thứ tự trong transaction
+        $this->itineraryService->reorderActivities($trip, (int) $validated['day_number'], $validated['item_ids']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cập nhật thứ tự các hoạt động Ngày ' . $validated['day_number'] . ' thành công!',
+        ]);
     }
 }
