@@ -13,6 +13,8 @@ class ItineraryItem extends Model
     protected $fillable = [
         'trip_id',
         'destination_id',
+        'custom_title',
+        'booking_id',
         'day_number',
         'start_time',
         'end_time',

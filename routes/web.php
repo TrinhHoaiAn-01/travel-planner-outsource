@@ -84,8 +84,10 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/destinations/{destination}/favorite', [\App\Http\Controllers\FavoriteController::class, 'toggle'])->name('destinations.favorite.store');
     Route::delete('/destinations/{destination}/favorite', [\App\Http\Controllers\FavoriteController::class, 'toggle'])->name('destinations.favorite.destroy');
 
-    // Quản lý Lịch trình chuyến đi (Itinerary Management - Bảng 22 Báo cáo Đồ án - Phạm Thị Ngọc Ái - Chức năng 5)
+    // Quản lý Lịch trình chuyến đi (Itinerary Management - Bảng 22 Báo cáo Đồ án - Phạm Thị Ngọc Ái - Chức năng 5 & 6)
     Route::get('/trips/{trip}/itinerary', [\App\Http\Controllers\ItineraryController::class, 'index'])->name('itinerary.index');
+    Route::get('/trips/{trip}/itinerary/create', [\App\Http\Controllers\ItineraryController::class, 'create'])->name('itinerary.create');
+    Route::post('/trips/{trip}/itinerary', [\App\Http\Controllers\ItineraryController::class, 'store'])->name('itinerary.store');
 
     // Quản lý Ngân sách & Chi tiêu (Budget & Expenses - Nguyễn Văn Thắng)
     Route::get('/trips/{trip}/budget', [\App\Http\Controllers\BudgetController::class, 'show'])->name('trips.budget.show');

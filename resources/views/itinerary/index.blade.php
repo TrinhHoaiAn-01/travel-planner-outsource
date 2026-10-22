@@ -688,6 +688,213 @@
             margin: 0 auto 20px;
             line-height: 1.5;
         }
+
+        /* 8. Modal Thêm Hoạt Động Mới (Hình 19) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-card {
+            background-color: #FFFFFF;
+            width: 100%;
+            max-width: 580px;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            transform: scale(0.95);
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            max-height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+            margin: auto;
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #F1F5F9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0F172A;
+            margin: 0;
+        }
+
+        .modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #64748B;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+
+        .modal-close-btn:hover {
+            color: #0F172A;
+            background-color: #F1F5F9;
+        }
+
+        .modal-form {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .modal-footer {
+            flex-shrink: 0;
+            padding: 16px 24px;
+            border-top: 1px solid #F1F5F9;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            background-color: #FFFFFF;
+            position: sticky;
+            bottom: 0;
+            z-index: 2;
+        }
+
+        .form-group-modal {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .modal-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0F172A;
+        }
+
+        .modal-input {
+            width: 100%;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 14px;
+            color: #0F172A;
+            background-color: #FFFFFF;
+            transition: all 0.2s;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .modal-input:focus {
+            border-color: #0066FF;
+            box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.12);
+        }
+
+        .modal-input.is-invalid {
+            border-color: #EF4444;
+            background-color: #FEF2F2;
+        }
+
+        .modal-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 520px) {
+            .modal-grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .modal-input[type="time"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+        }
+
+        .modal-textarea {
+            min-height: 85px;
+            resize: vertical;
+        }
+
+        .btn-modal-cancel {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            color: #0F172A;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 9px 22px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-modal-cancel:hover {
+            background-color: #F8FAFC;
+            border-color: #CBD5E1;
+        }
+
+        .btn-modal-submit {
+            background: #0066FF;
+            border: none;
+            color: #FFFFFF;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 9px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            box-shadow: 0 2px 6px rgba(0, 102, 255, 0.25);
+        }
+
+        .btn-modal-submit:hover {
+            background: #0052CC;
+        }
+
+        .modal-error-msg {
+            font-size: 12.5px;
+            color: #EF4444;
+            font-weight: 500;
+            margin-top: 2px;
+        }
     </style>
 </head>
 <body>
@@ -754,6 +961,33 @@
 
     <!-- 2. Page Content -->
     <main class="page-wrapper">
+        @if(session('success'))
+            <div class="flash-alert flash-success" style="background-color: #ECFDF5; border: 1px solid #A7F3D0; color: #065F46; padding: 12px 18px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 18px;"></i>
+                    <span>{{ session('success') }}</span>
+                </div>
+                <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; cursor: pointer; color: #065F46; font-size: 18px;">&times;</button>
+            </div>
+        @endif
+
+        @if($errors->any())
+            <div class="flash-alert flash-danger" style="background-color: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; padding: 12px 18px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: flex-start; justify-content: space-between;">
+                <div style="display: flex; gap: 8px;">
+                    <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 18px; margin-top: 2px;"></i>
+                    <div>
+                        <strong>Không thể lưu hoạt động:</strong>
+                        <ul style="margin: 4px 0 0 16px; padding: 0;">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+                <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; cursor: pointer; color: #991B1B; font-size: 18px;">&times;</button>
+            </div>
+        @endif
+
         <!-- Breadcrumb -->
         <div class="breadcrumb-box">
             <a href="{{ route('home') }}" class="breadcrumb-link">Trang chủ</a>
@@ -822,9 +1056,9 @@
             </div>
 
             <div>
-                <a href="{{ route('favorites.index') }}" class="btn-add-activity-main">
+                <button type="button" class="btn-add-activity-main" onclick="openAddActivityModal({{ $current_day }})">
                     <i class="bi bi-plus-lg"></i> Thêm hoạt động vào Ngày {{ $current_day }}
-                </a>
+                </button>
             </div>
         </div>
 
@@ -878,7 +1112,7 @@
                                 </div>
 
                                 <h3 class="activity-name-title">
-                                    {{ $dest ? $dest->name : ($item->note ?: 'Hoạt động trải nghiệm') }}
+                                    {{ $item->custom_title ?: ($dest ? $dest->name : ($item->note ?: 'Hoạt động trải nghiệm')) }}
                                 </h3>
 
                                 <div class="activity-meta-line">
@@ -937,11 +1171,201 @@
                 <p class="empty-desc">
                     Lịch trình ngày này đang để trống. Bạn có thể thêm các địa điểm từ bộ sưu tập yêu thích hoặc thêm hoạt động mới để chuyến đi thêm trọn vẹn!
                 </p>
-                <a href="{{ route('favorites.index') }}" class="btn-add-activity-main">
+                <button type="button" class="btn-add-activity-main" onclick="openAddActivityModal({{ $current_day }})">
                     <i class="bi bi-plus-lg"></i> Thêm hoạt động vào Ngày {{ $current_day }} ngay
-                </a>
+                </button>
             </div>
         @endif
     </main>
+
+    <!-- 8. Modal Thêm Hoạt Động Mới (Hình 19) -->
+    <div class="modal-overlay" id="activityModalOverlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 class="modal-title">Thêm Hoạt Động Mới</h2>
+                <button type="button" class="modal-close-btn" onclick="closeAddActivityModal()" title="Đóng">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <form action="{{ route('itinerary.store', $trip->id) }}" method="POST" id="addActivityForm" class="modal-form">
+                @csrf
+                <div class="modal-body">
+                    <!-- Tên hoạt động * -->
+                    <div class="form-group-modal">
+                        <label class="modal-label" for="modal_activity_name">Tên hoạt động <span style="color: #EF4444;">*</span></label>
+                        <input type="text" 
+                               name="activity_name" 
+                               id="modal_activity_name" 
+                               class="modal-input @error('activity_name') is-invalid @enderror" 
+                               placeholder="Ví dụ: Tham quan Bán đảo Sơn Trà & Chùa Linh Ứng"
+                               value="{{ old('activity_name') }}"
+                               required>
+                        <input type="hidden" name="destination_id" id="modal_destination_id" value="{{ old('destination_id') }}">
+                        @error('activity_name')
+                            <span class="modal-error-msg">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <!-- Ngày thực hiện trong chuyến đi -->
+                    <div class="form-group-modal">
+                        <label class="modal-label" for="modal_day_number">Ngày thực hiện <span style="color: #EF4444;">*</span></label>
+                        <select name="day_number" id="modal_day_number" class="modal-input @error('day_number') is-invalid @enderror">
+                            @foreach($days_list as $dayItem)
+                                <option value="{{ $dayItem['day_number'] }}" {{ old('day_number', $current_day) == $dayItem['day_number'] ? 'selected' : '' }}>
+                                    Ngày {{ $dayItem['day_number'] }}{{ $dayItem['date'] ? ' — ' . $dayItem['day_of_week'] . ' (' . $dayItem['date'] . ')' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('day_number')
+                            <span class="modal-error-msg">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <!-- Giờ bắt đầu & Giờ kết thúc -->
+                    <div class="modal-grid-2">
+                        <div class="form-group-modal">
+                            <label class="modal-label" for="modal_start_time">Giờ bắt đầu</label>
+                            <input type="time" 
+                                   name="start_time" 
+                                   id="modal_start_time" 
+                                   class="modal-input @error('start_time') is-invalid @enderror" 
+                                   value="{{ old('start_time', '14:00') }}">
+                            @error('start_time')
+                                <span class="modal-error-msg">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="form-group-modal">
+                            <label class="modal-label" for="modal_end_time">Giờ kết thúc</label>
+                            <input type="time" 
+                                   name="end_time" 
+                                   id="modal_end_time" 
+                                   class="modal-input @error('end_time') is-invalid @enderror" 
+                                   value="{{ old('end_time', '16:30') }}">
+                            @error('end_time')
+                                <span class="modal-error-msg">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <!-- Loại hoạt động & Chi phí dự kiến (đ) -->
+                    <div class="modal-grid-2">
+                        <div class="form-group-modal">
+                            <label class="modal-label" for="modal_activity_type">Loại hoạt động</label>
+                            <select name="activity_type" id="modal_activity_type" class="modal-input @error('activity_type') is-invalid @enderror">
+                                @foreach($activity_types as $type)
+                                    <option value="{{ $type }}" {{ old('activity_type', 'Tham quan / Check-in') == $type ? 'selected' : '' }}>
+                                        {{ $type }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('activity_type')
+                                <span class="modal-error-msg">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="form-group-modal">
+                            <label class="modal-label" for="modal_estimated_cost">Chi phí dự kiến (đ)</label>
+                            <input type="number" 
+                                   name="estimated_cost" 
+                                   id="modal_estimated_cost" 
+                                   class="modal-input @error('estimated_cost') is-invalid @enderror" 
+                                   placeholder="200000" 
+                                   min="0" 
+                                   step="1000"
+                                   value="{{ old('estimated_cost', '200000') }}">
+                            @error('estimated_cost')
+                                <span class="modal-error-msg">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <!-- Ghi chú thêm -->
+                    <div class="form-group-modal">
+                        <label class="modal-label" for="modal_note">Ghi chú thêm</label>
+                        <textarea name="note" 
+                                  id="modal_note" 
+                                  class="modal-input modal-textarea @error('note') is-invalid @enderror" 
+                                  placeholder="Ghi chú chi tiết hoặc lưu ý đặc biệt...">{{ old('note') }}</textarea>
+                        @error('note')
+                            <span class="modal-error-msg">{{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal-cancel" onclick="closeAddActivityModal()">Hủy</button>
+                    <button type="submit" class="btn-modal-submit">Lưu hoạt động</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openAddActivityModal(dayNumber) {
+            const overlay = document.getElementById('activityModalOverlay');
+            if (overlay) {
+                if (dayNumber) {
+                    const daySelect = document.getElementById('modal_day_number');
+                    if (daySelect) daySelect.value = dayNumber;
+                }
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                setTimeout(() => {
+                    const input = document.getElementById('modal_activity_name');
+                    if (input) input.focus();
+                }, 100);
+            }
+        }
+
+        function closeAddActivityModal() {
+            const overlay = document.getElementById('activityModalOverlay');
+            if (overlay) {
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Đóng khi click ngoài modal card
+        document.getElementById('activityModalOverlay')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAddActivityModal();
+            }
+        });
+
+        // Đóng khi nhấn phím Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeAddActivityModal();
+            }
+        });
+
+        // Tự động mở modal nếu có lỗi validation từ server
+        @if($errors->any())
+            document.addEventListener('DOMContentLoaded', function() {
+                openAddActivityModal({{ old('day_number', $current_day) }});
+            });
+        @endif
+
+        // Tự động xóa viền đỏ và thông báo lỗi khi người dùng bắt đầu chỉnh sửa lại trường dữ liệu
+        document.addEventListener('DOMContentLoaded', function() {
+            const modalInputs = document.querySelectorAll('#activityModalOverlay .modal-input');
+            modalInputs.forEach(function(input) {
+                const clearError = function() {
+                    input.classList.remove('is-invalid');
+                    const formGroup = input.closest('.form-group-modal');
+                    if (formGroup) {
+                        const errorMsg = formGroup.querySelector('.modal-error-msg');
+                        if (errorMsg) {
+                            errorMsg.style.display = 'none';
+                        }
+                    }
+                };
+                input.addEventListener('input', clearError);
+                input.addEventListener('change', clearError);
+            });
+        });
+    </script>
 </body>
 </html>
