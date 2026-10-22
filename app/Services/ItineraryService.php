@@ -238,6 +238,120 @@ class ItineraryService implements ItineraryServiceInterface
     }
 
     /**
+     * Lấy dữ liệu khởi tạo cho màn hình / modal chỉnh sửa hoạt động trong lịch trình.
+     * Tuyến: GET /itinerary/{itinerary}/edit (Bảng 22 Báo cáo Đồ án - Chức năng 7).
+     *
+     * @param ItineraryItem $itinerary
+     * @return array<string, mixed>
+     */
+    public function getEditActivityData(ItineraryItem $itinerary): array
+    {
+        $itinerary->load(['trip', 'destination.city', 'destination.category', 'destination.primaryImage']);
+        $baseData = $this->getTripItinerary($itinerary->trip, $itinerary->day_number);
+
+        return array_merge($baseData, [
+            'item' => $itinerary,
+        ]);
+    }
+
+    /**
+     * Cập nhật thông tin hoạt động trong lịch trình chuyến đi.
+     * Tuyến: PATCH /itinerary/{itinerary} (Bảng 22 Báo cáo Đồ án - Chức năng 7 & 8).
+     * Kiểm tra xung đột thời gian, loại trừ chính mục đang sửa (FR19, FR20).
+     *
+     * @param ItineraryItem $itinerary
+     * @param array $data
+     * @return ItineraryItem
+     * @throws ValidationException
+     */
+    public function updateActivity(ItineraryItem $itinerary, array $data): ItineraryItem
+    {
+        $trip = $itinerary->trip;
+
+        // 1. Tính tổng số ngày của chuyến đi
+        $daysCount = 1;
+        if ($trip->start_date && $trip->end_date) {
+            $daysCount = max(1, $trip->start_date->diffInDays($trip->end_date) + 1);
+        }
+
+        // 2. Kiểm tra ngày nằm trong phạm vi chuyến đi
+        $dayNumber = isset($data['day_number']) ? (int) $data['day_number'] : (int) $itinerary->day_number;
+        if ($dayNumber < 1 || $dayNumber > $daysCount) {
+            throw ValidationException::withMessages([
+                'day_number' => "Ngày được chọn phải nằm trong thời gian của chuyến đi (từ Ngày 1 đến Ngày {$daysCount}).",
+            ]);
+        }
+
+        // 3. Chuẩn hóa khung giờ bắt đầu và kết thúc
+        $startTime = !empty($data['start_time']) ? substr($data['start_time'], 0, 5) : ($itinerary->start_time ? substr($itinerary->start_time, 0, 5) : null);
+        $endTime = !empty($data['end_time']) ? substr($data['end_time'], 0, 5) : ($itinerary->end_time ? substr($itinerary->end_time, 0, 5) : null);
+
+        if ($startTime && $endTime) {
+            // Giờ kết thúc phải sau giờ bắt đầu
+            if ($endTime <= $startTime) {
+                throw ValidationException::withMessages([
+                    'end_time' => 'Giờ kết thúc phải sau giờ bắt đầu.',
+                ]);
+            }
+
+            // Chặn nhập giờ trùng lặp / chồng chéo, loại trừ chính mục đang sửa
+            $conflictItem = $trip->itineraryItems()
+                ->where('id', '!=', $itinerary->id)
+                ->where('day_number', $dayNumber)
+                ->whereNotNull('start_time')
+                ->whereNotNull('end_time')
+                ->where(function ($query) use ($startTime, $endTime) {
+                    $query->where('start_time', '<', $endTime)
+                          ->where('end_time', '>', $startTime);
+                })
+                ->first();
+
+            if ($conflictItem) {
+                $conflictName = $conflictItem->custom_title ?: ($conflictItem->destination ? $conflictItem->destination->name : ($conflictItem->note ?: 'Hoạt động khác'));
+                $conflictTime = substr($conflictItem->start_time, 0, 5) . ' - ' . substr($conflictItem->end_time, 0, 5);
+                throw ValidationException::withMessages([
+                    'start_time' => "Khung giờ này đã bị trùng lặp với '{$conflictName}' ({$conflictTime}) trong Ngày {$dayNumber}. Vui lòng chọn khung giờ khác.",
+                ]);
+            }
+        }
+
+        // 4. Xác định địa điểm liên kết nếu thay đổi tên
+        $activityName = isset($data['activity_name']) ? trim($data['activity_name']) : null;
+        $destinationId = isset($data['destination_id']) ? (!empty($data['destination_id']) ? (int) $data['destination_id'] : null) : $itinerary->destination_id;
+
+        if (!empty($activityName) && !$destinationId) {
+            $matchingDest = Destination::where('name', $activityName)->first();
+            if ($matchingDest) {
+                $destinationId = $matchingDest->id;
+            }
+        }
+
+        // 5. Cập nhật dữ liệu mục lịch trình
+        $itinerary->update([
+            'custom_title' => $activityName ?? $itinerary->custom_title,
+            'destination_id' => $destinationId,
+            'day_number' => $dayNumber,
+            'start_time' => $startTime ? $startTime . ':00' : null,
+            'end_time' => $endTime ? $endTime . ':00' : null,
+            'note' => array_key_exists('note', $data) ? $data['note'] : $itinerary->note,
+        ]);
+
+        return $itinerary;
+    }
+
+    /**
+     * Xóa mục hoạt động khỏi lịch trình của chuyến đi.
+     * Tuyến: DELETE /itinerary/{itinerary} (Bảng 22 Báo cáo Đồ án - Chức năng 7).
+     *
+     * @param ItineraryItem $itinerary
+     * @return bool
+     */
+    public function deleteActivity(ItineraryItem $itinerary): bool
+    {
+        return (bool) $itinerary->delete();
+    }
+
+    /**
      * Chuyển đổi thứ trong tuần từ Carbon sang Tiếng Việt chuẩn.
      *
      * @param Carbon $date

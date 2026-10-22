@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreItineraryItemRequest;
+use App\Http\Requests\UpdateItineraryItemRequest;
+use App\Models\ItineraryItem;
 use App\Models\Trip;
 use App\Services\Interfaces\ItineraryServiceInterface;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -92,5 +95,92 @@ class ItineraryController extends Controller
         return redirect()
             ->route('itinerary.index', ['trip' => $trip->id, 'day_number' => $item->day_number])
             ->with('success', 'Đã thêm hoạt động "' . ($item->custom_title ?: 'mới') . '" vào lịch trình Ngày ' . $item->day_number . ' thành công!');
+    }
+
+    /**
+     * Mở biểu mẫu hoặc lấy dữ liệu chỉnh sửa hoạt động trong lịch trình.
+     * Tuyến: GET /itinerary/{itinerary}/edit (Bảng 22 trong báo cáo - Chức năng 7).
+     *
+     * @param Request $request
+     * @param ItineraryItem $itinerary
+     * @return View|JsonResponse
+     */
+    public function edit(Request $request, ItineraryItem $itinerary): View|JsonResponse
+    {
+        // 1. Kiểm tra quyền sở hữu Trip chứa {itinerary}
+        Gate::authorize('update', $itinerary->trip);
+
+        // 2. Lấy dữ liệu mục lịch trình cần sửa
+        $data = $this->itineraryService->getEditActivityData($itinerary);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json($data);
+        }
+
+        // 3. Trả về màn hình chỉnh sửa hoạt động
+        return view('itinerary.edit', $data);
+    }
+
+    /**
+     * Cập nhật thông tin hoạt động trong lịch trình chuyến đi.
+     * Tuyến: PATCH /itinerary/{itinerary} (Bảng 22 trong báo cáo - Chức năng 7 & 8).
+     *
+     * @param UpdateItineraryItemRequest $request
+     * @param ItineraryItem $itinerary
+     * @return RedirectResponse|JsonResponse
+     */
+    public function update(UpdateItineraryItemRequest $request, ItineraryItem $itinerary): RedirectResponse|JsonResponse
+    {
+        // 1. Kiểm tra quyền sở hữu Trip chứa {itinerary}
+        Gate::authorize('update', $itinerary->trip);
+
+        // 2. Gọi Service thực hiện cập nhật và kiểm tra xung đột thời gian (FR19, FR20)
+        $item = $this->itineraryService->updateActivity($itinerary, $request->validated());
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Cập nhật hoạt động "' . ($item->custom_title ?: 'thành công') . '" thành công!',
+                'item' => $item,
+            ]);
+        }
+
+        // 3. Chuyển hướng về trang xem lịch trình kèm thông báo thành công
+        return redirect()
+            ->route('itinerary.index', ['trip' => $itinerary->trip_id, 'day_number' => $item->day_number])
+            ->with('success', 'Đã cập nhật hoạt động "' . ($item->custom_title ?: 'thành công') . '" trong lịch trình Ngày ' . $item->day_number . '!');
+    }
+
+    /**
+     * Xóa mục hoạt động khỏi lịch trình chuyến đi.
+     * Tuyến: DELETE /itinerary/{itinerary} (Bảng 22 trong báo cáo - Chức năng 7).
+     *
+     * @param Request $request
+     * @param ItineraryItem $itinerary
+     * @return RedirectResponse|JsonResponse
+     */
+    public function destroy(Request $request, ItineraryItem $itinerary): RedirectResponse|JsonResponse
+    {
+        // 1. Kiểm tra quyền sở hữu Trip chứa {itinerary}
+        Gate::authorize('update', $itinerary->trip);
+
+        $tripId = $itinerary->trip_id;
+        $dayNumber = $itinerary->day_number;
+        $activityTitle = $itinerary->custom_title ?: ($itinerary->destination ? $itinerary->destination->name : 'Hoạt động');
+
+        // 2. Thực hiện xóa mục hoạt động
+        $this->itineraryService->deleteActivity($itinerary);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Đã xóa hoạt động "' . $activityTitle . '" khỏi lịch trình thành công!',
+            ]);
+        }
+
+        // 3. Chuyển hướng về trang lịch trình chi tiết kèm thông báo
+        return redirect()
+            ->route('itinerary.index', ['trip' => $tripId, 'day_number' => $dayNumber])
+            ->with('success', 'Đã xóa hoạt động "' . $activityTitle . '" khỏi lịch trình thành công!');
     }
 }

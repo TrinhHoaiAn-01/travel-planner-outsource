@@ -40,4 +40,33 @@ interface ItineraryServiceInterface
      * @return \App\Models\ItineraryItem
      */
     public function storeActivity(Trip $trip, array $data): \App\Models\ItineraryItem;
+
+    /**
+     * Lấy dữ liệu khởi tạo cho màn hình / modal chỉnh sửa hoạt động trong lịch trình.
+     * Tuyến: GET /itinerary/{itinerary}/edit (Bảng 22 Báo cáo Đồ án - Chức năng 7).
+     *
+     * @param \App\Models\ItineraryItem $itinerary
+     * @return array<string, mixed>
+     */
+    public function getEditActivityData(\App\Models\ItineraryItem $itinerary): array;
+
+    /**
+     * Cập nhật thông tin hoạt động trong lịch trình chuyến đi.
+     * Tuyến: PATCH /itinerary/{itinerary} (Bảng 22 Báo cáo Đồ án - Chức năng 7 & 8).
+     * Kiểm tra xung đột thời gian, loại trừ chính mục đang sửa.
+     *
+     * @param \App\Models\ItineraryItem $itinerary
+     * @param array $data
+     * @return \App\Models\ItineraryItem
+     */
+    public function updateActivity(\App\Models\ItineraryItem $itinerary, array $data): \App\Models\ItineraryItem;
+
+    /**
+     * Xóa mục hoạt động khỏi lịch trình của chuyến đi.
+     * Tuyến: DELETE /itinerary/{itinerary} (Bảng 22 Báo cáo Đồ án - Chức năng 7).
+     *
+     * @param \App\Models\ItineraryItem $itinerary
+     * @return bool
+     */
+    public function deleteActivity(\App\Models\ItineraryItem $itinerary): bool;
 }

@@ -1148,10 +1148,12 @@
                                     </div>
 
                                     <div class="activity-btns">
-                                        <button type="button" class="btn-act-icon" title="Chỉnh sửa hoạt động">
+                                        <button type="button" class="btn-act-icon" title="Chỉnh sửa hoạt động"
+                                                onclick="openEditActivityModal({{ $item->id }}, '{{ addslashes($item->custom_title ?: ($dest ? $dest->name : '')) }}', '{{ $item->start_time ? substr($item->start_time, 0, 5) : '08:00' }}', '{{ $item->end_time ? substr($item->end_time, 0, 5) : '10:00' }}', {{ $item->day_number }}, '{{ addslashes($item->note ?? '') }}', {{ $item->destination_id ?: 'null' }})">
                                             <i class="bi bi-pencil"></i>
                                         </button>
-                                        <button type="button" class="btn-act-icon" title="Xóa khỏi lịch trình" style="color: var(--danger);">
+                                        <button type="button" class="btn-act-icon" title="Xóa khỏi lịch trình" style="color: var(--danger);"
+                                                onclick="confirmDeleteActivity({{ $item->id }}, '{{ addslashes($item->custom_title ?: ($dest ? $dest->name : 'Hoạt động')) }}')">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
@@ -1302,6 +1304,114 @@
         </div>
     </div>
 
+    <!-- 9. Modal Chỉnh Sửa Hoạt Động (Hình 20 Báo cáo Đồ án - Chức năng 7) -->
+    <div class="modal-overlay" id="editActivityModalOverlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 class="modal-title">Chỉnh Sửa Hoạt Động</h2>
+                <button type="button" class="modal-close-btn" onclick="closeEditActivityModal()" title="Đóng">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <form action="" method="POST" id="editActivityForm" class="modal-form">
+                @csrf
+                @method('PATCH')
+                <div class="modal-body">
+                    <!-- Tên hoạt động * -->
+                    <div class="form-group-modal">
+                        <label class="modal-label" for="edit_activity_name">Tên hoạt động <span style="color: #EF4444;">*</span></label>
+                        <input type="text" 
+                               name="activity_name" 
+                               id="edit_activity_name" 
+                               class="modal-input" 
+                               placeholder="Ví dụ: Đáp chuyến bay xuống Sân bay Quốc tế Đà Nẵng"
+                               required>
+                        <input type="hidden" name="destination_id" id="edit_destination_id" value="">
+                    </div>
+
+                    <!-- Ngày thực hiện trong chuyến đi -->
+                    <div class="form-group-modal">
+                        <label class="modal-label" for="edit_day_number">Ngày thực hiện <span style="color: #EF4444;">*</span></label>
+                        <select name="day_number" id="edit_day_number" class="modal-input">
+                            @foreach($days_list as $dayItem)
+                                <option value="{{ $dayItem['day_number'] }}">
+                                    Ngày {{ $dayItem['day_number'] }}{{ $dayItem['date'] ? ' — ' . $dayItem['day_of_week'] . ' (' . $dayItem['date'] . ')' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Giờ bắt đầu & Giờ kết thúc (Hình 20) -->
+                    <div class="modal-grid-2">
+                        <div class="form-group-modal">
+                            <label class="modal-label" for="edit_start_time">Giờ bắt đầu <span style="color: #EF4444;">*</span></label>
+                            <input type="time" 
+                                   name="start_time" 
+                                   id="edit_start_time" 
+                                   class="modal-input" 
+                                   required>
+                        </div>
+
+                        <div class="form-group-modal">
+                            <label class="modal-label" for="edit_end_time">Giờ kết thúc <span style="color: #EF4444;">*</span></label>
+                            <input type="time" 
+                                   name="end_time" 
+                                   id="edit_end_time" 
+                                   class="modal-input" 
+                                   required>
+                        </div>
+                    </div>
+
+                    <!-- Ghi chú thêm -->
+                    <div class="form-group-modal">
+                        <label class="modal-label" for="edit_note">Ghi chú thêm</label>
+                        <textarea name="note" 
+                                  id="edit_note" 
+                                  class="modal-input modal-textarea" 
+                                  placeholder="Ghi chú chi tiết hoặc lưu ý đặc biệt..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Footer (Hình 20: Đóng & Cập nhật) -->
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal-cancel" onclick="closeEditActivityModal()">Đóng</button>
+                    <button type="submit" class="btn-modal-submit">Cập nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 10. Modal Xác Nhận Xóa Hoạt Động (Chức năng 7) -->
+    <div class="modal-overlay" id="deleteActivityModalOverlay">
+        <div class="modal-card" style="max-width: 440px;">
+            <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
+                <div style="width: 44px; height: 44px; border-radius: 50%; background-color: #FEE2E2; display: flex; align-items: center; justify-content: center; color: #EF4444; font-size: 20px;">
+                    <i class="bi bi-trash"></i>
+                </div>
+                <button type="button" class="modal-close-btn" onclick="closeDeleteActivityModal()" title="Đóng">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <form action="" method="POST" id="deleteActivityForm" class="modal-form">
+                @csrf
+                @method('DELETE')
+                <div class="modal-body" style="padding-top: 12px; gap: 8px;">
+                    <h3 style="font-size: 18px; font-weight: 700; color: #0F172A; margin: 0;">Xác nhận xóa hoạt động</h3>
+                    <p style="font-size: 14px; color: #64748B; line-height: 1.5; margin: 0;">
+                        Bạn có chắc chắn muốn xóa hoạt động <strong id="delete_activity_title" style="color: #0F172A;"></strong> khỏi lịch trình không? Thao tác này sẽ không thể hoàn tác.
+                    </p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal-cancel" onclick="closeDeleteActivityModal()">Hủy</button>
+                    <button type="submit" class="btn-modal-submit" style="background-color: #EF4444; box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);">Xóa hoạt động</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function openAddActivityModal(dayNumber) {
             const overlay = document.getElementById('activityModalOverlay');
@@ -1327,17 +1437,70 @@
             }
         }
 
+        // Mở Modal Chỉnh Sửa Hoạt Động (Hình 20)
+        function openEditActivityModal(id, title, startTime, endTime, dayNumber, note, destId) {
+            const overlay = document.getElementById('editActivityModalOverlay');
+            const form = document.getElementById('editActivityForm');
+            if (overlay && form) {
+                form.action = '/itinerary/' + id;
+                document.getElementById('edit_activity_name').value = title || '';
+                document.getElementById('edit_start_time').value = startTime || '';
+                document.getElementById('edit_end_time').value = endTime || '';
+                document.getElementById('edit_day_number').value = dayNumber || 1;
+                document.getElementById('edit_note').value = note || '';
+                document.getElementById('edit_destination_id').value = destId || '';
+
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeEditActivityModal() {
+            const overlay = document.getElementById('editActivityModalOverlay');
+            if (overlay) {
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Mở Modal Xác Nhận Xóa Hoạt Động
+        function confirmDeleteActivity(id, title) {
+            const overlay = document.getElementById('deleteActivityModalOverlay');
+            const form = document.getElementById('deleteActivityForm');
+            const titleElem = document.getElementById('delete_activity_title');
+            if (overlay && form) {
+                form.action = '/itinerary/' + id;
+                if (titleElem) titleElem.textContent = '“' + title + '”';
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeDeleteActivityModal() {
+            const overlay = document.getElementById('deleteActivityModalOverlay');
+            if (overlay) {
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+
         // Đóng khi click ngoài modal card
         document.getElementById('activityModalOverlay')?.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeAddActivityModal();
-            }
+            if (e.target === this) closeAddActivityModal();
+        });
+        document.getElementById('editActivityModalOverlay')?.addEventListener('click', function(e) {
+            if (e.target === this) closeEditActivityModal();
+        });
+        document.getElementById('deleteActivityModalOverlay')?.addEventListener('click', function(e) {
+            if (e.target === this) closeDeleteActivityModal();
         });
 
         // Đóng khi nhấn phím Escape
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeAddActivityModal();
+                closeEditActivityModal();
+                closeDeleteActivityModal();
             }
         });
 
@@ -1350,7 +1513,7 @@
 
         // Tự động xóa viền đỏ và thông báo lỗi khi người dùng bắt đầu chỉnh sửa lại trường dữ liệu
         document.addEventListener('DOMContentLoaded', function() {
-            const modalInputs = document.querySelectorAll('#activityModalOverlay .modal-input');
+            const modalInputs = document.querySelectorAll('.modal-input');
             modalInputs.forEach(function(input) {
                 const clearError = function() {
                     input.classList.remove('is-invalid');
