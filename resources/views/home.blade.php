@@ -822,6 +822,13 @@
                 return;
             @endguest
 
+            // Nếu đang là yêu thích (tim đỏ), hỏi xác nhận trước khi xóa
+            if (btn.classList.contains('is-favorited')) {
+                if (!confirm('Bạn có chắc chắn muốn xóa địa điểm này khỏi danh sách yêu thích không?')) {
+                    return;
+                }
+            }
+
             fetch(`/favorites/toggle/${destId}`, {
                 method: 'POST',
                 headers: {

@@ -849,9 +849,9 @@
                     <div class="fav-card-image-box">
                         <img src="{{ $imageUrl }}" alt="{{ $dest->name }}" class="fav-card-img" loading="lazy">
                         <span class="card-category-badge {{ $badgeStyle }}">{{ $catName }}</span>
-                        <!-- Nút Xóa Khỏi Yêu Thích (Thùng Rác Đỏ Trong Vòng Tròn Trắng - Khớp 100% Ảnh 2) -->
+                        <!-- Nút Xóa Khỏi Yêu Thích (Có xác nhận trước khi xóa) -->
                         <button type="button" class="btn-trash-remove" 
-                                onclick="removeFavoriteAjax({{ $dest->id }}, event)"
+                                onclick="confirmRemoveFavorite({{ $dest->id }}, '{{ addslashes($dest->name) }}', event)"
                                 title="Xóa khỏi danh sách yêu thích">
                             <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M3 6h18"/>
@@ -975,6 +975,43 @@
         </div>
     </div>
 
+    <!-- 6. Modal Xác Nhận Xóa Yêu Thích -->
+    <div class="custom-modal-backdrop" id="confirmDeleteModal" onclick="closeConfirmDeleteModal(event)">
+        <div class="custom-modal-dialog" style="max-width: 420px; text-align: center; padding: 28px 24px;" onclick="event.stopPropagation()">
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: #FEE2E2; color: #EF4444; display: inline-flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 16px;">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 6h18"/>
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                    <line x1="10" y1="11" x2="10" y2="17"/>
+                    <line x1="14" y1="11" x2="14" y2="17"/>
+                </svg>
+            </div>
+            
+            <h3 style="font-size: 19px; font-weight: 800; color: var(--text-dark); margin-bottom: 8px;">
+                Xác nhận xóa yêu thích?
+            </h3>
+            
+            <p style="font-size: 14.5px; color: var(--text-muted); line-height: 1.5; margin-bottom: 24px;">
+                Bạn có chắc chắn muốn xóa địa điểm <strong id="confirmDeleteDestName" style="color: #0F172A;"></strong> khỏi danh sách yêu thích không?
+            </p>
+            
+            <div style="display: flex; gap: 12px; justify-content: center;">
+                <button type="button" onclick="closeConfirmDeleteModal()" style="flex: 1; padding: 11px 18px; border-radius: 12px; border: 1px solid #CBD5E1; background: #F8FAFC; color: #475569; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.2s;">
+                    Hủy bỏ
+                </button>
+                <button type="button" id="btnConfirmDeleteAction" onclick="executeDeleteFavorite()" style="flex: 1; padding: 11px 18px; border-radius: 12px; border: none; background: #EF4444; color: #FFFFFF; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25); display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 6h18"/>
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                    </svg>
+                    <span>Xác nhận xóa</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notifications Container -->
     <div class="toast-container-custom" id="toastContainer"></div>
 
@@ -1016,6 +1053,43 @@
                 menu.classList.remove('show');
             }
         });
+
+        // Xử lý phím Escape để đóng nhanh các Modal
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeAddToTripModal();
+                closeConfirmDeleteModal();
+            }
+        });
+
+        // Quản lý trạng thái xóa yêu thích với Modal Xác Nhận
+        let pendingDeleteId = null;
+
+        function confirmRemoveFavorite(destId, destName, event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            pendingDeleteId = destId;
+            const nameEl = document.getElementById('confirmDeleteDestName');
+            if (nameEl) {
+                nameEl.textContent = `"${destName}"`;
+            }
+            document.getElementById('confirmDeleteModal').classList.add('show');
+        }
+
+        function closeConfirmDeleteModal(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('confirmDeleteModal').classList.remove('show');
+            pendingDeleteId = null;
+        }
+
+        function executeDeleteFavorite() {
+            if (!pendingDeleteId) return;
+            const destId = pendingDeleteId;
+            closeConfirmDeleteModal();
+            removeFavoriteAjax(destId);
+        }
 
         // Xóa địa điểm khỏi danh sách yêu thích bằng AJAX (Không load lại trang)
         function removeFavoriteAjax(destinationId, event) {
