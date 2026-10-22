@@ -1,6 +1,6 @@
 {
-  "source_sha": "2e90dce998d206ab001777f72df46808b5d22077",
-  "image": "ghcr.io/trinhhoaian-01/travel-planner@sha256:d4bf96879fd6970234918ffebf2334091958f71fc5ba7fdaefd0d5ff90af9771",
-  "workflow_run": "https://github.com/TrinhHoaiAn-01/travel-planner-outsource/actions/runs/39835724399",
-  "archive": "https://github.com/TrinhHoaiAn-01/travel-planner-outsource/actions/runs/39835724399/artifacts/12450817005"
+  "source_sha": "efe670941aea2ae88348cfcdf4bb3ab7d1f3b240",
+  "image": "ghcr.io/trinhhoaian-01/travel-planner@sha256:5d307a3b1a005df9598c2565b7de2d13302ad745e7b34239e52930e2d1b20c05",
+  "workflow_run": "https://github.com/TrinhHoaiAn-01/travel-planner-outsource/actions/runs/39844543908",
+  "archive": "https://github.com/TrinhHoaiAn-01/travel-planner-outsource/actions/runs/39844543908/artifacts/12454862332"
 }
