@@ -46,11 +46,14 @@ interface FavoriteServiceInterface
     public function getUserFavoriteDestinationIds(?User $user): array;
 
     /**
-     * Thêm địa điểm vào lịch trình chuyến đi của người dùng
+     * Thêm địa điểm vào lịch trình chuyến đi của người dùng (FR15)
      *
-     * @param User $user Người dùng hiện tại
-     * @param array $data Dữ liệu bao gồm: trip_id, destination_id, day_number, note, start_time, end_time
-     * @return \App\Models\ItineraryItem
+     * @param User $user
+     * @param int $tripId
+     * @param int $destinationId
+     * @param int $dayNumber
+     * @param string|null $note
+     * @return array
      */
-    public function addDestinationToTrip(User $user, array $data): \App\Models\ItineraryItem;
+    public function addDestinationToTrip(User $user, int $tripId, int $destinationId, int $dayNumber = 1, ?string $note = null): array;
 }

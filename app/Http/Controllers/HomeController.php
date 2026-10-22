@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\Interfaces\DestinationServiceInterface;
+use App\Services\Interfaces\FavoriteServiceInterface;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -10,10 +11,11 @@ use Illuminate\Http\Request;
 class HomeController extends Controller
 {
     /**
-     * Tiêm phụ thuộc DestinationServiceInterface vào Controller.
+     * Tiêm phụ thuộc DestinationServiceInterface và FavoriteServiceInterface vào Controller.
      */
     public function __construct(
-        private readonly DestinationServiceInterface $destinationService
+        private readonly DestinationServiceInterface $destinationService,
+        private readonly FavoriteServiceInterface $favoriteService
     ) {
     }
 
@@ -38,6 +40,7 @@ class HomeController extends Controller
         $popularCities = $this->destinationService->getPopularCities(6);
         $categories = $this->destinationService->getCategories();
         $statistics = $this->destinationService->getHomeStatistics();
+        $userFavoriteIds = $this->favoriteService->getUserFavoriteDestinationIds(auth()->user());
 
         return view('home', compact(
             'featuredDestinations',
@@ -45,7 +48,8 @@ class HomeController extends Controller
             'categories',
             'statistics',
             'hasSearch',
-            'searchResults'
+            'searchResults',
+            'userFavoriteIds'
         ));
     }
 
