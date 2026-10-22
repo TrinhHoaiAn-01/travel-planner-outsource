@@ -612,7 +612,8 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 9px 22px;
+            gap: 8px;
+            padding: 9px 20px;
             border-radius: 9999px;
             font-size: 14px;
             font-weight: 600;
@@ -1094,7 +1095,13 @@
                             <!-- Xem chi tiết chuyến đi (Nguyễn Trần Thành) -->
                             <a href="{{ route('trips.show', $trip->id) }}" class="menu-item-btn" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="12 8 8 12 12 16 12 8"></polygon></svg>
-                                Xem chi tiết lịch trình
+                                Chi tiết chuyến đi
+                            </a>
+
+                            <!-- Xem lịch trình theo từng ngày (Phạm Thị Ngọc Ái - Chức năng 5) -->
+                            <a href="{{ route('itinerary.index', $trip->id) }}" class="menu-item-btn" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>
+                                Xem lịch trình theo ngày
                             </a>
 
                             <!-- Chỉnh sửa chuyến đi (Nguyễn Trần Thành) -->
@@ -1208,20 +1215,15 @@
                             </a>
 
                             <div class="action-buttons">
-                                <a href="{{ route('trips.show', $trip->id) }}" class="btn-calendar-icon" title="Xem chi tiết lịch trình" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <a href="{{ route('itinerary.index', $trip->id) }}" class="btn-primary-action" title="Xem lịch trình theo từng ngày">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                         <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
                                         <line x1="16" x2="16" y1="2" y2="6"></line>
                                         <line x1="8" x2="8" y1="2" y2="6"></line>
                                         <line x1="3" x2="21" y1="10" y2="10"></line>
                                     </svg>
+                                    <span>Lịch trình</span>
                                 </a>
-
-                                @if($isCompleted)
-                                    <a href="{{ route('trips.show', $trip->id) }}" class="btn-primary-action" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Xem lại</a>
-                                @else
-                                    <a href="{{ route('trips.show', $trip->id) }}" class="btn-primary-action" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Lịch trình</a>
-                                @endif
                             </div>
                         </div>
                     </div>

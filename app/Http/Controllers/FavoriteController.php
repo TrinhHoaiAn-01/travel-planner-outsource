@@ -38,12 +38,13 @@ class FavoriteController extends Controller
     }
 
     /**
-     * Xử lý Thêm / Xóa yêu thích (Hỗ trợ cả AJAX và Form thường)
+     * Xử lý Thêm / Xóa yêu thích (Hỗ trợ cả AJAX, Form thường và các route chuẩn Bảng 20)
      */
-    public function toggle(Request $request, int $destinationId): JsonResponse|RedirectResponse
+    public function toggle(Request $request, int|string $destinationId = 0): JsonResponse|RedirectResponse
     {
+        $id = (int) ($destinationId ?: $request->route('destination') ?: $request->route('destinationId'));
         $user = $request->user();
-        $result = $this->favoriteService->toggleFavorite($user, $destinationId);
+        $result = $this->favoriteService->toggleFavorite($user, $id);
         $result['favorites_count'] = $user->favorites()->count();
 
         if ($request->wantsJson() || $request->ajax()) {

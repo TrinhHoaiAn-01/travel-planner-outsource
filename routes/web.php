@@ -77,17 +77,23 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/trips/{trip}/clone', [TripController::class, 'clone'])->name('trips.clone');
     Route::post('/trips/{trip}/reopen', [TripController::class, 'reopen'])->name('trips.reopen');
 
-    //Ngocai
-    // Quản lý danh sách địa điểm yêu thích (Favorites) & Thêm vào Trip
+    // Quản lý danh sách địa điểm yêu thích (Favorites - Bảng 20 Báo cáo Đồ án) & Thêm vào Trip
     Route::get('/favorites', [\App\Http\Controllers\FavoriteController::class, 'index'])->name('favorites.index');
     Route::post('/favorites/toggle/{destinationId}', [\App\Http\Controllers\FavoriteController::class, 'toggle'])->name('favorites.toggle');
     Route::post('/favorites/add-to-trip', [\App\Http\Controllers\FavoriteController::class, 'addToTrip'])->name('favorites.add-to-trip');
+    Route::post('/destinations/{destination}/favorite', [\App\Http\Controllers\FavoriteController::class, 'toggle'])->name('destinations.favorite.store');
+    Route::delete('/destinations/{destination}/favorite', [\App\Http\Controllers\FavoriteController::class, 'toggle'])->name('destinations.favorite.destroy');
+
+    // Quản lý Lịch trình chuyến đi (Itinerary Management - Bảng 22 Báo cáo Đồ án - Phạm Thị Ngọc Ái - Chức năng 5)
+    Route::get('/trips/{trip}/itinerary', [\App\Http\Controllers\ItineraryController::class, 'index'])->name('itinerary.index');
+
     // Quản lý Ngân sách & Chi tiêu (Budget & Expenses - Nguyễn Văn Thắng)
     Route::get('/trips/{trip}/budget', [\App\Http\Controllers\BudgetController::class, 'show'])->name('trips.budget.show');
     Route::patch('/trips/{trip}/budget', [\App\Http\Controllers\BudgetController::class, 'update'])->name('trips.budget.update');
     Route::post('/trips/{trip}/expenses', [\App\Http\Controllers\ExpenseController::class, 'store'])->name('trips.expenses.store');
     Route::patch('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'update'])->name('expenses.update');
     Route::delete('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'destroy'])->name('expenses.destroy');
+
     // Quản lý Đặt phòng (Bookings - Nguyễn Văn Thắng - STT 5, 6, 7, 8)
     Route::get('/bookings', [\App\Http\Controllers\BookingController::class, 'index'])->name('bookings.index');
     Route::post('/bookings', [\App\Http\Controllers\BookingController::class, 'store'])->name('bookings.store');
