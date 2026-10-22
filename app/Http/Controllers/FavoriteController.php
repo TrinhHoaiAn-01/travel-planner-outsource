@@ -44,11 +44,39 @@ class FavoriteController extends Controller
     {
         $user = $request->user();
         $result = $this->favoriteService->toggleFavorite($user, $destinationId);
+        $result['favorites_count'] = $user->favorites()->count();
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json($result);
         }
 
         return back()->with('success', $result['message']);
+    }
+
+    /**
+     * Xử lý Thêm địa điểm yêu thích vào Trip (FR15)
+     */
+    public function addToTrip(Request $request): JsonResponse|RedirectResponse
+    {
+        $validated = $request->validate([
+            'trip_id' => 'required|integer|exists:trips,id',
+            'destination_id' => 'required|integer|exists:destinations,id',
+            'day_number' => 'nullable|integer|min:1',
+            'note' => 'nullable|string|max:500',
+        ]);
+
+        $result = $this->favoriteService->addDestinationToTrip(
+            $request->user(),
+            (int) $validated['trip_id'],
+            (int) $validated['destination_id'],
+            (int) ($validated['day_number'] ?? 1),
+            $validated['note'] ?? null
+        );
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json($result, $result['success'] ? 200 : 422);
+        }
+
+        return back()->with($result['success'] ? 'success' : 'error', $result['message']);
     }
 }

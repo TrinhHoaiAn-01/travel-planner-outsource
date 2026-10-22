@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Travel Planner - Lên Lịch Trình & Khám Phá Những Vùng Đất Mới</title>
     <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -701,10 +702,21 @@
                             <span class="tag-dest-badge tag-blue-light">
                                 {{ $destination->category->name ?? 'Du lịch' }}
                             </span>
-                            <form action="{{ route('favorites.toggle', $destination->id) }}" method="POST" style="position: absolute; top: 12px; right: 12px; z-index: 5;">
-                                @csrf
-                                <button type="submit" class="btn-heart-fav" title="Lưu yêu thích">🤍</button>
-                            </form>
+                            @php
+                                $isFavorited = in_array($destination->id, $userFavoriteIds ?? []);
+                            @endphp
+                            <button type="button" 
+                                    class="btn-heart-fav {{ $isFavorited ? 'is-favorited' : '' }}" 
+                                    data-id="{{ $destination->id }}"
+                                    onclick="toggleFavoriteHeart(this, {{ $destination->id }})" 
+                                    title="{{ $isFavorited ? 'Bỏ yêu thích' : 'Lưu yêu thích' }}">
+                                <svg class="heart-icon-svg" viewBox="0 0 24 24" width="20" height="20" 
+                                     fill="{{ $isFavorited ? '#EF4444' : 'none' }}" 
+                                     stroke="{{ $isFavorited ? '#EF4444' : '#0F172A' }}" 
+                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                                </svg>
+                            </button>
                         </div>
                         <div class="dest-body-content">
                             <div class="dest-meta-row">
@@ -734,5 +746,125 @@
 
     </div>
 
+    <!-- Toast container cho thông báo yêu thích -->
+    <div id="homeToastContainer" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
+
+    <style>
+        .btn-heart-fav {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 5;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s;
+        }
+        .btn-heart-fav:hover {
+            transform: scale(1.12);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+        }
+        .btn-heart-fav:active {
+            transform: scale(0.9);
+        }
+        .btn-heart-fav.heart-pop {
+            animation: heartPopAnim 0.35s ease;
+        }
+        @keyframes heartPopAnim {
+            0% { transform: scale(1); }
+            45% { transform: scale(1.3); }
+            75% { transform: scale(0.92); }
+            100% { transform: scale(1); }
+        }
+        .tag-dest-badge.tag-blue-light {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            background: #EBF5FF;
+            color: #0066FF;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            z-index: 2;
+        }
+    </style>
+
+    <script>
+        function showHomeToast(msg, type = 'success') {
+            const container = document.getElementById('homeToastContainer');
+            const toast = document.createElement('div');
+            const borderCol = type === 'success' ? '#10B981' : (type === 'error' ? '#EF4444' : '#0066FF');
+            toast.style.cssText = `background:#FFFFFF; color:#0F172A; padding:12px 18px; border-radius:12px; font-weight:600; font-size:14px; box-shadow:0 10px 25px rgba(0,0,0,0.12); border-left:4px solid ${borderCol}; transition:all 0.3s ease; display:flex; align-items:center; gap:8px;`;
+            toast.innerHTML = `<span>${msg}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function toggleFavoriteHeart(btn, destId) {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            
+            @guest
+                showHomeToast('Vui lòng đăng nhập để lưu địa điểm yêu thích!', 'info');
+                setTimeout(() => { window.location.href = "{{ route('login') }}"; }, 1200);
+                return;
+            @endguest
+
+            fetch(`/favorites/toggle/${destId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => {
+                if (res.status === 401) {
+                    window.location.href = "{{ route('login') }}";
+                    return;
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data && data.success) {
+                    const svg = btn.querySelector('.heart-icon-svg');
+                    btn.classList.add('heart-pop');
+                    if (data.is_favorited) {
+                        btn.classList.add('is-favorited');
+                        btn.setAttribute('title', 'Bỏ yêu thích');
+                        svg.setAttribute('fill', '#EF4444');
+                        svg.setAttribute('stroke', '#EF4444');
+                        showHomeToast(data.message || 'Đã thêm vào danh sách yêu thích!', 'success');
+                    } else {
+                        btn.classList.remove('is-favorited');
+                        btn.setAttribute('title', 'Lưu yêu thích');
+                        svg.setAttribute('fill', 'none');
+                        svg.setAttribute('stroke', '#0F172A');
+                        showHomeToast(data.message || 'Đã gỡ khỏi danh sách yêu thích.', 'info');
+                    }
+                    setTimeout(() => btn.classList.remove('heart-pop'), 350);
+                } else {
+                    showHomeToast(data.message || 'Không thể cập nhật yêu thích.', 'error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showHomeToast('Lỗi kết nối máy chủ.', 'error');
+            });
+        }
+    </script>
 </body>
 </html>

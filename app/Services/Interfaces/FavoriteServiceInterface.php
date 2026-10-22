@@ -44,4 +44,16 @@ interface FavoriteServiceInterface
      * @return array
      */
     public function getUserFavoriteDestinationIds(?User $user): array;
+
+    /**
+     * Thêm địa điểm vào lịch trình chuyến đi của người dùng (FR15)
+     *
+     * @param User $user
+     * @param int $tripId
+     * @param int $destinationId
+     * @param int $dayNumber
+     * @param string|null $note
+     * @return array
+     */
+    public function addDestinationToTrip(User $user, int $tripId, int $destinationId, int $dayNumber = 1, ?string $note = null): array;
 }

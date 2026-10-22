@@ -76,4 +76,98 @@ class FavoriteTest extends TestCase
             'destination_id' => $destination->id,
         ]);
     }
+
+    /**
+     * Người dùng có thể thả tim bằng AJAX và nhận phản hồi JSON không load lại trang
+     */
+    public function test_user_can_toggle_favorite_via_ajax(): void
+    {
+        $user = User::factory()->create();
+        $city = City::factory()->create();
+        $category = Category::factory()->create();
+        $destination = Destination::factory()->create([
+            'city_id' => $city->id,
+            'category_id' => $category->id,
+            'name' => 'Vịnh Hạ Long',
+        ]);
+
+        $response = $this->actingAs($user)->postJson(route('favorites.toggle', $destination->id));
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'is_favorited' => true,
+            'favorites_count' => 1,
+        ]);
+    }
+
+    /**
+     * Người dùng có thể thêm địa điểm yêu thích vào chuyến đi (FR15)
+     */
+    public function test_user_can_add_destination_to_trip(): void
+    {
+        $user = User::factory()->create();
+        $city = City::factory()->create();
+        $category = Category::factory()->create();
+        $destination = Destination::factory()->create([
+            'city_id' => $city->id,
+            'category_id' => $category->id,
+            'name' => 'Vinpearl Resort',
+        ]);
+
+        $trip = \App\Models\Trip::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'Chuyến đi Phú Quốc',
+        ]);
+
+        $response = $this->actingAs($user)->postJson(route('favorites.add-to-trip'), [
+            'trip_id' => $trip->id,
+            'destination_id' => $destination->id,
+            'day_number' => 1,
+            'note' => 'Nghỉ dưỡng và tham quan biển',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+        ]);
+
+        $this->assertDatabaseHas('itinerary_items', [
+            'trip_id' => $trip->id,
+            'destination_id' => $destination->id,
+            'day_number' => 1,
+            'note' => 'Nghỉ dưỡng và tham quan biển',
+        ]);
+    }
+
+    /**
+     * Người dùng không thể thêm địa điểm vào chuyến đi của người khác (Bảo vệ BR-04)
+     */
+    public function test_user_cannot_add_destination_to_another_users_trip(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $city = City::factory()->create();
+        $category = Category::factory()->create();
+        $destination = Destination::factory()->create([
+            'city_id' => $city->id,
+            'category_id' => $category->id,
+        ]);
+
+        $otherTrip = \App\Models\Trip::factory()->create([
+            'user_id' => $otherUser->id,
+        ]);
+
+        $response = $this->actingAs($user)->postJson(route('favorites.add-to-trip'), [
+            'trip_id' => $otherTrip->id,
+            'destination_id' => $destination->id,
+            'day_number' => 1,
+        ]);
+
+        $response->assertStatus(422);
+        $this->assertDatabaseMissing('itinerary_items', [
+            'trip_id' => $otherTrip->id,
+            'destination_id' => $destination->id,
+        ]);
+    }
 }

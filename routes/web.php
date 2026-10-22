@@ -42,6 +42,7 @@ Route::middleware('auth')->group(function () {
     // Quản lý danh sách địa điểm yêu thích (Favorites)
     Route::get('/favorites', [\App\Http\Controllers\FavoriteController::class, 'index'])->name('favorites.index');
     Route::post('/favorites/toggle/{destinationId}', [\App\Http\Controllers\FavoriteController::class, 'toggle'])->name('favorites.toggle');
+    Route::post('/favorites/add-to-trip', [\App\Http\Controllers\FavoriteController::class, 'addToTrip'])->name('favorites.add-to-trip');
 });
 
 // Tuyến đăng nhập nhanh người dùng thường (Demo / Test)
