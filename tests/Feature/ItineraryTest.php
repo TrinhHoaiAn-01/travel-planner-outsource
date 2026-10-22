@@ -406,4 +406,292 @@ class ItineraryTest extends TestCase
 
         $response->assertSessionHasErrors(['day_number']);
     }
+
+    /**
+     * Chủ sở hữu chuyến đi có thể mở màn hình chỉnh sửa hoạt động (Chức năng 7).
+     */
+    public function test_owner_can_view_edit_activity_screen(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Chuyến đi Hà Nội',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03',
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        $item = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Dạo quanh Hồ Gươm',
+            'day_number' => 1,
+            'start_time' => '08:30:00',
+            'end_time' => '10:30:00',
+            'note' => 'Chụp ảnh tháp Rùa',
+        ]);
+
+        $response = $this->actingAs($owner)->get(route('itinerary.edit', $item->id));
+
+        $response->assertStatus(200);
+        $response->assertSee('Chỉnh Sửa Hoạt Động');
+        $response->assertSee('Dạo quanh Hồ Gươm');
+        $response->assertSee('08:30');
+        $response->assertSee('10:30');
+    }
+
+    /**
+     * Khách hoặc người dùng khác không thể mở màn hình chỉnh sửa hoạt động của người khác.
+     */
+    public function test_unauthorized_user_cannot_access_edit_activity_screen(): void
+    {
+        $owner = User::factory()->create();
+        $stranger = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip riêng tư',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03',
+            'budget' => 2000000,
+            'status' => 'planned',
+        ]);
+
+        $item = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Hoạt động mật',
+            'day_number' => 1,
+            'start_time' => '09:00:00',
+            'end_time' => '10:00:00',
+        ]);
+
+        // Khách chưa đăng nhập -> chuyển hướng đăng nhập
+        $this->get(route('itinerary.edit', $item->id))->assertRedirect(route('login'));
+
+        // Người dùng khác không có quyền -> 403 Forbidden
+        $this->actingAs($stranger)->get(route('itinerary.edit', $item->id))->assertStatus(403);
+    }
+
+    /**
+     * Chủ sở hữu cập nhật hoạt động thành công (Chức năng 7).
+     */
+    public function test_owner_can_successfully_update_activity(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip Đà Lạt',
+            'start_date' => '2026-11-10',
+            'end_date' => '2026-11-12',
+            'budget' => 4000000,
+            'status' => 'planned',
+        ]);
+
+        $item = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Tên cũ',
+            'day_number' => 1,
+            'start_time' => '08:00:00',
+            'end_time' => '10:00:00',
+            'note' => 'Ghi chú cũ',
+        ]);
+
+        $response = $this->actingAs($owner)->patch(route('itinerary.update', $item->id), [
+            'activity_name' => 'Tên mới sau chỉnh sửa',
+            'day_number' => 1,
+            'start_time' => '09:00',
+            'end_time' => '11:30',
+            'note' => 'Ghi chú mới',
+        ]);
+
+        $response->assertRedirect(route('itinerary.index', ['trip' => $trip->id, 'day_number' => 1]));
+        $this->assertDatabaseHas('itinerary_items', [
+            'id' => $item->id,
+            'custom_title' => 'Tên mới sau chỉnh sửa',
+            'start_time' => '09:00:00',
+            'end_time' => '11:30:00',
+            'note' => 'Ghi chú mới',
+        ]);
+    }
+
+    /**
+     * Chỉnh sửa hoạt động kiểm tra giờ kết thúc phải sau giờ bắt đầu.
+     */
+    public function test_updating_activity_validates_end_time_after_start_time(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip kiểm tra giờ',
+            'start_date' => '2026-11-10',
+            'end_date' => '2026-11-12',
+            'budget' => 4000000,
+            'status' => 'planned',
+        ]);
+
+        $item = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Hoạt động test giờ',
+            'day_number' => 1,
+            'start_time' => '08:00:00',
+            'end_time' => '10:00:00',
+        ]);
+
+        $response = $this->actingAs($owner)->patch(route('itinerary.update', $item->id), [
+            'activity_name' => 'Hoạt động test giờ',
+            'day_number' => 1,
+            'start_time' => '10:00',
+            'end_time' => '09:00', // Không hợp lệ: end_time <= start_time
+        ]);
+
+        $response->assertSessionHasErrors(['end_time']);
+    }
+
+    /**
+     * Cập nhật hoạt động kiểm tra trùng giờ, loại trừ chính mục đang sửa (FR19, FR20).
+     */
+    public function test_updating_activity_validates_time_overlap_excluding_self(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip kiểm tra xung đột',
+            'start_date' => '2026-11-10',
+            'end_date' => '2026-11-12',
+            'budget' => 4000000,
+            'status' => 'planned',
+        ]);
+
+        // Mục 1: 08:00 - 10:00
+        $item1 = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Mục 1',
+            'day_number' => 1,
+            'start_time' => '08:00:00',
+            'end_time' => '10:00:00',
+        ]);
+
+        // Mục 2: 14:00 - 16:00
+        $item2 = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Mục 2',
+            'day_number' => 1,
+            'start_time' => '14:00:00',
+            'end_time' => '16:00:00',
+        ]);
+
+        // Cập nhật Mục 1 điều chỉnh khung giờ nội bộ (08:30 - 10:30) không trùng Mục 2 -> Phải Thành Công
+        $responseSuccess = $this->actingAs($owner)->patch(route('itinerary.update', $item1->id), [
+            'activity_name' => 'Mục 1 sửa giờ an toàn',
+            'day_number' => 1,
+            'start_time' => '08:30',
+            'end_time' => '10:30',
+        ]);
+        $responseSuccess->assertSessionHasNoErrors();
+
+        // Cập nhật Mục 1 sang khung giờ 14:30 - 17:00 (chồng lấn Mục 2) -> Báo lỗi trùng giờ
+        $responseConflict = $this->actingAs($owner)->patch(route('itinerary.update', $item1->id), [
+            'activity_name' => 'Mục 1 sửa giờ bị trùng Mục 2',
+            'day_number' => 1,
+            'start_time' => '14:30',
+            'end_time' => '17:00',
+        ]);
+        $responseConflict->assertSessionHasErrors(['start_time']);
+    }
+
+    /**
+     * Người dùng khác không thể cập nhật hoạt động của người khác.
+     */
+    public function test_unauthorized_user_cannot_update_activity(): void
+    {
+        $owner = User::factory()->create();
+        $stranger = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip của Owner',
+            'start_date' => '2026-11-10',
+            'end_date' => '2026-11-12',
+            'budget' => 4000000,
+            'status' => 'planned',
+        ]);
+
+        $item = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Mục không được đụng vào',
+            'day_number' => 1,
+            'start_time' => '08:00:00',
+            'end_time' => '10:00:00',
+        ]);
+
+        $this->actingAs($stranger)->patch(route('itinerary.update', $item->id), [
+            'activity_name' => 'Hacker sửa lén',
+            'day_number' => 1,
+            'start_time' => '08:00',
+            'end_time' => '10:00',
+        ])->assertStatus(403);
+    }
+
+    /**
+     * Chủ sở hữu có thể xóa hoạt động khỏi lịch trình (Chức năng 7).
+     */
+    public function test_owner_can_delete_activity_from_itinerary(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip test xóa',
+            'start_date' => '2026-11-10',
+            'end_date' => '2026-11-12',
+            'budget' => 4000000,
+            'status' => 'planned',
+        ]);
+
+        $item = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Mục cần xóa',
+            'day_number' => 1,
+            'start_time' => '08:00:00',
+            'end_time' => '10:00:00',
+        ]);
+
+        $this->assertEquals(1, ItineraryItem::where('trip_id', $trip->id)->count());
+
+        $response = $this->actingAs($owner)->delete(route('itinerary.destroy', $item->id));
+
+        $response->assertRedirect(route('itinerary.index', ['trip' => $trip->id, 'day_number' => 1]));
+        $this->assertEquals(0, ItineraryItem::where('trip_id', $trip->id)->count());
+        $this->assertDatabaseMissing('itinerary_items', ['id' => $item->id]);
+    }
+
+    /**
+     * Người lạ không thể xóa hoạt động của người khác.
+     */
+    public function test_unauthorized_user_cannot_delete_activity(): void
+    {
+        $owner = User::factory()->create();
+        $stranger = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip bảo vệ',
+            'start_date' => '2026-11-10',
+            'end_date' => '2026-11-12',
+            'budget' => 4000000,
+            'status' => 'planned',
+        ]);
+
+        $item = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Mục quan trọng',
+            'day_number' => 1,
+            'start_time' => '08:00:00',
+            'end_time' => '10:00:00',
+        ]);
+
+        // Khách vãng lai
+        $this->delete(route('itinerary.destroy', $item->id))->assertRedirect(route('login'));
+
+        // Người dùng khác
+        $this->actingAs($stranger)->delete(route('itinerary.destroy', $item->id))->assertStatus(403);
+
+        $this->assertDatabaseHas('itinerary_items', ['id' => $item->id]);
+    }
 }
