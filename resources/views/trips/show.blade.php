@@ -429,6 +429,9 @@
                         </div>
                         <div class="col-lg-5 text-lg-end">
                             <div class="d-flex flex-wrap justify-content-lg-end align-items-center gap-2">
+                                <a href="{{ route('itinerary.index', $trip->id) }}" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm text-white d-inline-flex align-items-center">
+                                    <i class="bi bi-calendar2-week me-2"></i> Lịch trình theo ngày
+                                </a>
                                 <a href="javascript:void(0)" class="btn btn-warning rounded-pill px-4 fw-bold shadow-sm text-dark d-inline-flex align-items-center" style="background-color: #F59E0B; border: none;">
                                     <i class="bi bi-wallet2 me-2"></i> Quản lý Ngân sách
                                 </a>
@@ -545,6 +548,9 @@
                 </ul>
 
                 <div class="d-flex align-items-center gap-2">
+                    <a href="{{ route('itinerary.index', $trip->id) }}" class="btn btn-outline-primary rounded-pill px-3 shadow-sm d-inline-flex align-items-center">
+                        <i class="bi bi-calendar-check me-1"></i> Xem giao diện lịch trình theo ngày
+                    </a>
                     <button type="button" class="btn btn-primary rounded-pill px-4 shadow-sm">
                         <i class="bi bi-plus-lg me-1"></i> Thêm hoạt động
                     </button>

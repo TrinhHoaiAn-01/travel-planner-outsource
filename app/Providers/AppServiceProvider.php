@@ -43,6 +43,12 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\FavoriteService::class
         );
 
+        // Ràng buộc ItineraryServiceInterface với triển khai cụ thể ItineraryService (Phạm Thị Ngọc Ái - Chức năng 5)
+        $this->app->bind(
+            \App\Services\Interfaces\ItineraryServiceInterface::class,
+            \App\Services\ItineraryService::class
+        );
+
         // Ràng buộc ProfileServiceInterface với triển khai cụ thể ProfileService (Trịnh Hoài An)
         $this->app->bind(
             \App\Services\Interfaces\ProfileServiceInterface::class,

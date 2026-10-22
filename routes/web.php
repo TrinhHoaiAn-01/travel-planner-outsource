@@ -67,6 +67,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/favorites/add-to-trip', [\App\Http\Controllers\FavoriteController::class, 'addToTrip'])->name('favorites.add-to-trip');
     Route::post('/destinations/{destination}/favorite', [\App\Http\Controllers\FavoriteController::class, 'toggle'])->name('destinations.favorite.store');
     Route::delete('/destinations/{destination}/favorite', [\App\Http\Controllers\FavoriteController::class, 'toggle'])->name('destinations.favorite.destroy');
+
+    // Quản lý Lịch trình chuyến đi (Itinerary Management - Bảng 22 Báo cáo Đồ án - Phạm Thị Ngọc Ái - Chức năng 5)
+    Route::get('/trips/{trip}/itinerary', [\App\Http\Controllers\ItineraryController::class, 'index'])->name('itinerary.index');
 });
 
 // Tuyến đăng nhập nhanh người dùng thường (Demo / Test)
