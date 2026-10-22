@@ -50,98 +50,138 @@
         }
 
         /* 1. Header Navigation */
-        .site-header {
+        .navbar {
             background-color: #FFFFFF;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid #E2E8F0;
+            padding: 12px 36px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             position: sticky;
             top: 0;
             z-index: 100;
         }
 
-        .header-inner {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 0 24px;
-            height: 70px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .logo-area {
+        .navbar-brand {
             display: flex;
             align-items: center;
             gap: 10px;
             text-decoration: none;
+            color: #0F172A;
             font-weight: 800;
             font-size: 19px;
-            color: var(--text-dark);
             letter-spacing: -0.5px;
         }
 
-        .logo-icon-box {
-            width: 36px;
-            height: 36px;
+        .brand-icon {
+            width: 34px;
+            height: 34px;
+            background: #0066FF;
             border-radius: 50%;
-            background: linear-gradient(135deg, #0066FF 0%, #0052CC 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             color: #FFFFFF;
-            font-size: 17px;
-            box-shadow: 0 4px 10px rgba(0, 102, 255, 0.25);
         }
 
-        .main-nav {
+        .navbar-nav {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 12px;
             list-style: none;
+            margin: 0;
+            padding: 0;
         }
 
-        .nav-link-custom {
+        .nav-link {
+            text-decoration: none;
+            color: #475569;
+            font-weight: 500;
+            font-size: 14px;
             display: flex;
             align-items: center;
             gap: 6px;
             padding: 8px 16px;
-            border-radius: var(--radius-pill);
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: var(--transition);
+            border-radius: 20px;
+            transition: all 0.2s;
         }
 
-        .nav-link-custom:hover {
-            color: var(--primary);
-            background-color: #F1F5F9;
+        .nav-link.active {
+            background-color: #EBF5FF;
+            color: #0066FF;
+            font-weight: 600;
         }
 
-        .nav-link-custom.active {
-            color: var(--primary);
-            background-color: var(--primary-light);
-            font-weight: 700;
+        .nav-link:hover:not(.active) {
+            color: #0066FF;
+            background-color: #F8FAFC;
         }
 
-        .user-dropdown-btn {
+        .nav-actions {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 4px 14px 4px 4px;
-            background: #F1F5F9;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-pill);
-            cursor: pointer;
-            font-size: 14px;
+            gap: 12px;
+        }
+
+        .btn-admin {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 16px;
+            border-radius: 20px;
+            border: 1px solid #0F172A;
+            background: #FFFFFF;
+            color: #0F172A;
+            font-size: 13px;
             font-weight: 600;
-            color: var(--text-dark);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-admin:hover {
+            background: #F8FAFC;
+        }
+
+        .user-dropdown {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #0F172A;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 4px 10px;
+            border-radius: 20px;
+            transition: all 0.15s ease;
+        }
+
+        .user-dropdown:hover {
+            background-color: #F1F5F9;
+            color: #0066FF;
         }
 
         .user-avatar-img {
-            width: 32px;
-            height: 32px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             object-fit: cover;
+            background: #E2E8F0;
+        }
+
+        .btn-detail-blue {
+            background: #0066FF;
+            color: #FFFFFF;
+            padding: 7px 18px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 12px;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .btn-detail-blue:hover {
+            background: #0052CC;
         }
 
         /* 2. Main Wrapper */
@@ -651,31 +691,64 @@
     </style>
 </head>
 <body>
-    <!-- 1. Header Navigation -->
-    <header class="site-header">
-        <div class="header-inner">
-            <a href="{{ route('home') }}" class="logo-area">
-                <div class="logo-icon-box">
-                    <i class="bi bi-compass"></i>
-                </div>
-                <span>Travel Planner</span>
-            </a>
-
-            <nav>
-                <ul class="main-nav">
-                    <li><a href="{{ route('home') }}" class="nav-link-custom">Trang chủ</a></li>
-                    <li><a href="{{ route('home') }}#destinations" class="nav-link-custom">Địa điểm</a></li>
-                    <li><a href="{{ route('trips.index') }}" class="nav-link-custom active">Chuyến đi</a></li>
-                    <li><a href="{{ route('favorites.index') }}" class="nav-link-custom">Yêu thích</a></li>
-                </ul>
-            </nav>
-
-            <div>
-                <button type="button" class="user-dropdown-btn">
-                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100" class="user-avatar-img" alt="Avatar">
-                    <span>{{ Auth::user()->name ?? 'Người dùng' }}</span>
-                </button>
+    <!-- 1. Navigation Header -->
+    <header class="navbar">
+        <a href="{{ route('home') }}" class="navbar-brand">
+            <div class="brand-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
             </div>
+            TRAVEL PLANNER
+        </a>
+
+        <ul class="navbar-nav">
+            <li>
+                <a href="{{ route('home') }}" class="nav-link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                    Trang chủ
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('home') }}#destinations" class="nav-link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    Địa điểm
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('trips.index') }}" class="nav-link active">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    Chuyến đi
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('favorites.index') }}" class="nav-link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                    Yêu thích
+                </a>
+            </li>
+            <li>
+                <a href="#" class="nav-link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>
+                    Booking
+                </a>
+            </li>
+        </ul>
+
+        <div class="nav-actions">
+            @auth
+                @if(Auth::user()->role === 'admin')
+                    <a href="{{ route('admin.dashboard') }}" class="btn-admin">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                        Admin
+                    </a>
+                @endif
+                <a href="{{ route('profile.show') }}" class="user-dropdown" title="Hồ sơ cá nhân">
+                    <img src="{{ Auth::user()->avatar ?: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100' }}" class="user-avatar-img" alt="Avatar">
+                    <span>{{ Auth::user()->name }}</span>
+                </a>
+            @else
+                <a href="{{ route('login') }}" class="btn-admin">Đăng nhập</a>
+                <a href="{{ route('register') }}" class="btn-detail-blue">Đăng ký</a>
+            @endauth
         </div>
     </header>
 
