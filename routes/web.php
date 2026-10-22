@@ -91,6 +91,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/itinerary/{itinerary}/edit', [\App\Http\Controllers\ItineraryController::class, 'edit'])->name('itinerary.edit');
     Route::match(['put', 'patch'], '/itinerary/{itinerary}', [\App\Http\Controllers\ItineraryController::class, 'update'])->name('itinerary.update');
     Route::delete('/itinerary/{itinerary}', [\App\Http\Controllers\ItineraryController::class, 'destroy'])->name('itinerary.destroy');
+    Route::patch('/trips/{trip}/itinerary/reorder', [\App\Http\Controllers\ItineraryController::class, 'reorder'])->name('itinerary.reorder');
 
     // Quản lý Ngân sách & Chi tiêu (Budget & Expenses - Nguyễn Văn Thắng)
     Route::get('/trips/{trip}/budget', [\App\Http\Controllers\BudgetController::class, 'show'])->name('trips.budget.show');

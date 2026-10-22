@@ -1109,6 +1109,21 @@
                                         -
                                         {{ $item->end_time ? substr($item->end_time, 0, 5) : '10:00' }}
                                     </span>
+                                    @if($item->start_time && $item->end_time)
+                                        @php
+                                            $sTime = substr($item->start_time, 0, 5);
+                                            $eTime = substr($item->end_time, 0, 5);
+                                            $diffM = (int) substr($eTime, 0, 2) * 60 + (int) substr($eTime, 3, 2) - ((int) substr($sTime, 0, 2) * 60 + (int) substr($sTime, 3, 2));
+                                            $durH = floor($diffM / 60);
+                                            $durMin = $diffM % 60;
+                                            $durText = ($durH > 0 ? $durH . 'h' : '') . ($durMin > 0 ? ($durH > 0 ? ' ' : '') . $durMin . 'm' : ($durH == 0 ? '0m' : ''));
+                                        @endphp
+                                        @if($diffM > 0)
+                                            <span style="display: inline-flex; align-items: center; gap: 3px; background: #F1F5F9; color: #475569; font-size: 11.5px; font-weight: 600; padding: 2px 7px; border-radius: 6px; margin-left: 6px;">
+                                                <i class="bi bi-hourglass-split" style="font-size: 10px;"></i>{{ $durText }}
+                                            </span>
+                                        @endif
+                                    @endif
                                 </div>
 
                                 <h3 class="activity-name-title">
@@ -1250,6 +1265,7 @@
                             @enderror
                         </div>
                     </div>
+                    <div id="add_duration_hint" style="font-size: 12.5px; font-weight: 600; color: #0066FF; margin-top: -6px; display: none;"></div>
 
                     <!-- Loại hoạt động & Chi phí dự kiến (đ) -->
                     <div class="modal-grid-2">
@@ -1362,6 +1378,7 @@
                                    required>
                         </div>
                     </div>
+                    <div id="edit_duration_hint" style="font-size: 12.5px; font-weight: 600; color: #0066FF; margin-top: -6px; display: none;"></div>
 
                     <!-- Ghi chú thêm -->
                     <div class="form-group-modal">
@@ -1437,6 +1454,43 @@
             }
         }
 
+        // Tính toán và hiển thị thời lượng hoạt động động (Chức năng 8)
+        function updateDurationPreview(startId, endId, hintId) {
+            const startElem = document.getElementById(startId);
+            const endElem = document.getElementById(endId);
+            const hintElem = document.getElementById(hintId);
+            if (!startElem || !endElem || !hintElem) return;
+
+            const sVal = startElem.value;
+            const eVal = endElem.value;
+            if (!sVal || !eVal) {
+                hintElem.style.display = 'none';
+                return;
+            }
+
+            const sM = parseInt(sVal.substring(0, 2), 10) * 60 + parseInt(sVal.substring(3, 5), 10);
+            const eM = parseInt(eVal.substring(0, 2), 10) * 60 + parseInt(eVal.substring(3, 5), 10);
+            const diff = eM - sM;
+
+            if (diff > 0) {
+                const h = Math.floor(diff / 60);
+                const m = diff % 60;
+                let text = (h > 0 ? h + ' giờ ' : '') + (m > 0 ? m + ' phút' : '');
+                hintElem.innerHTML = '<i class="bi bi-clock-history me-1"></i>Thời lượng dự kiến: ' + text;
+                hintElem.style.color = '#0066FF';
+                hintElem.style.display = 'block';
+            } else {
+                hintElem.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>Giờ kết thúc phải lớn hơn giờ bắt đầu';
+                hintElem.style.color = '#EF4444';
+                hintElem.style.display = 'block';
+            }
+        }
+
+        document.getElementById('modal_start_time')?.addEventListener('input', () => updateDurationPreview('modal_start_time', 'modal_end_time', 'add_duration_hint'));
+        document.getElementById('modal_end_time')?.addEventListener('input', () => updateDurationPreview('modal_start_time', 'modal_end_time', 'add_duration_hint'));
+        document.getElementById('edit_start_time')?.addEventListener('input', () => updateDurationPreview('edit_start_time', 'edit_end_time', 'edit_duration_hint'));
+        document.getElementById('edit_end_time')?.addEventListener('input', () => updateDurationPreview('edit_start_time', 'edit_end_time', 'edit_duration_hint'));
+
         // Mở Modal Chỉnh Sửa Hoạt Động (Hình 20)
         function openEditActivityModal(id, title, startTime, endTime, dayNumber, note, destId) {
             const overlay = document.getElementById('editActivityModalOverlay');
@@ -1449,6 +1503,8 @@
                 document.getElementById('edit_day_number').value = dayNumber || 1;
                 document.getElementById('edit_note').value = note || '';
                 document.getElementById('edit_destination_id').value = destId || '';
+
+                updateDurationPreview('edit_start_time', 'edit_end_time', 'edit_duration_hint');
 
                 overlay.classList.add('active');
                 document.body.style.overflow = 'hidden';

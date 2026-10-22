@@ -694,4 +694,260 @@ class ItineraryTest extends TestCase
 
         $this->assertDatabaseHas('itinerary_items', ['id' => $item->id]);
     }
+
+    /**
+     * Chức năng 8: Chủ sở hữu có thể chuyển hoạt động sang ngày khác trong phạm vi chuyến đi.
+     */
+    public function test_owner_can_move_activity_to_another_day_within_trip(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip 3 ngày đổi lịch',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03',
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        $item = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Hoạt động ngày 1',
+            'day_number' => 1,
+            'start_time' => '09:00:00',
+            'end_time' => '11:00:00',
+        ]);
+
+        // Chuyển sang Ngày 2
+        $response = $this->actingAs($owner)->patch(route('itinerary.update', $item->id), [
+            'activity_name' => 'Hoạt động ngày 1 chuyển sang ngày 2',
+            'day_number' => 2,
+            'start_time' => '14:00',
+            'end_time' => '16:00',
+        ]);
+
+        $response->assertRedirect(route('itinerary.index', ['trip' => $trip->id, 'day_number' => 2]));
+        $this->assertDatabaseHas('itinerary_items', [
+            'id' => $item->id,
+            'day_number' => 2,
+            'start_time' => '14:00:00',
+            'end_time' => '16:00:00',
+        ]);
+    }
+
+    /**
+     * Chức năng 8: Chuyển hoạt động sang ngày nằm ngoài khoảng thời gian chuyến đi sẽ bị từ chối.
+     */
+    public function test_moving_activity_to_out_of_range_day_is_rejected(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip 2 ngày',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-02',
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        $item = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Mục ngày 1',
+            'day_number' => 1,
+            'start_time' => '08:00:00',
+            'end_time' => '10:00:00',
+        ]);
+
+        // Chuyến đi 2 ngày, thử đổi sang Ngày 5
+        $response = $this->actingAs($owner)->patch(route('itinerary.update', $item->id), [
+            'activity_name' => 'Mục ngày 1',
+            'day_number' => 5,
+            'start_time' => '08:00',
+            'end_time' => '10:00',
+        ]);
+
+        $response->assertSessionHasErrors(['day_number']);
+    }
+
+    /**
+     * Chức năng 8: Chuyển hoạt động sang ngày khác nhưng bị trùng khung giờ với hoạt động ngày đó sẽ bị chặn (FR19).
+     */
+    public function test_moving_activity_to_day_with_time_overlap_is_rejected(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip kiểm tra trùng khi đổi ngày',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03',
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        // Mục ở Ngày 1
+        $item1 = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Mục ngày 1',
+            'day_number' => 1,
+            'start_time' => '09:00:00',
+            'end_time' => '11:00:00',
+        ]);
+
+        // Mục sẵn có ở Ngày 2 (10:00 - 12:00)
+        ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Mục sẵn có ngày 2',
+            'day_number' => 2,
+            'start_time' => '10:00:00',
+            'end_time' => '12:00:00',
+        ]);
+
+        // Chuyển Mục 1 từ Ngày 1 sang Ngày 2 với giờ 10:30 - 11:30 (trùng lấn) -> Bị từ chối
+        $response = $this->actingAs($owner)->patch(route('itinerary.update', $item1->id), [
+            'activity_name' => 'Mục ngày 1',
+            'day_number' => 2,
+            'start_time' => '10:30',
+            'end_time' => '11:30',
+        ]);
+
+        $response->assertSessionHasErrors(['start_time']);
+        $this->assertEquals(1, $item1->fresh()->day_number); // Giữ nguyên ngày 1
+    }
+
+    /**
+     * Chức năng 8: Cập nhật giờ hoạt động tự động chuẩn hóa lại thứ tự (sort_order) liên tục từ sớm đến muộn.
+     */
+    public function test_changing_activity_time_automatically_resequences_sort_order(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip sắp xếp thứ tự',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03',
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        // Hoạt động 1: 10:00 - 12:00
+        $itemA = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Hoạt động buổi trưa',
+            'day_number' => 1,
+            'start_time' => '10:00:00',
+            'end_time' => '12:00:00',
+            'sort_order' => 1,
+        ]);
+
+        // Hoạt động 2: 15:00 - 17:00
+        $itemB = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Hoạt động buổi chiều',
+            'day_number' => 1,
+            'start_time' => '15:00:00',
+            'end_time' => '17:00:00',
+            'sort_order' => 2,
+        ]);
+
+        $response = $this->actingAs($owner)->patch(route('itinerary.update', $itemB->id), [
+            'activity_name' => 'Hoạt động sáng sớm',
+            'day_number' => 1,
+            'start_time' => '07:00',
+            'end_time' => '08:30',
+        ]);
+        $response->assertSessionHasNoErrors();
+
+        // Kiểm tra thứ tự tự động đảo lại: itemB thành sort_order 1, itemA thành sort_order 2
+        $this->assertEquals(1, $itemB->fresh()->sort_order);
+        $this->assertEquals(2, $itemA->fresh()->sort_order);
+    }
+
+    /**
+     * Chức năng 8: Chủ sở hữu có thể sắp xếp lại thứ tự các hoạt động qua API reorder (FR21, Bảng 22).
+     */
+    public function test_owner_can_reorder_activities_of_a_day(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip reorder',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03',
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        $item1 = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Mục 1',
+            'day_number' => 1,
+            'sort_order' => 1,
+        ]);
+
+        $item2 = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Mục 2',
+            'day_number' => 1,
+            'sort_order' => 2,
+        ]);
+
+        $response = $this->actingAs($owner)->patchJson(route('itinerary.reorder', $trip->id), [
+            'day_number' => 1,
+            'item_ids' => [$item2->id, $item1->id], // Đảo thứ tự
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+
+        $this->assertEquals(1, $item2->fresh()->sort_order);
+        $this->assertEquals(2, $item1->fresh()->sort_order);
+    }
+
+    /**
+     * Chức năng 8: API reorder chặn request chứa ID trùng, thiếu hoặc ID thuộc ngày khác (FR21).
+     */
+    public function test_reordering_activities_validates_exact_ids_and_no_duplicates(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip reorder validation',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03',
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        $item1 = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Mục 1',
+            'day_number' => 1,
+            'sort_order' => 1,
+        ]);
+
+        $item2 = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Mục 2',
+            'day_number' => 1,
+            'sort_order' => 2,
+        ]);
+
+        // 1. Chứa ID trùng lặp
+        $this->actingAs($owner)->patchJson(route('itinerary.reorder', $trip->id), [
+            'day_number' => 1,
+            'item_ids' => [$item1->id, $item1->id],
+        ])->assertStatus(422);
+
+        // 2. Thiếu ID
+        $this->actingAs($owner)->patchJson(route('itinerary.reorder', $trip->id), [
+            'day_number' => 1,
+            'item_ids' => [$item1->id],
+        ])->assertStatus(422);
+
+        // 3. Chứa ID không thuộc Trip
+        $this->actingAs($owner)->patchJson(route('itinerary.reorder', $trip->id), [
+            'day_number' => 1,
+            'item_ids' => [$item1->id, 999999],
+        ])->assertStatus(422);
+    }
 }
