@@ -125,5 +125,27 @@ interface ItineraryServiceInterface
      * @return \App\Models\ItineraryItem|null
      */
     public function getConflictingActivity(\App\Models\Trip $trip, int $dayNumber, string $startTime, string $endTime, ?int $excludeItemId = null): ?\App\Models\ItineraryItem;
+
+    /**
+     * Sắp xếp lại thứ tự hiển thị các hoạt động trong một ngày của chuyến đi (Chức năng 12 - Quy tắc FR21).
+     *
+     * @param \App\Models\Trip $trip
+     * @param int $dayNumber
+     * @param array<int> $itemIds Danh sách ID hoạt động theo thứ tự mới
+     * @return bool
+     */
+    public function reorderItineraryItems(\App\Models\Trip $trip, int $dayNumber, array $itemIds): bool;
+
+    /**
+     * Liên kết hoặc hủy liên kết đơn đặt phòng (Booking) với mục lịch trình (Chức năng 12).
+     * Ràng buộc nghiệp vụ: booking_id phải thuộc về cùng Trip và cùng chủ sở hữu.
+     *
+     * @param \App\Models\ItineraryItem $itinerary
+     * @param int|null $bookingId ID của đơn đặt phòng cần liên kết (hoặc null nếu hủy liên kết)
+     * @return \App\Models\ItineraryItem
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function linkBookingToItinerary(\App\Models\ItineraryItem $itinerary, ?int $bookingId): \App\Models\ItineraryItem;
 }
+
 

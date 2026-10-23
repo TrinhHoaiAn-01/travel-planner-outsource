@@ -208,13 +208,55 @@ class ItineraryController extends Controller
             'item_ids.*' => ['required', 'integer'],
         ]);
 
-        // 3. Sắp xếp lại thứ tự trong transaction
-        $this->itineraryService->reorderActivities($trip, (int) $validated['day_number'], $validated['item_ids']);
+        // 3. Sắp xếp lại thứ tự trong transaction qua Service Interface (Chức năng 12)
+        $this->itineraryService->reorderItineraryItems($trip, (int) $validated['day_number'], $validated['item_ids']);
 
         return response()->json([
             'success' => true,
             'message' => 'Cập nhật thứ tự các hoạt động Ngày ' . $validated['day_number'] . ' thành công!',
         ]);
+    }
+
+    /**
+     * Liên kết đơn đặt phòng (Booking) với một mục hoạt động trong lịch trình (Chức năng 12).
+     * Tuyến: PATCH /itinerary/{itinerary}/booking (Bảng 22 Báo cáo Đồ án).
+     *
+     * @param Request $request
+     * @param ItineraryItem $itinerary
+     * @return RedirectResponse|JsonResponse
+     */
+    public function linkBooking(Request $request, ItineraryItem $itinerary): RedirectResponse|JsonResponse
+    {
+        // 1. Kiểm tra quyền sở hữu chuyến đi (BR-01, BR-03 chống IDOR)
+        Gate::authorize('update', $itinerary->trip);
+
+        // 2. Xác thực dữ liệu đầu vào
+        $validated = $request->validate([
+            'booking_id' => ['nullable', 'integer', 'exists:bookings,id'],
+        ], [
+            'booking_id.exists' => 'Đơn đặt phòng được chọn không tồn tại trong hệ thống.',
+        ]);
+
+        // 3. Gọi Service Interface xử lý logic nghiệp vụ và ràng buộc sở hữu
+        $item = $this->itineraryService->linkBookingToItinerary($itinerary, $validated['booking_id'] ?? null);
+
+        $msg = $item->booking_id
+            ? 'Đã liên kết đơn đặt phòng với hoạt động "' . ($item->custom_title ?: 'thành công') . '"!'
+            : 'Đã hủy liên kết đơn đặt phòng khỏi hoạt động thành công!';
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+                'booking_id' => $item->booking_id,
+                'booking' => $item->booking,
+                'item' => $item,
+            ]);
+        }
+
+        return redirect()
+            ->route('itinerary.index', ['trip' => $itinerary->trip_id, 'day_number' => $item->day_number])
+            ->with('success', $msg);
     }
 
     /**
@@ -258,3 +300,4 @@ class ItineraryController extends Controller
             ->with('success', $msg);
     }
 }
+

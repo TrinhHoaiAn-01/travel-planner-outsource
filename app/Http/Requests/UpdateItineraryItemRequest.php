@@ -41,6 +41,7 @@ class UpdateItineraryItemRequest extends FormRequest
         return [
             'activity_name' => ['required', 'string', 'max:255'],
             'day_number' => ['nullable', 'integer', 'min:1'],
+            'booking_id' => ['nullable', 'integer', 'exists:bookings,id'],
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
             'note' => ['nullable', 'string', 'max:1000'],
@@ -60,6 +61,7 @@ class UpdateItineraryItemRequest extends FormRequest
             'activity_name.required' => 'Vui lòng nhập tên hoạt động hoặc chọn địa điểm.',
             'activity_name.max' => 'Tên hoạt động không được vượt quá 255 ký tự.',
             'day_number.min' => 'Ngày thực hiện không hợp lệ.',
+            'booking_id.exists' => 'Đơn đặt phòng được chọn không tồn tại trong hệ thống.',
             'start_time.required' => 'Vui lòng chọn giờ bắt đầu.',
             'start_time.date_format' => 'Định dạng giờ bắt đầu không hợp lệ (HH:mm).',
             'end_time.required' => 'Vui lòng chọn giờ kết thúc.',

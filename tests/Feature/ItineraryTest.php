@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\Booking;
 use App\Models\Destination;
 use App\Models\ItineraryItem;
+use App\Models\RoomType;
 use App\Models\Trip;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -1388,6 +1390,408 @@ class ItineraryTest extends TestCase
         $errorMsg = session('errors')->first('start_time');
         $this->assertStringContainsString('Ăn trưa tại Bếp Cuốn', $errorMsg);
         $this->assertStringContainsString('11:30 - 13:00', $errorMsg);
+    }
+
+    /**
+     * Chức năng 12: Thay đổi thứ tự các hoạt động qua ItineraryServiceInterface.
+     */
+    public function test_reorder_itinerary_items_via_service_interface(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip sắp xếp thứ tự',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03',
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        $item1 = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Hoạt động 1',
+            'day_number' => 1,
+            'start_time' => '07:00:00',
+            'end_time' => '08:00:00',
+            'sort_order' => 1,
+        ]);
+
+        $item2 = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Hoạt động 2',
+            'day_number' => 1,
+            'start_time' => '09:00:00',
+            'end_time' => '10:00:00',
+            'sort_order' => 2,
+        ]);
+
+        $item3 = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Hoạt động 3',
+            'day_number' => 1,
+            'start_time' => '11:00:00',
+            'end_time' => '12:00:00',
+            'sort_order' => 3,
+        ]);
+
+        $service = app(\App\Services\Interfaces\ItineraryServiceInterface::class);
+        // Đổi thứ tự thành: Hoạt động 3 (sort_order=1), Hoạt động 1 (sort_order=2), Hoạt động 2 (sort_order=3)
+        $result = $service->reorderItineraryItems($trip, 1, [$item3->id, $item1->id, $item2->id]);
+        $this->assertTrue($result);
+
+        $this->assertEquals(1, $item3->fresh()->sort_order);
+        $this->assertEquals(2, $item1->fresh()->sort_order);
+        $this->assertEquals(3, $item2->fresh()->sort_order);
+    }
+
+    /**
+     * Chức năng 12: Thay đổi thứ tự hoạt động qua endpoint route PATCH /trips/{trip}/itinerary/reorder.
+     */
+    public function test_reorder_itinerary_items_via_controller_route(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip reorder route test',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03',
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        $itemA = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Hoạt động A',
+            'day_number' => 1,
+            'start_time' => '08:00:00',
+            'end_time' => '09:00:00',
+            'sort_order' => 1,
+        ]);
+
+        $itemB = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Hoạt động B',
+            'day_number' => 1,
+            'start_time' => '10:00:00',
+            'end_time' => '11:00:00',
+            'sort_order' => 2,
+        ]);
+
+        $response = $this->actingAs($owner)->patchJson(route('itinerary.reorder', $trip->id), [
+            'day_number' => 1,
+            'item_ids' => [$itemB->id, $itemA->id],
+        ]);
+
+        $response->assertOk();
+        $response->assertJson([
+            'success' => true,
+        ]);
+
+        $this->assertEquals(1, $itemB->fresh()->sort_order);
+        $this->assertEquals(2, $itemA->fresh()->sort_order);
+    }
+
+    /**
+     * Chức năng 12: Thêm hoạt động mới kèm liên kết đơn đặt phòng (Booking) hợp lệ của chuyến đi.
+     */
+    public function test_store_activity_with_valid_booking_link(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip có đặt phòng',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-05',
+            'budget' => 10000000,
+            'status' => 'planned',
+        ]);
+
+        $dest = Destination::factory()->create([
+            'name' => 'Khách sạn Biển Vàng',
+        ]);
+
+        $roomType = RoomType::create([
+            'destination_id' => $dest->id,
+            'name' => 'Phòng Deluxe Hướng Biển',
+            'price_per_night' => 1200000,
+            'capacity' => 2,
+            'quantity' => 10,
+        ]);
+
+        $booking = Booking::create([
+            'user_id' => $owner->id,
+            'trip_id' => $trip->id,
+            'room_type_id' => $roomType->id,
+            'room_count' => 1,
+            'check_in_date' => '2026-11-01',
+            'check_out_date' => '2026-11-03',
+            'total_price' => 2400000,
+            'status' => 'confirmed',
+            'booking_code' => 'BK-TEST-1201',
+        ]);
+
+        $response = $this->actingAs($owner)->post(route('itinerary.store', $trip->id), [
+            'activity_name' => 'Nhận phòng khách sạn',
+            'day_number' => 1,
+            'start_time' => '14:00',
+            'end_time' => '15:00',
+            'booking_id' => $booking->id,
+        ]);
+
+        $response->assertRedirect(route('itinerary.index', ['trip' => $trip->id, 'day_number' => 1]));
+        $this->assertDatabaseHas('itinerary_items', [
+            'trip_id' => $trip->id,
+            'custom_title' => 'Nhận phòng khách sạn',
+            'booking_id' => $booking->id,
+        ]);
+    }
+
+    /**
+     * Chức năng 12: Từ chối liên kết đơn đặt phòng không thuộc về chuyến đi (Bảo đảm tính toàn vẹn dữ liệu).
+     */
+    public function test_store_activity_rejects_booking_not_belonging_to_trip(): void
+    {
+        $owner = User::factory()->create();
+        $tripA = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip A',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03',
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        $tripB = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip B',
+            'start_date' => '2026-12-01',
+            'end_date' => '2026-12-03',
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        $dest = Destination::factory()->create([
+            'name' => 'Khách sạn Trip B',
+        ]);
+
+        $roomType = RoomType::create([
+            'destination_id' => $dest->id,
+            'name' => 'Phòng Superior',
+            'price_per_night' => 800000,
+            'capacity' => 2,
+            'quantity' => 5,
+        ]);
+
+        // Đơn booking thuộc về Trip B
+        $bookingB = Booking::create([
+            'user_id' => $owner->id,
+            'trip_id' => $tripB->id,
+            'room_type_id' => $roomType->id,
+            'room_count' => 1,
+            'check_in_date' => '2026-12-01',
+            'check_out_date' => '2026-12-03',
+            'total_price' => 1600000,
+            'status' => 'confirmed',
+            'booking_code' => 'BK-TRIP-B-99',
+        ]);
+
+        // Thêm hoạt động vào Trip A nhưng lại chọn booking của Trip B
+        $response = $this->actingAs($owner)->post(route('itinerary.store', $tripA->id), [
+            'activity_name' => 'Check-in sai phòng',
+            'day_number' => 1,
+            'start_time' => '14:00',
+            'end_time' => '15:00',
+            'booking_id' => $bookingB->id,
+        ]);
+
+        $response->assertSessionHasErrors(['booking_id']);
+        $errorMsg = session('errors')->first('booking_id');
+        $this->assertEquals('Đơn đặt phòng không hợp lệ hoặc không thuộc về chuyến đi này.', $errorMsg);
+    }
+
+    /**
+     * Chức năng 12: Cập nhật liên kết Booking và hủy liên kết Booking (gán null) qua route update.
+     */
+    public function test_update_activity_with_booking_link_and_unlink(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip update booking test',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03',
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        $dest = Destination::factory()->create([
+            'name' => 'Resort Ven Sông',
+        ]);
+
+        $roomType = RoomType::create([
+            'destination_id' => $dest->id,
+            'name' => 'Bungalow',
+            'price_per_night' => 1500000,
+            'capacity' => 2,
+            'quantity' => 3,
+        ]);
+
+        $booking = Booking::create([
+            'user_id' => $owner->id,
+            'trip_id' => $trip->id,
+            'room_type_id' => $roomType->id,
+            'room_count' => 1,
+            'check_in_date' => '2026-11-01',
+            'check_out_date' => '2026-11-02',
+            'total_price' => 1500000,
+            'status' => 'confirmed',
+            'booking_code' => 'BK-HUE-01',
+        ]);
+
+        $item = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Nghỉ dưỡng',
+            'day_number' => 1,
+            'start_time' => '15:00:00',
+            'end_time' => '17:00:00',
+            'sort_order' => 1,
+        ]);
+
+        // Gán booking vào item
+        $responseLink = $this->actingAs($owner)->patch(route('itinerary.update', $item->id), [
+            'activity_name' => 'Nghỉ dưỡng',
+            'day_number' => 1,
+            'start_time' => '15:00',
+            'end_time' => '17:00',
+            'booking_id' => $booking->id,
+        ]);
+        $responseLink->assertSessionHasNoErrors();
+        $this->assertEquals($booking->id, $item->fresh()->booking_id);
+
+        // Hủy liên kết booking (truyền booking_id trống hoặc null)
+        $responseUnlink = $this->actingAs($owner)->patch(route('itinerary.update', $item->id), [
+            'activity_name' => 'Nghỉ dưỡng',
+            'day_number' => 1,
+            'start_time' => '15:00',
+            'end_time' => '17:00',
+            'booking_id' => null,
+        ]);
+        $responseUnlink->assertSessionHasNoErrors();
+        $this->assertNull($item->fresh()->booking_id);
+    }
+
+    /**
+     * Chức năng 12: Liên kết hoặc hủy liên kết Booking trực tiếp qua endpoint PATCH /itinerary/{itinerary}/booking.
+     */
+    public function test_link_booking_via_dedicated_patch_route(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip dedicated link test',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03',
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        $dest = Destination::factory()->create([
+            'name' => 'Homestay Phố Cổ',
+        ]);
+
+        $roomType = RoomType::create([
+            'destination_id' => $dest->id,
+            'name' => 'Phòng Đôi Tiêu Chuẩn',
+            'price_per_night' => 500000,
+            'capacity' => 2,
+            'quantity' => 4,
+        ]);
+
+        $booking = Booking::create([
+            'user_id' => $owner->id,
+            'trip_id' => $trip->id,
+            'room_type_id' => $roomType->id,
+            'room_count' => 1,
+            'check_in_date' => '2026-11-01',
+            'check_out_date' => '2026-11-02',
+            'total_price' => 500000,
+            'status' => 'confirmed',
+            'booking_code' => 'BK-HOIAN-88',
+        ]);
+
+        $item = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Nghỉ ngơi tại Hội An',
+            'day_number' => 1,
+            'start_time' => '13:00:00',
+            'end_time' => '14:30:00',
+            'sort_order' => 1,
+        ]);
+
+        $response = $this->actingAs($owner)->patch(route('itinerary.booking.update', $item->id), [
+            'booking_id' => $booking->id,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success', 'Đã liên kết đơn đặt phòng với hoạt động "Nghỉ ngơi tại Hội An"!');
+        $this->assertEquals($booking->id, $item->fresh()->booking_id);
+    }
+
+    /**
+     * Chức năng 12: Trang lịch trình hiển thị thông tin thẻ đặt phòng đã liên kết với hoạt động.
+     */
+    public function test_itinerary_view_displays_linked_booking_details(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip hiển thị thẻ booking',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03',
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        $dest = Destination::factory()->create([
+            'name' => 'Khách Sạn Mường Thanh',
+        ]);
+
+        $roomType = RoomType::create([
+            'destination_id' => $dest->id,
+            'name' => 'Phòng Hạng Sang King',
+            'price_per_night' => 1800000,
+            'capacity' => 2,
+            'quantity' => 5,
+        ]);
+
+        $booking = Booking::create([
+            'user_id' => $owner->id,
+            'trip_id' => $trip->id,
+            'room_type_id' => $roomType->id,
+            'room_count' => 1,
+            'check_in_date' => '2026-11-01',
+            'check_out_date' => '2026-11-03',
+            'total_price' => 3600000,
+            'status' => 'confirmed',
+            'booking_code' => 'BK-NTRANG-777',
+        ]);
+
+        ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Nghỉ dưỡng tại Mường Thanh',
+            'day_number' => 1,
+            'start_time' => '14:00:00',
+            'end_time' => '16:00:00',
+            'booking_id' => $booking->id,
+            'sort_order' => 1,
+        ]);
+
+        $response = $this->actingAs($owner)->get(route('itinerary.index', ['trip' => $trip->id, 'day_number' => 1]));
+
+        $response->assertOk();
+        $response->assertSee('BK-NTRANG-777');
+        $response->assertSee('Phòng Hạng Sang King');
+        $response->assertSee('Đơn đặt phòng liên kết:');
     }
 }
 

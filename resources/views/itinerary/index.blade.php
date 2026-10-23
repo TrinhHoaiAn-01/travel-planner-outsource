@@ -1151,6 +1151,7 @@
 
                             <div class="activity-info-box">
                                 <div class="activity-time-row">
+                                    <span style="background: #EBF5FF; color: #0066FF; font-weight: 700; font-size: 11px; padding: 2px 8px; border-radius: 12px; margin-right: 6px;">#{{ $loop->iteration }}</span>
                                     <i class="bi bi-clock"></i>
                                     <span>
                                         {{ $item->start_time ? substr($item->start_time, 0, 5) : '08:00' }}
@@ -1194,6 +1195,18 @@
                                     @endif
                                 </div>
 
+                                @if($item->booking_id && $item->booking)
+                                    <div class="activity-booking-badge" style="display: flex; align-items: center; justify-content: space-between; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; padding: 7px 12px; margin-top: 8px; font-size: 12.5px;">
+                                        <div style="display: flex; align-items: center; gap: 7px; color: #166534;">
+                                            <i class="bi bi-building-check text-success" style="font-size: 15px;"></i>
+                                            <span><strong>Đơn đặt phòng liên kết:</strong> #{{ $item->booking->booking_code }} — {{ $item->booking->roomType?->name ?? 'Phòng nghỉ' }} ({{ $item->booking->check_in_date?->format('d/m') }} - {{ $item->booking->check_out_date?->format('d/m/Y') }})</span>
+                                        </div>
+                                        <a href="{{ route('bookings.show', $item->booking_id) }}" target="_blank" style="color: #15803D; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Xem chi tiết đơn đặt phòng">
+                                            <span>Chi tiết</span> <i class="bi bi-box-arrow-up-right" style="font-size: 11px;"></i>
+                                        </a>
+                                    </div>
+                                @endif
+
                                 @if($item->note)
                                     <div class="activity-note-box" onclick="openNoteModal({{ $item->id }}, '{{ addslashes($item->custom_title ?: ($dest ? $dest->name : 'Hoạt động')) }}', '{{ addslashes($item->note) }}')" style="cursor: pointer;" title="Nhấn để xem / chỉnh sửa ghi chú">
                                         <i class="bi bi-chat-left-text me-1 text-primary"></i>
@@ -1211,12 +1224,26 @@
                                     </div>
 
                                     <div class="activity-btns">
+                                        @if(!$loop->first)
+                                            <button type="button" class="btn-act-icon" title="Đẩy hoạt động lên trước (Chức năng 12)" onclick="moveActivityUpDown({{ $item->id }}, 'up')">
+                                                <i class="bi bi-arrow-up-short" style="font-size: 18px;"></i>
+                                            </button>
+                                        @endif
+                                        @if(!$loop->last)
+                                            <button type="button" class="btn-act-icon" title="Đẩy hoạt động xuống sau (Chức năng 12)" onclick="moveActivityUpDown({{ $item->id }}, 'down')">
+                                                <i class="bi bi-arrow-down-short" style="font-size: 18px;"></i>
+                                            </button>
+                                        @endif
+                                        <button type="button" class="btn-act-icon" title="{{ $item->booking_id ? 'Đổi / Hủy liên kết đặt phòng (Chức năng 12)' : 'Liên kết đơn đặt phòng (Chức năng 12)' }}"
+                                                onclick="openLinkBookingModal({{ $item->id }}, '{{ addslashes($item->custom_title ?: ($dest ? $dest->name : 'Hoạt động')) }}', {{ $item->booking_id ?: 'null' }})">
+                                            <i class="bi {{ $item->booking_id ? 'bi-link-45deg text-success' : 'bi-link' }}"></i>
+                                        </button>
                                         <button type="button" class="btn-act-icon" title="{{ $item->note ? 'Xem & sửa ghi chú' : 'Thêm ghi chú' }}"
                                                 onclick="openNoteModal({{ $item->id }}, '{{ addslashes($item->custom_title ?: ($dest ? $dest->name : 'Hoạt động')) }}', '{{ addslashes($item->note ?? '') }}')">
                                             <i class="bi {{ $item->note ? 'bi-journal-check text-primary' : 'bi-journal-plus' }}"></i>
                                         </button>
                                         <button type="button" class="btn-act-icon" title="Chỉnh sửa hoạt động"
-                                                onclick="openEditActivityModal({{ $item->id }}, '{{ addslashes($item->custom_title ?: ($dest ? $dest->name : '')) }}', '{{ $item->start_time ? substr($item->start_time, 0, 5) : '08:00' }}', '{{ $item->end_time ? substr($item->end_time, 0, 5) : '10:00' }}', {{ $item->day_number }}, '{{ addslashes($item->note ?? '') }}', {{ $item->destination_id ?: 'null' }})">
+                                                onclick="openEditActivityModal({{ $item->id }}, '{{ addslashes($item->custom_title ?: ($dest ? $dest->name : '')) }}', '{{ $item->start_time ? substr($item->start_time, 0, 5) : '08:00' }}', '{{ $item->end_time ? substr($item->end_time, 0, 5) : '10:00' }}', {{ $item->day_number }}, '{{ addslashes($item->note ?? '') }}', {{ $item->destination_id ?: 'null' }}, {{ $item->booking_id ?: 'null' }})">
                                             <i class="bi bi-pencil"></i>
                                         </button>
                                         <button type="button" class="btn-act-icon" title="Xóa khỏi lịch trình" style="color: var(--danger);"
@@ -1351,6 +1378,24 @@
                         </div>
                     </div>
 
+                    <!-- Liên kết đơn đặt phòng (Chức năng 12) -->
+                    <div class="form-group-modal">
+                        <label class="modal-label" for="modal_booking_id">Liên kết đơn đặt phòng (Tùy chọn)</label>
+                        <select name="booking_id" id="modal_booking_id" class="modal-input @error('booking_id') is-invalid @enderror">
+                            <option value="">-- Không liên kết đặt phòng --</option>
+                            @if(isset($trip_bookings) && $trip_bookings->count() > 0)
+                                @foreach($trip_bookings as $tb)
+                                    <option value="{{ $tb->id }}" {{ old('booking_id') == $tb->id ? 'selected' : '' }}>
+                                        #{{ $tb->booking_code }} — {{ $tb->roomType?->name ?? 'Phòng nghỉ' }} ({{ $tb->check_in_date?->format('d/m') }} - {{ $tb->check_out_date?->format('d/m/Y') }})
+                                    </option>
+                                @endforeach
+                            @endif
+                        </select>
+                        @error('booking_id')
+                            <span class="modal-error-msg">{{ $message }}</span>
+                        @enderror
+                    </div>
+
                     <!-- Ghi chú thêm -->
                     <div class="form-group-modal">
                         <label class="modal-label" for="modal_note">Ghi chú thêm</label>
@@ -1432,6 +1477,21 @@
                     </div>
                     <div id="edit_duration_hint" style="font-size: 12.5px; font-weight: 600; color: #0066FF; margin-top: -6px; display: none;"></div>
 
+                    <!-- Liên kết đơn đặt phòng (Chức năng 12) -->
+                    <div class="form-group-modal">
+                        <label class="modal-label" for="edit_booking_id">Liên kết đơn đặt phòng (Tùy chọn)</label>
+                        <select name="booking_id" id="edit_booking_id" class="modal-input">
+                            <option value="">-- Không liên kết đặt phòng --</option>
+                            @if(isset($trip_bookings) && $trip_bookings->count() > 0)
+                                @foreach($trip_bookings as $tb)
+                                    <option value="{{ $tb->id }}">
+                                        #{{ $tb->booking_code }} — {{ $tb->roomType?->name ?? 'Phòng nghỉ' }} ({{ $tb->check_in_date?->format('d/m') }} - {{ $tb->check_out_date?->format('d/m/Y') }})
+                                    </option>
+                                @endforeach
+                            @endif
+                        </select>
+                    </div>
+
                     <!-- Ghi chú thêm -->
                     <div class="form-group-modal">
                         <label class="modal-label" for="edit_note">Ghi chú thêm</label>
@@ -1451,7 +1511,45 @@
         </div>
     </div>
 
-    <!-- 10. Modal Xác Nhận Xóa Hoạt Động (Chức năng 7) -->
+    <!-- 10. Modal Liên Kết Đơn Đặt Phòng (Chức năng 12) -->
+    <div class="modal-overlay" id="linkBookingModalOverlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 class="modal-title">Liên Kết Đặt Phòng Vào Lịch Trình</h2>
+                <button type="button" class="modal-close-btn" onclick="closeLinkBookingModal()" title="Đóng">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <form action="" method="POST" id="linkBookingForm" class="modal-form">
+                @csrf
+                @method('PATCH')
+                <div class="modal-body">
+                    <p style="font-size: 13.5px; color: #475569; margin-bottom: 14px;">
+                        Chọn đơn đặt phòng thuộc chuyến đi để gắn với hoạt động: <strong id="link_booking_activity_title"></strong>
+                    </p>
+                    <div class="form-group-modal">
+                        <label class="modal-label" for="quick_booking_id">Đơn đặt phòng (Booking)</label>
+                        <select name="booking_id" id="quick_booking_id" class="modal-input">
+                            <option value="">-- Hủy liên kết đặt phòng --</option>
+                            @if(isset($trip_bookings) && $trip_bookings->count() > 0)
+                                @foreach($trip_bookings as $tb)
+                                    <option value="{{ $tb->id }}">
+                                        #{{ $tb->booking_code }} — {{ $tb->roomType?->name ?? 'Phòng nghỉ' }} ({{ $tb->check_in_date?->format('d/m') }} - {{ $tb->check_out_date?->format('d/m/Y') }})
+                                    </option>
+                                @endforeach
+                            @endif
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal-cancel" onclick="closeLinkBookingModal()">Đóng</button>
+                    <button type="submit" class="btn-modal-submit">Lưu liên kết</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 11. Modal Xác Nhận Xóa Hoạt Động (Chức năng 7) -->
     <div class="modal-overlay" id="deleteActivityModalOverlay">
         <div class="modal-card" style="max-width: 440px;">
             <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
@@ -1681,8 +1779,85 @@
         document.getElementById('edit_start_time')?.addEventListener('input', () => updateDurationPreview('edit_start_time', 'edit_end_time', 'edit_duration_hint', currentEditingItemId));
         document.getElementById('edit_end_time')?.addEventListener('input', () => updateDurationPreview('edit_start_time', 'edit_end_time', 'edit_duration_hint', currentEditingItemId));
 
+        // Danh sách ID hoạt động của ngày hiện tại phục vụ sắp xếp thứ tự (Chức năng 12)
+        const currentDayActivityIds = [
+            @foreach($items as $it)
+                {{ $it->id }},
+            @endforeach
+        ];
+
+        // Sắp xếp thứ tự hoạt động đẩy lên / đẩy xuống (Chức năng 12)
+        function moveActivityUpDown(itemId, direction) {
+            const list = [...currentDayActivityIds];
+            const currentIndex = list.indexOf(Number(itemId));
+            if (currentIndex === -1) return;
+
+            if (direction === 'up' && currentIndex > 0) {
+                const temp = list[currentIndex - 1];
+                list[currentIndex - 1] = list[currentIndex];
+                list[currentIndex] = temp;
+            } else if (direction === 'down' && currentIndex < list.length - 1) {
+                const temp = list[currentIndex + 1];
+                list[currentIndex + 1] = list[currentIndex];
+                list[currentIndex] = temp;
+            } else {
+                return;
+            }
+
+            // Gửi yêu cầu cập nhật thứ tự mới lên server qua ItineraryServiceInterface
+            fetch('/trips/{{ $trip->id }}/itinerary/reorder', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    day_number: {{ $current_day }},
+                    item_ids: list
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Không thể cập nhật thứ tự hoạt động.');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Có lỗi xảy ra khi kết nối máy chủ. Vui lòng thử lại!');
+            });
+        }
+
+        // Mở Modal Liên Kết Booking Vào Lịch Trình (Chức năng 12)
+        function openLinkBookingModal(id, title, bookingId) {
+            const overlay = document.getElementById('linkBookingModalOverlay');
+            const form = document.getElementById('linkBookingForm');
+            const titleElem = document.getElementById('link_booking_activity_title');
+            const bookingSelect = document.getElementById('quick_booking_id');
+
+            if (overlay && form) {
+                form.action = '/itinerary/' + id + '/booking';
+                if (titleElem) titleElem.textContent = title ? '“' + title + '”' : 'hoạt động';
+                if (bookingSelect) bookingSelect.value = bookingId ? String(bookingId) : '';
+
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeLinkBookingModal() {
+            const overlay = document.getElementById('linkBookingModalOverlay');
+            if (overlay) {
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+
         // Mở Modal Chỉnh Sửa Hoạt Động (Hình 20)
-        function openEditActivityModal(id, title, startTime, endTime, dayNumber, note, destId) {
+        function openEditActivityModal(id, title, startTime, endTime, dayNumber, note, destId, bookingId) {
             const overlay = document.getElementById('editActivityModalOverlay');
             const form = document.getElementById('editActivityForm');
             if (overlay && form) {
@@ -1694,6 +1869,11 @@
                 document.getElementById('edit_day_number').value = dayNumber || 1;
                 document.getElementById('edit_note').value = note || '';
                 document.getElementById('edit_destination_id').value = destId || '';
+                
+                const editBookingElem = document.getElementById('edit_booking_id');
+                if (editBookingElem) {
+                    editBookingElem.value = bookingId ? String(bookingId) : '';
+                }
 
                 updateDurationPreview('edit_start_time', 'edit_end_time', 'edit_duration_hint', id);
 
@@ -1745,6 +1925,9 @@
         document.getElementById('noteActivityModalOverlay')?.addEventListener('click', function(e) {
             if (e.target === this) closeNoteModal();
         });
+        document.getElementById('linkBookingModalOverlay')?.addEventListener('click', function(e) {
+            if (e.target === this) closeLinkBookingModal();
+        });
 
         // Đóng khi nhấn phím Escape
         document.addEventListener('keydown', function(e) {
@@ -1753,6 +1936,7 @@
                 closeEditActivityModal();
                 closeDeleteActivityModal();
                 closeNoteModal();
+                closeLinkBookingModal();
                 closeDeleteTripModal();
             }
         });

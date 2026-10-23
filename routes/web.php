@@ -91,6 +91,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/itinerary/{itinerary}/edit', [\App\Http\Controllers\ItineraryController::class, 'edit'])->name('itinerary.edit');
     Route::match(['put', 'patch'], '/itinerary/{itinerary}', [\App\Http\Controllers\ItineraryController::class, 'update'])->name('itinerary.update');
     Route::patch('/itinerary/{itinerary}/note', [\App\Http\Controllers\ItineraryController::class, 'updateNote'])->name('itinerary.note.update');
+    Route::patch('/itinerary/{itinerary}/booking', [\App\Http\Controllers\ItineraryController::class, 'linkBooking'])->name('itinerary.booking.update');
     Route::delete('/itinerary/{itinerary}', [\App\Http\Controllers\ItineraryController::class, 'destroy'])->name('itinerary.destroy');
     Route::patch('/trips/{trip}/itinerary/reorder', [\App\Http\Controllers\ItineraryController::class, 'reorder'])->name('itinerary.reorder');
 

@@ -39,4 +39,13 @@ class ItineraryItem extends Model
     {
         return $this->belongsTo(Destination::class);
     }
+
+    /**
+     * Quan hệ liên kết đến đơn đặt phòng (Booking) thuộc chuyến đi (Chức năng 12).
+     */
+    public function booking(): BelongsTo
+    {
+        return $this->belongsTo(Booking::class);
+    }
 }
+

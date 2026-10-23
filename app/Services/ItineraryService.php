@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Booking;
 use App\Models\Destination;
 use App\Models\ItineraryItem;
 use App\Models\Trip;
@@ -67,13 +68,14 @@ class ItineraryService implements ItineraryServiceInterface
         }
 
         // 4. Lấy danh sách các hoạt động / địa điểm thuộc ngày đang chọn
-        // Eager loading thông tin địa điểm, thành phố, danh mục và ảnh đại diện
+        // Eager loading thông tin địa điểm, thành phố, danh mục, ảnh đại diện và đơn đặt phòng liên kết (Chức năng 12)
         $items = $trip->itineraryItems()
             ->where('day_number', $currentDay)
             ->with([
                 'destination.city',
                 'destination.category',
                 'destination.primaryImage',
+                'booking.roomType.destination',
             ])
             ->orderByRaw('CASE WHEN start_time IS NULL THEN 1 ELSE 0 END ASC')
             ->orderBy('start_time', 'asc')
@@ -97,6 +99,12 @@ class ItineraryService implements ItineraryServiceInterface
             ->limit(100)
             ->get();
 
+        // 8. Danh sách các đơn đặt phòng (Bookings) thuộc chuyến đi để liên kết vào lịch trình (Chức năng 12)
+        $tripBookings = $trip->bookings()
+            ->with(['roomType.destination'])
+            ->orderBy('check_in_date', 'asc')
+            ->get();
+
         return [
             'trip' => $trip,
             'days_count' => $daysCount,
@@ -108,6 +116,7 @@ class ItineraryService implements ItineraryServiceInterface
             'current_day_of_week' => $currentDayOfWeek,
             'destinations' => $destinations,
             'activity_types' => self::ACTIVITY_TYPES,
+            'trip_bookings' => $tripBookings,
         ];
     }
 
@@ -188,13 +197,27 @@ class ItineraryService implements ItineraryServiceInterface
             ->max('sort_order') ?? 0;
         $sortOrder = $maxSortOrder + 1;
 
-        // 6. Xử lý ghi chú và phân loại hoạt động
+        // 6. Xử lý ghi chú, phân loại hoạt động và liên kết đặt phòng (Chức năng 12)
         $note = !empty($data['note']) ? trim($data['note']) : null;
         $activityType = !empty($data['activity_type']) ? trim($data['activity_type']) : null;
+
+        $bookingId = !empty($data['booking_id']) ? (int) $data['booking_id'] : null;
+        if ($bookingId) {
+            $booking = Booking::where('id', $bookingId)
+                ->where('trip_id', $trip->id)
+                ->where('user_id', $trip->user_id)
+                ->first();
+            if (!$booking) {
+                throw ValidationException::withMessages([
+                    'booking_id' => 'Đơn đặt phòng không hợp lệ hoặc không thuộc về chuyến đi này.',
+                ]);
+            }
+        }
 
         // 7. Tạo bản ghi mục lịch trình
         $item = $trip->itineraryItems()->create([
             'destination_id' => $destinationId,
+            'booking_id' => $bookingId,
             'custom_title' => $activityName,
             'day_number' => $dayNumber,
             'start_time' => $startTime ? (strlen($startTime) === 5 ? $startTime . ':00' : $startTime) : null,
@@ -295,10 +318,30 @@ class ItineraryService implements ItineraryServiceInterface
             }
         }
 
-        // 5. Cập nhật dữ liệu mục lịch trình
+        // 5. Cập nhật dữ liệu mục lịch trình kèm liên kết đặt phòng (Chức năng 12)
+        $bookingId = $itinerary->booking_id;
+        if (array_key_exists('booking_id', $data)) {
+            $rawBookingId = !empty($data['booking_id']) ? (int) $data['booking_id'] : null;
+            if ($rawBookingId) {
+                $booking = Booking::where('id', $rawBookingId)
+                    ->where('trip_id', $trip->id)
+                    ->where('user_id', $trip->user_id)
+                    ->first();
+                if (!$booking) {
+                    throw ValidationException::withMessages([
+                        'booking_id' => 'Đơn đặt phòng không hợp lệ hoặc không thuộc về chuyến đi này.',
+                    ]);
+                }
+                $bookingId = $booking->id;
+            } else {
+                $bookingId = null;
+            }
+        }
+
         $itinerary->update([
             'custom_title' => $activityName ?? $itinerary->custom_title,
             'destination_id' => $destinationId,
+            'booking_id' => $bookingId,
             'day_number' => $dayNumber,
             'start_time' => $startTime ? $startTime . ':00' : null,
             'end_time' => $endTime ? $endTime . ':00' : null,
@@ -379,6 +422,53 @@ class ItineraryService implements ItineraryServiceInterface
         });
 
         return true;
+    }
+
+    /**
+     * Sắp xếp lại thứ tự hiển thị các hoạt động trong một ngày của chuyến đi (Chức năng 12 - Quy tắc FR21).
+     * Triển khai tên phương thức chuẩn theo quy định trong SKILL.md.
+     *
+     * @param Trip $trip
+     * @param int $dayNumber
+     * @param array<int> $itemIds
+     * @return bool
+     * @throws ValidationException
+     */
+    public function reorderItineraryItems(Trip $trip, int $dayNumber, array $itemIds): bool
+    {
+        return $this->reorderActivities($trip, $dayNumber, $itemIds);
+    }
+
+    /**
+     * Liên kết hoặc hủy liên kết đơn đặt phòng (Booking) với mục lịch trình (Chức năng 12).
+     * Ràng buộc nghiệp vụ: booking_id phải thuộc về cùng Trip và cùng chủ sở hữu.
+     *
+     * @param ItineraryItem $itinerary
+     * @param int|null $bookingId
+     * @return ItineraryItem
+     * @throws ValidationException
+     */
+    public function linkBookingToItinerary(ItineraryItem $itinerary, ?int $bookingId): ItineraryItem
+    {
+        if ($bookingId === null || $bookingId === 0) {
+            $itinerary->update(['booking_id' => null]);
+            return $itinerary->fresh(['booking.roomType.destination']);
+        }
+
+        $trip = $itinerary->trip;
+        $booking = Booking::where('id', $bookingId)
+            ->where('trip_id', $trip->id)
+            ->where('user_id', $trip->user_id)
+            ->first();
+
+        if (!$booking) {
+            throw ValidationException::withMessages([
+                'booking_id' => 'Đơn đặt phòng không hợp lệ hoặc không thuộc về chuyến đi này.',
+            ]);
+        }
+
+        $itinerary->update(['booking_id' => $booking->id]);
+        return $itinerary->fresh(['booking.roomType.destination']);
     }
 
     /**
