@@ -244,19 +244,19 @@
             position: relative;
         }
 
-        .trip-hero-top {
+        .trip-hero-header-line {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 20px;
+            gap: 16px;
+            margin-bottom: 14px;
         }
 
         .hero-badges-line {
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 12px;
             flex-wrap: wrap;
         }
 
@@ -307,6 +307,7 @@
             align-items: center;
             gap: 10px;
             flex-wrap: wrap;
+            margin-top: 20px;
         }
 
         .btn-hero-action {
@@ -1043,48 +1044,47 @@
 
         <!-- 3. Trip Hero Banner -->
         <div class="trip-hero-card">
-            <div class="trip-hero-top">
-                <div>
-                    <div class="hero-badges-line">
-                        <span class="badge-pill-status">
-                            <i class="bi bi-flag-fill me-1"></i>
-                            {{ $trip->status === 'completed' ? 'Đã hoàn thành' : ($trip->status === 'ongoing' ? 'Đang diễn ra' : 'Đã lên kế hoạch') }}
-                        </span>
-                        <span class="badge-pill-duration">
-                            <i class="bi bi-clock-history me-1"></i>{{ $days_count }} ngày {{ $nightsCount }} đêm
-                        </span>
-                    </div>
-                    <h1 class="trip-title-main">{{ $trip->name }}</h1>
-                    <div class="trip-meta-info">
-                        <span>
-                            <i class="bi bi-calendar3 text-warning"></i>
-                            {{ $trip->start_date ? $trip->start_date->format('d/m/Y') : '--/--/----' }} — {{ $trip->end_date ? $trip->end_date->format('d/m/Y') : '--/--/----' }}
-                        </span>
-                        <span>
-                            <i class="bi bi-wallet2 text-success"></i>
-                            Ngân sách: <strong>{{ number_format($trip->budget, 0, ',', '.') }}₫</strong>
-                        </span>
-                        <span>
-                            <i class="bi bi-list-check text-info"></i>
-                            Tổng hoạt động: <strong>{{ $total_activities_count }}</strong>
-                        </span>
-                    </div>
+            <div class="trip-hero-header-line">
+                <div class="hero-badges-line">
+                    <span class="badge-pill-status">
+                        <i class="bi bi-flag-fill me-1"></i>
+                        {{ $trip->status === 'completed' ? 'Đã hoàn thành' : ($trip->status === 'ongoing' ? 'Đang diễn ra' : 'Đã lên kế hoạch') }}
+                    </span>
+                    <span class="badge-pill-duration">
+                        <i class="bi bi-clock-history me-1"></i>{{ $days_count }} ngày {{ $nightsCount }} đêm
+                    </span>
                 </div>
+                <a href="{{ route('trips.index') }}" class="btn-hero-action btn-hero-outline" title="Quay lại danh sách chuyến đi">
+                    <i class="bi bi-arrow-left"></i> Danh sách chuyến đi
+                </a>
+            </div>
 
-                <div class="hero-actions-group">
-                    <a href="javascript:void(0)" onclick="alert('Tính năng Quản lý Ngân sách đang được phát triển!')" class="btn-hero-action btn-hero-warning" title="Quản lý ngân sách chuyến đi">
-                        <i class="bi bi-wallet2"></i> Quản lý Ngân sách
-                    </a>
-                    <a href="{{ route('trips.edit', $trip->id) }}" class="btn-hero-action btn-hero-edit" title="Chỉnh sửa thông tin chuyến đi">
-                        <i class="bi bi-pencil" style="color: #0066FF;"></i> Sửa Trip
-                    </a>
-                    <button type="button" onclick="showDeleteTripModal({{ $trip->id }}, '{{ addslashes($trip->name) }}')" class="btn-hero-action btn-hero-delete" title="Xóa chuyến đi này">
-                        <i class="bi bi-trash" style="color: #DC2626;"></i> Xóa Trip
-                    </button>
-                    <a href="{{ route('trips.index') }}" class="btn-hero-action btn-hero-outline" title="Quay lại danh sách chuyến đi">
-                        <i class="bi bi-arrow-left"></i> Danh sách chuyến đi
-                    </a>
-                </div>
+            <h1 class="trip-title-main">{{ $trip->name }}</h1>
+            <div class="trip-meta-info">
+                <span>
+                    <i class="bi bi-calendar3 text-warning"></i>
+                    {{ $trip->start_date ? $trip->start_date->format('d/m/Y') : '--/--/----' }} — {{ $trip->end_date ? $trip->end_date->format('d/m/Y') : '--/--/----' }}
+                </span>
+                <span>
+                    <i class="bi bi-wallet2 text-success"></i>
+                    Ngân sách: <strong>{{ number_format($trip->budget, 0, ',', '.') }}₫</strong>
+                </span>
+                <span>
+                    <i class="bi bi-list-check text-info"></i>
+                    Tổng hoạt động: <strong>{{ $total_activities_count }}</strong>
+                </span>
+            </div>
+
+            <div class="hero-actions-group">
+                <a href="javascript:void(0)" onclick="alert('Tính năng Quản lý Ngân sách đang được phát triển!')" class="btn-hero-action btn-hero-warning" title="Quản lý ngân sách chuyến đi">
+                    <i class="bi bi-wallet2"></i> Quản lý Ngân sách
+                </a>
+                <a href="{{ route('trips.edit', $trip->id) }}" class="btn-hero-action btn-hero-edit" title="Chỉnh sửa thông tin chuyến đi">
+                    <i class="bi bi-pencil" style="color: #0066FF;"></i> Sửa Trip
+                </a>
+                <button type="button" onclick="showDeleteTripModal({{ $trip->id }}, '{{ addslashes($trip->name) }}')" class="btn-hero-action btn-hero-delete" title="Xóa chuyến đi này">
+                    <i class="bi bi-trash" style="color: #DC2626;"></i> Xóa Trip
+                </button>
             </div>
         </div>
 
