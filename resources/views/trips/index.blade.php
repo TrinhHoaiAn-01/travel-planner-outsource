@@ -1088,10 +1088,10 @@
 
                         <!-- Dropdown Menu -->
                         <div id="menu-{{ $trip->id }}" class="menu-dropdown">
-                            <!-- Xem chi tiết chuyến đi (Nguyễn Trần Thành) -->
-                            <a href="{{ route('trips.show', $trip->id) }}" class="menu-item-btn" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                            <!-- Xem lịch trình chi tiết chuyến đi -->
+                            <a href="{{ route('itinerary.index', $trip->id) }}" class="menu-item-btn" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="12 8 8 12 12 16 12 8"></polygon></svg>
-                                Chi tiết chuyến đi
+                                Lịch trình chi tiết
                             </a>
 
                             <!-- Xem lịch trình theo từng ngày (Phạm Thị Ngọc Ái - Chức năng 5) -->
@@ -1151,7 +1151,7 @@
                             </span>
                         </div>
 
-                        <a href="{{ route('trips.show', $trip->id) }}" style="text-decoration: none; color: inherit;">
+                        <a href="{{ route('itinerary.index', $trip->id) }}" style="text-decoration: none; color: inherit;">
                             <h3 class="trip-name">{{ $trip->name }}</h3>
                         </a>
                         <p class="trip-description">{{ $trip->description ?: 'Bà Nà Hills, Bán đảo Sơn Trà, Ngũ Hành Sơn và phố đèn lồng Hội An thơ mộng.' }}</p>

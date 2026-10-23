@@ -137,7 +137,7 @@
                 <span>TRAVEL PLANNER</span>
             </a>
             <div class="ms-auto d-flex align-items-center gap-2">
-                <a href="{{ route('trips.show', $trip->id) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                <a href="{{ route('itinerary.index', $trip->id) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
                     <i class="bi bi-arrow-left me-1"></i> Quay lại chi tiết
                 </a>
             </div>
@@ -152,7 +152,7 @@
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-decoration-none text-muted">Trang chủ</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('trips.index') }}" class="text-decoration-none text-muted">Chuyến đi</a></li>
-                    <li class="breadcrumb-item"><a href="{{ route('trips.show', $trip->id) }}" class="text-decoration-none text-muted">{{ Str::limit($trip->name, 25) }}</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('itinerary.index', $trip->id) }}" class="text-decoration-none text-muted">{{ Str::limit($trip->name, 25) }}</a></li>
                     <li class="breadcrumb-item active fw-medium text-dark" aria-current="page">Chỉnh sửa</li>
                 </ol>
             </nav>
@@ -314,7 +314,7 @@
 
                     <!-- Nút hành động -->
                     <div class="d-flex justify-content-end gap-2 border-top pt-4">
-                        <a href="{{ route('trips.show', $trip->id) }}" class="btn btn-light rounded-pill px-4">Hủy bỏ</a>
+                        <a href="{{ route('itinerary.index', $trip->id) }}" class="btn btn-light rounded-pill px-4">Hủy bỏ</a>
                         <button type="submit" class="btn btn-primary px-4 shadow-sm">
                             <i class="bi bi-check2-circle me-1"></i> Lưu Thay Đổi
                         </button>

@@ -333,6 +333,48 @@
             transform: translateY(-2px);
         }
 
+        .btn-hero-warning {
+            background-color: #F59E0B;
+            color: #0F172A;
+            border: none;
+            box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
+        }
+
+        .btn-hero-warning:hover {
+            background-color: #D97706;
+            color: #0F172A;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-hero-edit {
+            background: #FFFFFF;
+            color: #0F172A;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        }
+
+        .btn-hero-edit:hover {
+            background: #F8FAFC;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+        }
+
+        .btn-hero-delete {
+            background: #FFFFFF;
+            color: #DC2626;
+            border: 1.5px solid #DC2626;
+            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.08);
+        }
+
+        .btn-hero-delete:hover {
+            background: #FEF2F2;
+            color: #B91C1C;
+            border-color: #B91C1C;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(220, 38, 38, 0.15);
+        }
+
         .btn-hero-outline {
             background: transparent;
             color: #FFFFFF;
@@ -760,7 +802,7 @@
             <span class="breadcrumb-sep">/</span>
             <a href="{{ route('trips.index') }}" class="breadcrumb-link">Chuyến đi của tôi</a>
             <span class="breadcrumb-sep">/</span>
-            <a href="{{ route('trips.show', $trip->id) }}" class="breadcrumb-link">{{ $trip->name }}</a>
+            <a href="{{ route('itinerary.index', $trip->id) }}" class="breadcrumb-link">{{ $trip->name }}</a>
             <span class="breadcrumb-sep">/</span>
             <span class="breadcrumb-current">Lịch trình chi tiết</span>
         </div>
@@ -796,10 +838,16 @@
                 </div>
 
                 <div class="hero-actions-group">
-                    <a href="{{ route('trips.show', $trip->id) }}" class="btn-hero-action btn-hero-white">
-                        <i class="bi bi-info-circle"></i> Chi tiết chuyến đi
+                    <a href="javascript:void(0)" onclick="alert('Tính năng Quản lý Ngân sách đang được phát triển!')" class="btn-hero-action btn-hero-warning" title="Quản lý ngân sách chuyến đi">
+                        <i class="bi bi-wallet2"></i> Quản lý Ngân sách
                     </a>
-                    <a href="{{ route('trips.index') }}" class="btn-hero-action btn-hero-outline">
+                    <a href="{{ route('trips.edit', $trip->id) }}" class="btn-hero-action btn-hero-edit" title="Chỉnh sửa thông tin chuyến đi">
+                        <i class="bi bi-pencil" style="color: #0066FF;"></i> Sửa Trip
+                    </a>
+                    <button type="button" onclick="showDeleteTripModal({{ $trip->id }}, '{{ addslashes($trip->name) }}')" class="btn-hero-action btn-hero-delete" title="Xóa chuyến đi này">
+                        <i class="bi bi-trash" style="color: #DC2626;"></i> Xóa Trip
+                    </button>
+                    <a href="{{ route('trips.index') }}" class="btn-hero-action btn-hero-outline" title="Quay lại danh sách chuyến đi">
                         <i class="bi bi-arrow-left"></i> Danh sách chuyến đi
                     </a>
                 </div>
@@ -943,5 +991,56 @@
             </div>
         @endif
     </main>
+
+    <!-- Modal Xác Nhận Xóa Chuyến Đi -->
+    <div id="deleteTripModal" class="modal-overlay" onclick="closeDeleteModalOnBackdrop(event)" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div class="modal-box" style="background: #FFFFFF; border-radius: 16px; width: 100%; max-width: 480px; padding: 28px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); margin: 20px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; border-bottom: 1px solid #E2E8F0; padding-bottom: 12px;">
+                <h3 style="font-size: 18px; font-weight: 700; color: #DC2626; display: flex; align-items: center; gap: 8px; margin: 0;">
+                    <i class="bi bi-exclamation-triangle" style="font-size: 20px;"></i>
+                    Xác nhận xóa chuyến đi
+                </h3>
+                <button type="button" onclick="closeDeleteTripModal()" style="background: none; border: none; font-size: 24px; line-height: 1; color: #64748B; cursor: pointer;">&times;</button>
+            </div>
+            <p style="font-size: 14.5px; color: #334155; margin-bottom: 10px;">
+                Bạn có chắc chắn muốn xóa chuyến đi <strong id="deleteTripTargetName" style="color: #0F172A;"></strong>?
+            </p>
+            <p style="font-size: 13px; color: #64748B; margin-bottom: 24px; background: #FEF2F2; padding: 10px 14px; border-radius: 8px; border-left: 3px solid #DC2626;">
+                Hành động này sẽ xóa vĩnh viễn dữ liệu chuyến đi, toàn bộ hoạt động lịch trình chi tiết và bảng chi tiêu liên quan.
+            </p>
+            <form id="deleteTripForm" method="POST" style="display: flex; justify-content: flex-end; gap: 10px;">
+                @csrf
+                @method('DELETE')
+                <button type="button" onclick="closeDeleteTripModal()" style="padding: 9px 20px; border-radius: 9999px; border: 1px solid #CBD5E1; background: #FFFFFF; color: #475569; font-weight: 600; cursor: pointer;">
+                    Hủy bỏ
+                </button>
+                <button type="submit" style="padding: 9px 22px; border-radius: 9999px; border: none; background: #DC2626; color: #FFFFFF; font-weight: 600; cursor: pointer; box-shadow: 0 4px 6px rgba(220, 38, 38, 0.25);">
+                    Xác nhận xóa
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showDeleteTripModal(tripId, tripName) {
+            const modal = document.getElementById('deleteTripModal');
+            document.getElementById('deleteTripTargetName').textContent = tripName;
+            document.getElementById('deleteTripForm').action = '/trips/' + tripId;
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDeleteTripModal() {
+            const modal = document.getElementById('deleteTripModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function closeDeleteModalOnBackdrop(e) {
+            if (e.target.id === 'deleteTripModal') {
+                closeDeleteTripModal();
+            }
+        }
+    </script>
 </body>
 </html>

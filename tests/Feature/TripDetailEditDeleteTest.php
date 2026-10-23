@@ -71,12 +71,14 @@ class TripDetailEditDeleteTest extends TestCase
     {
         $response = $this->actingAs($this->owner)->get(route('trips.show', $this->trip->id));
 
-        $response->assertOk();
-        $response->assertSee('Khám phá Đà Nẵng - Hội An');
-        $response->assertSee('Chuyến đi tham quan danh lam thắng cảnh');
-        $response->assertSee('15.000.000₫');
-        $response->assertSee('10/10/2026');
-        $response->assertSee('15/10/2026');
+        $response->assertRedirect(route('itinerary.index', $this->trip->id));
+
+        $followed = $this->actingAs($this->owner)->get(route('itinerary.index', $this->trip->id));
+        $followed->assertOk();
+        $followed->assertSee('Khám phá Đà Nẵng - Hội An');
+        $followed->assertSee('15.000.000₫');
+        $followed->assertSee('10/10/2026');
+        $followed->assertSee('15/10/2026');
     }
 
     /**
@@ -129,7 +131,7 @@ class TripDetailEditDeleteTest extends TestCase
 
         $response = $this->actingAs($this->owner)->put(route('trips.update', $this->trip->id), $updateData);
 
-        $response->assertRedirect(route('trips.show', $this->trip->id));
+        $response->assertRedirect(route('itinerary.index', $this->trip->id));
         $response->assertSessionHas('success');
 
         $this->trip->refresh();
@@ -266,9 +268,6 @@ class TripDetailEditDeleteTest extends TestCase
     {
         $response = $this->actingAs($this->owner)->get(route('trips.show', $this->trip->id));
 
-        $response->assertOk();
-        $response->assertSee('notesClientErrorAlert');
-        $response->assertSee('btnDismissNotesAlert');
-        $response->assertSee('OK');
+        $response->assertRedirect(route('itinerary.index', $this->trip->id));
     }
 }
