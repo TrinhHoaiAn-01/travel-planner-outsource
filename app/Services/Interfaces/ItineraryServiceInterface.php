@@ -90,4 +90,27 @@ interface ItineraryServiceInterface
      * @return \App\Models\ItineraryItem
      */
     public function updateActivityNote(\App\Models\ItineraryItem $itinerary, ?string $note): \App\Models\ItineraryItem;
+
+    /**
+     * Kiểm tra số thứ tự ngày (day_number) của hoạt động có nằm trong phạm vi ngày của chuyến đi hay không (Chức năng 8).
+     * Ràng buộc nghiệp vụ Bảng 22, Bảng 26: itinerary_items.day_number nằm trong số ngày Trip.
+     *
+     * @param \App\Models\Trip $trip
+     * @param int $dayNumber
+     * @return bool True nếu hợp lệ, ném ValidationException nếu không hợp lệ
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function validateItemWithinTripDates(\App\Models\Trip $trip, int $dayNumber): bool;
+
+    /**
+     * Kiểm tra xung đột thời gian giữa các hoạt động trong cùng một ngày của chuyến đi (FR19).
+     *
+     * @param \App\Models\Trip $trip
+     * @param int $dayNumber
+     * @param string $startTime
+     * @param string $endTime
+     * @param int|null $excludeItemId ID của hoạt động đang sửa (loại trừ chính nó)
+     * @return bool True nếu có xung đột, false nếu không trùng
+     */
+    public function hasTimeOverlap(\App\Models\Trip $trip, int $dayNumber, string $startTime, string $endTime, ?int $excludeItemId = null): bool;
 }

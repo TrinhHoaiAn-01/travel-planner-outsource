@@ -143,19 +143,9 @@ class ItineraryService implements ItineraryServiceInterface
      */
     public function storeActivity(Trip $trip, array $data): ItineraryItem
     {
-        // 1. Tính tổng số ngày của chuyến đi
-        $daysCount = 1;
-        if ($trip->start_date && $trip->end_date) {
-            $daysCount = max(1, $trip->start_date->diffInDays($trip->end_date) + 1);
-        }
-
-        // 2. Kiểm tra ngày nằm trong phạm vi chuyến đi
+        // 1 & 2. Kiểm tra ngày nằm trong phạm vi chuyến đi (Chức năng 8)
         $dayNumber = (int) ($data['day_number'] ?? 1);
-        if ($dayNumber < 1 || $dayNumber > $daysCount) {
-            throw ValidationException::withMessages([
-                'day_number' => "Ngày được chọn phải nằm trong thời gian của chuyến đi (từ Ngày 1 đến Ngày {$daysCount}).",
-            ]);
-        }
+        $this->validateItemWithinTripDates($trip, $dayNumber);
 
         // 3. Chuẩn hóa khung giờ bắt đầu và kết thúc
         $startTime = !empty($data['start_time']) ? substr($data['start_time'], 0, 5) : null;
@@ -170,13 +160,16 @@ class ItineraryService implements ItineraryServiceInterface
             }
 
             // Chặn nhập giờ chồng chéo / trùng lặp (Quy tắc FR19)
+            $startFormatted = strlen($startTime) === 5 ? $startTime . ':00' : $startTime;
+            $endFormatted = strlen($endTime) === 5 ? $endTime . ':00' : $endTime;
+
             $conflictItem = $trip->itineraryItems()
                 ->where('day_number', $dayNumber)
                 ->whereNotNull('start_time')
                 ->whereNotNull('end_time')
-                ->where(function ($query) use ($startTime, $endTime) {
-                    $query->where('start_time', '<', $endTime)
-                          ->where('end_time', '>', $startTime);
+                ->where(function ($query) use ($startFormatted, $endFormatted) {
+                    $query->where('start_time', '<', $endFormatted)
+                          ->where('end_time', '>', $startFormatted);
                 })
                 ->first();
 
@@ -274,19 +267,9 @@ class ItineraryService implements ItineraryServiceInterface
         $trip = $itinerary->trip;
         $oldDay = (int) $itinerary->day_number;
 
-        // 1. Tính tổng số ngày của chuyến đi
-        $daysCount = 1;
-        if ($trip->start_date && $trip->end_date) {
-            $daysCount = max(1, $trip->start_date->diffInDays($trip->end_date) + 1);
-        }
-
-        // 2. Kiểm tra ngày nằm trong phạm vi chuyến đi (Chức năng 8)
+        // 1 & 2. Kiểm tra ngày nằm trong phạm vi chuyến đi (Chức năng 8)
         $dayNumber = isset($data['day_number']) ? (int) $data['day_number'] : (int) $itinerary->day_number;
-        if ($dayNumber < 1 || $dayNumber > $daysCount) {
-            throw ValidationException::withMessages([
-                'day_number' => "Ngày được chọn phải nằm trong thời gian của chuyến đi (từ Ngày 1 đến Ngày {$daysCount}).",
-            ]);
-        }
+        $this->validateItemWithinTripDates($trip, $dayNumber);
 
         // 3. Chuẩn hóa khung giờ bắt đầu và kết thúc (Chức năng 8)
         $startTime = !empty($data['start_time']) ? substr($data['start_time'], 0, 5) : ($itinerary->start_time ? substr($itinerary->start_time, 0, 5) : null);
@@ -301,14 +284,17 @@ class ItineraryService implements ItineraryServiceInterface
             }
 
             // Chặn nhập giờ trùng lặp / chồng chéo, loại trừ chính mục đang sửa
+            $startFormatted = strlen($startTime) === 5 ? $startTime . ':00' : $startTime;
+            $endFormatted = strlen($endTime) === 5 ? $endTime . ':00' : $endTime;
+
             $conflictItem = $trip->itineraryItems()
                 ->where('id', '!=', $itinerary->id)
                 ->where('day_number', $dayNumber)
                 ->whereNotNull('start_time')
                 ->whereNotNull('end_time')
-                ->where(function ($query) use ($startTime, $endTime) {
-                    $query->where('start_time', '<', $endTime)
-                          ->where('end_time', '>', $startTime);
+                ->where(function ($query) use ($startFormatted, $endFormatted) {
+                    $query->where('start_time', '<', $endFormatted)
+                          ->where('end_time', '>', $startFormatted);
                 })
                 ->first();
 
@@ -441,6 +427,62 @@ class ItineraryService implements ItineraryServiceInterface
         ]);
 
         return $itinerary;
+    }
+
+    /**
+     * Kiểm tra số thứ tự ngày (day_number) của hoạt động có nằm trong phạm vi ngày của chuyến đi hay không (Chức năng 8).
+     * Ràng buộc nghiệp vụ Bảng 22, Bảng 26: itinerary_items.day_number nằm trong số ngày Trip.
+     *
+     * @param Trip $trip
+     * @param int $dayNumber
+     * @return bool
+     * @throws ValidationException
+     */
+    public function validateItemWithinTripDates(Trip $trip, int $dayNumber): bool
+    {
+        $daysCount = 1;
+        if ($trip->start_date && $trip->end_date) {
+            $daysCount = max(1, $trip->start_date->diffInDays($trip->end_date) + 1);
+        }
+
+        if ($dayNumber < 1 || $dayNumber > $daysCount) {
+            throw ValidationException::withMessages([
+                'day_number' => "Ngày được chọn phải nằm trong thời gian của chuyến đi (từ Ngày 1 đến Ngày {$daysCount}).",
+            ]);
+        }
+
+        return true;
+    }
+
+    /**
+     * Kiểm tra xung đột thời gian giữa các hoạt động trong cùng một ngày của chuyến đi (FR19).
+     *
+     * @param Trip $trip
+     * @param int $dayNumber
+     * @param string $startTime
+     * @param string $endTime
+     * @param int|null $excludeItemId
+     * @return bool
+     */
+    public function hasTimeOverlap(Trip $trip, int $dayNumber, string $startTime, string $endTime, ?int $excludeItemId = null): bool
+    {
+        $start = strlen($startTime) === 5 ? $startTime . ':00' : $startTime;
+        $end = strlen($endTime) === 5 ? $endTime . ':00' : $endTime;
+
+        $query = $trip->itineraryItems()
+            ->where('day_number', $dayNumber)
+            ->whereNotNull('start_time')
+            ->whereNotNull('end_time')
+            ->where(function ($q) use ($start, $end) {
+                $q->where('start_time', '<', $end)
+                  ->where('end_time', '>', $start);
+            });
+
+        if ($excludeItemId !== null) {
+            $query->where('id', '!=', $excludeItemId);
+        }
+
+        return $query->exists();
     }
 
     /**

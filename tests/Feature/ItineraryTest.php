@@ -1168,4 +1168,137 @@ class ItineraryTest extends TestCase
         $response->assertSee('Mang theo áo khoác mỏng vì trên đỉnh núi se lạnh');
         $response->assertSee('Ghi chú:');
     }
+
+    /**
+     * Chức năng 8: Phương thức validateItemWithinTripDates chấp nhận các ngày hợp lệ trong phạm vi chuyến đi.
+     */
+    public function test_validate_item_within_trip_dates_method_accepts_valid_days(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Chuyến đi 4 ngày',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-04', // 4 ngày
+            'budget' => 6000000,
+            'status' => 'planned',
+        ]);
+
+        $service = app(\App\Services\Interfaces\ItineraryServiceInterface::class);
+
+        // Ngày 1, Ngày 2, Ngày 3, Ngày 4 đều hợp lệ
+        $this->assertTrue($service->validateItemWithinTripDates($trip, 1));
+        $this->assertTrue($service->validateItemWithinTripDates($trip, 2));
+        $this->assertTrue($service->validateItemWithinTripDates($trip, 3));
+        $this->assertTrue($service->validateItemWithinTripDates($trip, 4));
+    }
+
+    /**
+     * Chức năng 8: Phương thức validateItemWithinTripDates ném ValidationException khi ngày nằm ngoài phạm vi chuyến đi.
+     */
+    public function test_validate_item_within_trip_dates_method_throws_exception_for_out_of_range_day(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Chuyến đi 3 ngày',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03', // 3 ngày
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        $service = app(\App\Services\Interfaces\ItineraryServiceInterface::class);
+
+        // Ngày 0 (< 1) bị từ chối
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $service->validateItemWithinTripDates($trip, 0);
+    }
+
+    /**
+     * Chức năng 8: Phương thức validateItemWithinTripDates ném ValidationException khi ngày lớn hơn tổng số ngày Trip.
+     */
+    public function test_validate_item_within_trip_dates_throws_exception_when_day_exceeds_total_days(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Chuyến đi 2 ngày',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-02', // 2 ngày
+            'budget' => 3000000,
+            'status' => 'planned',
+        ]);
+
+        $service = app(\App\Services\Interfaces\ItineraryServiceInterface::class);
+
+        // Ngày 3 (> 2) bị từ chối
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $service->validateItemWithinTripDates($trip, 3);
+    }
+
+    /**
+     * Chức năng 8: Chuyến đi chưa có ngày bắt đầu / kết thúc mặc định là 1 ngày, chỉ chấp nhận Ngày 1.
+     */
+    public function test_trip_without_start_or_end_date_only_allows_day_1(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Chuyến đi chưa chốt ngày',
+            'start_date' => null,
+            'end_date' => null,
+            'budget' => 2000000,
+            'status' => 'draft',
+        ]);
+
+        $service = app(\App\Services\Interfaces\ItineraryServiceInterface::class);
+
+        // Ngày 1 hợp lệ
+        $this->assertTrue($service->validateItemWithinTripDates($trip, 1));
+
+        // Thêm hoạt động vào Ngày 2 sẽ bị lỗi
+        $response = $this->actingAs($owner)->post(route('itinerary.store', $trip->id), [
+            'activity_name' => 'Dạo phố',
+            'day_number' => 2,
+        ]);
+
+        $response->assertSessionHasErrors(['day_number']);
+    }
+
+    /**
+     * Chức năng 8: Phương thức hasTimeOverlap kiểm tra chính xác xung đột thời gian giữa các hoạt động.
+     */
+    public function test_has_time_overlap_detects_conflicts_correctly(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip kiểm tra xung đột',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03',
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        $item1 = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Hoạt động sáng',
+            'day_number' => 1,
+            'start_time' => '08:00:00',
+            'end_time' => '10:00:00',
+            'sort_order' => 1,
+        ]);
+
+        $service = app(\App\Services\Interfaces\ItineraryServiceInterface::class);
+
+        // Khung giờ 09:00 - 11:00 bị trùng với 08:00 - 10:00
+        $this->assertTrue($service->hasTimeOverlap($trip, 1, '09:00', '11:00'));
+
+        // Khung giờ 10:00 - 12:00 không bị trùng
+        $this->assertFalse($service->hasTimeOverlap($trip, 1, '10:00', '12:00'));
+
+        // Loại trừ chính item1 thì 08:00 - 10:00 không bị trùng
+        $this->assertFalse($service->hasTimeOverlap($trip, 1, '08:00', '10:00', $item1->id));
+    }
 }
