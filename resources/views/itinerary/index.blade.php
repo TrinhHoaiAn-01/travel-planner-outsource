@@ -1604,8 +1604,23 @@
             }
         }
 
-        // Tính toán và hiển thị thời lượng hoạt động động (Chức năng 8)
-        function updateDurationPreview(startId, endId, hintId) {
+        // Danh sách hoạt động của ngày đang hiển thị phục vụ kiểm tra trùng giờ (Chức năng 11)
+        @php
+            $dayActivitiesJson = $items->map(function($it) {
+                return [
+                    'id' => (int) $it->id,
+                    'title' => (string) ($it->custom_title ?: ($it->destination ? $it->destination->name : 'Hoạt động')),
+                    'start' => $it->start_time ? substr($it->start_time, 0, 5) : null,
+                    'end' => $it->end_time ? substr($it->end_time, 0, 5) : null,
+                ];
+            })->values();
+        @endphp
+        const currentDayActivities = {!! json_encode($dayActivitiesJson) !!};
+
+        let currentEditingItemId = null;
+
+        // Tính toán và hiển thị thời lượng hoạt động & Kiểm tra xung đột trùng giờ trực tiếp (Chức năng 11)
+        function updateDurationPreview(startId, endId, hintId, excludeId = null) {
             const startElem = document.getElementById(startId);
             const endElem = document.getElementById(endId);
             const hintElem = document.getElementById(hintId);
@@ -1622,30 +1637,56 @@
             const eM = parseInt(eVal.substring(0, 2), 10) * 60 + parseInt(eVal.substring(3, 5), 10);
             const diff = eM - sM;
 
-            if (diff > 0) {
-                const h = Math.floor(diff / 60);
-                const m = diff % 60;
-                let text = (h > 0 ? h + ' giờ ' : '') + (m > 0 ? m + ' phút' : '');
-                hintElem.innerHTML = '<i class="bi bi-clock-history me-1"></i>Thời lượng dự kiến: ' + text;
-                hintElem.style.color = '#0066FF';
-                hintElem.style.display = 'block';
-            } else {
+            if (diff <= 0) {
                 hintElem.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>Giờ kết thúc phải lớn hơn giờ bắt đầu';
                 hintElem.style.color = '#EF4444';
+                hintElem.style.display = 'block';
+                return;
+            }
+
+            const h = Math.floor(diff / 60);
+            const m = diff % 60;
+            let durText = (h > 0 ? h + ' giờ ' : '') + (m > 0 ? m + ' phút' : '');
+
+            // Kiểm tra trùng lặp với các hoạt động khác của ngày hiện tại (Quy tắc FR19)
+            let conflict = null;
+            if (Array.isArray(currentDayActivities)) {
+                const targetExcludeId = excludeId !== null ? excludeId : currentEditingItemId;
+                for (const act of currentDayActivities) {
+                    if (targetExcludeId && parseInt(act.id, 10) === parseInt(targetExcludeId, 10)) {
+                        continue;
+                    }
+                    if (act.start && act.end) {
+                        const actStartM = parseInt(act.start.substring(0, 2), 10) * 60 + parseInt(act.start.substring(3, 5), 10);
+                        const actEndM = parseInt(act.end.substring(0, 2), 10) * 60 + parseInt(act.end.substring(3, 5), 10);
+                        if (sM < actEndM && eM > actStartM) {
+                            conflict = act;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (conflict) {
+                hintElem.innerHTML = `<div style="color: #DC2626; font-weight: 600;"><i class="bi bi-exclamation-octagon-fill me-1"></i><strong>Cảnh báo trùng giờ:</strong> Bị chồng chéo với "${conflict.title}" (${conflict.start} - ${conflict.end})</div>`;
+                hintElem.style.display = 'block';
+            } else {
+                hintElem.innerHTML = `<span style="color: #0066FF;"><i class="bi bi-clock-history me-1"></i>Thời lượng dự kiến: ${durText}</span> <span style="color: #10B981; margin-left: 8px; font-weight: 500;"><i class="bi bi-check-circle me-1"></i>(Khung giờ hợp lệ)</span>`;
                 hintElem.style.display = 'block';
             }
         }
 
         document.getElementById('modal_start_time')?.addEventListener('input', () => updateDurationPreview('modal_start_time', 'modal_end_time', 'add_duration_hint'));
         document.getElementById('modal_end_time')?.addEventListener('input', () => updateDurationPreview('modal_start_time', 'modal_end_time', 'add_duration_hint'));
-        document.getElementById('edit_start_time')?.addEventListener('input', () => updateDurationPreview('edit_start_time', 'edit_end_time', 'edit_duration_hint'));
-        document.getElementById('edit_end_time')?.addEventListener('input', () => updateDurationPreview('edit_start_time', 'edit_end_time', 'edit_duration_hint'));
+        document.getElementById('edit_start_time')?.addEventListener('input', () => updateDurationPreview('edit_start_time', 'edit_end_time', 'edit_duration_hint', currentEditingItemId));
+        document.getElementById('edit_end_time')?.addEventListener('input', () => updateDurationPreview('edit_start_time', 'edit_end_time', 'edit_duration_hint', currentEditingItemId));
 
         // Mở Modal Chỉnh Sửa Hoạt Động (Hình 20)
         function openEditActivityModal(id, title, startTime, endTime, dayNumber, note, destId) {
             const overlay = document.getElementById('editActivityModalOverlay');
             const form = document.getElementById('editActivityForm');
             if (overlay && form) {
+                currentEditingItemId = id;
                 form.action = '/itinerary/' + id;
                 document.getElementById('edit_activity_name').value = title || '';
                 document.getElementById('edit_start_time').value = startTime || '';
@@ -1654,7 +1695,7 @@
                 document.getElementById('edit_note').value = note || '';
                 document.getElementById('edit_destination_id').value = destId || '';
 
-                updateDurationPreview('edit_start_time', 'edit_end_time', 'edit_duration_hint');
+                updateDurationPreview('edit_start_time', 'edit_end_time', 'edit_duration_hint', id);
 
                 overlay.classList.add('active');
                 document.body.style.overflow = 'hidden';
@@ -1662,6 +1703,7 @@
         }
 
         function closeEditActivityModal() {
+            currentEditingItemId = null;
             const overlay = document.getElementById('editActivityModalOverlay');
             if (overlay) {
                 overlay.classList.remove('active');

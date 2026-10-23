@@ -159,19 +159,8 @@ class ItineraryService implements ItineraryServiceInterface
                 ]);
             }
 
-            // Chặn nhập giờ chồng chéo / trùng lặp (Quy tắc FR19)
-            $startFormatted = strlen($startTime) === 5 ? $startTime . ':00' : $startTime;
-            $endFormatted = strlen($endTime) === 5 ? $endTime . ':00' : $endTime;
-
-            $conflictItem = $trip->itineraryItems()
-                ->where('day_number', $dayNumber)
-                ->whereNotNull('start_time')
-                ->whereNotNull('end_time')
-                ->where(function ($query) use ($startFormatted, $endFormatted) {
-                    $query->where('start_time', '<', $endFormatted)
-                          ->where('end_time', '>', $startFormatted);
-                })
-                ->first();
+            // Chặn nhập giờ chồng chéo / trùng lặp (Quy tắc FR19 - Chức năng 11)
+            $conflictItem = $this->getConflictingActivity($trip, $dayNumber, $startTime, $endTime);
 
             if ($conflictItem) {
                 $conflictName = $conflictItem->custom_title ?: ($conflictItem->destination ? $conflictItem->destination->name : ($conflictItem->note ?: 'Hoạt động khác'));
@@ -283,20 +272,8 @@ class ItineraryService implements ItineraryServiceInterface
                 ]);
             }
 
-            // Chặn nhập giờ trùng lặp / chồng chéo, loại trừ chính mục đang sửa
-            $startFormatted = strlen($startTime) === 5 ? $startTime . ':00' : $startTime;
-            $endFormatted = strlen($endTime) === 5 ? $endTime . ':00' : $endTime;
-
-            $conflictItem = $trip->itineraryItems()
-                ->where('id', '!=', $itinerary->id)
-                ->where('day_number', $dayNumber)
-                ->whereNotNull('start_time')
-                ->whereNotNull('end_time')
-                ->where(function ($query) use ($startFormatted, $endFormatted) {
-                    $query->where('start_time', '<', $endFormatted)
-                          ->where('end_time', '>', $startFormatted);
-                })
-                ->first();
+            // Chặn nhập giờ trùng lặp / chồng chéo, loại trừ chính mục đang sửa (Quy tắc FR19 - Chức năng 11)
+            $conflictItem = $this->getConflictingActivity($trip, $dayNumber, $startTime, $endTime, $itinerary->id);
 
             if ($conflictItem) {
                 $conflictName = $conflictItem->custom_title ?: ($conflictItem->destination ? $conflictItem->destination->name : ($conflictItem->note ?: 'Hoạt động khác'));
@@ -455,16 +432,17 @@ class ItineraryService implements ItineraryServiceInterface
     }
 
     /**
-     * Kiểm tra xung đột thời gian giữa các hoạt động trong cùng một ngày của chuyến đi (FR19).
+     * Tìm kiếm hoạt động bị xung đột khung giờ trong cùng ngày của chuyến đi (Chức năng 11).
+     * Quy tắc nghiệp vụ FR19: start_time < conflict.end_time && end_time > conflict.start_time.
      *
      * @param Trip $trip
      * @param int $dayNumber
      * @param string $startTime
      * @param string $endTime
      * @param int|null $excludeItemId
-     * @return bool
+     * @return ItineraryItem|null
      */
-    public function hasTimeOverlap(Trip $trip, int $dayNumber, string $startTime, string $endTime, ?int $excludeItemId = null): bool
+    public function getConflictingActivity(Trip $trip, int $dayNumber, string $startTime, string $endTime, ?int $excludeItemId = null): ?ItineraryItem
     {
         $start = strlen($startTime) === 5 ? $startTime . ':00' : $startTime;
         $end = strlen($endTime) === 5 ? $endTime . ':00' : $endTime;
@@ -482,7 +460,22 @@ class ItineraryService implements ItineraryServiceInterface
             $query->where('id', '!=', $excludeItemId);
         }
 
-        return $query->exists();
+        return $query->first();
+    }
+
+    /**
+     * Kiểm tra xung đột thời gian giữa các hoạt động trong cùng một ngày của chuyến đi (FR19 - Chức năng 11).
+     *
+     * @param Trip $trip
+     * @param int $dayNumber
+     * @param string $startTime
+     * @param string $endTime
+     * @param int|null $excludeItemId
+     * @return bool
+     */
+    public function hasTimeOverlap(Trip $trip, int $dayNumber, string $startTime, string $endTime, ?int $excludeItemId = null): bool
+    {
+        return $this->getConflictingActivity($trip, $dayNumber, $startTime, $endTime, $excludeItemId) !== null;
     }
 
     /**

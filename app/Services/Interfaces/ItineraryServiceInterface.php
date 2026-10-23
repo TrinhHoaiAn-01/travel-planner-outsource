@@ -103,7 +103,7 @@ interface ItineraryServiceInterface
     public function validateItemWithinTripDates(\App\Models\Trip $trip, int $dayNumber): bool;
 
     /**
-     * Kiểm tra xung đột thời gian giữa các hoạt động trong cùng một ngày của chuyến đi (FR19).
+     * Kiểm tra xung đột thời gian giữa các hoạt động trong cùng một ngày của chuyến đi (FR19 - Chức năng 11).
      *
      * @param \App\Models\Trip $trip
      * @param int $dayNumber
@@ -113,4 +113,17 @@ interface ItineraryServiceInterface
      * @return bool True nếu có xung đột, false nếu không trùng
      */
     public function hasTimeOverlap(\App\Models\Trip $trip, int $dayNumber, string $startTime, string $endTime, ?int $excludeItemId = null): bool;
+
+    /**
+     * Tìm kiếm và trả về bản ghi hoạt động bị xung đột khung giờ (nếu có) trong ngày của chuyến đi (Chức năng 11).
+     *
+     * @param \App\Models\Trip $trip
+     * @param int $dayNumber
+     * @param string $startTime
+     * @param string $endTime
+     * @param int|null $excludeItemId ID của hoạt động loại trừ khi cập nhật
+     * @return \App\Models\ItineraryItem|null
+     */
+    public function getConflictingActivity(\App\Models\Trip $trip, int $dayNumber, string $startTime, string $endTime, ?int $excludeItemId = null): ?\App\Models\ItineraryItem;
 }
+
