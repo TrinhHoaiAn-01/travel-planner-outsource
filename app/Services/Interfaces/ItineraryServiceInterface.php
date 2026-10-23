@@ -80,4 +80,14 @@ interface ItineraryServiceInterface
      * @return bool
      */
     public function reorderActivities(\App\Models\Trip $trip, int $dayNumber, array $itemIds): bool;
+
+    /**
+     * Cập nhật ghi chú riêng biệt cho một mục hoạt động trong lịch trình (Chức năng 7).
+     * Tuyến: PATCH /itinerary/{itinerary}/note (Bảng 22 Báo cáo Đồ án).
+     *
+     * @param \App\Models\ItineraryItem $itinerary
+     * @param string|null $note Nội dung ghi chú mới (tối đa 1000 ký tự)
+     * @return \App\Models\ItineraryItem
+     */
+    public function updateActivityNote(\App\Models\ItineraryItem $itinerary, ?string $note): \App\Models\ItineraryItem;
 }

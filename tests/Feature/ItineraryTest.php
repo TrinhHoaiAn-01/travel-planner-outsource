@@ -950,4 +950,222 @@ class ItineraryTest extends TestCase
             'item_ids' => [$item1->id, 999999],
         ])->assertStatus(422);
     }
+
+    /**
+     * Chức năng 7: Chủ sở hữu có thể thêm ghi chú khi tạo hoạt động mới.
+     */
+    public function test_owner_can_add_note_when_creating_activity(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Chuyến đi Hà Nội kiểm tra ghi chú',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03',
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        $response = $this->actingAs($owner)->post(route('itinerary.store', $trip->id), [
+            'activity_name' => 'Tham quan Hồ Gươm',
+            'day_number' => 1,
+            'start_time' => '08:00',
+            'end_time' => '10:00',
+            'note' => 'Nhớ mang theo máy ảnh và nón rộng vành để chụp ảnh kỷ niệm.',
+        ]);
+
+        $response->assertRedirect(route('itinerary.index', ['trip' => $trip->id, 'day_number' => 1]));
+
+        $this->assertDatabaseHas('itinerary_items', [
+            'trip_id' => $trip->id,
+            'custom_title' => 'Tham quan Hồ Gươm',
+            'note' => 'Nhớ mang theo máy ảnh và nón rộng vành để chụp ảnh kỷ niệm.',
+        ]);
+    }
+
+    /**
+     * Chức năng 7: Chủ sở hữu có thể cập nhật ghi chú hoạt động qua tuyến chuyên biệt (PATCH /itinerary/{itinerary}/note).
+     */
+    public function test_owner_can_update_activity_note_via_dedicated_endpoint(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Chuyến đi Hạ Long',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03',
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        $item = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Đi du thuyền',
+            'day_number' => 1,
+            'start_time' => '09:00:00',
+            'end_time' => '11:00:00',
+            'note' => 'Ghi chú ban đầu',
+            'sort_order' => 1,
+        ]);
+
+        // Cập nhật bằng request JSON (AJAX)
+        $response = $this->actingAs($owner)->patchJson(route('itinerary.note.update', $item->id), [
+            'note' => 'Lưu ý mang kem chống nắng và chuẩn bị vé tàu trước 15 phút.',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'note' => 'Lưu ý mang kem chống nắng và chuẩn bị vé tàu trước 15 phút.',
+        ]);
+
+        $this->assertDatabaseHas('itinerary_items', [
+            'id' => $item->id,
+            'note' => 'Lưu ý mang kem chống nắng và chuẩn bị vé tàu trước 15 phút.',
+        ]);
+    }
+
+    /**
+     * Chức năng 7: Chủ sở hữu có thể xóa/để trống ghi chú của hoạt động.
+     */
+    public function test_owner_can_clear_activity_note(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Chuyến đi Đà Nẵng',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03',
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        $item = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Tắm biển Mỹ Khê',
+            'day_number' => 1,
+            'start_time' => '16:00:00',
+            'end_time' => '18:00:00',
+            'note' => 'Ghi chú cần xóa',
+            'sort_order' => 1,
+        ]);
+
+        // Xóa ghi chú bằng cách gửi rỗng
+        $response = $this->actingAs($owner)->patch(route('itinerary.note.update', $item->id), [
+            'note' => '',
+        ]);
+
+        $response->assertRedirect(route('itinerary.index', ['trip' => $trip->id, 'day_number' => 1]));
+
+        $this->assertDatabaseHas('itinerary_items', [
+            'id' => $item->id,
+            'note' => null,
+        ]);
+    }
+
+    /**
+     * Chức năng 7: Nhập ghi chú vượt quá 1000 ký tự sẽ bị từ chối (Bảng 26).
+     */
+    public function test_note_exceeding_1000_characters_is_rejected(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Chuyến đi kiểm tra độ dài ghi chú',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03',
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        $item = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Ăn tối phố cổ',
+            'day_number' => 1,
+            'start_time' => '19:00:00',
+            'end_time' => '20:30:00',
+            'sort_order' => 1,
+        ]);
+
+        $longNote = str_repeat('Nội dung ghi chú rất dài ', 55); // > 1000 ký tự
+
+        $response = $this->actingAs($owner)->patchJson(route('itinerary.note.update', $item->id), [
+            'note' => $longNote,
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['note']);
+    }
+
+    /**
+     * Chức năng 7: Người không phải chủ sở hữu không thể cập nhật ghi chú hoạt động (Bảo mật IDOR).
+     */
+    public function test_non_owner_cannot_update_activity_note(): void
+    {
+        $owner = User::factory()->create();
+        $stranger = User::factory()->create();
+
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip của Owner',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03',
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        $item = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Hoạt động bảo mật',
+            'day_number' => 1,
+            'start_time' => '09:00:00',
+            'end_time' => '10:00:00',
+            'note' => 'Ghi chú gốc của chủ sở hữu',
+            'sort_order' => 1,
+        ]);
+
+        // Người lạ cố tình sửa ghi chú
+        $response = $this->actingAs($stranger)->patch(route('itinerary.note.update', $item->id), [
+            'note' => 'Hacker cố tình thay đổi ghi chú',
+        ]);
+
+        $response->assertStatus(403);
+
+        $this->assertDatabaseHas('itinerary_items', [
+            'id' => $item->id,
+            'note' => 'Ghi chú gốc của chủ sở hữu',
+        ]);
+    }
+
+    /**
+     * Chức năng 7: Ghi chú của hoạt động được hiển thị trực quan trên giao diện lịch trình.
+     */
+    public function test_activity_note_is_displayed_on_itinerary_page(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Chuyến đi hiển thị ghi chú',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03',
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Trải nghiệm cáp treo',
+            'day_number' => 1,
+            'start_time' => '08:30:00',
+            'end_time' => '10:30:00',
+            'note' => 'Mang theo áo khoác mỏng vì trên đỉnh núi se lạnh',
+            'sort_order' => 1,
+        ]);
+
+        $response = $this->actingAs($owner)->get(route('itinerary.index', ['trip' => $trip->id, 'day_number' => 1]));
+
+        $response->assertStatus(200);
+        $response->assertSee('Mang theo áo khoác mỏng vì trên đỉnh núi se lạnh');
+        $response->assertSee('Ghi chú:');
+    }
 }

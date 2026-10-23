@@ -419,6 +419,31 @@ class ItineraryService implements ItineraryServiceInterface
     }
 
     /**
+     * Cập nhật ghi chú riêng biệt cho một mục hoạt động trong lịch trình (Chức năng 7).
+     * Tuyến: PATCH /itinerary/{itinerary}/note (Bảng 22 Báo cáo Đồ án).
+     *
+     * @param ItineraryItem $itinerary
+     * @param string|null $note
+     * @return ItineraryItem
+     * @throws ValidationException
+     */
+    public function updateActivityNote(ItineraryItem $itinerary, ?string $note): ItineraryItem
+    {
+        $cleanNote = $note !== null ? trim($note) : null;
+        if ($cleanNote !== null && mb_strlen($cleanNote) > 1000) {
+            throw ValidationException::withMessages([
+                'note' => 'Ghi chú vượt quá số ký tự cho phép (tối đa 1000 ký tự).',
+            ]);
+        }
+
+        $itinerary->update([
+            'note' => !empty($cleanNote) ? $cleanNote : null,
+        ]);
+
+        return $itinerary;
+    }
+
+    /**
      * Tự động chuẩn hóa thứ tự hoạt động (sort_order) liên tục theo thời gian từ sớm đến muộn.
      *
      * @param Trip $trip

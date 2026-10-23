@@ -216,4 +216,45 @@ class ItineraryController extends Controller
             'message' => 'Cập nhật thứ tự các hoạt động Ngày ' . $validated['day_number'] . ' thành công!',
         ]);
     }
+
+    /**
+     * Cập nhật ghi chú riêng biệt cho một mục hoạt động trong lịch trình (Chức năng 7).
+     * Tuyến: PATCH /itinerary/{itinerary}/note (Bảng 22 trong báo cáo).
+     *
+     * @param Request $request
+     * @param ItineraryItem $itinerary
+     * @return RedirectResponse|JsonResponse
+     */
+    public function updateNote(Request $request, ItineraryItem $itinerary): RedirectResponse|JsonResponse
+    {
+        // 1. Kiểm tra quyền sở hữu chuyến đi (Owner)
+        Gate::authorize('update', $itinerary->trip);
+
+        // 2. Kiểm tra tính hợp lệ của ghi chú
+        $validated = $request->validate([
+            'note' => ['nullable', 'string', 'max:1000'],
+        ], [
+            'note.max' => 'Ghi chú vượt quá số ký tự cho phép (tối đa 1000 ký tự).',
+        ]);
+
+        // 3. Cập nhật ghi chú qua Service Interface
+        $item = $this->itineraryService->updateActivityNote($itinerary, $validated['note'] ?? null);
+
+        $msg = !empty($item->note)
+            ? 'Đã cập nhật ghi chú cho hoạt động thành công!'
+            : 'Đã xóa ghi chú của hoạt động thành công!';
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+                'note' => $item->note,
+                'item' => $item,
+            ]);
+        }
+
+        return redirect()
+            ->route('itinerary.index', ['trip' => $itinerary->trip_id, 'day_number' => $item->day_number])
+            ->with('success', $msg);
+    }
 }

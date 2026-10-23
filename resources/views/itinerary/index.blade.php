@@ -1195,9 +1195,9 @@
                                 </div>
 
                                 @if($item->note)
-                                    <div class="activity-note-box">
-                                        <i class="bi bi-chat-left-text me-1"></i>
-                                        <strong>Ghi chú:</strong> {{ $item->note }}
+                                    <div class="activity-note-box" onclick="openNoteModal({{ $item->id }}, '{{ addslashes($item->custom_title ?: ($dest ? $dest->name : 'Hoạt động')) }}', '{{ addslashes($item->note) }}')" style="cursor: pointer;" title="Nhấn để xem / chỉnh sửa ghi chú">
+                                        <i class="bi bi-chat-left-text me-1 text-primary"></i>
+                                        <strong>Ghi chú:</strong> {!! nl2br(e($item->note)) !!}
                                     </div>
                                 @endif
 
@@ -1211,6 +1211,10 @@
                                     </div>
 
                                     <div class="activity-btns">
+                                        <button type="button" class="btn-act-icon" title="{{ $item->note ? 'Xem & sửa ghi chú' : 'Thêm ghi chú' }}"
+                                                onclick="openNoteModal({{ $item->id }}, '{{ addslashes($item->custom_title ?: ($dest ? $dest->name : 'Hoạt động')) }}', '{{ addslashes($item->note ?? '') }}')">
+                                            <i class="bi {{ $item->note ? 'bi-journal-check text-primary' : 'bi-journal-plus' }}"></i>
+                                        </button>
                                         <button type="button" class="btn-act-icon" title="Chỉnh sửa hoạt động"
                                                 onclick="openEditActivityModal({{ $item->id }}, '{{ addslashes($item->custom_title ?: ($dest ? $dest->name : '')) }}', '{{ $item->start_time ? substr($item->start_time, 0, 5) : '08:00' }}', '{{ $item->end_time ? substr($item->end_time, 0, 5) : '10:00' }}', {{ $item->day_number }}, '{{ addslashes($item->note ?? '') }}', {{ $item->destination_id ?: 'null' }})">
                                             <i class="bi bi-pencil"></i>
@@ -1477,6 +1481,55 @@
         </div>
     </div>
 
+    <!-- 11. Modal Quản Lý Ghi Chú Hoạt Động (Chức năng 7) -->
+    <div class="modal-overlay" id="noteActivityModalOverlay">
+        <div class="modal-card" style="max-width: 480px;">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: #EEF2FF; color: #4F46E5; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                        <i class="bi bi-journal-text"></i>
+                    </div>
+                    <div>
+                        <h3 class="modal-title" style="font-size: 17px; margin: 0;">Ghi chú hoạt động</h3>
+                        <p id="note_modal_activity_title" style="font-size: 13px; color: #64748B; margin: 0;"></p>
+                    </div>
+                </div>
+                <button type="button" class="modal-close-btn" onclick="closeNoteModal()" title="Đóng">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <form action="" method="POST" id="noteActivityForm" class="modal-form">
+                @csrf
+                @method('PATCH')
+                <div class="modal-body" style="padding: 16px 24px;">
+                    <div class="form-group-modal">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label class="modal-label" for="quick_modal_note" style="margin-bottom: 0;">Nội dung ghi chú</label>
+                            <span id="noteCharCount" style="font-size: 12px; color: #94A3B8;">0/1000 ký tự</span>
+                        </div>
+                        <textarea name="note" 
+                                  id="quick_modal_note" 
+                                  rows="5"
+                                  class="modal-input modal-textarea" 
+                                  maxlength="1000"
+                                  placeholder="Nhập ghi chú chi tiết, lưu ý phương tiện, đồ dùng mang theo, địa chỉ hoặc mẹo trải nghiệm..."></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+                    <button type="button" class="btn-modal-cancel" style="color: #DC2626; border-color: #FCA5A5;" onclick="clearQuickNote()" id="btnClearNote" title="Xóa nội dung ghi chú">
+                        <i class="bi bi-trash me-1"></i> Xóa ghi chú
+                    </button>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="btn-modal-cancel" onclick="closeNoteModal()">Hủy</button>
+                        <button type="submit" class="btn-modal-submit" id="btnSaveNote">Lưu ghi chú</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal Xác Nhận Xóa Chuyến Đi -->
     <div id="deleteTripModal" class="modal-overlay" onclick="closeDeleteModalOnBackdrop(event)" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="modal-box" style="background: #FFFFFF; border-radius: 16px; width: 100%; max-width: 480px; padding: 28px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); margin: 20px;">
@@ -1647,6 +1700,9 @@
         document.getElementById('deleteActivityModalOverlay')?.addEventListener('click', function(e) {
             if (e.target === this) closeDeleteActivityModal();
         });
+        document.getElementById('noteActivityModalOverlay')?.addEventListener('click', function(e) {
+            if (e.target === this) closeNoteModal();
+        });
 
         // Đóng khi nhấn phím Escape
         document.addEventListener('keydown', function(e) {
@@ -1654,7 +1710,53 @@
                 closeAddActivityModal();
                 closeEditActivityModal();
                 closeDeleteActivityModal();
+                closeNoteModal();
                 closeDeleteTripModal();
+            }
+        });
+
+        // Mở Modal Quản Lý Ghi Chú (Chức năng 7)
+        function openNoteModal(id, title, note) {
+            const overlay = document.getElementById('noteActivityModalOverlay');
+            const form = document.getElementById('noteActivityForm');
+            const titleElem = document.getElementById('note_modal_activity_title');
+            const noteInput = document.getElementById('quick_modal_note');
+            const charCount = document.getElementById('noteCharCount');
+
+            if (overlay && form) {
+                form.action = '/itinerary/' + id + '/note';
+                if (titleElem) titleElem.textContent = title;
+                if (noteInput) {
+                    noteInput.value = note || '';
+                    if (charCount) charCount.textContent = (note ? note.length : 0) + '/1000 ký tự';
+                }
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeNoteModal() {
+            const overlay = document.getElementById('noteActivityModalOverlay');
+            if (overlay) {
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+
+        function clearQuickNote() {
+            const noteInput = document.getElementById('quick_modal_note');
+            const charCount = document.getElementById('noteCharCount');
+            if (noteInput) {
+                noteInput.value = '';
+                if (charCount) charCount.textContent = '0/1000 ký tự';
+                noteInput.focus();
+            }
+        }
+
+        document.getElementById('quick_modal_note')?.addEventListener('input', function() {
+            const charCount = document.getElementById('noteCharCount');
+            if (charCount) {
+                charCount.textContent = this.value.length + '/1000 ký tự';
             }
         });
 
