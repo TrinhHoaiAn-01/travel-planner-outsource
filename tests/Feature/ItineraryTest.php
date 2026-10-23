@@ -1301,4 +1301,93 @@ class ItineraryTest extends TestCase
         // Loại trừ chính item1 thì 08:00 - 10:00 không bị trùng
         $this->assertFalse($service->hasTimeOverlap($trip, 1, '08:00', '10:00', $item1->id));
     }
+
+    /**
+     * Chức năng 11: getConflictingActivity trả về đúng bản ghi hoạt động gây xung đột thời gian.
+     */
+    public function test_get_conflicting_activity_returns_correct_item_or_null(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip test conflict item',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03',
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        $itemA = ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Dạo biển Mỹ Khê',
+            'day_number' => 1,
+            'start_time' => '06:00:00',
+            'end_time' => '08:00:00',
+            'sort_order' => 1,
+        ]);
+
+        $service = app(\App\Services\Interfaces\ItineraryServiceInterface::class);
+
+        // Khung giờ 07:00 - 09:00 xung đột với itemA
+        $conflict = $service->getConflictingActivity($trip, 1, '07:00', '09:00');
+        $this->assertNotNull($conflict);
+        $this->assertEquals($itemA->id, $conflict->id);
+
+        // Khung giờ liền kề 08:00 - 10:00 không bị coi là xung đột
+        $noConflictAdjacent = $service->getConflictingActivity($trip, 1, '08:00', '10:00');
+        $this->assertNull($noConflictAdjacent);
+
+        // Khác ngày (Ngày 2) không bị xung đột
+        $noConflictDiffDay = $service->getConflictingActivity($trip, 2, '07:00', '09:00');
+        $this->assertNull($noConflictDiffDay);
+
+        // Khung giờ bao trùm (05:00 - 09:00) bao trọn itemA
+        $enclosingConflict = $service->getConflictingActivity($trip, 1, '05:00', '09:00');
+        $this->assertNotNull($enclosingConflict);
+        $this->assertEquals($itemA->id, $enclosingConflict->id);
+
+        // Khung giờ nằm trọn bên trong (06:30 - 07:30)
+        $enclosedConflict = $service->getConflictingActivity($trip, 1, '06:30', '07:30');
+        $this->assertNotNull($enclosedConflict);
+        $this->assertEquals($itemA->id, $enclosedConflict->id);
+    }
+
+    /**
+     * Chức năng 11: Thông báo lỗi trùng giờ chứa rõ tên hoạt động bị trùng và khung giờ xung đột.
+     */
+    public function test_time_conflict_validation_message_contains_conflicting_details(): void
+    {
+        $owner = User::factory()->create();
+        $trip = Trip::create([
+            'user_id' => $owner->id,
+            'name' => 'Trip chi tiết lỗi trùng giờ',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-03',
+            'budget' => 5000000,
+            'status' => 'planned',
+        ]);
+
+        ItineraryItem::create([
+            'trip_id' => $trip->id,
+            'custom_title' => 'Ăn trưa tại Bếp Cuốn',
+            'day_number' => 1,
+            'start_time' => '11:30:00',
+            'end_time' => '13:00:00',
+            'sort_order' => 1,
+        ]);
+
+        // Thêm hoạt động mới trùng giờ 12:00 - 14:00
+        $response = $this->actingAs($owner)->post(route('itinerary.store', $trip->id), [
+            'activity_name' => 'Gặp gỡ bạn bè',
+            'day_number' => 1,
+            'start_time' => '12:00',
+            'end_time' => '14:00',
+        ]);
+
+        $response->assertSessionHasErrors(['start_time']);
+        $errorMsg = session('errors')->first('start_time');
+        $this->assertStringContainsString('Ăn trưa tại Bếp Cuốn', $errorMsg);
+        $this->assertStringContainsString('11:30 - 13:00', $errorMsg);
+    }
 }
+
