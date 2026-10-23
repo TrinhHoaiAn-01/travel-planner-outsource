@@ -1481,7 +1481,7 @@
         </div>
     </div>
 
-    <!-- 11. Modal Quản Lý Ghi Chú Hoạt Động (Chức năng 7) -->
+    <!-- 11. Modal Quản Lý Ghi Chú Hoạt Động (Chức năng 9) -->
     <div class="modal-overlay" id="noteActivityModalOverlay">
         <div class="modal-card" style="max-width: 480px;">
             <div class="modal-header">
@@ -1715,7 +1715,7 @@
             }
         });
 
-        // Mở Modal Quản Lý Ghi Chú (Chức năng 7)
+        // Mở Modal Quản Lý Ghi Chú (Chức năng 9)
         function openNoteModal(id, title, note) {
             const overlay = document.getElementById('noteActivityModalOverlay');
             const form = document.getElementById('noteActivityForm');

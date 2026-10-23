@@ -218,7 +218,7 @@ class ItineraryController extends Controller
     }
 
     /**
-     * Cập nhật ghi chú riêng biệt cho một mục hoạt động trong lịch trình (Chức năng 7).
+     * Cập nhật ghi chú riêng biệt cho một mục hoạt động trong lịch trình (Chức năng 9).
      * Tuyến: PATCH /itinerary/{itinerary}/note (Bảng 22 trong báo cáo).
      *
      * @param Request $request

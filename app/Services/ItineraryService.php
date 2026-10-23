@@ -143,7 +143,7 @@ class ItineraryService implements ItineraryServiceInterface
      */
     public function storeActivity(Trip $trip, array $data): ItineraryItem
     {
-        // 1 & 2. Kiểm tra ngày nằm trong phạm vi chuyến đi (Chức năng 8)
+        // 1 & 2. Kiểm tra ngày nằm trong phạm vi chuyến đi (Chức năng 10)
         $dayNumber = (int) ($data['day_number'] ?? 1);
         $this->validateItemWithinTripDates($trip, $dayNumber);
 
@@ -267,7 +267,7 @@ class ItineraryService implements ItineraryServiceInterface
         $trip = $itinerary->trip;
         $oldDay = (int) $itinerary->day_number;
 
-        // 1 & 2. Kiểm tra ngày nằm trong phạm vi chuyến đi (Chức năng 8)
+        // 1 & 2. Kiểm tra ngày nằm trong phạm vi chuyến đi (Chức năng 10)
         $dayNumber = isset($data['day_number']) ? (int) $data['day_number'] : (int) $itinerary->day_number;
         $this->validateItemWithinTripDates($trip, $dayNumber);
 
@@ -405,7 +405,7 @@ class ItineraryService implements ItineraryServiceInterface
     }
 
     /**
-     * Cập nhật ghi chú riêng biệt cho một mục hoạt động trong lịch trình (Chức năng 7).
+     * Cập nhật ghi chú riêng biệt cho một mục hoạt động trong lịch trình (Chức năng 9).
      * Tuyến: PATCH /itinerary/{itinerary}/note (Bảng 22 Báo cáo Đồ án).
      *
      * @param ItineraryItem $itinerary
@@ -430,7 +430,7 @@ class ItineraryService implements ItineraryServiceInterface
     }
 
     /**
-     * Kiểm tra số thứ tự ngày (day_number) của hoạt động có nằm trong phạm vi ngày của chuyến đi hay không (Chức năng 8).
+     * Kiểm tra số thứ tự ngày (day_number) của hoạt động có nằm trong phạm vi ngày của chuyến đi hay không (Chức năng 10).
      * Ràng buộc nghiệp vụ Bảng 22, Bảng 26: itinerary_items.day_number nằm trong số ngày Trip.
      *
      * @param Trip $trip

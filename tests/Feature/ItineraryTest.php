@@ -952,7 +952,7 @@ class ItineraryTest extends TestCase
     }
 
     /**
-     * Chức năng 7: Chủ sở hữu có thể thêm ghi chú khi tạo hoạt động mới.
+     * Chức năng 9: Chủ sở hữu có thể thêm ghi chú khi tạo hoạt động mới.
      */
     public function test_owner_can_add_note_when_creating_activity(): void
     {
@@ -984,7 +984,7 @@ class ItineraryTest extends TestCase
     }
 
     /**
-     * Chức năng 7: Chủ sở hữu có thể cập nhật ghi chú hoạt động qua tuyến chuyên biệt (PATCH /itinerary/{itinerary}/note).
+     * Chức năng 9: Chủ sở hữu có thể cập nhật ghi chú hoạt động qua tuyến chuyên biệt (PATCH /itinerary/{itinerary}/note).
      */
     public function test_owner_can_update_activity_note_via_dedicated_endpoint(): void
     {
@@ -1026,7 +1026,7 @@ class ItineraryTest extends TestCase
     }
 
     /**
-     * Chức năng 7: Chủ sở hữu có thể xóa/để trống ghi chú của hoạt động.
+     * Chức năng 9: Chủ sở hữu có thể xóa/để trống ghi chú của hoạt động.
      */
     public function test_owner_can_clear_activity_note(): void
     {
@@ -1064,7 +1064,7 @@ class ItineraryTest extends TestCase
     }
 
     /**
-     * Chức năng 7: Nhập ghi chú vượt quá 1000 ký tự sẽ bị từ chối (Bảng 26).
+     * Chức năng 9: Nhập ghi chú vượt quá 1000 ký tự sẽ bị từ chối (Bảng 26).
      */
     public function test_note_exceeding_1000_characters_is_rejected(): void
     {
@@ -1098,7 +1098,7 @@ class ItineraryTest extends TestCase
     }
 
     /**
-     * Chức năng 7: Người không phải chủ sở hữu không thể cập nhật ghi chú hoạt động (Bảo mật IDOR).
+     * Chức năng 9: Người không phải chủ sở hữu không thể cập nhật ghi chú hoạt động (Bảo mật IDOR).
      */
     public function test_non_owner_cannot_update_activity_note(): void
     {
@@ -1138,7 +1138,7 @@ class ItineraryTest extends TestCase
     }
 
     /**
-     * Chức năng 7: Ghi chú của hoạt động được hiển thị trực quan trên giao diện lịch trình.
+     * Chức năng 9: Ghi chú của hoạt động được hiển thị trực quan trên giao diện lịch trình.
      */
     public function test_activity_note_is_displayed_on_itinerary_page(): void
     {
@@ -1170,7 +1170,7 @@ class ItineraryTest extends TestCase
     }
 
     /**
-     * Chức năng 8: Phương thức validateItemWithinTripDates chấp nhận các ngày hợp lệ trong phạm vi chuyến đi.
+     * Chức năng 10: Phương thức validateItemWithinTripDates chấp nhận các ngày hợp lệ trong phạm vi chuyến đi.
      */
     public function test_validate_item_within_trip_dates_method_accepts_valid_days(): void
     {
@@ -1194,7 +1194,7 @@ class ItineraryTest extends TestCase
     }
 
     /**
-     * Chức năng 8: Phương thức validateItemWithinTripDates ném ValidationException khi ngày nằm ngoài phạm vi chuyến đi.
+     * Chức năng 10: Phương thức validateItemWithinTripDates ném ValidationException khi ngày nằm ngoài phạm vi chuyến đi.
      */
     public function test_validate_item_within_trip_dates_method_throws_exception_for_out_of_range_day(): void
     {
@@ -1216,7 +1216,7 @@ class ItineraryTest extends TestCase
     }
 
     /**
-     * Chức năng 8: Phương thức validateItemWithinTripDates ném ValidationException khi ngày lớn hơn tổng số ngày Trip.
+     * Chức năng 10: Phương thức validateItemWithinTripDates ném ValidationException khi ngày lớn hơn tổng số ngày Trip.
      */
     public function test_validate_item_within_trip_dates_throws_exception_when_day_exceeds_total_days(): void
     {
@@ -1238,7 +1238,7 @@ class ItineraryTest extends TestCase
     }
 
     /**
-     * Chức năng 8: Chuyến đi chưa có ngày bắt đầu / kết thúc mặc định là 1 ngày, chỉ chấp nhận Ngày 1.
+     * Chức năng 10: Chuyến đi chưa có ngày bắt đầu / kết thúc mặc định là 1 ngày, chỉ chấp nhận Ngày 1.
      */
     public function test_trip_without_start_or_end_date_only_allows_day_1(): void
     {
@@ -1267,7 +1267,7 @@ class ItineraryTest extends TestCase
     }
 
     /**
-     * Chức năng 8: Phương thức hasTimeOverlap kiểm tra chính xác xung đột thời gian giữa các hoạt động.
+     * Chức năng 10: Phương thức hasTimeOverlap kiểm tra chính xác xung đột thời gian giữa các hoạt động.
      */
     public function test_has_time_overlap_detects_conflicts_correctly(): void
     {

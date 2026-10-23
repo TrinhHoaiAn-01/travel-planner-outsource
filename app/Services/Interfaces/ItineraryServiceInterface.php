@@ -82,7 +82,7 @@ interface ItineraryServiceInterface
     public function reorderActivities(\App\Models\Trip $trip, int $dayNumber, array $itemIds): bool;
 
     /**
-     * Cập nhật ghi chú riêng biệt cho một mục hoạt động trong lịch trình (Chức năng 7).
+     * Cập nhật ghi chú riêng biệt cho một mục hoạt động trong lịch trình (Chức năng 9).
      * Tuyến: PATCH /itinerary/{itinerary}/note (Bảng 22 Báo cáo Đồ án).
      *
      * @param \App\Models\ItineraryItem $itinerary
@@ -92,7 +92,7 @@ interface ItineraryServiceInterface
     public function updateActivityNote(\App\Models\ItineraryItem $itinerary, ?string $note): \App\Models\ItineraryItem;
 
     /**
-     * Kiểm tra số thứ tự ngày (day_number) của hoạt động có nằm trong phạm vi ngày của chuyến đi hay không (Chức năng 8).
+     * Kiểm tra số thứ tự ngày (day_number) của hoạt động có nằm trong phạm vi ngày của chuyến đi hay không (Chức năng 10).
      * Ràng buộc nghiệp vụ Bảng 22, Bảng 26: itinerary_items.day_number nằm trong số ngày Trip.
      *
      * @param \App\Models\Trip $trip
