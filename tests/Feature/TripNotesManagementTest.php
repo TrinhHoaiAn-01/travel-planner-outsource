@@ -82,7 +82,7 @@ class TripNotesManagementTest extends TestCase
             'description' => $newNotes,
         ]);
 
-        $response->assertRedirect(route('trips.show', $this->trip->id));
+        $response->assertRedirect(route('itinerary.index', $this->trip->id));
         $response->assertSessionHas('success');
 
         $this->trip->refresh();
@@ -98,7 +98,7 @@ class TripNotesManagementTest extends TestCase
             'description' => '',
         ]);
 
-        $response->assertRedirect(route('trips.show', $this->trip->id));
+        $response->assertRedirect(route('itinerary.index', $this->trip->id));
 
         $this->trip->refresh();
         $this->assertNull($this->trip->description);
@@ -128,9 +128,6 @@ class TripNotesManagementTest extends TestCase
 
         $response = $this->actingAs($this->owner)->get(route('trips.show', $this->trip->id));
 
-        $response->assertOk();
-        $response->assertSee('Mô tả và Ghi chú mục tiêu chuyến đi');
-        $response->assertSee($specialNotes);
-        $response->assertSee(mb_strlen($specialNotes) . ' ký tự');
+        $response->assertRedirect(route('itinerary.index', $this->trip->id));
     }
 }

@@ -83,19 +83,10 @@ class TripController extends Controller
      * Hiển thị chi tiết chuyến đi của người dùng.
      * Tuân thủ quy tắc bảo mật BR-01 và BR-03 chống lỗi IDOR.
      */
-    public function show(Trip $trip): View
+    public function show(Trip $trip): RedirectResponse
     {
         Gate::authorize('view', $trip);
-
-        $tripDetails = $this->tripService->getTripDetails($trip->id);
-        $summary = $this->tripService->getTripSummary($trip->id);
-        $daysList = $this->tripService->getTripDaysList($trip->id);
-
-        return view('trips.show', [
-            'trip' => $tripDetails,
-            'summary' => $summary,
-            'daysList' => $daysList,
-        ]);
+        return redirect()->route('itinerary.index', $trip->id);
     }
 
     /**
@@ -153,7 +144,7 @@ class TripController extends Controller
         }
 
         return redirect()
-            ->route('trips.show', $trip->id)
+            ->route('itinerary.index', $trip->id)
             ->with('success', $successMessage);
     }
 
@@ -211,7 +202,7 @@ class TripController extends Controller
         $this->tripService->updateTripNotes($trip->id, $description);
 
         return redirect()
-            ->route('trips.show', $trip->id)
+            ->route('itinerary.index', $trip->id)
             ->with('success', 'Đã cập nhật mô tả và ghi chú tổng quát chuyến đi thành công!');
     }
 

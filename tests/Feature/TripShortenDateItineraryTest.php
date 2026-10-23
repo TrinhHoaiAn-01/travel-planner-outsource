@@ -128,7 +128,7 @@ class TripShortenDateItineraryTest extends TestCase
             'budget' => 10000000,
         ]);
 
-        $response->assertRedirect(route('trips.show', $trip->id));
+        $response->assertRedirect(route('itinerary.index', $trip->id));
         $response->assertSessionHas('success');
 
         // Kiểm tra database: Ngày chuyến đi đã cập nhật
@@ -412,7 +412,7 @@ class TripShortenDateItineraryTest extends TestCase
             'budget' => 7000000,
         ]);
 
-        $response->assertRedirect(route('trips.show', $trip->id));
+        $response->assertRedirect(route('itinerary.index', $trip->id));
         $response->assertSessionHas('success', function ($msg) {
             return str_contains($msg, 'rút ngắn') && str_contains($msg, 'tự động bảo toàn 1 hoạt động lịch trình sang Ngày 3');
         });
