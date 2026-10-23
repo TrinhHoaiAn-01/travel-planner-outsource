@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Trip;
 use App\Services\Interfaces\TripServiceInterface;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -156,6 +157,9 @@ class TripService implements TripServiceInterface
         return DB::transaction(function () use ($tripId, $data) {
             $trip = Trip::findOrFail($tripId);
 
+            // Kiểm tra phân tích toàn diện ảnh hưởng đến Booking, Chi phí và Lịch trình trước khi cập nhật
+            $changeImpact = $this->checkTripChangeImpact($tripId, $data);
+
             $dateChangeResult = null;
             if (isset($data['start_date']) && isset($data['end_date'])) {
                 if (! $this->validateTripDates($data['start_date'], $data['end_date'])) {
@@ -189,6 +193,7 @@ class TripService implements TripServiceInterface
             if ($dateChangeResult !== null) {
                 $freshTrip->dateChangeResult = $dateChangeResult;
             }
+            $freshTrip->changeImpact = $changeImpact;
 
             return $freshTrip;
         });
@@ -528,6 +533,230 @@ class TripService implements TripServiceInterface
 
             return $trip->fresh();
         });
+    }
+
+    /**
+     * Lấy thông tin chi tiết các đơn đặt phòng (Booking) liên quan bị ảnh hưởng khi thay đổi ngày hoặc trạng thái chuyến đi.
+     * Kiểm tra các đơn đặt phòng có check_in trước start_date mới, hoặc check_out sau end_date mới, hoặc khi hủy chuyến đi.
+     */
+    public function getAffectedBookings(int $tripId, ?string $newStartDate, ?string $newEndDate, ?string $newStatus = null): array
+    {
+        $trip = Trip::with(['bookings.roomType.destination'])->findOrFail($tripId);
+        $allBookings = $trip->bookings;
+        $totalCount = $allBookings->count();
+        $totalBookingPrice = (float) $allBookings->sum('total_price');
+
+        $affectedItems = [];
+        $hasDates = !empty($newStartDate) && !empty($newEndDate) && $this->validateTripDates($newStartDate, $newEndDate);
+        $newStart = $hasDates ? Carbon::parse($newStartDate)->toDateString() : null;
+        $newEnd = $hasDates ? Carbon::parse($newEndDate)->toDateString() : null;
+
+        foreach ($allBookings as $booking) {
+            $issueType = null;
+            $reason = '';
+
+            // Bỏ qua các đơn đặt phòng đã bị hủy từ trước vì không còn ảnh hưởng nghiệp vụ
+            if ($booking->status === 'cancelled') {
+                continue;
+            }
+
+            // 1. Kiểm tra ảnh hưởng khi thay đổi ngày chuyến đi
+            if ($hasDates && $booking->check_in_date && $booking->check_out_date) {
+                $checkIn = $booking->check_in_date->toDateString();
+                $checkOut = $booking->check_out_date->toDateString();
+
+                if ($checkIn < $newStart && $checkOut > $newEnd) {
+                    $issueType = 'both_outside';
+                    $reason = "Khoảng thời gian lưu trú ({$booking->check_in_date->format('d/m/Y')} - {$booking->check_out_date->format('d/m/Y')}) vượt ra ngoài toàn bộ thời gian mới của chuyến đi (" . Carbon::parse($newStartDate)->format('d/m/Y') . ' - ' . Carbon::parse($newEndDate)->format('d/m/Y') . ').';
+                } elseif ($checkIn < $newStart) {
+                    $issueType = 'before_start';
+                    $reason = "Ngày nhận phòng ({$booking->check_in_date->format('d/m/Y')}) diễn ra trước ngày bắt đầu mới của chuyến đi (" . Carbon::parse($newStartDate)->format('d/m/Y') . ').';
+                } elseif ($checkOut > $newEnd) {
+                    $issueType = 'after_end';
+                    $reason = "Ngày trả phòng ({$booking->check_out_date->format('d/m/Y')}) diễn ra sau ngày kết thúc mới của chuyến đi (" . Carbon::parse($newEndDate)->format('d/m/Y') . ').';
+                }
+            }
+
+            // 2. Kiểm tra ảnh hưởng khi trạng thái chuyến đi chuyển sang Đã hủy
+            if ($newStatus === Trip::STATUS_CANCELLED && $issueType === null) {
+                $issueType = 'trip_cancelled';
+                $reason = 'Chuyến đi chuyển sang trạng thái Đã hủy nhưng đơn đặt phòng vẫn đang hoạt động (cần liên hệ hủy phòng hoặc bảo lưu).';
+            }
+
+            if ($issueType !== null) {
+                $affectedItems[] = [
+                    'id' => $booking->id,
+                    'booking_code' => $booking->booking_code ?? '#BK-' . $booking->id,
+                    'room_type_id' => $booking->room_type_id,
+                    'room_type_name' => $booking->roomType ? $booking->roomType->name : 'Phòng #' . $booking->room_type_id,
+                    'destination_name' => $booking->roomType && $booking->roomType->destination ? $booking->roomType->destination->name : 'Điểm lưu trú',
+                    'check_in_date' => $booking->check_in_date ? $booking->check_in_date->format('Y-m-d') : null,
+                    'check_in_formatted' => $booking->check_in_date ? $booking->check_in_date->format('d/m/Y') : '',
+                    'check_out_date' => $booking->check_out_date ? $booking->check_out_date->format('Y-m-d') : null,
+                    'check_out_formatted' => $booking->check_out_date ? $booking->check_out_date->format('d/m/Y') : '',
+                    'room_count' => (int) $booking->room_count,
+                    'total_price' => (float) $booking->total_price,
+                    'status' => $booking->status,
+                    'status_label' => match ($booking->status) {
+                        'pending' => 'Chờ xử lý',
+                        'confirmed' => 'Đã xác nhận',
+                        'cancelled' => 'Đã hủy',
+                        default => $booking->status,
+                    },
+                    'issue_type' => $issueType,
+                    'reason' => $reason,
+                ];
+            }
+        }
+
+        $affectedBookingPrice = (float) array_sum(array_column($affectedItems, 'total_price'));
+
+        return [
+            'has_affected' => count($affectedItems) > 0,
+            'total_count' => $totalCount,
+            'affected_count' => count($affectedItems),
+            'total_booking_price' => $totalBookingPrice,
+            'affected_booking_price' => $affectedBookingPrice,
+            'items' => $affectedItems,
+        ];
+    }
+
+    /**
+     * Lấy thông tin chi tiết các khoản chi phí và ngân sách bị ảnh hưởng khi thay đổi hạn mức ngân sách hoặc ngày chuyến đi.
+     */
+    public function getAffectedExpenses(int $tripId, ?string $newStartDate, ?string $newEndDate, ?float $newBudget = null): array
+    {
+        $trip = Trip::with(['expenses'])->findOrFail($tripId);
+        $allExpenses = $trip->expenses;
+        $totalExpensesAmount = (float) $allExpenses->sum('amount');
+        $totalExpensesCount = $allExpenses->count();
+        $oldBudget = (float) $trip->budget;
+        $budgetToCheck = $newBudget !== null ? (float) $newBudget : $oldBudget;
+
+        // So sánh tổng chi tiêu thực tế với ngân sách mới
+        $isOverBudget = false;
+        $overBudgetAmount = 0.0;
+        $remainingBudget = 0.0;
+        $budgetUsagePercent = 0.0;
+
+        if ($budgetToCheck > 0) {
+            $budgetUsagePercent = round(($totalExpensesAmount / $budgetToCheck) * 100, 1);
+            if ($totalExpensesAmount > $budgetToCheck) {
+                $isOverBudget = true;
+                $overBudgetAmount = $totalExpensesAmount - $budgetToCheck;
+            } else {
+                $remainingBudget = $budgetToCheck - $totalExpensesAmount;
+            }
+        } elseif ($totalExpensesAmount > 0) {
+            $isOverBudget = true;
+            $overBudgetAmount = $totalExpensesAmount;
+            $budgetUsagePercent = 100.0;
+        }
+
+        // Kiểm tra ngày chi tiêu có nằm ngoài khoảng thời gian mới của chuyến đi hay không
+        $affectedDateItems = [];
+        $hasDates = !empty($newStartDate) && !empty($newEndDate) && $this->validateTripDates($newStartDate, $newEndDate);
+
+        if ($hasDates) {
+            $newStart = Carbon::parse($newStartDate)->toDateString();
+            $newEnd = Carbon::parse($newEndDate)->toDateString();
+
+            foreach ($allExpenses as $expense) {
+                if ($expense->expense_date) {
+                    $expDate = $expense->expense_date->toDateString();
+                    $issueType = null;
+                    $reason = '';
+
+                    if ($expDate < $newStart) {
+                        $issueType = 'before_start';
+                        $reason = "Khoản chi '{$expense->description}' ({$expense->expense_date->format('d/m/Y')}) diễn ra trước ngày bắt đầu mới của chuyến đi (" . Carbon::parse($newStartDate)->format('d/m/Y') . ').';
+                    } elseif ($expDate > $newEnd) {
+                        $issueType = 'after_end';
+                        $reason = "Khoản chi '{$expense->description}' ({$expense->expense_date->format('d/m/Y')}) diễn ra sau ngày kết thúc mới của chuyến đi (" . Carbon::parse($newEndDate)->format('d/m/Y') . ').';
+                    }
+
+                    if ($issueType !== null) {
+                        $affectedDateItems[] = [
+                            'id' => $expense->id,
+                            'category' => $expense->category,
+                            'description' => $expense->description,
+                            'amount' => (float) $expense->amount,
+                            'expense_date' => $expense->expense_date->format('Y-m-d'),
+                            'expense_date_formatted' => $expense->expense_date->format('d/m/Y'),
+                            'issue_type' => $issueType,
+                            'reason' => $reason,
+                        ];
+                    }
+                }
+            }
+        }
+
+        return [
+            'has_affected_dates' => count($affectedDateItems) > 0,
+            'affected_date_count' => count($affectedDateItems),
+            'is_over_budget' => $isOverBudget,
+            'over_budget_amount' => $overBudgetAmount,
+            'total_expenses_amount' => $totalExpensesAmount,
+            'total_expenses_count' => $totalExpensesCount,
+            'old_budget' => $oldBudget,
+            'new_budget' => $budgetToCheck,
+            'remaining_budget' => $remainingBudget,
+            'budget_usage_percent' => $budgetUsagePercent,
+            'affected_date_items' => $affectedDateItems,
+        ];
+    }
+
+    /**
+     * Phân tích tổng thể ảnh hưởng của việc thay đổi chuyến đi đến Chi phí và Booking liên quan (kèm lịch trình phụ thuộc).
+     */
+    public function checkTripChangeImpact(int $tripId, array $newData = []): array
+    {
+        $newStartDate = $newData['start_date'] ?? null;
+        $newEndDate = $newData['end_date'] ?? null;
+        $newBudget = isset($newData['budget']) ? (float) $newData['budget'] : null;
+        $newStatus = $newData['status'] ?? null;
+
+        $bookingsImpact = $this->getAffectedBookings($tripId, $newStartDate, $newEndDate, $newStatus);
+        $expensesImpact = $this->getAffectedExpenses($tripId, $newStartDate, $newEndDate, $newBudget);
+        $itineraryImpact = $this->getAffectedItineraryItems($tripId, $newStartDate, $newEndDate);
+
+        $summaryMessages = [];
+
+        // Thông điệp cảnh báo về Booking
+        if ($bookingsImpact['has_affected']) {
+            $summaryMessages[] = "Có {$bookingsImpact['affected_count']} đơn đặt phòng bị ảnh hưởng bởi thay đổi thời gian hoặc trạng thái chuyến đi.";
+        }
+
+        // Thông điệp cảnh báo về Ngân sách
+        if ($expensesImpact['is_over_budget']) {
+            $summaryMessages[] = 'Ngân sách mới (' . number_format($expensesImpact['new_budget'], 0, ',', '.') . '₫) thấp hơn tổng chi tiêu thực tế (' . number_format($expensesImpact['total_expenses_amount'], 0, ',', '.') . '₫), vượt quá ' . number_format($expensesImpact['over_budget_amount'], 0, ',', '.') . '₫.';
+        }
+
+        // Thông điệp cảnh báo về ngày chi phí
+        if ($expensesImpact['has_affected_dates']) {
+            $summaryMessages[] = "Có {$expensesImpact['affected_date_count']} khoản chi phí phát sinh nằm ngoài khoảng thời gian mới của chuyến đi.";
+        }
+
+        // Thông điệp cảnh báo về Lịch trình
+        if ($itineraryImpact['is_shortened'] && $itineraryImpact['affected_count'] > 0) {
+            $summaryMessages[] = "Có {$itineraryImpact['affected_count']} hoạt động lịch trình sẽ được tự động bảo toàn dời về Ngày {$itineraryImpact['target_day']} do rút ngắn chuyến đi.";
+        }
+
+        $hasImpact = $bookingsImpact['has_affected']
+            || $expensesImpact['is_over_budget']
+            || $expensesImpact['has_affected_dates']
+            || ($itineraryImpact['is_shortened'] && $itineraryImpact['affected_count'] > 0);
+
+        return [
+            'has_impact' => $hasImpact,
+            'has_booking_impact' => $bookingsImpact['has_affected'],
+            'has_expense_impact' => $expensesImpact['is_over_budget'] || $expensesImpact['has_affected_dates'],
+            'has_itinerary_impact' => $itineraryImpact['is_shortened'] && $itineraryImpact['affected_count'] > 0,
+            'bookings' => $bookingsImpact,
+            'expenses' => $expensesImpact,
+            'itinerary' => $itineraryImpact,
+            'summary_messages' => $summaryMessages,
+        ];
     }
 }
 

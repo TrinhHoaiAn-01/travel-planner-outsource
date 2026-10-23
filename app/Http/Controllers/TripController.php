@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateTripRequest;
 use App\Http\Requests\UpdateTripStatusRequest;
 use App\Models\Trip;
 use App\Services\Interfaces\TripServiceInterface;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -91,28 +92,45 @@ class TripController extends Controller
         $summary = $this->tripService->getTripSummary($trip->id);
         $daysList = $this->tripService->getTripDaysList($trip->id);
 
+        // Phân tích trạng thái ảnh hưởng hiện tại đến chi phí và booking liên quan
+        $impact = $this->tripService->checkTripChangeImpact($trip->id, [
+            'start_date' => $trip->start_date ? $trip->start_date->format('Y-m-d') : null,
+            'end_date' => $trip->end_date ? $trip->end_date->format('Y-m-d') : null,
+            'budget' => (float) $trip->budget,
+            'status' => $trip->status,
+        ]);
+
         return view('trips.show', [
             'trip' => $tripDetails,
             'summary' => $summary,
             'daysList' => $daysList,
+            'impact' => $impact,
         ]);
     }
 
     /**
      * Hiển thị màn hình chỉnh sửa thông tin chuyến đi.
-     * Tải kèm các hoạt động lịch trình phụ thuộc để người dùng nắm rõ khi có thay đổi ngày.
+     * Tải kèm các hoạt động lịch trình phụ thuộc, chi phí và đơn đặt phòng để kiểm tra ảnh hưởng.
      */
     public function edit(Trip $trip): View
     {
         Gate::authorize('update', $trip);
 
-        // Nạp trước danh sách hoạt động lịch trình và điểm đến tương ứng
-        $trip->load(['itineraryItems.destination']);
+        // Nạp trước danh sách hoạt động lịch trình, chi phí và đơn đặt phòng liên quan
+        $trip->load(['itineraryItems.destination', 'expenses', 'bookings.roomType.destination']);
+
         $affectedPreview = $this->tripService->getAffectedItineraryItems(
             $trip->id,
             $trip->start_date ? $trip->start_date->format('Y-m-d') : null,
             $trip->end_date ? $trip->end_date->format('Y-m-d') : null
         );
+
+        $initialImpact = $this->tripService->checkTripChangeImpact($trip->id, [
+            'start_date' => $trip->start_date ? $trip->start_date->format('Y-m-d') : null,
+            'end_date' => $trip->end_date ? $trip->end_date->format('Y-m-d') : null,
+            'budget' => (float) $trip->budget,
+            'status' => $trip->status,
+        ]);
 
         $itineraryItemsList = $trip->itineraryItems->map(function ($item) {
             return [
@@ -126,16 +144,55 @@ class TripController extends Controller
             ];
         })->values()->toArray();
 
+        $bookingsList = $trip->bookings->map(function ($booking) {
+            return [
+                'id' => $booking->id,
+                'booking_code' => $booking->booking_code ?? '#BK-' . $booking->id,
+                'destination_name' => $booking->roomType && $booking->roomType->destination ? $booking->roomType->destination->name : 'Điểm lưu trú',
+                'room_type_name' => $booking->roomType ? $booking->roomType->name : 'Phòng #' . $booking->room_type_id,
+                'check_in_date' => $booking->check_in_date ? $booking->check_in_date->format('Y-m-d') : '',
+                'check_in_formatted' => $booking->check_in_date ? $booking->check_in_date->format('d/m/Y') : '',
+                'check_out_date' => $booking->check_out_date ? $booking->check_out_date->format('Y-m-d') : '',
+                'check_out_formatted' => $booking->check_out_date ? $booking->check_out_date->format('d/m/Y') : '',
+                'room_count' => (int) $booking->room_count,
+                'total_price' => (float) $booking->total_price,
+                'status' => $booking->status,
+                'status_label' => match ($booking->status) {
+                    'pending' => 'Chờ xử lý',
+                    'confirmed' => 'Đã xác nhận',
+                    'cancelled' => 'Đã hủy',
+                    default => $booking->status,
+                },
+            ];
+        })->values()->toArray();
+
+        $expensesList = $trip->expenses->map(function ($expense) {
+            return [
+                'id' => $expense->id,
+                'category' => $expense->category,
+                'description' => $expense->description,
+                'amount' => (float) $expense->amount,
+                'expense_date' => $expense->expense_date ? $expense->expense_date->format('Y-m-d') : '',
+                'expense_date_formatted' => $expense->expense_date ? $expense->expense_date->format('d/m/Y') : '',
+            ];
+        })->values()->toArray();
+
+        $totalExpenses = (float) $trip->expenses->sum('amount');
+
         return view('trips.edit', [
             'trip' => $trip,
             'affectedPreview' => $affectedPreview,
             'itineraryItemsList' => $itineraryItemsList,
+            'bookingsList' => $bookingsList,
+            'expensesList' => $expensesList,
+            'totalExpenses' => $totalExpenses,
+            'initialImpact' => $initialImpact,
         ]);
     }
 
     /**
      * Cập nhật thông tin chuyến đi qua Form Request và Service Interface.
-     * Tự động phản hồi thông điệp chi tiết nếu có hoạt động lịch trình được bảo toàn do rút ngắn ngày.
+     * Tự động phản hồi thông điệp chi tiết nếu có hoạt động lịch trình được bảo toàn hoặc ảnh hưởng chi phí, booking.
      */
     public function update(UpdateTripRequest $request, Trip $trip): RedirectResponse
     {
@@ -152,9 +209,38 @@ class TripController extends Controller
             $successMessage = $updatedTrip->dateChangeResult['message'];
         }
 
-        return redirect()
+        $redirect = redirect()
             ->route('trips.show', $trip->id)
             ->with('success', $successMessage);
+
+        // Nếu có cảnh báo ảnh hưởng đến Booking hoặc Chi phí, đính kèm thông báo cảnh báo vào session flash
+        if (isset($updatedTrip->changeImpact) && $updatedTrip->changeImpact['has_impact']) {
+            if (!empty($updatedTrip->changeImpact['summary_messages'])) {
+                $redirect->with('impact_warning', implode(' ', $updatedTrip->changeImpact['summary_messages']));
+            }
+            $redirect->with('impact_details', $updatedTrip->changeImpact);
+        }
+
+        return $redirect;
+    }
+
+    /**
+     * API Endpoint kiểm tra phân tích ảnh hưởng của việc thay đổi Trip đến Chi phí và Booking liên quan theo thời gian thực.
+     */
+    public function checkImpact(Request $request, Trip $trip): JsonResponse
+    {
+        Gate::authorize('update', $trip);
+
+        $data = [
+            'start_date' => $request->input('start_date'),
+            'end_date' => $request->input('end_date'),
+            'budget' => $request->has('budget') && $request->input('budget') !== '' ? (float) $request->input('budget') : null,
+            'status' => $request->input('status'),
+        ];
+
+        $impact = $this->tripService->checkTripChangeImpact($trip->id, $data);
+
+        return response()->json($impact);
     }
 
     /**

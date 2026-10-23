@@ -287,6 +287,68 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Cảnh báo và kiểm tra ảnh hưởng đến Booking liên quan khi thay đổi thời gian hoặc trạng thái chuyến đi -->
+                    <div id="bookingDependencyWarningBox" class="alert alert-danger border border-danger-subtle rounded-4 p-3 mb-4 shadow-sm {{ isset($initialImpact['bookings']['has_affected']) && $initialImpact['bookings']['has_affected'] ? '' : 'd-none' }}" role="alert">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="text-danger fs-3 mt-1">
+                                <i class="bi bi-building-exclamation"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
+                                    <h6 class="fw-bold text-dark mb-0">
+                                        <i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>
+                                        Cảnh báo: Có đơn đặt phòng (Booking) liên quan bị ảnh hưởng bởi thay đổi này
+                                    </h6>
+                                    <span class="badge bg-danger text-white px-3 py-1 rounded-pill fw-semibold" id="affectedBookingsBadge">
+                                        <span id="affectedBookingsCountText">{{ $initialImpact['bookings']['affected_count'] ?? 0 }}</span> đơn đặt phòng
+                                    </span>
+                                </div>
+                                <p class="small text-secondary mb-2" id="affectedBookingsNoticeText">
+                                    Khoảng thời gian lưu trú của một số đơn đặt phòng đã liên kết với chuyến đi này không còn nằm trọn vẹn trong khoảng thời gian mới của chuyến đi hoặc bị ảnh hưởng do trạng thái chuyến đi thay đổi.
+                                </p>
+                                <div class="bg-white rounded-3 p-3 border border-danger-subtle small shadow-sm" id="affectedBookingsListContainer">
+                                    <div class="fw-semibold text-danger mb-2 small text-uppercase">
+                                        <i class="bi bi-list-check me-1"></i> Danh sách đơn đặt phòng bị ảnh hưởng:
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover align-middle mb-0 small">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Mã đơn</th>
+                                                    <th>Nơi lưu trú & Hạng phòng</th>
+                                                    <th>Thời gian đặt</th>
+                                                    <th>Tổng tiền</th>
+                                                    <th>Lý do ảnh hưởng</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="affectedBookingsTableBody">
+                                                @if(isset($initialImpact['bookings']['items']) && count($initialImpact['bookings']['items']) > 0)
+                                                    @foreach($initialImpact['bookings']['items'] as $affectedBooking)
+                                                        <tr>
+                                                            <td><span class="badge bg-light text-dark border fw-bold">{{ $affectedBooking['booking_code'] }}</span></td>
+                                                            <td>
+                                                                <div class="fw-semibold text-dark">{{ $affectedBooking['destination_name'] }}</div>
+                                                                <div class="text-muted small">{{ $affectedBooking['room_type_name'] }} (x{{ $affectedBooking['room_count'] }} phòng)</div>
+                                                            </td>
+                                                            <td>
+                                                                <span class="text-dark">{{ $affectedBooking['check_in_formatted'] }}</span> — <span class="text-dark">{{ $affectedBooking['check_out_formatted'] }}</span>
+                                                            </td>
+                                                            <td class="fw-bold text-primary">{{ number_format($affectedBooking['total_price'], 0, ',', '.') }}₫</td>
+                                                            <td><span class="badge bg-danger-subtle text-danger border border-danger-subtle">{{ $affectedBooking['reason'] }}</span></td>
+                                                        </tr>
+                                                    @endforeach
+                                                @endif
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="text-muted small mt-2 pt-2 border-top">
+                                        <i class="bi bi-info-circle me-1 text-primary"></i><strong>Gợi ý:</strong> Bạn nên điều chỉnh lại ngày đặt phòng trong mục <a href="{{ route('bookings.index') }}" class="text-decoration-none fw-semibold">Quản lý đặt phòng</a> hoặc liên hệ cơ sở lưu trú để đổi lịch trước khi xác nhận.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <!-- Ngân sách dự kiến & Trạng thái -->
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
@@ -309,11 +371,66 @@
                                     <option value="ongoing" {{ old('status', $trip->status) === 'ongoing' ? 'selected' : '' }}>Đang diễn ra</option>
                                     <option value="completed" {{ old('status', $trip->status) === 'completed' ? 'selected' : '' }}>Đã hoàn thành</option>
                                     <option value="draft" {{ old('status', $trip->status) === 'draft' ? 'selected' : '' }}>Bản nháp</option>
+                                    <option value="cancelled" {{ old('status', $trip->status) === 'cancelled' ? 'selected' : '' }}>Đã hủy</option>
                                 </select>
                             </div>
                             @error('status')
                                 <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
+                        </div>
+                    </div>
+
+                    <!-- Cảnh báo và kiểm tra ảnh hưởng đến Chi phí & Ngân sách chuyến đi -->
+                    <div id="expenseDependencyWarningBox" class="alert alert-warning border border-warning-subtle rounded-4 p-3 mb-4 shadow-sm {{ (isset($initialImpact['expenses']['is_over_budget']) && $initialImpact['expenses']['is_over_budget']) || (isset($initialImpact['expenses']['has_affected_dates']) && $initialImpact['expenses']['has_affected_dates']) ? '' : 'd-none' }}" role="alert">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="text-warning-emphasis fs-3 mt-1">
+                                <i class="bi bi-cash-coin"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
+                                    <h6 class="fw-bold text-dark mb-0">
+                                        <i class="bi bi-wallet2 text-warning me-1"></i>
+                                        Lưu ý: Ảnh hưởng đến Chi phí & Ngân sách chuyến đi
+                                    </h6>
+                                    <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-semibold" id="affectedExpensesBadge">
+                                        Kiểm tra chi phí
+                                    </span>
+                                </div>
+
+                                <!-- Khối cảnh báo vượt ngân sách -->
+                                <div id="overBudgetWarningBlock" class="mb-3 {{ isset($initialImpact['expenses']['is_over_budget']) && $initialImpact['expenses']['is_over_budget'] ? '' : 'd-none' }}">
+                                    <p class="small text-danger fw-semibold mb-2" id="overBudgetMessageText">
+                                        Tổng chi phí thực tế đã ghi nhận (<span id="totalExpensesDisplay">{{ number_format($totalExpenses ?? 0, 0, ',', '.') }}₫</span>) đang vượt hạn mức ngân sách mới (<span id="newBudgetDisplay">{{ number_format($trip->budget, 0, ',', '.') }}₫</span>) một khoản <span id="overBudgetAmountDisplay" class="fw-bold text-danger">{{ number_format($initialImpact['expenses']['over_budget_amount'] ?? 0, 0, ',', '.') }}₫</span>.
+                                    </p>
+                                    <div class="progress mb-2 rounded-pill" style="height: 10px;">
+                                        <div class="progress-bar bg-danger progress-bar-striped progress-bar-animated" role="progressbar" id="budgetProgressBar" style="width: {{ min(100, $initialImpact['expenses']['budget_usage_percent'] ?? 100) }}%"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between small text-muted">
+                                        <span>Đã chi: <strong class="text-dark" id="budgetSpentText">{{ number_format($totalExpenses ?? 0, 0, ',', '.') }}₫</strong></span>
+                                        <span>Hạn mức mới: <strong class="text-primary" id="budgetLimitText">{{ number_format($trip->budget, 0, ',', '.') }}₫</strong></span>
+                                    </div>
+                                </div>
+
+                                <!-- Khối cảnh báo khoản chi ngoài thời gian chuyến đi -->
+                                <div id="expenseDateWarningBlock" class="{{ isset($initialImpact['expenses']['has_affected_dates']) && $initialImpact['expenses']['has_affected_dates'] ? '' : 'd-none' }}">
+                                    <div class="bg-white rounded-3 p-3 border border-warning-subtle small shadow-sm">
+                                        <div class="fw-semibold text-warning-emphasis mb-2 small text-uppercase">
+                                            <i class="bi bi-calendar-x me-1"></i> Các khoản chi phí nằm ngoài thời gian mới của chuyến đi:
+                                        </div>
+                                        <ul class="mb-0 ps-3 small text-dark" id="affectedExpensesList">
+                                            @if(isset($initialImpact['expenses']['affected_date_items']) && count($initialImpact['expenses']['affected_date_items']) > 0)
+                                                @foreach($initialImpact['expenses']['affected_date_items'] as $affectedExpense)
+                                                    <li class="mb-1">
+                                                        <span class="badge bg-secondary me-1">{{ $affectedExpense['category'] }}</span>
+                                                        <strong>{{ $affectedExpense['description'] }}</strong>: {{ number_format($affectedExpense['amount'], 0, ',', '.') }}₫
+                                                        <span class="text-danger ms-1">({{ $affectedExpense['reason'] }})</span>
+                                                    </li>
+                                                @endforeach
+                                            @endif
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -487,6 +604,13 @@
         const tripItineraryItems = {!! json_encode($itineraryItemsList ?? [], JSON_UNESCAPED_UNICODE) !!};
         const originalTotalDays = {{ (int) $trip->total_days }};
 
+        // Dữ liệu đặt phòng và chi phí liên quan của chuyến đi
+        const tripBookingsList = {!! json_encode($bookingsList ?? [], JSON_UNESCAPED_UNICODE) !!};
+        const tripExpensesList = {!! json_encode($expensesList ?? [], JSON_UNESCAPED_UNICODE) !!};
+        const tripTotalExpenses = {{ (float) ($totalExpenses ?? 0) }};
+        const tripCheckImpactUrl = "{{ route('trips.check-impact', $trip->id) }}";
+        const csrfToken = "{{ csrf_token() }}";
+
         // Hàm kiểm tra các hoạt động lịch trình bị ảnh hưởng khi rút ngắn chuyến đi
         function checkItineraryDependencies(newDays) {
             const warningBox = document.getElementById('itineraryDependencyWarningBox');
@@ -516,9 +640,186 @@
             // Nếu không bị rút ngắn hoặc không có hoạt động phụ thuộc nào bị thừa ngày
             warningBox.classList.add('d-none');
         }
+
+        // Hàm kiểm tra và cảnh báo các đơn đặt phòng (Booking) liên quan bị ảnh hưởng thời gian thực
+        function checkBookingDependencies(startVal, endVal, statusVal) {
+            const warningBox = document.getElementById('bookingDependencyWarningBox');
+            const countBadge = document.getElementById('affectedBookingsCountText');
+            const tableBody = document.getElementById('affectedBookingsTableBody');
+
+            if (!warningBox || !tableBody) return;
+
+            if (!tripBookingsList || tripBookingsList.length === 0) {
+                warningBox.classList.add('d-none');
+                return;
+            }
+
+            const affected = [];
+
+            tripBookingsList.forEach(function (booking) {
+                if (booking.status === 'cancelled') return;
+
+                let issueType = null;
+                let reason = '';
+
+                if (startVal && endVal && booking.check_in_date && booking.check_out_date) {
+                    if (booking.check_in_date < startVal && booking.check_out_date > endVal) {
+                        issueType = 'both_outside';
+                        reason = `Thời gian đặt (${formatDisplayDate(booking.check_in_date)} - ${formatDisplayDate(booking.check_out_date)}) nằm ngoài toàn bộ chuyến đi mới (${formatDisplayDate(startVal)} - ${formatDisplayDate(endVal)}).`;
+                    } else if (booking.check_in_date < startVal) {
+                        issueType = 'before_start';
+                        reason = `Nhận phòng (${formatDisplayDate(booking.check_in_date)}) trước ngày bắt đầu mới (${formatDisplayDate(startVal)}).`;
+                    } else if (booking.check_out_date > endVal) {
+                        issueType = 'after_end';
+                        reason = `Trả phòng (${formatDisplayDate(booking.check_out_date)}) sau ngày kết thúc mới (${formatDisplayDate(endVal)}).`;
+                    }
+                }
+
+                if (statusVal === 'cancelled' && !issueType) {
+                    issueType = 'trip_cancelled';
+                    reason = 'Chuyến đi chuyển sang Đã hủy nhưng đơn phòng vẫn đang hoạt động.';
+                }
+
+                if (issueType) {
+                    affected.push({
+                        booking: booking,
+                        reason: reason
+                    });
+                }
+            });
+
+            if (affected.length > 0) {
+                warningBox.classList.remove('d-none');
+                if (countBadge) countBadge.textContent = affected.length;
+                tableBody.innerHTML = affected.map(function (item) {
+                    const b = item.booking;
+                    return `<tr>
+                        <td><span class="badge bg-light text-dark border fw-bold">${b.booking_code}</span></td>
+                        <td>
+                            <div class="fw-semibold text-dark">${b.destination_name}</div>
+                            <div class="text-muted small">${b.room_type_name} (x${b.room_count} phòng)</div>
+                        </td>
+                        <td><span class="text-dark">${b.check_in_formatted}</span> — <span class="text-dark">${b.check_out_formatted}</span></td>
+                        <td class="fw-bold text-primary">${new Intl.NumberFormat('vi-VN').format(b.total_price)}₫</td>
+                        <td><span class="badge bg-danger-subtle text-danger border border-danger-subtle">${item.reason}</span></td>
+                    </tr>`;
+                }).join('');
+            } else {
+                warningBox.classList.add('d-none');
+            }
+        }
+
+        // Hàm kiểm tra và cảnh báo ảnh hưởng đến Chi phí & Ngân sách thời gian thực
+        function checkExpenseDependencies(startVal, endVal, budgetVal) {
+            const warningBox = document.getElementById('expenseDependencyWarningBox');
+            const overBudgetBlock = document.getElementById('overBudgetWarningBlock');
+            const expenseDateBlock = document.getElementById('expenseDateWarningBlock');
+            const affectedExpensesList = document.getElementById('affectedExpensesList');
+
+            if (!warningBox) return;
+
+            let hasOverBudget = false;
+            let hasDateIssue = false;
+
+            // 1. Kiểm tra ngân sách dự kiến so với tổng chi phí thực tế đã ghi nhận
+            const budgetNum = Number(budgetVal);
+            if (!isNaN(budgetNum) && budgetNum >= 0 && tripTotalExpenses > 0) {
+                if (tripTotalExpenses > budgetNum) {
+                    hasOverBudget = true;
+                    const overAmount = tripTotalExpenses - budgetNum;
+                    const percent = budgetNum > 0 ? Math.round((tripTotalExpenses / budgetNum) * 100) : 100;
+
+                    const totalEl = document.getElementById('totalExpensesDisplay');
+                    const newBudEl = document.getElementById('newBudgetDisplay');
+                    const overEl = document.getElementById('overBudgetAmountDisplay');
+                    const progressEl = document.getElementById('budgetProgressBar');
+                    const spentEl = document.getElementById('budgetSpentText');
+                    const limitEl = document.getElementById('budgetLimitText');
+
+                    if (totalEl) totalEl.textContent = new Intl.NumberFormat('vi-VN').format(tripTotalExpenses) + '₫';
+                    if (newBudEl) newBudEl.textContent = new Intl.NumberFormat('vi-VN').format(budgetNum) + '₫';
+                    if (overEl) overEl.textContent = new Intl.NumberFormat('vi-VN').format(overAmount) + '₫';
+                    if (progressEl) progressEl.style.width = Math.min(100, percent) + '%';
+                    if (spentEl) spentEl.textContent = new Intl.NumberFormat('vi-VN').format(tripTotalExpenses) + '₫';
+                    if (limitEl) limitEl.textContent = new Intl.NumberFormat('vi-VN').format(budgetNum) + '₫';
+
+                    if (overBudgetBlock) overBudgetBlock.classList.remove('d-none');
+                } else {
+                    if (overBudgetBlock) overBudgetBlock.classList.add('d-none');
+                }
+            } else {
+                if (overBudgetBlock) overBudgetBlock.classList.add('d-none');
+            }
+
+            // 2. Kiểm tra các khoản chi có ngày nằm ngoài thời gian mới của chuyến đi
+            if (startVal && endVal && tripExpensesList && tripExpensesList.length > 0) {
+                const affectedExpenses = [];
+                tripExpensesList.forEach(function (exp) {
+                    if (exp.expense_date) {
+                        let reason = '';
+                        if (exp.expense_date < startVal) {
+                            reason = `Ngày chi (${exp.expense_date_formatted}) trước ngày bắt đầu mới (${formatDisplayDate(startVal)})`;
+                        } else if (exp.expense_date > endVal) {
+                            reason = `Ngày chi (${exp.expense_date_formatted}) sau ngày kết thúc mới (${formatDisplayDate(endVal)})`;
+                        }
+
+                        if (reason) {
+                            affectedExpenses.push({
+                                expense: exp,
+                                reason: reason
+                            });
+                        }
+                    }
+                });
+
+                if (affectedExpenses.length > 0) {
+                    hasDateIssue = true;
+                    if (expenseDateBlock) expenseDateBlock.classList.remove('d-none');
+                    if (affectedExpensesList) {
+                        affectedExpensesList.innerHTML = affectedExpenses.map(function (item) {
+                            return `<li class="mb-1">
+                                <span class="badge bg-secondary me-1">${item.expense.category}</span>
+                                <strong>${item.expense.description}</strong>: ${new Intl.NumberFormat('vi-VN').format(item.expense.amount)}₫
+                                <span class="text-danger ms-1">(${item.reason})</span>
+                            </li>`;
+                        }).join('');
+                    }
+                } else {
+                    if (expenseDateBlock) expenseDateBlock.classList.add('d-none');
+                }
+            } else {
+                if (expenseDateBlock) expenseDateBlock.classList.add('d-none');
+            }
+
+            // Hiển thị hoặc ẩn hộp cảnh báo chi phí tổng
+            if (hasOverBudget || hasDateIssue) {
+                warningBox.classList.remove('d-none');
+            } else {
+                warningBox.classList.add('d-none');
+            }
+        }
+
+        // Hàm tổng hợp kích hoạt kiểm tra toàn bộ ảnh hưởng
+        function checkAllTripImpacts() {
+            const startInput = document.getElementById('startDate');
+            const endInput = document.getElementById('endDate');
+            const budgetInput = document.getElementById('estimatedBudget');
+            const statusInput = document.getElementById('tripStatus');
+
+            const startVal = startInput ? startInput.value : '';
+            const endVal = endInput ? endInput.value : '';
+            const budgetVal = budgetInput ? budgetInput.value : '';
+            const statusVal = statusInput ? statusInput.value : '';
+
+            checkBookingDependencies(startVal, endVal, statusVal);
+            checkExpenseDependencies(startVal, endVal, budgetVal);
+        }
+
         // Tương thích với onchange trên input
         function validateDates() {
-            return validateAndCalculateDates();
+            const isValid = validateAndCalculateDates();
+            checkAllTripImpacts();
+            return isValid;
         }
 
         // Xử lý kiểm tra các trường nhập liệu không hợp lệ phía Client
@@ -533,18 +834,41 @@
             const startInput = document.getElementById('startDate');
             const endInput = document.getElementById('endDate');
 
+            const budgetInput = document.getElementById('estimatedBudget');
+            const statusInput = document.getElementById('tripStatus');
+
             // Lắng nghe sự kiện thay đổi ngày
             if (startInput) {
-                startInput.addEventListener('input', validateAndCalculateDates);
-                startInput.addEventListener('change', validateAndCalculateDates);
+                startInput.addEventListener('input', function() {
+                    validateAndCalculateDates();
+                    checkAllTripImpacts();
+                });
+                startInput.addEventListener('change', function() {
+                    validateAndCalculateDates();
+                    checkAllTripImpacts();
+                });
             }
             if (endInput) {
-                endInput.addEventListener('input', validateAndCalculateDates);
-                endInput.addEventListener('change', validateAndCalculateDates);
+                endInput.addEventListener('input', function() {
+                    validateAndCalculateDates();
+                    checkAllTripImpacts();
+                });
+                endInput.addEventListener('change', function() {
+                    validateAndCalculateDates();
+                    checkAllTripImpacts();
+                });
+            }
+            if (budgetInput) {
+                budgetInput.addEventListener('input', checkAllTripImpacts);
+                budgetInput.addEventListener('change', checkAllTripImpacts);
+            }
+            if (statusInput) {
+                statusInput.addEventListener('change', checkAllTripImpacts);
             }
 
-            // Tính toán thời lượng ban đầu
+            // Tính toán thời lượng ban đầu và kiểm tra ảnh hưởng ban đầu
             validateAndCalculateDates();
+            checkAllTripImpacts();
 
             let validationModal = null;
             if (validationModalElement && typeof bootstrap !== 'undefined') {

@@ -168,6 +168,14 @@ class Trip extends Model
     }
 
     /**
+     * Mối quan hệ một - nhiều với đơn đặt phòng (Booking) thuộc chuyến đi này.
+     */
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    /**
      * Kiểm tra xem chuyến đi có phải là bản nháp hay không.
      */
     public function isDraft(): bool

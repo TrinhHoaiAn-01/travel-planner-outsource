@@ -146,5 +146,36 @@ interface TripServiceInterface
      * @return array Mảng chứa danh sách các ngày với day_number, date, formatted_date, day_name, label
      */
     public function getTripDaysList(int $tripId): array;
+
+    /**
+     * Lấy thông tin chi tiết các đơn đặt phòng (Booking) liên quan bị ảnh hưởng khi thay đổi ngày hoặc trạng thái chuyến đi.
+     *
+     * @param int $tripId Mã định danh chuyến đi
+     * @param string|null $newStartDate Ngày bắt đầu mới
+     * @param string|null $newEndDate Ngày kết thúc mới
+     * @param string|null $newStatus Trạng thái mới (ví dụ: cancelled)
+     * @return array Mảng chứa: has_affected, total_count, affected_count, total_booking_price, affected_booking_price, items
+     */
+    public function getAffectedBookings(int $tripId, ?string $newStartDate, ?string $newEndDate, ?string $newStatus = null): array;
+
+    /**
+     * Lấy thông tin chi tiết các khoản chi phí và ngân sách bị ảnh hưởng khi thay đổi hạn mức ngân sách hoặc ngày chuyến đi.
+     *
+     * @param int $tripId Mã định danh chuyến đi
+     * @param string|null $newStartDate Ngày bắt đầu mới
+     * @param string|null $newEndDate Ngày kết thúc mới
+     * @param float|null $newBudget Ngân sách mới dự kiến
+     * @return array Mảng chứa: has_affected_dates, affected_date_count, is_over_budget, over_budget_amount, total_expenses_amount, total_expenses_count, old_budget, new_budget, remaining_budget, budget_usage_percent, affected_date_items
+     */
+    public function getAffectedExpenses(int $tripId, ?string $newStartDate, ?string $newEndDate, ?float $newBudget = null): array;
+
+    /**
+     * Phân tích tổng thể ảnh hưởng của việc thay đổi chuyến đi đến Chi phí và Booking liên quan (kèm lịch trình phụ thuộc).
+     *
+     * @param int $tripId Mã định danh chuyến đi
+     * @param array $newData Mảng dữ liệu mới dự kiến cập nhật: start_date, end_date, budget, status
+     * @return array Mảng chi tiết kết quả phân tích: has_impact, has_booking_impact, has_expense_impact, has_itinerary_impact, bookings, expenses, itinerary, summary_messages
+     */
+    public function checkTripChangeImpact(int $tripId, array $newData = []): array;
 }
 

@@ -76,6 +76,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::delete('/trips/{trip}', [TripController::class, 'destroy'])->name('trips.destroy');
     Route::post('/trips/{trip}/clone', [TripController::class, 'clone'])->name('trips.clone');
     Route::post('/trips/{trip}/reopen', [TripController::class, 'reopen'])->name('trips.reopen');
+    Route::post('/trips/{trip}/check-impact', [TripController::class, 'checkImpact'])->name('trips.check-impact');
 
     // Quản lý danh sách địa điểm yêu thích (Favorites - Bảng 20 Báo cáo Đồ án) & Thêm vào Trip
     Route::get('/favorites', [\App\Http\Controllers\FavoriteController::class, 'index'])->name('favorites.index');

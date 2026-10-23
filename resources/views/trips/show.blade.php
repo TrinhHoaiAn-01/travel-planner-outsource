@@ -348,6 +348,64 @@
                 </div>
             @endif
 
+            <!-- Cảnh báo ảnh hưởng đến Chi phí và Booking liên quan sau khi cập nhật chuyến đi -->
+            @if(session('impact_warning'))
+                <div class="alert alert-warning alert-dismissible fade show rounded-4 mb-4 shadow-sm border border-warning-subtle" role="alert" id="tripImpactWarningAlert">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-exclamation-diamond-fill fs-5 text-warning"></i>
+                        <strong class="fw-bold text-dark">Lưu ý về các dịch vụ và chi phí bị ảnh hưởng:</strong>
+                    </div>
+                    <div class="small text-dark mb-2">
+                        {!! nl2br(e(session('impact_warning'))) !!}
+                    </div>
+                    @if(session('impact_details'))
+                        @php $impactDetails = session('impact_details'); @endphp
+                        @if(!empty($impactDetails['affected_bookings']))
+                            <div class="mt-2 p-3 bg-white rounded-3 border border-warning-subtle shadow-xs">
+                                <strong class="small text-warning-emphasis d-flex align-items-center gap-1 mb-2">
+                                    <i class="bi bi-building"></i> Danh sách Đơn đặt phòng (Booking) cần điều chỉnh lại ngày hoặc hủy:
+                                </strong>
+                                <ul class="small mb-0 ps-3 text-secondary">
+                                    @foreach($impactDetails['affected_bookings'] as $bItem)
+                                        <li class="mb-1">
+                                            <span class="fw-semibold text-dark">{{ $bItem['hotel_name'] ?? 'Khách sạn' }}</span> (Mã #{{ $bItem['id'] }}):
+                                            {{ $bItem['message'] ?? '' }}
+                                            <a href="{{ route('bookings.index') }}" class="ms-1 text-primary text-decoration-none fw-medium"><i class="bi bi-box-arrow-up-right me-1"></i>Xem Booking</a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+                        @if(!empty($impactDetails['affected_expenses']))
+                            @php $expImpact = $impactDetails['affected_expenses']; @endphp
+                            <div class="mt-2 p-3 bg-white rounded-3 border border-warning-subtle shadow-xs">
+                                <strong class="small text-warning-emphasis d-flex align-items-center gap-1 mb-2">
+                                    <i class="bi bi-wallet2"></i> Chi phí và Ngân sách chuyến đi:
+                                </strong>
+                                <p class="small mb-2 text-dark">{{ $expImpact['summary'] ?? '' }}</p>
+                                @if(!empty($expImpact['out_of_range_expenses']))
+                                    <span class="small fw-semibold text-muted d-block mb-1">Các khoản chi tiêu ngoài khung thời gian chuyến đi:</span>
+                                    <ul class="small mb-0 ps-3 text-secondary">
+                                        @foreach($expImpact['out_of_range_expenses'] as $outExp)
+                                            <li>
+                                                <span class="fw-semibold text-dark">{{ $outExp['title'] }}</span> ({{ number_format($outExp['amount'], 0, ',', '.') }} VNĐ) vào ngày {{ \Carbon\Carbon::parse($outExp['expense_date'])->format('d/m/Y') }}:
+                                                <span class="text-danger">{{ $outExp['conflict_type'] }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                @endif
+                            </div>
+                        @endif
+                    @endif
+                    <div class="d-flex justify-content-end mt-3">
+                        <button type="button" class="btn btn-warning btn-sm px-4 fw-semibold rounded-pill shadow-sm" data-bs-dismiss="alert">
+                            Đã hiểu
+                        </button>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
             <!-- Thông báo lỗi xác thực từ máy chủ kèm nút OK (Chỉ hiển thị khi có lỗi) -->
             @if($errors->any())
                 <div class="alert alert-danger alert-dismissible fade show rounded-4 mb-4 shadow-sm border border-danger-subtle" role="alert" id="serverValidationAlert">
