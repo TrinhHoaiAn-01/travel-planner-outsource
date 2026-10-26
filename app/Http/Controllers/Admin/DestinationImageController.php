@@ -89,10 +89,13 @@ class DestinationImageController extends Controller
      */
     public function setPrimary(int $id): RedirectResponse
     {
+        $image = \App\Models\DestinationImage::find($id);
         $this->destinationImageService->setPrimaryImage($id);
 
+        $destinationId = $image?->destination_id;
+
         return redirect()
-            ->back()
+            ->route('admin.destination-images.index', array_filter(['destination_id' => $destinationId]))
             ->with('success', 'Đã cập nhật ảnh đại diện chính thành công.');
     }
 

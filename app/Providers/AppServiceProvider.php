@@ -55,6 +55,34 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\Interfaces\CityManagementServiceInterface::class,
             \App\Services\CityManagementService::class
         );
+
+        // Ràng buộc CategoryManagementServiceInterface & CategoryServiceInterface với CategoryManagementService (Trần Văn Trọng)
+        $this->app->bind(
+            \App\Services\Interfaces\CategoryManagementServiceInterface::class,
+            \App\Services\CategoryManagementService::class
+        );
+        $this->app->bind(
+            \App\Services\Interfaces\CategoryServiceInterface::class,
+            \App\Services\CategoryManagementService::class
+        );
+
+        // Ràng buộc UserManagementServiceInterface với triển khai cụ thể UserManagementService (Trần Văn Trọng)
+        $this->app->bind(
+            \App\Services\Interfaces\UserManagementServiceInterface::class,
+            \App\Services\UserManagementService::class
+        );
+
+        // Ràng buộc DestinationManagementServiceInterface với DestinationManagementService (Trần Văn Trọng)
+        $this->app->bind(
+            \App\Services\Interfaces\DestinationManagementServiceInterface::class,
+            \App\Services\DestinationManagementService::class
+        );
+
+        // Ràng buộc DestinationImageServiceInterface với DestinationImageService (Trần Văn Trọng)
+        $this->app->bind(
+            \App\Services\Interfaces\DestinationImageServiceInterface::class,
+            \App\Services\DestinationImageService::class
+        );
     }
 
     /**
@@ -62,10 +90,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Cấu hình độ dài chuỗi mặc định cho Schema
         Schema::defaultStringLength(191);
 
-        // Sử dụng view phân trang tùy biến độc lập CSS để tránh lỗi vỡ giao diện mặc định Tailwind
+        // Thiết lập view phân trang mặc định dùng CSS tự xây dựng, tránh lỗi Tailwind mặc định
         Paginator::defaultView('vendor.pagination.default');
     }
 }

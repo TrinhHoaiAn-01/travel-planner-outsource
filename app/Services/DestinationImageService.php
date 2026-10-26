@@ -136,7 +136,7 @@ class DestinationImageService implements DestinationImageServiceInterface
      */
     public function getDestinationsList(): Collection
     {
-        return Destination::with('city')
+        return Destination::with(['city', 'primaryImage', 'category'])
             ->orderBy('name', 'asc')
             ->get();
     }
