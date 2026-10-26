@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
@@ -89,7 +90,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
         Schema::defaultStringLength(191);
+
+        // Thiết lập view phân trang mặc định dùng CSS tự xây dựng, tránh lỗi Tailwind mặc định
+        Paginator::defaultView('vendor.pagination.default');
     }
 }

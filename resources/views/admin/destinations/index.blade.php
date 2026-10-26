@@ -599,6 +599,29 @@
     .btn-danger-confirm:hover {
         background-color: #B91C1C;
     }
+
+    /* Khối phân trang */
+    .dest-pagination-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 24px;
+        background-color: #FFFFFF;
+        border-top: 1px solid #F1F5F9;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .dest-pagination-info {
+        font-size: 13.5px;
+        color: #64748B;
+        font-weight: 500;
+    }
+
+    .dest-pagination-info strong {
+        color: #0F172A;
+        font-weight: 700;
+    }
 </style>
 @endpush
 
@@ -710,7 +733,12 @@
             <tbody>
                 @forelse($destinations as $destination)
                 @php
-                    $primaryImg = $destination->primaryImage?->image_path ?? $destination->images->first()?->image_path;
+                    $primaryImg = $destination->primaryImage?->image_path 
+                        ?? $destination->images->firstWhere('is_primary', true)?->image_path 
+                        ?? $destination->images->first()?->image_path;
+                    if (!empty($primaryImg) && !str_starts_with($primaryImg, 'http') && !str_starts_with($primaryImg, '/')) {
+                        $primaryImg = '/' . $primaryImg;
+                    }
                     $destCode = sprintf('#DST-%03d', $destination->id);
                     $categoryName = $destination->category?->name ?? 'Khác';
 
@@ -825,19 +853,19 @@
                 @endforelse
             </tbody>
         </table>
-    </div>
 
-    <!-- Phân trang -->
-    @if($destinations->hasPages())
-    <div class="dest-pagination-wrap">
-        <div style="font-size: 13px; color: #64748B;">
-            Hiển thị {{ $destinations->firstItem() ?? 0 }} - {{ $destinations->lastItem() ?? 0 }} trong tổng số {{ $destinations->total() }} địa điểm
+        <!-- Phân trang -->
+        @if($destinations->hasPages())
+        <div class="dest-pagination-wrap">
+            <div class="dest-pagination-info">
+                Hiển thị <strong>{{ $destinations->firstItem() }}–{{ $destinations->lastItem() }}</strong> trong tổng số <strong>{{ $destinations->total() }}</strong> địa điểm
+            </div>
+            <div class="dest-pagination-controls">
+                {{ $destinations->links() }}
+            </div>
         </div>
-        <div>
-            {{ $destinations->links() }}
-        </div>
+        @endif
     </div>
-    @endif
 </div>
 
 <!-- ================= MODAL 1: THÊM ĐỊA ĐIỂM MỚI ================= -->

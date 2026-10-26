@@ -310,4 +310,30 @@ class DestinationManagementTest extends TestCase
         // Bản ghi vẫn tồn tại trong Database
         $this->assertDatabaseHas('destinations', ['id' => $dest->id]);
     }
+
+    /**
+     * Kiểm tra giao diện phân trang địa điểm du lịch hiển thị đẹp mắt, đầy đủ thống kê và điều hướng chính xác.
+     */
+    public function test_admin_destinations_pagination_renders_cleanly_and_navigates_correctly(): void
+    {
+        $this->seed(AdminDestinationDemoSeeder::class);
+
+        // Trang 1: 10 địa điểm đầu tiên
+        $responsePage1 = $this->actingAs($this->admin)->get(route('admin.destinations.index'));
+        $responsePage1->assertOk();
+        $responsePage1->assertSee('dest-pagination-wrap');
+        $responsePage1->assertSee('custom-pagination-list');
+        $responsePage1->assertSee('Hiển thị');
+        $responsePage1->assertSee('trong tổng số');
+        $responsePage1->assertSee('địa điểm');
+        $responsePage1->assertSee('<strong>12</strong>', false);
+        $responsePage1->assertSee('page=2');
+
+        // Trang 2: 2 địa điểm còn lại
+        $responsePage2 = $this->actingAs($this->admin)->get(route('admin.destinations.index', ['page' => 2]));
+        $responsePage2->assertOk();
+        $responsePage2->assertSee('dest-pagination-wrap');
+        $responsePage2->assertSee('<strong>12</strong>', false);
+        $responsePage2->assertSee('Chùa Cầu &amp; Làng Gốm Thanh Hà', false);
+    }
 }
