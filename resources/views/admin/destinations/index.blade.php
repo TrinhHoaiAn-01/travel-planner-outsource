@@ -429,6 +429,18 @@
         align-items: center;
         justify-content: space-between;
         background-color: #FFFFFF;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .dest-pagination-info {
+        font-size: 13.5px;
+        color: #64748B;
+    }
+
+    .dest-pagination-info strong {
+        color: #0F172A;
+        font-weight: 600;
     }
 
     /* Modal Styling */
@@ -825,19 +837,19 @@
                 @endforelse
             </tbody>
         </table>
-    </div>
 
-    <!-- Phân trang -->
-    @if($destinations->hasPages())
-    <div class="dest-pagination-wrap">
-        <div style="font-size: 13px; color: #64748B;">
-            Hiển thị {{ $destinations->firstItem() ?? 0 }} - {{ $destinations->lastItem() ?? 0 }} trong tổng số {{ $destinations->total() }} địa điểm
+        <!-- Phân trang -->
+        @if($destinations->hasPages())
+        <div class="dest-pagination-wrap">
+            <div class="dest-pagination-info">
+                Hiển thị <strong>{{ $destinations->firstItem() }}–{{ $destinations->lastItem() }}</strong> trong tổng số <strong>{{ $destinations->total() }}</strong> địa điểm
+            </div>
+            <div class="dest-pagination-controls">
+                {{ $destinations->links() }}
+            </div>
         </div>
-        <div>
-            {{ $destinations->links() }}
-        </div>
+        @endif
     </div>
-    @endif
 </div>
 
 <!-- ================= MODAL 1: THÊM ĐỊA ĐIỂM MỚI ================= -->
