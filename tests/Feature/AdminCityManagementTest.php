@@ -213,4 +213,25 @@ class AdminCityManagementTest extends TestCase
         $response->assertSessionHas('success');
         $this->assertDatabaseMissing('cities', ['id' => $city->id]);
     }
+
+    /**
+     * Kiểm thử phân trang hiển thị chuẩn 10 bản ghi/trang, có thông tin thống kê và chuyển trang mượt mà.
+     */
+    public function test_admin_cities_pagination_renders_cleanly_and_navigates_correctly(): void
+    {
+        $this->seed(AdminCityDemoSeeder::class);
+
+        // Trang 1: hiển thị 10 tỉnh thành đầu tiên và thông tin phân trang
+        $response = $this->actingAs($this->admin)->get(route('admin.cities.index'));
+        $response->assertOk();
+        $response->assertSee('Hiển thị <strong>1–10</strong> trong tổng số <strong>12</strong> tỉnh / thành phố', false);
+        $response->assertSee('Sau');
+        $response->assertSee('page=2');
+
+        // Trang 2: hiển thị 2 tỉnh thành còn lại
+        $responsePage2 = $this->actingAs($this->admin)->get(route('admin.cities.index', ['page' => 2]));
+        $responsePage2->assertOk();
+        $responsePage2->assertSee('Hiển thị <strong>11–12</strong> trong tổng số <strong>12</strong> tỉnh / thành phố', false);
+        $responsePage2->assertSee('Trước');
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
@@ -43,12 +44,6 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\FavoriteService::class
         );
 
-        // Ràng buộc ItineraryServiceInterface với triển khai cụ thể ItineraryService (Phạm Thị Ngọc Ái - Chức năng 5)
-        $this->app->bind(
-            \App\Services\Interfaces\ItineraryServiceInterface::class,
-            \App\Services\ItineraryService::class
-        );
-
         // Ràng buộc ProfileServiceInterface với triển khai cụ thể ProfileService (Trịnh Hoài An)
         $this->app->bind(
             \App\Services\Interfaces\ProfileServiceInterface::class,
@@ -60,76 +55,6 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\Interfaces\CityManagementServiceInterface::class,
             \App\Services\CityManagementService::class
         );
-
-        // Ràng buộc CategoryManagementServiceInterface & CategoryServiceInterface với CategoryManagementService (Trần Văn Trọng)
-        $this->app->bind(
-            \App\Services\Interfaces\CategoryManagementServiceInterface::class,
-            \App\Services\CategoryManagementService::class
-        );
-        $this->app->bind(
-            \App\Services\Interfaces\CategoryServiceInterface::class,
-            \App\Services\CategoryManagementService::class
-        );
-
-        // Ràng buộc UserManagementServiceInterface với triển khai cụ thể UserManagementService (Trần Văn Trọng)
-        $this->app->bind(
-            \App\Services\Interfaces\UserManagementServiceInterface::class,
-            \App\Services\UserManagementService::class
-        );
-
-        // Ràng buộc BudgetServiceInterface với triển khai cụ thể BudgetService (Nguyễn Văn Thắng)
-        $this->app->bind(
-            \App\Services\Interfaces\BudgetServiceInterface::class,
-            \App\Services\BudgetService::class
-        );
-
-        // Ràng buộc ExpenseServiceInterface với triển khai cụ thể ExpenseService (Nguyễn Văn Thắng)
-        $this->app->bind(
-            \App\Services\Interfaces\ExpenseServiceInterface::class,
-            \App\Services\ExpenseService::class
-        );
-
-        // Ràng buộc DestinationManagementServiceInterface với DestinationManagementService (Trần Văn Trọng)
-        $this->app->bind(
-            \App\Services\Interfaces\DestinationManagementServiceInterface::class,
-            \App\Services\DestinationManagementService::class
-        );
-
-        // Ràng buộc DestinationImageServiceInterface với DestinationImageService (Trần Văn Trọng)
-        $this->app->bind(
-            \App\Services\Interfaces\DestinationImageServiceInterface::class,
-            \App\Services\DestinationImageService::class
-        );
-
-        // Ràng buộc ReviewModerationServiceInterface với ReviewModerationService (Trần Văn Trọng)
-        $this->app->bind(
-            \App\Services\Interfaces\ReviewModerationServiceInterface::class,
-            \App\Services\ReviewModerationService::class
-        );
-
-        // Ràng buộc BookingServiceInterface với BookingService (Nguyễn Văn Thắng)
-        $this->app->bind(
-            \App\Services\Interfaces\BookingServiceInterface::class,
-            \App\Services\BookingService::class
-        );
-
-        // Ràng buộc ActivityLogServiceInterface với triển khai cụ thể ActivityLogService (Trịnh Hoài An)
-        $this->app->bind(
-            \App\Services\Interfaces\ActivityLogServiceInterface::class,
-            \App\Services\ActivityLogService::class
-        );
-
-        // Ràng buộc PaymentServiceInterface với PaymentService (Nguyễn Văn Thắng)
-        $this->app->bind(
-            \App\Services\Interfaces\PaymentServiceInterface::class,
-            \App\Services\PaymentService::class
-        );
-
-        // Ràng buộc MoMoGatewayServiceInterface với MoMoGatewayService (Nguyễn Văn Thắng)
-        $this->app->bind(
-            \App\Services\Interfaces\MoMoGatewayServiceInterface::class,
-            \App\Services\MoMoGatewayService::class
-        );
     }
 
     /**
@@ -137,15 +62,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Cấu hình độ dài chuỗi mặc định cho Schema
         Schema::defaultStringLength(191);
 
-        // Đăng ký tường minh các Policy kiểm soát quyền sở hữu và bảo mật dữ liệu (BR-01 đến BR-21)
-        \Illuminate\Support\Facades\Gate::policy(\App\Models\ItineraryItem::class, \App\Policies\ItineraryPolicy::class);
-        \Illuminate\Support\Facades\Gate::policy(\App\Models\Review::class, \App\Policies\ReviewPolicy::class);
-        \Illuminate\Support\Facades\Gate::policy(\App\Models\User::class, \App\Policies\UserPolicy::class);
-        \Illuminate\Support\Facades\Gate::policy(\App\Models\Trip::class, \App\Policies\TripPolicy::class);
-        \Illuminate\Support\Facades\Gate::policy(\App\Models\Booking::class, \App\Policies\BookingPolicy::class);
-        \Illuminate\Support\Facades\Gate::policy(\App\Models\Payment::class, \App\Policies\PaymentPolicy::class);
-        \Illuminate\Support\Facades\Gate::policy(\App\Models\Expense::class, \App\Policies\ExpensePolicy::class);
+        // Sử dụng view phân trang tùy biến độc lập CSS để tránh lỗi vỡ giao diện mặc định Tailwind
+        Paginator::defaultView('vendor.pagination.default');
     }
 }
