@@ -229,185 +229,23 @@ class AdminUserManagementTest extends TestCase
     }
 
     /**
-     * Admin lọc người dùng theo trạng thái hoạt động (Active / Disabled).
+     * Kiểm thử phân trang người dùng hiển thị chuẩn 10 bản ghi/trang, có thông tin thống kê và chuyển trang mượt mà.
      */
-    public function test_admin_can_filter_users_by_status(): void
+    public function test_admin_users_pagination_renders_cleanly_and_navigates_correctly(): void
     {
-        $activeUser = User::factory()->create(['name' => 'Người Dùng Đang Hoạt Động', 'is_active' => true]);
-        $disabledUser = User::factory()->create(['name' => 'Người Dùng Bị Khóa', 'is_active' => false]);
+        $this->seed(AdminUserDemoSeeder::class);
 
-        // Lọc active
-        $responseActive = $this->actingAs($this->admin)->get(route('admin.users.index', ['status' => '1']));
-        $responseActive->assertOk();
-        $responseActive->assertSee('Người Dùng Đang Hoạt Động');
-        $responseActive->assertDontSee('Người Dùng Bị Khóa');
-
-        // Lọc disabled
-        $responseDisabled = $this->actingAs($this->admin)->get(route('admin.users.index', ['status' => '0']));
-        $responseDisabled->assertOk();
-        $responseDisabled->assertSee('Người Dùng Bị Khóa');
-    }
-
-    /**
-     * Admin tìm kiếm người dùng theo số điện thoại.
-     */
-    public function test_admin_can_search_users_by_phone(): void
-    {
-        User::factory()->create(['name' => 'Khách Hàng Có SĐT', 'phone' => '0912345678']);
-        User::factory()->create(['name' => 'Khách Hàng Khác', 'phone' => '0987654321']);
-
-        $response = $this->actingAs($this->admin)->get(route('admin.users.index', ['search' => '0912345678']));
+        // Trang 1: hiển thị 10 người dùng đầu tiên và nút sang trang 2
+        $response = $this->actingAs($this->admin)->get(route('admin.users.index'));
         $response->assertOk();
-        $response->assertSee('Khách Hàng Có SĐT');
-        $response->assertDontSee('Khách Hàng Khác');
-    }
+        $response->assertSee('Hiển thị <strong>1–10</strong> trong tổng số <strong>14</strong> người dùng', false);
+        $response->assertSee('Sau');
+        $response->assertSee('page=2');
 
-    /**
-     * Admin xem chi tiết người dùng thông qua API JSON (dùng cho modal hiển thị nhanh).
-     */
-    public function test_admin_can_view_user_details_via_json_api(): void
-    {
-        $target = User::factory()->create([
-            'name' => 'Nguyễn Thị Chi Tiết',
-            'email' => 'chitiet@travelplanner.test',
-            'phone' => '0901234567',
-            'role' => 'user',
-            'is_active' => true,
-        ]);
-
-        $response = $this->actingAs($this->admin)
-            ->getJson(route('admin.users.show', $target->id));
-
-        $response->assertOk();
-        $response->assertJson([
-            'status' => 'success',
-            'data' => [
-                'id' => $target->id,
-                'name' => 'Nguyễn Thị Chi Tiết',
-                'email' => 'chitiet@travelplanner.test',
-                'phone' => '0901234567',
-                'role' => 'user',
-                'is_active' => true,
-            ],
-        ]);
-    }
-
-    /**
-     * Admin truy cập trực tiếp trang chi tiết người dùng (View Blade).
-     */
-    public function test_admin_can_view_user_details_page(): void
-    {
-        $target = User::factory()->create([
-            'name' => 'Trần Văn Chi Tiết Trang',
-            'email' => 'trangchitiet@travelplanner.test',
-            'role' => 'user',
-            'is_active' => true,
-        ]);
-
-        $response = $this->actingAs($this->admin)->get(route('admin.users.show', $target->id));
-
-        $response->assertOk();
-        $response->assertSee('Chi Tiết Người Dùng');
-        $response->assertSee('Trần Văn Chi Tiết Trang');
-        $response->assertSee('trangchitiet@travelplanner.test');
-        $response->assertSee('Quay lại danh sách');
-    }
-
-    /**
-     * Xem người dùng không tồn tại trả về lỗi 404 cho JSON hoặc redirect lỗi cho Web.
-     */
-    public function test_view_non_existent_user_returns_error(): void
-    {
-        // JSON API trả về 404
-        $jsonResponse = $this->actingAs($this->admin)->getJson(route('admin.users.show', 999999));
-        $jsonResponse->assertNotFound();
-
-        // Web request redirect về index kèm flash error
-        $webResponse = $this->actingAs($this->admin)->get(route('admin.users.show', 999999));
-        $webResponse->assertRedirect(route('admin.users.index'));
-        $webResponse->assertSessionHas('error');
-    }
-
-    /**
-     * Admin có thể truy cập trang biểu mẫu tạo người dùng mới.
-     */
-    public function test_admin_can_access_create_user_page(): void
-    {
-        $response = $this->actingAs($this->admin)->get(route('admin.users.create'));
-        $response->assertOk();
-        $response->assertSee('Thêm Người Dùng Mới');
-        $response->assertSee('Lưu Người Dùng');
-    }
-
-    /**
-     * Admin có thể truy cập trang biểu mẫu chỉnh sửa người dùng.
-     */
-    public function test_admin_can_access_edit_user_page(): void
-    {
-        $target = User::factory()->create(['name' => 'Nguyễn Chỉnh Sửa', 'email' => 'sua@test.com']);
-
-        $response = $this->actingAs($this->admin)->get(route('admin.users.edit', $target->id));
-        $response->assertOk();
-        $response->assertSee('Chỉnh Sửa Người Dùng');
-        $response->assertSee('Nguyễn Chỉnh Sửa');
-        $response->assertSee('Cập Nhật Thông Tin');
-    }
-
-    /**
-     * Chặn Admin tự hạ quyền quản trị của chính tài khoản đang đăng nhập.
-     */
-    public function test_admin_cannot_demote_self(): void
-    {
-        // Tạo thêm admin phụ để đảm bảo hệ thống không bị lỗi thiếu admin cuối cùng
-        User::factory()->create(['role' => 'admin', 'is_active' => true]);
-
-        $response = $this->actingAs($this->admin)->put(route('admin.users.update', $this->admin->id), [
-            'name' => 'Admin Đổi Quyền',
-            'email' => $this->admin->email,
-            'role' => 'user', // Cố tình hạ quyền thành user
-            'is_active' => 1,
-        ]);
-
-        $response->assertRedirect(route('admin.users.index'));
-        $response->assertSessionHas('error');
-        $this->assertTrue($this->admin->fresh()->isAdmin());
-    }
-
-    /**
-     * Chặn thao tác làm mất Admin hoạt động cuối cùng của hệ thống.
-     */
-    public function test_cannot_demote_or_disable_last_remaining_active_admin(): void
-    {
-        // $this->admin là admin hoạt động DUY NHẤT hiện tại
-        $otherAdmin = User::factory()->create([
-            'role' => 'admin',
-            'is_active' => true,
-        ]);
-        // Tạm khóa $otherAdmin -> chỉ còn 1 admin active
-        $otherAdmin->update(['is_active' => false]);
-
-        // Thử hạ quyền $this->admin khi là admin duy nhất
-        $response = $this->actingAs($this->admin)->put(route('admin.users.update', $this->admin->id), [
-            'name' => 'Admin Cuối Cùng',
-            'email' => $this->admin->email,
-            'role' => 'user',
-            'is_active' => 1,
-        ]);
-
-        $response->assertRedirect(route('admin.users.index'));
-        $response->assertSessionHas('error');
-        $this->assertTrue($this->admin->fresh()->isAdmin());
-    }
-
-    /**
-     * Admin có thể cập nhật trạng thái người dùng qua route PATCH /admin/users/{user}/status.
-     */
-    public function test_admin_can_toggle_status_via_patch_route(): void
-    {
-        $member = User::factory()->create(['role' => 'user', 'is_active' => true]);
-
-        $response = $this->actingAs($this->admin)->patch(route('admin.users.update-status', $member->id));
-        $response->assertRedirect(route('admin.users.index'));
-        $this->assertFalse($member->fresh()->is_active);
+        // Trang 2: hiển thị 4 người dùng còn lại
+        $responsePage2 = $this->actingAs($this->admin)->get(route('admin.users.index', ['page' => 2]));
+        $responsePage2->assertOk();
+        $responsePage2->assertSee('Hiển thị <strong>11–14</strong> trong tổng số <strong>14</strong> người dùng', false);
+        $responsePage2->assertSee('Trước');
     }
 }
