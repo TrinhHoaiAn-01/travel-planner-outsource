@@ -227,4 +227,25 @@ class AdminUserManagementTest extends TestCase
         $roleResponse->assertSee('Nguyễn Văn B');
         $roleResponse->assertDontSee('Trần Văn A');
     }
+
+    /**
+     * Kiểm thử phân trang người dùng hiển thị chuẩn 10 bản ghi/trang, có thông tin thống kê và chuyển trang mượt mà.
+     */
+    public function test_admin_users_pagination_renders_cleanly_and_navigates_correctly(): void
+    {
+        $this->seed(AdminUserDemoSeeder::class);
+
+        // Trang 1: hiển thị 10 người dùng đầu tiên và nút sang trang 2
+        $response = $this->actingAs($this->admin)->get(route('admin.users.index'));
+        $response->assertOk();
+        $response->assertSee('Hiển thị <strong>1–10</strong> trong tổng số <strong>14</strong> người dùng', false);
+        $response->assertSee('Sau');
+        $response->assertSee('page=2');
+
+        // Trang 2: hiển thị 4 người dùng còn lại
+        $responsePage2 = $this->actingAs($this->admin)->get(route('admin.users.index', ['page' => 2]));
+        $responsePage2->assertOk();
+        $responsePage2->assertSee('Hiển thị <strong>11–14</strong> trong tổng số <strong>14</strong> người dùng', false);
+        $responsePage2->assertSee('Trước');
+    }
 }

@@ -540,6 +540,27 @@
     .btn-primary-submit:hover {
         background-color: #1D4ED8;
     }
+
+    .user-pagination-wrap {
+        padding: 16px 24px;
+        border-top: 1px solid #F1F5F9;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background-color: #FFFFFF;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .user-pagination-info {
+        font-size: 13.5px;
+        color: #64748B;
+    }
+
+    .user-pagination-info strong {
+        color: #0F172A;
+        font-weight: 600;
+    }
 </style>
 @endpush
 
@@ -743,14 +764,19 @@
                 @endforelse
             </tbody>
         </table>
-    </div>
 
-    {{-- Phân trang nếu có --}}
-    @if($users->hasPages())
-        <div style="margin-top: 20px; display: flex; justify-content: center;">
-            {{ $users->links() }}
-        </div>
-    @endif
+        {{-- Phân trang nếu có --}}
+        @if($users->hasPages())
+            <div class="user-pagination-wrap">
+                <div class="user-pagination-info">
+                    Hiển thị <strong>{{ $users->firstItem() }}–{{ $users->lastItem() }}</strong> trong tổng số <strong>{{ $users->total() }}</strong> người dùng
+                </div>
+                <div class="user-pagination-controls">
+                    {{ $users->links() }}
+                </div>
+            </div>
+        @endif
+    </div>
 </div>
 
 {{-- MODAL 1: THÊM MỚI NGƯỜI DÙNG --}}
