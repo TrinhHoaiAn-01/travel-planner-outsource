@@ -1,0 +1,242 @@
+[
+    {
+    "query": "Gợi ý địa điểm du lịch ở Đà Nẵng",
+    "intent": "search"
+    },
+    {
+        "query": "Tìm khách sạn gần biển Mỹ Khê",
+        "intent": "search"
+    },
+    {
+        "query": "Cho tôi biết thông tin chi tiết về Bà Nà Hills",
+        "intent": "get_details"
+    },
+    {
+        "query": "So sánh khách sạn A và khách sạn B",
+        "intent": "compare"
+    },
+    {
+        "query": "Kiểm tra trạng thái đơn đặt phòng của tôi",
+        "intent": "check_booking_status"
+    },
+    {
+        "query": "Tôi muốn hủy đơn đặt phòng",
+        "intent": "manage_booking"
+    },
+    {
+        "query": "Tôi đã thanh toán đơn đặt phòng chưa?",
+        "intent": "payment_query"
+    },
+    {
+        "query": "Tháng này tôi đã chi bao nhiêu tiền?",
+        "intent": "expense_query"
+    },
+    {
+        "query": "Đánh giá khách sạn này như thế nào?",
+        "intent": "review_query"
+    },
+    {
+        "query": "RAG hoạt động như thế nào?",
+        "intent": "general_question"
+    },
+    {
+    "query": "Tìm địa điểm du lịch nổi tiếng ở Đà Nẵng",
+    "intent": "search"
+    },
+    {
+    "query": "Có khách sạn nào gần biển Mỹ Khê không?",
+    "intent": "search"
+    },
+    {
+    "query": "Gợi ý nhà hàng ở Hội An",
+    "intent": "search"
+    },
+    {
+    "query": "Tìm các địa điểm tham quan phù hợp cho gia đình",
+    "intent": "search"
+    },
+    {
+    "query": "Tôi muốn tìm nơi nghỉ dưỡng cuối tuần",
+    "intent": "search"
+    },
+    {
+        "query": "Gợi ý địa điểm du lịch ở Đà Nẵng",
+        "intent": "search"
+    },
+    {
+        "query": "Tìm khách sạn gần biển Mỹ Khê",
+        "intent": "search"
+    },
+    {
+        "query": "Có nhà hàng nào ngon ở Hội An không?",
+        "intent": "search"
+    },
+    {
+        "query": "Tìm địa điểm du lịch phù hợp cho gia đình",
+        "intent": "search"
+    },
+    {
+        "query": "Gợi ý nơi nghỉ dưỡng cuối tuần",
+        "intent": "search"
+    },
+    {
+        "query": "Cho tôi biết thông tin chi tiết về Bà Nà Hills",
+        "intent": "get_details"
+    },
+    {
+        "query": "Khách sạn này có những tiện nghi gì?",
+        "intent": "get_details"
+    },
+    {
+        "query": "Địa điểm này nằm ở đâu?",
+        "intent": "get_details"
+    },
+    {
+        "query": "Cho biết địa chỉ và giờ mở cửa của địa điểm này",
+        "intent": "get_details"
+    },
+    {
+        "query": "Phòng khách sạn này có diện tích bao nhiêu?",
+        "intent": "get_details"
+    },
+    {
+        "query": "So sánh hai khách sạn ở Đà Nẵng",
+        "intent": "compare"
+    },
+    {
+        "query": "Khách sạn A và khách sạn B khác nhau thế nào?",
+        "intent": "compare"
+    },
+    {
+        "query": "So sánh giá phòng của hai khách sạn",
+        "intent": "compare"
+    },
+    {
+        "query": "Nên chọn địa điểm du lịch nào trong hai nơi này?",
+        "intent": "compare"
+    },
+    {
+        "query": "So sánh tiện nghi của hai nơi lưu trú",
+        "intent": "compare"
+    },
+    {
+        "query": "Kiểm tra trạng thái đơn đặt phòng của tôi",
+        "intent": "check_booking_status"
+    },
+    {
+        "query": "Đơn đặt phòng của tôi đã được xác nhận chưa?",
+        "intent": "check_booking_status"
+    },
+    {
+        "query": "Tôi muốn biết tình trạng booking hiện tại",
+        "intent": "check_booking_status"
+    },
+    {
+        "query": "Phòng tôi đặt đã được xác nhận chưa?",
+        "intent": "check_booking_status"
+    },
+    {
+        "query": "Đơn đặt phòng của tôi đang ở trạng thái nào?",
+        "intent": "check_booking_status"
+    },
+    {
+        "query": "Tôi muốn hủy đơn đặt phòng",
+        "intent": "manage_booking"
+    },
+    {
+        "query": "Tôi muốn thay đổi ngày nhận phòng",
+        "intent": "manage_booking"
+    },
+    {
+        "query": "Làm thế nào để sửa thông tin đặt phòng?",
+        "intent": "manage_booking"
+    },
+    {
+        "query": "Tôi muốn cập nhật số lượng khách trong booking",
+        "intent": "manage_booking"
+    },
+    {
+        "query": "Hướng dẫn tôi hủy phòng đã đặt",
+        "intent": "manage_booking"
+    },
+    {
+        "query": "Tôi đã thanh toán đơn đặt phòng chưa?",
+        "intent": "payment_query"
+    },
+    {
+        "query": "Kiểm tra trạng thái thanh toán của tôi",
+        "intent": "payment_query"
+    },
+    {
+        "query": "Tôi còn phải thanh toán bao nhiêu tiền?",
+        "intent": "payment_query"
+    },
+    {
+        "query": "Giao dịch thanh toán của tôi đã thành công chưa?",
+        "intent": "payment_query"
+    },
+    {
+        "query": "Tôi muốn xem lịch sử thanh toán",
+        "intent": "payment_query"
+    },
+    {
+        "query": "Tháng này tôi đã chi bao nhiêu tiền?",
+        "intent": "expense_query"
+    },
+    {
+        "query": "Xem tổng chi phí chuyến đi của tôi",
+        "intent": "expense_query"
+    },
+    {
+        "query": "Tôi đã tiêu bao nhiêu cho khách sạn?",
+        "intent": "expense_query"
+    },
+    {
+        "query": "Liệt kê các khoản chi trong chuyến du lịch",
+        "intent": "expense_query"
+    },
+    {
+        "query": "Chi phí du lịch của tôi trong tháng trước là bao nhiêu?",
+        "intent": "expense_query"
+    },
+    {
+        "query": "Đánh giá khách sạn này như thế nào?",
+        "intent": "review_query"
+    },
+    {
+        "query": "Tìm các nhận xét của khách về khách sạn",
+        "intent": "review_query"
+    },
+    {
+        "query": "Khách hàng đánh giá địa điểm này ra sao?",
+        "intent": "review_query"
+    },
+    {
+        "query": "Cho tôi xem các đánh giá về nhà hàng này",
+        "intent": "review_query"
+    },
+    {
+        "query": "Những người đã ở đây nhận xét thế nào?",
+        "intent": "review_query"
+    },
+    {
+        "query": "RAG hoạt động như thế nào?",
+        "intent": "general_question"
+    },
+    {
+        "query": "Machine Learning là gì?",
+        "intent": "general_question"
+    },
+    {
+        "query": "Giải thích sự khác nhau giữa AI và ML",
+        "intent": "general_question"
+    },
+    {
+        "query": "Vector embedding có ý nghĩa gì?",
+        "intent": "general_question"
+    },
+    {
+        "query": "Tại sao cần sử dụng cơ sở dữ liệu?",
+        "intent": "general_question"
+    }
+]

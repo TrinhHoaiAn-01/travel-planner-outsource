@@ -19,6 +19,8 @@ use App\Http\Controllers\BookingController;
 //Ngocai
 // Tuyến trang chủ công khai (Public Home)
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/chat', [\App\Http\Controllers\ChatController::class, 'index'])
+    ->middleware('throttle:60,1')->name('chat.index');
 Route::post('/chat', [\App\Http\Controllers\ChatController::class, 'store'])
     ->middleware('throttle:20,1')->name('chat.store');
 // Tuyến API tìm kiếm nhanh gợi ý địa điểm & thành phố từ Trang chủ (Trần Văn Trọng)

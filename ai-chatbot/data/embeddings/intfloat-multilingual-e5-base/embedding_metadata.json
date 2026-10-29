@@ -1,0 +1,6 @@
+{
+  "model_name": "intfloat/multilingual-e5-base",
+  "dimension": 768,
+  "preprocessing": "e5-query-passage-prefix-v1",
+  "document_fingerprint": "40270109242ba107ef2fccbdcae7bae66f18bd85522043173f9da158319c793c"
+}

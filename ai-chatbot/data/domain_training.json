@@ -1,0 +1,590 @@
+[
+  {
+    "query": "Đà Nẵng có những địa điểm du lịch nào?",
+    "domain": "destination"
+  },
+  {
+    "query": "Tôi nên đi du lịch ở thành phố nào?",
+    "domain": "destination"
+  },
+  {
+    "query": "Có địa điểm tham quan nào nổi tiếng ở Huế?",
+    "domain": "destination"
+  },
+  {
+    "query": "Đà Nẵng có bãi biển nào đẹp?",
+    "domain": "destination"
+  },
+  {
+    "query": "Tôi muốn tìm các địa danh nổi tiếng tại Hà Nội",
+    "domain": "destination"
+  },
+  {
+    "query": "Có địa điểm du lịch thiên nhiên nào không?",
+    "domain": "destination"
+  },
+  {
+    "query": "Cho tôi danh sách các địa điểm tham quan",
+    "domain": "destination"
+  },
+  {
+    "query": "Ở Thành phố Hồ Chí Minh có gì để tham quan?",
+    "domain": "destination"
+  },
+  {
+    "query": "Có những địa điểm văn hóa nào đáng ghé thăm?",
+    "domain": "destination"
+  },
+  {
+    "query": "Tôi muốn tìm địa điểm ăn uống nổi tiếng ở Đà Nẵng",
+    "domain": "destination"
+  },
+  {
+    "query": "Khách sạn nào ở Đà Nẵng có phòng đôi?",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Tìm khách sạn gần biển Mỹ Khê",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Giá phòng đôi tại khách sạn là bao nhiêu?",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Khách sạn có những tiện nghi gì?",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Tôi muốn tìm nơi lưu trú ở Huế",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Có khách sạn nào phù hợp cho gia đình không?",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Cho tôi xem các loại phòng đang có",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Phòng khách sạn có giá thấp nhất là bao nhiêu?",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Tôi cần tìm khách sạn có phòng đơn",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Có những lựa chọn lưu trú nào tại Hà Nội?",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Tôi muốn kiểm tra trạng thái đặt phòng",
+    "domain": "booking"
+  },
+  {
+    "query": "Đơn đặt phòng của tôi đang ở trạng thái nào?",
+    "domain": "booking"
+  },
+  {
+    "query": "Tôi đã thanh toán tiền phòng chưa?",
+    "domain": "booking"
+  },
+  {
+    "query": "Tôi muốn xem thông tin các lần đặt phòng",
+    "domain": "booking"
+  },
+  {
+    "query": "Làm thế nào để đặt phòng khách sạn?",
+    "domain": "booking"
+  },
+  {
+    "query": "Tôi muốn hủy đơn đặt phòng",
+    "domain": "booking"
+  },
+  {
+    "query": "Đơn đặt phòng của tôi đã được xác nhận chưa?",
+    "domain": "booking"
+  },
+  {
+    "query": "Cho tôi xem lịch sử thanh toán đặt phòng",
+    "domain": "booking"
+  },
+  {
+    "query": "Tôi đã đặt phòng nào trước đây?",
+    "domain": "booking"
+  },
+  {
+    "query": "Thông tin thanh toán của đơn đặt phòng là gì?",
+    "domain": "booking"
+  },
+  {
+    "query": "Lịch trình chuyến đi của tôi gồm những gì?",
+    "domain": "trip"
+  },
+  {
+    "query": "Tôi đã lên kế hoạch đi đâu trong chuyến đi?",
+    "domain": "trip"
+  },
+  {
+    "query": "Cho tôi xem các hoạt động trong lịch trình",
+    "domain": "trip"
+  },
+  {
+    "query": "Tôi muốn thay đổi kế hoạch chuyến du lịch",
+    "domain": "trip"
+  },
+  {
+    "query": "Chuyến đi sắp tới của tôi là chuyến nào?",
+    "domain": "trip"
+  },
+  {
+    "query": "Tôi đã tạo những chuyến đi nào?",
+    "domain": "trip"
+  },
+  {
+    "query": "Tôi muốn xem kế hoạch du lịch của mình",
+    "domain": "trip"
+  },
+  {
+    "query": "Trong chuyến đi tôi sẽ tham quan những nơi nào?",
+    "domain": "trip"
+  },
+  {
+    "query": "Tôi muốn thêm một hoạt động vào lịch trình",
+    "domain": "trip"
+  },
+  {
+    "query": "Hãy cho tôi xem chi tiết chuyến đi đã lên kế hoạch",
+    "domain": "trip"
+  },
+  {
+    "query": "Tôi đã chi bao nhiêu tiền cho chuyến đi?",
+    "domain": "expense"
+  },
+  {
+    "query": "Tổng chi tiêu của tôi trong tháng này là bao nhiêu?",
+    "domain": "expense"
+  },
+  {
+    "query": "Tôi đã tiêu bao nhiêu tiền ăn uống?",
+    "domain": "expense"
+  },
+  {
+    "query": "Liệt kê các khoản chi trong chuyến đi",
+    "domain": "expense"
+  },
+  {
+    "query": "Chi phí đi lại của tôi là bao nhiêu?",
+    "domain": "expense"
+  },
+  {
+    "query": "Tôi đã chi bao nhiêu tiền cho việc tham quan?",
+    "domain": "expense"
+  },
+  {
+    "query": "Cho tôi xem lịch sử chi tiêu",
+    "domain": "expense"
+  },
+  {
+    "query": "Khoản chi lớn nhất của tôi là gì?",
+    "domain": "expense"
+  },
+  {
+    "query": "Tổng tiền tôi đã chi cho chỗ ở là bao nhiêu?",
+    "domain": "expense"
+  },
+  {
+    "query": "Tôi muốn thống kê chi phí du lịch theo từng loại",
+    "domain": "expense"
+  },
+  {
+    "query": "Đánh giá về địa điểm này như thế nào?",
+    "domain": "review"
+  },
+  {
+    "query": "Khách du lịch đánh giá khách sạn này thế nào?",
+    "domain": "review"
+  },
+  {
+    "query": "Địa điểm này được chấm mấy sao?",
+    "domain": "review"
+  },
+  {
+    "query": "Cho tôi xem nhận xét của những người đã đến đây",
+    "domain": "review"
+  },
+  {
+    "query": "Tôi muốn đọc các đánh giá về khách sạn",
+    "domain": "review"
+  },
+  {
+    "query": "Điểm đánh giá trung bình của địa điểm này là bao nhiêu?",
+    "domain": "review"
+  },
+  {
+    "query": "Những người khác nhận xét gì về dịch vụ này?",
+    "domain": "review"
+  },
+  {
+    "query": "Có ai đánh giá địa điểm này chưa?",
+    "domain": "review"
+  },
+  {
+    "query": "Tôi muốn xem các nhận xét tiêu cực về khách sạn",
+    "domain": "review"
+  },
+  {
+    "query": "Địa điểm này có được khách du lịch đánh giá tốt không?",
+    "domain": "review"
+  },
+  {
+    "query": "Khách sạn ở Đà Nẵng có giá phòng bao nhiêu một đêm?",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Tôi muốn tìm phòng khách sạn còn trống",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Tôi cần biết khách sạn có những loại phòng nào",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Khoản thanh toán cho đơn đặt phòng của tôi là bao nhiêu?",
+    "domain": "booking"
+  },
+  {
+    "query": "Đặt phòng của tôi đã thanh toán thành công chưa?",
+    "domain": "booking"
+  },
+  {
+    "query": "Tôi muốn kiểm tra lịch sử đặt phòng và thanh toán",
+    "domain": "booking"
+  },
+  {
+    "query": "Địa điểm du lịch nào nổi tiếng ở Huế?",
+    "domain": "destination"
+  },
+  {
+    "query": "Ở Đà Nẵng có những điểm tham quan nào?",
+    "domain": "destination"
+  },
+  {
+    "query": "Địa điểm này có những hoạt động tham quan gì?",
+    "domain": "destination"
+  },
+  {
+    "query": "Du khách đánh giá địa điểm này ra sao?",
+    "domain": "review"
+  },
+  {
+    "query": "Khách sạn này nhận được những nhận xét nào?",
+    "domain": "review"
+  },
+  {
+    "query": "Điểm đánh giá của địa điểm du lịch này là bao nhiêu?",
+    "domain": "review"
+  },
+    {
+    "query": "Tôi muốn xem tất cả khoản chi của mình",
+    "domain": "expense"
+  },
+  {
+    "query": "Thống kê lịch sử chi tiêu của tôi",
+    "domain": "expense"
+  },
+  {
+    "query": "Tổng hợp các khoản tiền tôi đã sử dụng",
+    "domain": "expense"
+  },
+  {
+    "query": "Tôi đã tiêu tiền vào những việc gì?",
+    "domain": "expense"
+  },
+  {
+    "query": "Tôi muốn tiến hành đặt phòng khách sạn",
+    "domain": "booking"
+  },
+  {
+    "query": "Hãy giúp tôi tạo một đơn đặt phòng",
+    "domain": "booking"
+  },
+  {
+    "query": "Tôi muốn đặt một phòng đôi cho chuyến đi",
+    "domain": "booking"
+  },
+  {
+    "query": "Làm sao để hoàn tất việc đặt phòng?",
+    "domain": "booking"
+  },
+    {
+    "query": "Địa điểm này có những hoạt động tham quan gì?",
+    "domain": "destination"
+  },
+  {
+    "query": "Đến địa điểm này thì có thể làm những gì?",
+    "domain": "destination"
+  },
+  {
+    "query": "Địa điểm này có những điểm tham quan nào?",
+    "domain": "destination"
+  },
+  {
+    "query": "Tại đây có hoạt động du lịch nào thú vị?",
+    "domain": "destination"
+  },
+  {
+    "query": "Du khách nhận xét thế nào về địa điểm này?",
+    "domain": "review"
+  },
+  {
+    "query": "Mọi người đánh giá địa điểm này ra sao?",
+    "domain": "review"
+  },
+  {
+    "query": "Địa điểm này có được đánh giá tốt không?",
+    "domain": "review"
+  },
+  {
+    "query": "Những người từng đến đây nói gì về địa điểm này?",
+    "domain": "review"
+  },
+    {
+    "query": "Tôi muốn thuê phòng qua đêm",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Tìm phòng nghỉ cho chuyến du lịch",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Tôi cần một nơi lưu trú gần biển",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Chỗ nào thích hợp để nghỉ dưỡng cuối tuần?",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Tìm khách sạn để nghỉ dưỡng",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Xem lại các booking đã tạo",
+    "domain": "booking"
+  },
+  {
+    "query": "Danh sách các đơn đặt phòng của tôi",
+    "domain": "booking"
+  },
+  {
+    "query": "Tôi muốn xem thông tin booking",
+    "domain": "booking"
+  },
+  {
+    "query": "Kiểm tra những lần đặt chỗ trước đây",
+    "domain": "booking"
+  },
+  {
+    "query": "Tình trạng đặt phòng hiện tại của tôi",
+    "domain": "booking"
+  },
+    {
+    "query": "Tôi muốn biết những địa điểm nên ghé thăm ở Huế",
+    "domain": "destination"
+  },
+  {
+    "query": "Tôi muốn tìm hiểu các điểm tham quan nổi tiếng",
+    "domain": "destination"
+  },
+  {
+    "query": "Tôi muốn tìm chỗ ngủ qua đêm gần biển",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Tôi cần tìm nơi nghỉ ngơi cho kỳ nghỉ cuối tuần",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Tôi muốn xem những đơn đặt phòng đã thực hiện",
+    "domain": "booking"
+  },
+  {
+    "query": "Tôi muốn kiểm tra các đặt chỗ trước đây",
+    "domain": "booking"
+  },
+  {
+    "query": "Tôi muốn xem các hoạt động đã thêm vào chuyến đi",
+    "domain": "trip"
+  },
+  {
+    "query": "Tôi cần cập nhật hoạt động trong kế hoạch du lịch",
+    "domain": "trip"
+  },
+  {
+    "query": "Tổng hợp số tiền tôi đã chi trong chuyến đi",
+    "domain": "expense"
+  },
+  {
+    "query": "Tôi muốn xem các khoản chi tiêu gần đây",
+    "domain": "expense"
+  },
+  {
+    "query": "Khách hàng cảm thấy thế nào về chất lượng khách sạn?",
+    "domain": "review"
+  },
+  {
+    "query": "Khách du lịch có hài lòng với dịch vụ không?",
+    "domain": "review"
+  },
+    {
+    "query": "Cho tôi xem các loại phòng đang có",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Khách sạn hiện có những hạng phòng nào?",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Tôi muốn tìm hiểu các loại phòng và tiện nghi",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Đà Nẵng có bãi biển nào đẹp?",
+    "domain": "destination"
+  },
+  {
+    "query": "Gợi ý các bãi biển đẹp để tham quan ở Đà Nẵng",
+    "domain": "destination"
+  },
+  {
+    "query": "Tôi muốn khám phá các bãi biển nổi tiếng",
+    "domain": "destination"
+  },
+    {
+    "query": "Khách hàng cảm thấy thế nào về chất lượng khách sạn?",
+    "domain": "review"
+  },
+  {
+    "query": "Khách lưu trú nhận xét gì về chất lượng dịch vụ?",
+    "domain": "review"
+  },
+  {
+    "query": "Khách hàng có hài lòng với trải nghiệm lưu trú không?",
+    "domain": "review"
+  },
+  {
+    "query": "Đến địa điểm này thì có thể làm những gì?",
+    "domain": "destination"
+  },
+  {
+    "query": "Tôi có thể tham gia hoạt động nào tại địa điểm này?",
+    "domain": "destination"
+  },
+  {
+    "query": "Ở đây có những điều gì thú vị để khám phá?",
+    "domain": "destination"
+  },
+    {
+    "query": "Cuối tuần này nên ghé thăm đâu ở Huế?",
+    "domain": "destination"
+  },
+  {
+    "query": "Tôi muốn tìm nơi ngủ gần điểm tham quan",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Những khoản tiền nào tôi đã thanh toán cho chuyến đi?",
+    "domain": "expense"
+  },
+  {
+    "query": "Tôi muốn khám phá những điểm du lịch ở Huế",
+    "domain": "destination"
+  },
+  {
+    "query": "Tôi cần tìm chỗ ở gần các địa điểm tham quan",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Tổng hợp các chi phí đã phát sinh trong chuyến đi",
+    "domain": "expense"
+  },
+  {
+    "query": "Hà Nội có núi không?",
+    "domain": "destination"
+  },
+  {
+    "query": "Đà Nẵng có những bãi biển nào?",
+    "domain": "destination"
+  },
+  {
+    "query": "Ở Đà Lạt có địa điểm leo núi không?",
+    "domain": "destination"
+  },
+  {
+    "query": "Nha Trang có những hòn đảo nào?",
+    "domain": "destination"
+  },
+  {
+    "query": "Miền Bắc có những địa điểm du lịch vùng núi nào?",
+    "domain": "destination"
+  },
+  {
+    "query": "Huế có những địa danh nổi tiếng nào?",
+    "domain": "destination"
+  },
+  {
+    "query": "Ở Phú Quốc có bãi biển đẹp không?",
+    "domain": "destination"
+  },
+  {
+    "query": "Thành phố này có những cảnh quan thiên nhiên nào?",
+    "domain": "destination"
+  },
+  {
+    "query": "Hà Nội có khách sạn nào gần hồ Hoàn Kiếm?",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Tìm nhà nghỉ giá rẻ tại Đà Nẵng",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Khách sạn ở Đà Lạt có những tiện nghi gì?",
+    "domain": "accommodation"
+  },
+  {
+    "query": "Lập lịch trình du lịch Đà Nẵng 3 ngày",
+    "domain": "trip"
+  },
+  {
+    "query": "Sắp xếp lịch trình tham quan Hội An",
+    "domain": "trip"
+  },
+  {
+    "query": "Tôi dự định đi du lịch vào tuần sau",
+    "domain": "trip"
+  },
+  {
+    "query": "Lên kế hoạch chuyến đi Hà Nội cho gia đình",
+    "domain": "trip"
+  },
+  {
+    "query": "Tạo lịch trình du lịch Nha Trang trong 4 ngày",
+    "domain": "trip"
+  },
+  {
+    "query": "Tôi muốn lập kế hoạch tham quan các địa điểm ở Huế",
+    "domain": "trip"
+  },
+  {
+    "query": "Sắp xếp các hoạt động cho chuyến đi Đà Lạt",
+    "domain": "trip"
+  },
+  {
+    "query": "Tôi muốn lên lịch trình cho chuyến du lịch sắp tới",
+    "domain": "trip"
+  }
+]

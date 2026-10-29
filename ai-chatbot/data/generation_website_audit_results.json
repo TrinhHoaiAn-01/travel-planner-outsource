@@ -1,0 +1,122 @@
+{
+  "model": "qwen2.5:0.5b",
+  "temperature": 0,
+  "max_tokens": 384,
+  "note": "Four smoke cases; phrase matching does not establish correctness or language quality.",
+  "cases": [
+    {
+      "query": "Tên bãi biển nổi tiếng tại Đà Nẵng là gì?",
+      "route": {
+        "query": "Tên bãi biển nổi tiếng tại Đà Nẵng là gì?",
+        "domain": "destination",
+        "intent": "search",
+        "route": "rag_search"
+      },
+      "document_ids": [
+        "destinations_715",
+        "destinations_1302",
+        "destinations_1680",
+        "destinations_1299",
+        "cities_115"
+      ],
+      "variants": {
+        "without_retrieval": {
+          "answer": "Dữ liệu được truy xuất từ hệ thống Travel Planner cho câu hỏi này không bao gồm thông tin về bãi biển nổi tiếng tại Đà Nẵng.",
+          "expected_phrase_present": false,
+          "finish_reason": "stop",
+          "seconds": 6.601
+        },
+        "with_retrieval": {
+          "answer": "Tên bãi biển nổi tiếng tại Đà Nẵng là Bãi biển Mỹ Khê Đà Nẵng.",
+          "expected_phrase_present": true,
+          "finish_reason": "stop",
+          "seconds": 10.43
+        }
+      }
+    },
+    {
+      "query": "Ở Đà Nẵng có cây cầu hình rồng nào?",
+      "route": {
+        "query": "Ở Đà Nẵng có cây cầu hình rồng nào?",
+        "domain": "destination",
+        "intent": "search",
+        "route": "rag_search"
+      },
+      "document_ids": [
+        "destinations_1295",
+        "destinations_1297",
+        "destinations_716",
+        "destinations_715",
+        "destinations_1302"
+      ],
+      "variants": {
+        "without_retrieval": {
+          "answer": "Câu trả lời chính xác là: Cây cầu hình rồng ở Đà Nẵng là Cầu Cổ Môn.",
+          "expected_phrase_present": false,
+          "finish_reason": "stop",
+          "seconds": 1.263
+        },
+        "with_retrieval": {
+          "answer": "Cây cầu biểu tượng bắc qua sông Hàn với tạo hình rồng độc đáo có tên là Cầu Rồng.",
+          "expected_phrase_present": true,
+          "finish_reason": "stop",
+          "seconds": 12.643
+        }
+      }
+    },
+    {
+      "query": "dia diem tham quan o Phu Quoc",
+      "route": {
+        "query": "dia diem tham quan o Phu Quoc",
+        "domain": "destination",
+        "intent": "search",
+        "route": "rag_search"
+      },
+      "document_ids": [
+        "destinations_1688",
+        "destinations_1349",
+        "destinations_1344",
+        "destinations_1342",
+        "destinations_1351"
+      ],
+      "variants": {
+        "without_retrieval": {
+          "answer": "Dữ liệu được truy xuất từ hệ thống Travel Planner không chứa thông tin về địa điểm Phu Quoc. Bạn có thể tìm kiếm địa điểm này thông qua các ứng dụng di động hoặc trực tiếp trên mạng xã hội.",
+          "expected_phrase_present": true,
+          "finish_reason": "stop",
+          "seconds": 3.09
+        },
+        "with_retrieval": {
+          "answer": "Dữ liệu được truy xuất từ hệ thống Travel Planner:\n\n1. Mã tài liệu: destinations_1688\n2. Loại tài liệu: destinations\n3. Source: destinations\n4. Siêu dữ liệu: {\"row_id\": \"1688\", \"source\": \"destinations\", \"table\": \"destinations\", \"type\": \"destinations\"}\n5. Nội dung: {\"address\": \"Khu vực Phú Quốc, Việt Nam\", \"category_id\": \"111\", \"city_id\": \"120\", \"closing_time\": \"NULL\", \"created_at\": \"2026-10-27 09:00:00\", \"description\": \"Khu nghỉ dưỡng ven biển phía tây đảo Phú Quốc.\", \"duration\": \"NULL\", \"entrance_fee\": \"0.00\", \"id\": \"1688\", \"is_featured\": \"1\", \"is_lodging\": \"1\", \"name\": \"Salinda Resort Phu Quoc Island\", \"opening_time\": \"NULL\", \"rating\": \"5.00\", \"slug\": \"salinda-resort-phu-quoc-island\", \"updated_at\": \"2026-10-27 09:00:00\"}\n\nDữ liệu này cung cấp thông tin về địa điểm: Phú Quốc, Việt Nam, và các thông tin liên quan đến nó như thời gian mở cửa, chi phí, và danh sách các phòng khách sạn.",
+          "expected_phrase_present": true,
+          "finish_reason": "stop",
+          "seconds": 26.191
+        }
+      }
+    },
+    {
+      "query": "Tìm thành phố Sao Mai ở Việt Nam",
+      "route": {
+        "query": "Tìm thành phố Sao Mai ở Việt Nam",
+        "domain": "destination",
+        "intent": "search",
+        "route": "rag_search"
+      },
+      "document_ids": [],
+      "variants": {
+        "without_retrieval": {
+          "answer": "Xin lỗi, nhưng tôi không có dữ liệu về thành phố Sao Mai ở Việt Nam. Tôi có thể giúp bạn tìm kiếm thông tin về thành phố này không?",
+          "expected_phrase_present": false,
+          "finish_reason": "stop",
+          "seconds": 1.506
+        },
+        "with_retrieval": {
+          "answer": "Sao Mai là một thành phố ở Việt Nam, nhưng tôi không có dữ liệu cụ thể về nó. Bạn có thể tìm kiếm thành phố này trên các trang web du lịch hoặc tìm kiếm bằng cách đặt câu hỏi \"Sao Mai\" trên ứng dụng tìm kiếm.",
+          "expected_phrase_present": false,
+          "finish_reason": "stop",
+          "seconds": 1.69
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+[
+  {
+    "name": "fact_direct_my_khe",
+    "query": "Tên bãi biển nổi tiếng tại Đà Nẵng là gì?",
+    "relevant_document_ids": ["destinations_715"]
+  },
+  {
+    "name": "paraphrase_dragon_bridge",
+    "query": "Ở Đà Nẵng có cây cầu hình rồng nào?",
+    "relevant_document_ids": ["destinations_1295"]
+  },
+  {
+    "name": "missing_accents_ha_noi",
+    "query": "Gợi ý địa điểm du lịch ở Ha Noi",
+    "relevant_document_ids": ["cities_114", "destinations_713", "destinations_714"]
+  },
+  {
+    "name": "structured_city_identifier",
+    "query": "Tìm thành phố có mã 115",
+    "relevant_document_ids": ["cities_115"]
+  },
+  {
+    "name": "named_destination_bana_hills",
+    "query": "Bà Nà Hills ở Đà Nẵng thuộc thành phố nào?",
+    "relevant_document_ids": ["destinations_716", "cities_115"]
+  },
+  {
+    "name": "lodging_exact_name",
+    "query": "Khách sạn Mercure Danang French Village Bana Hills",
+    "relevant_document_ids": ["destinations_1281"]
+  },
+  {
+    "name": "paraphrase_ha_long",
+    "query": "Đi thuyền ngắm cảnh ở Hạ Long nên đến đâu?",
+    "relevant_document_ids": ["destinations_1333", "destinations_1282"]
+  },
+  {
+    "name": "missing_accents_phu_quoc",
+    "query": "dia diem tham quan o Phu Quoc",
+    "relevant_document_ids": ["cities_120", "destinations_1341", "destinations_1347"]
+  },
+  {
+    "name": "follow_up_context",
+    "query": "Còn điểm tham quan nào ở đó?",
+    "chat_history": [{"role": "user", "content": "Gợi ý địa điểm du lịch ở Đà Nẵng"}],
+    "relevant_document_ids": ["destinations_715", "destinations_716", "destinations_1295"]
+  },
+  {
+    "name": "ambiguous_place_type",
+    "query": "Tìm chùa ở Đà Nẵng",
+    "relevant_document_ids": ["destinations_1297"]
+  },
+  {
+    "name": "private_booking_not_in_public_rag",
+    "query": "Tôi có mã đặt phòng nào?",
+    "relevant_document_ids": []
+  },
+  {
+    "name": "no_matching_document",
+    "query": "Tìm thành phố Sao Mai ở Việt Nam",
+    "relevant_document_ids": []
+  }
+]

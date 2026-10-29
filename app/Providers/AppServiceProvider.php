@@ -13,6 +13,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->bind(\App\Services\Interfaces\ChatServiceInterface::class, \App\Services\ChatService::class);
         // Ràng buộc DashboardServiceInterface với triển khai cụ thể DashboardService
         $this->app->bind(
             \App\Services\Interfaces\DashboardServiceInterface::class,
