@@ -1,0 +1,284 @@
+- generic [ref=f1e1]:
+  - banner [ref=f1e2]:
+    - link [ref=f1e3] [cursor=pointer]:
+      - /url: http://127.0.0.1:8000
+    - list [ref=f1e8]:
+      - listitem [ref=f1e9]:
+        - link "Trang chủ" [ref=f1e10] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000
+      - listitem [ref=f1e13]:
+        - link "Địa điểm" [ref=f1e14] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/destinations
+      - listitem [ref=f1e18]:
+        - link "Chuyến đi" [ref=f1e19] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/trips
+      - listitem [ref=f1e23]:
+        - link "Yêu thích" [ref=f1e24] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/favorites
+      - listitem [ref=f1e27]:
+        - link "Booking" [ref=f1e28] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/bookings
+    - generic [ref=f1e31]:
+      - link "Đăng nhập" [ref=f1e32] [cursor=pointer]:
+        - /url: http://127.0.0.1:8000/login
+      - link "Đăng ký" [ref=f1e33] [cursor=pointer]:
+        - /url: http://127.0.0.1:8000/register
+  - generic [ref=f1e34]:
+    - generic [ref=f1e35]: "⭐ Nền tảng du lịch số #1 Việt Nam"
+    - heading "Lên Lịch Trình & Khám Phá Những Vùng Đất Mới" [level=1] [ref=f1e36]: Lên Lịch Trình & Khám PháNhững Vùng Đất Mới
+    - paragraph [ref=f1e37]: Khám phá hàng ngàn điểm đến ngoạn mục, lưu giữ địa điểm yêu thích và tự động tối ưu hóa ngân sách chuyến đi của bạn.
+    - generic [ref=f1e39]:
+      - generic [ref=f1e40]:
+        - generic [ref=f1e41]: 📍 Điểm đến / Thành phố
+        - textbox "📍 Điểm đến / Thành phố" [ref=f1e43]:
+          - /placeholder: "Ví dụ: Đà Nẵng, Phú Quốc, Bà Nà..."
+      - generic [ref=f1e44]:
+        - generic [ref=f1e45]: 🗂️ Danh mục
+        - combobox "🗂️ Danh mục" [ref=f1e47]:
+          - option "Tất cả danh mục" [selected]
+          - option "Bảo tàng & Triển lãm"
+          - option "Biển & Đảo"
+          - option "Công viên & Không gian xanh"
+          - option "Culture & History"
+          - option "Di Sản Văn Hóa"
+          - option "Du lịch cộng đồng"
+          - option "Du lịch sinh thái"
+          - option "Đảo nhỏ & Lặn biển"
+          - option "Đường đèo & Ngắm cảnh"
+          - option "Entertainment"
+          - option "Food & Drink"
+          - option "Hang động & Địa chất"
+          - option "Hồ, Sông & Thác"
+          - option "Làng nghề truyền thống"
+          - option "Nature"
+          - option "Nghỉ dưỡng & Resort"
+          - option "Nông nghiệp & Miệt vườn"
+          - option "Núi Rừng & Trekking"
+          - option "Shopping"
+          - option "Tâm linh & Tín ngưỡng"
+          - option "Thể thao & Phiêu lưu"
+      - generic [ref=f1e48]:
+        - generic [ref=f1e49]: 💵 Mức ngân sách
+        - combobox "💵 Mức ngân sách" [ref=f1e51]:
+          - option "Tất cả mức giá" [selected]
+          - option "Dưới 500.000đ"
+          - option "500.000đ - 1.500.000đ"
+          - option "Trên 1.500.000đ"
+      - button "Tìm kiếm" [ref=f1e52] [cursor=pointer]
+  - generic [ref=f1e56]:
+    - generic [ref=f1e57]:
+      - generic [ref=f1e58]:
+        - generic [ref=f1e59]:
+          - generic [ref=f1e60]: KHÁM PHÁ THEO CHỦ ĐỀ
+          - heading "Danh Mục Phổ Biến" [level=2] [ref=f1e61]
+        - link "Xem tất cả →" [ref=f1e62] [cursor=pointer]:
+          - /url: "#destinations"
+      - generic [ref=f1e63]:
+        - link "Biển & Đảo 142 điểm đến" [ref=f1e64] [cursor=pointer]:
+          - /url: "#destinations"
+          - generic [ref=f1e65]:
+            - generic [ref=f1e66]: Biển & Đảo
+            - generic [ref=f1e67]: 142 điểm đến
+        - link "Núi Rừng 89 điểm đến" [ref=f1e68] [cursor=pointer]:
+          - /url: "#destinations"
+          - generic [ref=f1e69]:
+            - generic [ref=f1e70]: Núi Rừng
+            - generic [ref=f1e71]: 89 điểm đến
+        - link "Resort & Spa 65 nơi lưu trú" [ref=f1e72] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/destinations?is_lodging=1
+          - generic [ref=f1e73]:
+            - generic [ref=f1e74]: Resort & Spa
+            - generic [ref=f1e75]: 65 nơi lưu trú
+        - link "Di Sản Văn Hóa 110 điểm đến" [ref=f1e76] [cursor=pointer]:
+          - /url: "#destinations"
+          - generic [ref=f1e77]:
+            - generic [ref=f1e78]: Di Sản Văn Hóa
+            - generic [ref=f1e79]: 110 điểm đến
+        - link "Ẩm Thực Đặc Sản 215 địa điểm" [ref=f1e80] [cursor=pointer]:
+          - /url: "#destinations"
+          - generic [ref=f1e81]:
+            - generic [ref=f1e82]: Ẩm Thực Đặc Sản
+            - generic [ref=f1e83]: 215 địa điểm
+        - link "Cắm Trại & Glamping 45 địa điểm" [ref=f1e84] [cursor=pointer]:
+          - /url: "#destinations"
+          - generic [ref=f1e85]:
+            - generic [ref=f1e86]: Cắm Trại & Glamping
+            - generic [ref=f1e87]: 45 địa điểm
+    - generic [ref=f1e88]:
+      - generic [ref=f1e89]:
+        - generic [ref=f1e90]:
+          - generic [ref=f1e91]: ĐIỂM ĐẾN HÀNG ĐẦU
+          - heading "Địa Điểm Nổi Bật" [level=2] [ref=f1e92]
+        - link "Khám phá thêm →" [ref=f1e93] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/destinations
+      - generic [ref=f1e94]:
+        - generic [ref=f1e95]:
+          - generic [ref=f1e96]:
+            - img "Silk Path Grand Sapa Resort & Spa" [ref=f1e97]
+            - generic [ref=f1e98]: Nghỉ dưỡng & Resort
+            - button "Lưu yêu thích" [ref=f1e99] [cursor=pointer]
+          - generic [ref=f1e102]:
+            - generic [ref=f1e103]:
+              - generic [ref=f1e104]: 📍 Sa Pa
+              - generic [ref=f1e105]: ⭐ 5.0
+            - heading "Silk Path Grand Sapa Resort & Spa" [level=3] [ref=f1e106]
+            - paragraph [ref=f1e107]: Khách sạn nghỉ dưỡng trên sườn đồi gần trung tâm Sa Pa.
+            - generic [ref=f1e108]:
+              - generic [ref=f1e109]:
+                - generic [ref=f1e110]: Từ
+                - generic [ref=f1e111]: Miễn phí
+              - link "Chi tiết" [ref=f1e112] [cursor=pointer]:
+                - /url: http://127.0.0.1:8000/destinations/silk-path-grand-sapa-resort-spa
+        - generic [ref=f1e113]:
+          - generic [ref=f1e114]:
+            - img "Bãi Nồm Bình Ba" [ref=f1e115]
+            - generic [ref=f1e116]: Biển & Đảo
+            - button "Lưu yêu thích" [ref=f1e117] [cursor=pointer]
+          - generic [ref=f1e120]:
+            - generic [ref=f1e121]:
+              - generic [ref=f1e122]: 📍 Cam Ranh
+              - generic [ref=f1e123]: ⭐ 5.0
+            - heading "Bãi Nồm Bình Ba" [level=3] [ref=f1e124]
+            - paragraph [ref=f1e125]: Bãi cát nằm ở phía đông đảo Bình Ba, thích hợp ngắm bình minh.
+            - generic [ref=f1e126]:
+              - generic [ref=f1e127]:
+                - generic [ref=f1e128]: Từ
+                - generic [ref=f1e129]: Miễn phí
+              - link "Chi tiết" [ref=f1e130] [cursor=pointer]:
+                - /url: http://127.0.0.1:8000/destinations/bai-nom-binh-ba
+        - generic [ref=f1e131]:
+          - generic [ref=f1e132]:
+            - img "Vinpearl Resort & Spa Phú Quốc" [ref=f1e133]
+            - generic [ref=f1e134]: Nghỉ dưỡng & Resort
+            - button "Lưu yêu thích" [ref=f1e135] [cursor=pointer]
+          - generic [ref=f1e138]:
+            - generic [ref=f1e139]:
+              - generic [ref=f1e140]: 📍 Phú Quốc
+              - generic [ref=f1e141]: ⭐ 5.0
+            - heading "Vinpearl Resort & Spa Phú Quốc" [level=3] [ref=f1e142]
+            - paragraph [ref=f1e143]: Khu nghỉ dưỡng 5 sao sang trọng bên bờ Bãi Dài với bể bơi ngoài trời rộng lớn và dịch vụ chuẩn quốc tế.
+            - generic [ref=f1e144]:
+              - generic [ref=f1e145]:
+                - generic [ref=f1e146]: Từ
+                - generic [ref=f1e147]: Miễn phí
+              - link "Chi tiết" [ref=f1e148] [cursor=pointer]:
+                - /url: http://127.0.0.1:8000/destinations/vinpearl-resort-spa-phu-quoc
+        - generic [ref=f1e149]:
+          - generic [ref=f1e150]:
+            - img "Phố Hiến" [ref=f1e151]
+            - generic [ref=f1e152]: Di Sản Văn Hóa
+            - button "Lưu yêu thích" [ref=f1e153] [cursor=pointer]
+          - generic [ref=f1e156]:
+            - generic [ref=f1e157]:
+              - generic [ref=f1e158]: 📍 Hưng Yên
+              - generic [ref=f1e159]: ⭐ 5.0
+            - heading "Phố Hiến" [level=3] [ref=f1e160]
+            - paragraph [ref=f1e161]: Thương cảng xưa lưu dấu sự giao thoa văn hóa Việt, Hoa và nhiều cộng đồng.
+            - generic [ref=f1e162]:
+              - generic [ref=f1e163]:
+                - generic [ref=f1e164]: Từ
+                - generic [ref=f1e165]: Miễn phí
+              - link "Chi tiết" [ref=f1e166] [cursor=pointer]:
+                - /url: http://127.0.0.1:8000/destinations/pho-hien
+        - generic [ref=f1e167]:
+          - generic [ref=f1e168]:
+            - img "InterContinental Danang Sun Peninsula Resort" [ref=f1e169]
+            - generic [ref=f1e170]: Nghỉ dưỡng & Resort
+            - button "Lưu yêu thích" [ref=f1e171] [cursor=pointer]
+          - generic [ref=f1e174]:
+            - generic [ref=f1e175]:
+              - generic [ref=f1e176]: 📍 Đà Nẵng
+              - generic [ref=f1e177]: ⭐ 5.0
+            - heading "InterContinental Danang Sun Peninsula Resort" [level=3] [ref=f1e178]
+            - paragraph [ref=f1e179]: Khu nghỉ dưỡng trên bán đảo Sơn Trà, hướng ra biển.
+            - generic [ref=f1e180]:
+              - generic [ref=f1e181]:
+                - generic [ref=f1e182]: Từ
+                - generic [ref=f1e183]: Miễn phí
+              - link "Chi tiết" [ref=f1e184] [cursor=pointer]:
+                - /url: http://127.0.0.1:8000/destinations/intercontinental-danang-sun-peninsula-resort
+        - generic [ref=f1e185]:
+          - generic [ref=f1e186]:
+            - img "Chùa Bà Thiên Hậu Thủ Dầu Một" [ref=f1e187]
+            - generic [ref=f1e188]: Tâm linh & Tín ngưỡng
+            - button "Lưu yêu thích" [ref=f1e189] [cursor=pointer]
+          - generic [ref=f1e192]:
+            - generic [ref=f1e193]:
+              - generic [ref=f1e194]: 📍 Thủ Dầu Một
+              - generic [ref=f1e195]: ⭐ 5.0
+            - heading "Chùa Bà Thiên Hậu Thủ Dầu Một" [level=3] [ref=f1e196]
+            - paragraph [ref=f1e197]: Miếu thờ Thiên Hậu nổi tiếng với lễ hội rằm tháng Giêng.
+            - generic [ref=f1e198]:
+              - generic [ref=f1e199]:
+                - generic [ref=f1e200]: Từ
+                - generic [ref=f1e201]: Miễn phí
+              - link "Chi tiết" [ref=f1e202] [cursor=pointer]:
+                - /url: http://127.0.0.1:8000/destinations/chua-ba-thien-hau-thu-dau-mot
+  - generic [ref=f1e203]:
+    - region "Trợ lý du lịch" [ref=f1e207]:
+      - generic [ref=f1e208]:
+        - generic [aria-hidden] [ref=f1e209]: ✦
+        - generic [ref=f1e210]:
+          - strong [ref=f1e211]: Trợ lý du lịch
+          - generic [ref=f1e212]: Travel Planner · Sẵn sàng hỗ trợ
+        - button "Đóng trò chuyện" [ref=f1e213] [cursor=pointer]: ×
+      - log [ref=f1e214]:
+        - generic [ref=f1e215]:
+          - text: ✦
+          - strong [ref=f1e216]: Xin chào! Bạn muốn đi đâu?
+          - paragraph [ref=f1e217]: Hỏi mình về điểm đến, nơi lưu trú hoặc ý tưởng cho chuyến đi nhé.
+        - generic [ref=f1e218]: Gợi ý nơi lưu trú
+        - generic [ref=f1e219]:
+          - text: Đây là một số gợi ý từ dữ liệu hiện có của Travel Planner. Bạn muốn đi thành phố nào? Mở chi tiết để chọn ngày và kiểm tra phòng; đây là giá niêm yết.
+          - link "Vinpearl Resort & Spa Phú Quốc Phú Quốc · Giá phòng từ 2.800.000 đ/đêm Xem chi tiết →" [ref=f1e220] [cursor=pointer]:
+            - /url: /destinations/vinpearl-resort-spa-phu-quoc
+            - strong [ref=f1e221]: Vinpearl Resort & Spa Phú Quốc
+            - generic [ref=f1e222]: Phú Quốc · Giá phòng từ 2.800.000 đ/đêm
+            - generic [ref=f1e223]: Xem chi tiết →
+          - link "InterContinental Danang Sun Peninsula Resort Đà Nẵng · Giá phòng từ 2.650.000 đ/đêm Xem chi tiết →" [ref=f1e224] [cursor=pointer]:
+            - /url: /destinations/intercontinental-danang-sun-peninsula-resort
+            - strong [ref=f1e225]: InterContinental Danang Sun Peninsula Resort
+            - generic [ref=f1e226]: Đà Nẵng · Giá phòng từ 2.650.000 đ/đêm
+            - generic [ref=f1e227]: Xem chi tiết →
+          - link "Furama Resort Danang Đà Nẵng · Giá phòng từ 1.550.000 đ/đêm Xem chi tiết →" [ref=f1e228] [cursor=pointer]:
+            - /url: /destinations/furama-resort-danang
+            - strong [ref=f1e229]: Furama Resort Danang
+            - generic [ref=f1e230]: Đà Nẵng · Giá phòng từ 1.550.000 đ/đêm
+            - generic [ref=f1e231]: Xem chi tiết →
+        - generic [ref=f1e232]: Gợi ý địa điểm du lịch ở Đà Nẵng
+        - generic [ref=f1e233]: "Dưới đây là gợi ý các địa điểm du lịch tại Đà Nẵng từ dữ liệu của hệ thống Travel Planner: 1. **Bãi biển Mỹ Khê Đà Nẵng** - **Địa chỉ:** Đường Võ Nguyên Giáp, Đà Nẵng - **Đánh giá:** 4.7 / 5 - **Giá vé vào cửa:** Miễn phí (0 VNĐ) - **Giờ mở cửa:** 00:00 - 23:59 - **Mô tả:** Bãi biển cát dài gần trung tâm Đà Nẵng, thuận tiện dạo biển và ngắm bình minh. 2. **Khu du lịch Bà Nà Hills** - **Địa chỉ:** Khu vực Bà Nà, Đà Nẵng - **Đánh giá:** 4.5 / 5 - **Giá vé vào cửa:** 900.000 VNĐ - **Giờ mở cửa:** 08:00 - 22:00 - **Mô tả:** Khu du lịch trên núi với cáp treo, vườn hoa và công trình Cầu Vàng. 3. **Bán đảo Sơn Trà** - **Địa chỉ:** Sơn Trà, Đà Nẵng - **Giá vé vào cửa:** Miễn phí (0 VNĐ) - **Mô tả:** Khu bán đảo có rừng tự nhiên, cung đường ven biển và điểm ngắm cảnh. *(Lưu ý: Nếu bạn muốn tìm nơi lưu trú tại Đà Nẵng, hệ thống cũng ghi nhận **Furama Resort Danang** - khu nghỉ dưỡng ven biển Bắc Mỹ An với đánh giá 5.0).*"
+        - generic [ref=f1e234]: Gợi ý điểm tham quan ở Đà Nẵng
+        - generic [ref=f1e235]:
+          - text: Đây là một số gợi ý từ dữ liệu hiện có của Travel Planner ở Đà Nẵng.
+          - 'link "Bãi biển Mỹ Khê Đà Nẵng Đà Nẵng · Vé tham quan: 0 đ Xem chi tiết →" [ref=f1e236] [cursor=pointer]':
+            - /url: /destinations/my-khe-beach
+            - strong [ref=f1e237]: Bãi biển Mỹ Khê Đà Nẵng
+            - generic [ref=f1e238]: "Đà Nẵng · Vé tham quan: 0 đ"
+            - generic [ref=f1e239]: Xem chi tiết →
+          - 'link "Khu du lịch Bà Nà Hills Đà Nẵng · Vé tham quan: 900.000 đ Xem chi tiết →" [ref=f1e240] [cursor=pointer]':
+            - /url: /destinations/ba-na-hills
+            - strong [ref=f1e241]: Khu du lịch Bà Nà Hills
+            - generic [ref=f1e242]: "Đà Nẵng · Vé tham quan: 900.000 đ"
+            - generic [ref=f1e243]: Xem chi tiết →
+          - 'link "Cầu Rồng Đà Nẵng · Vé tham quan: 0 đ Xem chi tiết →" [ref=f1e244] [cursor=pointer]':
+            - /url: /destinations/cau-rong
+            - strong [ref=f1e245]: Cầu Rồng
+            - generic [ref=f1e246]: "Đà Nẵng · Vé tham quan: 0 đ"
+            - generic [ref=f1e247]: Xem chi tiết →
+      - generic "Câu hỏi gợi ý" [ref=f1e248]:
+        - paragraph [ref=f1e249]: Gợi ý cho bạn
+        - button "Đặt phòng ở Đà Nẵng" [ref=f1e250] [cursor=pointer]:
+          - generic [aria-hidden] [ref=f1e252]: ↗
+        - button "Tham quan ở Đà Nẵng" [ref=f1e253] [cursor=pointer]:
+          - generic [aria-hidden] [ref=f1e255]: ↗
+        - button "Khám phá điểm đến ở Đà Nẵng" [ref=f1e256] [cursor=pointer]:
+          - generic [aria-hidden] [ref=f1e258]: ↗
+      - status [ref=f1e259]
+      - generic [ref=f1e260]:
+        - generic [ref=f1e261]: Câu hỏi của bạn
+        - textbox "Câu hỏi của bạn" [active] [ref=f1e262]:
+          - /placeholder: Nhập câu hỏi của bạn...
+        - button "Gửi câu hỏi" [ref=f1e263] [cursor=pointer]
+      - paragraph [ref=f1e266]: Thông tin từ AI có thể cần được kiểm tra lại.
+    - button "Hỏi trợ lý du lịch" [expanded] [ref=f1e204] [cursor=pointer]:
+      - generic [aria-hidden] [ref=f1e205]: ✦

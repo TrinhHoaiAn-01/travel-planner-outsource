@@ -1,0 +1,32 @@
+{
+  "label": "legacy_router",
+  "variant": "legacy",
+  "follow_up_rewrite": "off",
+  "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+  "case_count": 12,
+  "route_counts": {
+    "rag_search": 11,
+    "booking_lookup": 1
+  },
+  "answerable_case_count": 10,
+  "no_answer_case_count": 2,
+  "metrics": {
+    "recall_at_5": 0.7,
+    "recall_at_10": 0.8666666666666667,
+    "mrr": 0.7444444444444445,
+    "precision_at_5": 0.22
+  },
+  "average_retrieval_latency_seconds": 0.04386032499966556,
+  "no_answer_cases": [
+    {
+      "name": "private_booking_not_in_public_rag",
+      "returned_documents": false
+    },
+    {
+      "name": "no_matching_document",
+      "returned_documents": false
+    }
+  ],
+  "no_answer_success_rate": 1.0,
+  "process_memory_megabytes": null
+}

@@ -31,6 +31,21 @@ return [
 
     'connections' => [
 
+        // Existing Python/Discord chatbot schema; website identities use a separate namespace.
+        'chatbot' => [
+            'driver' => 'mysql',
+            'host' => env('CHATBOT_DB_HOST', env('DB_HOST', '127.0.0.1')),
+            'port' => env('CHATBOT_DB_PORT', env('DB_PORT', '3306')),
+            'database' => env('CHATBOT_DB_DATABASE', 'ai_chatbot'),
+            'username' => env('CHATBOT_DB_USERNAME', env('DB_USERNAME', 'root')),
+            'password' => env('CHATBOT_DB_PASSWORD', env('DB_PASSWORD', '')),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+            'options' => extension_loaded('pdo_mysql') ? [PDO::ATTR_TIMEOUT => 3] : [],
+        ],
+
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL'),
