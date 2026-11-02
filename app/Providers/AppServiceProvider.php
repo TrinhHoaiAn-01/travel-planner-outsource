@@ -84,6 +84,54 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\Interfaces\DestinationImageServiceInterface::class,
             \App\Services\DestinationImageService::class
         );
+
+        // Ràng buộc ReviewServiceInterface với ReviewService (Nguyễn Trần Thành)
+        $this->app->bind(
+            \App\Services\Interfaces\ReviewServiceInterface::class,
+            \App\Services\ReviewService::class
+        );
+
+        // Ràng buộc ReviewModerationServiceInterface với ReviewModerationService
+        $this->app->bind(
+            \App\Services\Interfaces\ReviewModerationServiceInterface::class,
+            \App\Services\ReviewModerationService::class
+        );
+
+        // Ràng buộc ItineraryServiceInterface với ItineraryService (Phạm Thị Ngọc Ái)
+        $this->app->bind(
+            \App\Services\Interfaces\ItineraryServiceInterface::class,
+            \App\Services\ItineraryService::class
+        );
+
+        // Ràng buộc BookingServiceInterface với BookingService (Nguyễn Văn Thắng)
+        $this->app->bind(
+            \App\Services\Interfaces\BookingServiceInterface::class,
+            \App\Services\BookingService::class
+        );
+
+        // Ràng buộc BudgetServiceInterface với BudgetService (Nguyễn Văn Thắng)
+        $this->app->bind(
+            \App\Services\Interfaces\BudgetServiceInterface::class,
+            \App\Services\BudgetService::class
+        );
+
+        // Ràng buộc ExpenseServiceInterface với ExpenseService (Nguyễn Văn Thắng)
+        $this->app->bind(
+            \App\Services\Interfaces\ExpenseServiceInterface::class,
+            \App\Services\ExpenseService::class
+        );
+
+        // Ràng buộc PaymentServiceInterface với PaymentService (Nguyễn Văn Thắng)
+        $this->app->bind(
+            \App\Services\Interfaces\PaymentServiceInterface::class,
+            \App\Services\PaymentService::class
+        );
+
+        // Ràng buộc ActivityLogServiceInterface với ActivityLogService (Trịnh Hoài An)
+        $this->app->bind(
+            \App\Services\Interfaces\ActivityLogServiceInterface::class,
+            \App\Services\ActivityLogService::class
+        );
     }
 
     /**

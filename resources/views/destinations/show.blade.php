@@ -1248,9 +1248,412 @@
             .highlight-pills-bar {
                 grid-template-columns: 1fr;
             }
-            .amenities-grid-3 {
-                grid-template-columns: 1fr;
-            }
+        /* ================= 8. CSS Quản lý Nhận xét & Đánh giá (Review & Rating - Hình 24, 25, 26) ================= */
+        .reviews-header-wrap {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .review-score-badge {
+            background: #FFFBEB;
+            border: 1px solid #FDE68A;
+            border-radius: 12px;
+            padding: 10px 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .review-score-badge .score-star {
+            color: #F59E0B;
+            font-size: 24px;
+            line-height: 1;
+        }
+        .review-score-badge .score-val {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0F172A;
+            letter-spacing: -0.5px;
+        }
+        .review-score-badge .score-count {
+            font-size: 13px;
+            color: #64748B;
+            font-weight: 500;
+        }
+
+        /* Khối form đánh giá */
+        .review-form-card {
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+        .review-form-card.is-edit {
+            background: #F0FDF4;
+            border-color: #BBF7D0;
+        }
+        .review-form-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #0F172A;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .review-form-subtitle {
+            font-size: 13px;
+            color: #64748B;
+            margin-bottom: 18px;
+        }
+        .status-badge-pending {
+            background: #FEF3C7;
+            color: #92400E;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 20px;
+            border: 1px solid #FCD34D;
+        }
+        .status-badge-approved {
+            background: #DCFCE7;
+            color: #166534;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 20px;
+            border: 1px solid #86EFAC;
+        }
+        .status-badge-hidden {
+            background: #FEE2E2;
+            color: #991B1B;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 20px;
+            border: 1px solid #FCA5A5;
+        }
+
+        .star-picker-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .star-picker-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #334155;
+            margin-right: 4px;
+        }
+        .star-picker-stars {
+            display: inline-flex;
+            gap: 4px;
+        }
+        .star-picker-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            font-size: 26px;
+            color: #CBD5E1;
+            transition: color 0.15s, transform 0.15s;
+            line-height: 1;
+        }
+        .star-picker-btn:hover {
+            transform: scale(1.15);
+        }
+        .star-picker-btn.filled {
+            color: #F59E0B;
+        }
+        .star-picker-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0066FF;
+            margin-left: 6px;
+        }
+
+        .review-textarea-wrap {
+            margin-bottom: 16px;
+            position: relative;
+        }
+        .review-textarea-wrap label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 6px;
+        }
+        .review-textarea {
+            width: 100%;
+            border: 1px solid #CBD5E1;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-family: inherit;
+            font-size: 14px;
+            color: #0F172A;
+            background: #FFFFFF;
+            min-height: 110px;
+            resize: vertical;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .review-textarea:focus {
+            outline: none;
+            border-color: #0066FF;
+            box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.12);
+        }
+        .char-counter-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 4px;
+            font-size: 12px;
+            color: #94A3B8;
+        }
+
+        .review-footer-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .review-user-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #475569;
+        }
+        .review-user-label strong {
+            color: #0F172A;
+        }
+        .review-form-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-submit-review {
+            background: #0066FF;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 22px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s, transform 0.15s;
+        }
+        .btn-submit-review:hover {
+            background: #0052CC;
+            transform: translateY(-1px);
+        }
+        .btn-delete-review-form {
+            background: #FEE2E2;
+            color: #DC2626;
+            border: 1px solid #FECACA;
+            border-radius: 10px;
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+        .btn-delete-review-form:hover {
+            background: #FCA5A5;
+            color: #B91C1C;
+        }
+
+        /* Danh sách reviews */
+        .reviews-list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .review-card-item {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .review-card-item:hover {
+            border-color: #CBD5E1;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        .review-card-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .review-author-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .review-author-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #EBF5FF;
+            color: #0066FF;
+            font-weight: 700;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #BFDBFE;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .review-author-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .review-author-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0F172A;
+            line-height: 1.2;
+            margin-bottom: 2px;
+        }
+        .review-author-date {
+            font-size: 12px;
+            color: #94A3B8;
+        }
+        .review-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-action-sm {
+            background: none;
+            border: 1px solid #E2E8F0;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-decoration: none;
+        }
+        .btn-action-sm:hover {
+            background: #F1F5F9;
+            color: #0F172A;
+        }
+        .btn-action-sm.danger {
+            color: #DC2626;
+            border-color: #FECACA;
+        }
+        .btn-action-sm.danger:hover {
+            background: #FEE2E2;
+        }
+
+        .review-stars-display {
+            color: #F59E0B;
+            font-size: 15px;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .review-comment-body {
+            font-size: 14px;
+            color: #334155;
+            line-height: 1.6;
+            white-space: pre-line;
+        }
+
+        /* Modal Xóa Đánh Giá */
+        .custom-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .custom-modal-overlay.active {
+            display: flex;
+        }
+        .custom-modal-box {
+            background: #FFFFFF;
+            border-radius: 16px;
+            max-width: 440px;
+            width: 100%;
+            padding: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            animation: modalFadeIn 0.2s ease-out;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .custom-modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0F172A;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .custom-modal-desc {
+            font-size: 14px;
+            color: #64748B;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+        .custom-modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .btn-modal-cancel {
+            background: #F1F5F9;
+            color: #475569;
+            border: none;
+            border-radius: 8px;
+            padding: 9px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn-modal-cancel:hover {
+            background: #E2E8F0;
+        }
+        .btn-modal-confirm-delete {
+            background: #DC2626;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 8px;
+            padding: 9px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn-modal-confirm-delete:hover {
+            background: #B91C1C;
         }
     </style>
 </head>
@@ -1339,11 +1742,18 @@
             </div>
         @endif
 
+        @if(session('error'))
+            <div style="background: #FEF2F2; border: 1px solid #EF4444; color: #991B1B; padding: 14px 20px; border-radius: 12px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; font-weight: 600; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <span>{{ session('error') }}</span>
+            </div>
+        @endif
+
         @if($errors->any())
             <div style="background: #FEF2F2; border: 1px solid #EF4444; color: #991B1B; padding: 14px 20px; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);">
                 <div style="font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                    <span>Không thể tạo đơn đặt phòng do các lỗi sau:</span>
+                    <span>Đã có lỗi xảy ra, vui lòng kiểm tra lại:</span>
                 </div>
                 <ul style="margin-left: 28px; font-size: 14px; line-height: 1.6;">
                     @foreach($errors->all() as $err)
@@ -1599,6 +2009,307 @@
                             </span>
                         </div>
                     @endif
+                </div>
+
+                <!-- ================= Khối Nhận Xét & Đánh Giá Địa Điểm (Hình 24, 25, 26 Báo cáo) ================= -->
+                <div class="content-card-box" id="destination-reviews-section" style="margin-top: 30px;">
+                    <!-- Header Tiêu đề & Tổng điểm đánh giá -->
+                    <div class="reviews-header-wrap">
+                        <div>
+                            <h2 class="section-headline" style="margin-bottom: 4px;">
+                                ⭐ Đánh giá từ khách du lịch
+                            </h2>
+                            <p style="font-size: 14px; color: #64748B;">
+                                Xem nhận xét thực tế từ những người đã trải nghiệm tại {{ $destination->name }}
+                            </p>
+                        </div>
+                        <div class="review-score-badge">
+                            <span class="score-star">⭐</span>
+                            <div>
+                                <div class="score-val">{{ number_format($destination->rating, 1) }} / 5.0</div>
+                                <div class="score-count">({{ $destination->approvedReviews->count() }} nhận xét đã duyệt)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phân bố số sao đánh giá (Rating Breakdown) -->
+                    @if(isset($ratingDistribution) && $destination->approvedReviews->count() > 0)
+                        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px;">
+                            <div style="font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 10px;">
+                                Phân bố đánh giá của khách tham quan
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 6px;">
+                                @foreach([5, 4, 3, 2, 1] as $star)
+                                    @php
+                                        $stat = $ratingDistribution[$star] ?? ['count' => 0, 'percentage' => 0];
+                                        $count = is_array($stat) ? ($stat['count'] ?? 0) : (int) $stat;
+                                        $percent = is_array($stat) ? ($stat['percentage'] ?? 0) : 0;
+                                    @endphp
+                                    <div style="display: flex; align-items: center; gap: 10px; font-size: 13px;">
+                                        <span style="width: 50px; font-weight: 600; color: #475569;">{{ $star }} sao</span>
+                                        <div style="flex: 1; height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden;">
+                                            <div style="width: {{ $percent }}%; height: 100%; background: #F59E0B; border-radius: 4px;"></div>
+                                        </div>
+                                        <span style="width: 60px; text-align: right; color: #64748B;">{{ $count }} ({{ $percent }}%)</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Khu Vực Form Đánh Giá Của Người Dùng Hiện Tại (Thêm hoặc Chỉnh sửa) -->
+                    @auth
+                        @if($userReview)
+                            <!-- Màn hình chỉnh sửa / hiển thị đánh giá của bạn (Hình 26 Báo Cáo) -->
+                            <div class="review-form-card is-edit" id="userReviewBox">
+                                <div class="review-form-title">
+                                    <span>📝 Đánh giá của bạn</span>
+                                    @if($userReview->status === \App\Models\Review::STATUS_PENDING)
+                                        <span class="status-badge-pending">Đang chờ duyệt</span>
+                                    @elseif($userReview->status === \App\Models\Review::STATUS_APPROVED)
+                                        <span class="status-badge-approved">Đã được duyệt</span>
+                                    @else
+                                        <span class="status-badge-hidden">Đã ẩn</span>
+                                    @endif
+                                </div>
+                                <p class="review-form-subtitle">
+                                    Bạn đã chia sẻ đánh giá cho địa điểm này vào ngày {{ $userReview->created_at ? $userReview->created_at->format('d/m/Y') : date('d/m/Y') }}. Bạn có thể chỉnh sửa nhận xét hoặc xóa đánh giá bất kỳ lúc nào.
+                                </p>
+
+                                <form action="{{ route('reviews.update', $userReview->id) }}" method="POST" id="updateReviewForm">
+                                    @csrf
+                                    @method('PUT')
+
+                                    <!-- Chọn số sao đánh giá (Interactive Star Selector) -->
+                                    <div class="star-picker-row">
+                                        <span class="star-picker-label">Đánh giá của bạn:</span>
+                                        <div class="star-picker-stars" id="editStarPicker">
+                                            @for($i = 1; $i <= 5; $i++)
+                                                <button type="button" class="star-picker-btn {{ $i <= $userReview->rating ? 'filled' : '' }}" 
+                                                        onclick="selectUserRating({{ $i }})" 
+                                                        onmouseover="hoverUserRating({{ $i }})" 
+                                                        onmouseout="resetUserRating()">
+                                                    ★
+                                                </button>
+                                            @endfor
+                                        </div>
+                                        <input type="hidden" name="rating" id="reviewRatingInput" value="{{ $userReview->rating }}">
+                                        <span class="star-picker-text" id="reviewRatingLabel">({{ $userReview->rating }} sao)</span>
+                                    </div>
+                                    @error('rating')
+                                        <p style="color: #DC2626; font-size: 13px; margin-top: -10px; margin-bottom: 12px;">{{ $message }}</p>
+                                    @enderror
+
+                                    <!-- Nhận xét chi tiết -->
+                                    <div class="review-textarea-wrap">
+                                        <label for="editReviewComment">Nhận xét của bạn</label>
+                                        <textarea name="comment" id="editReviewComment" class="review-textarea" 
+                                                  maxlength="500" placeholder="Chia sẻ trải nghiệm thực tế của bạn về địa điểm này..." 
+                                                  oninput="handleCharCounter(this)">{{ old('comment', $userReview->comment) }}</textarea>
+                                        <div class="char-counter-row">
+                                            <span id="reviewCharCount">{{ mb_strlen($userReview->comment ?? '') }}</span> / 500 ký tự
+                                        </div>
+                                        @error('comment')
+                                            <p style="color: #DC2626; font-size: 13px; margin-top: 4px;">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Footer Form: Thông tin tài khoản & Nút thao tác -->
+                                    <div class="review-footer-row">
+                                        <div class="review-user-label">
+                                            <div class="user-avatar" style="width: 26px; height: 26px; font-size: 11px;">
+                                                {{ mb_substr(auth()->user()->name, 0, 1) }}
+                                            </div>
+                                            <span>Đăng với tên: <strong>{{ auth()->user()->name }}</strong></span>
+                                        </div>
+
+                                        <div class="review-form-actions">
+                                            <button type="button" class="btn-delete-review-form" 
+                                                    onclick="triggerDeleteReview('{{ route('reviews.destroy', $userReview->id) }}')">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                                Xóa đánh giá
+                                            </button>
+                                            <button type="submit" class="btn-submit-review">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                                Chỉnh sửa đánh giá
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        @else
+                            <!-- Màn hình thêm đánh giá mới (Hình 24, 25 Báo Cáo) -->
+                            <div class="review-form-card" id="newReviewBox">
+                                <div class="review-form-title">
+                                    <span>✍️ Viết đánh giá của bạn</span>
+                                </div>
+                                <p class="review-form-subtitle">
+                                    Chia sẻ cảm nhận chân thực để giúp cộng đồng du lịch có thêm thông tin hữu ích
+                                </p>
+
+                                <form action="{{ route('reviews.store', $destination->id) }}" method="POST" id="storeReviewForm">
+                                    @csrf
+
+                                    <!-- Chọn số sao đánh giá (Interactive Star Selector) -->
+                                    <div class="star-picker-row">
+                                        <span class="star-picker-label">Đánh giá của bạn:</span>
+                                        <div class="star-picker-stars" id="newStarPicker">
+                                            @for($i = 1; $i <= 5; $i++)
+                                                <button type="button" class="star-picker-btn {{ $i <= (old('rating', 5)) ? 'filled' : '' }}" 
+                                                        onclick="selectUserRating({{ $i }})" 
+                                                        onmouseover="hoverUserRating({{ $i }})" 
+                                                        onmouseout="resetUserRating()">
+                                                    ★
+                                                </button>
+                                            @endfor
+                                        </div>
+                                        <input type="hidden" name="rating" id="reviewRatingInput" value="{{ old('rating', 5) }}">
+                                        <span class="star-picker-text" id="reviewRatingLabel">
+                                            @php
+                                                $initialRating = old('rating', 5);
+                                                $labels = [1 => 'Rất tệ (1 sao)', 2 => 'Tệ (2 sao)', 3 => 'Bình thường (3 sao)', 4 => 'Hài lòng (4 sao)', 5 => 'Tuyệt vời (5 sao)'];
+                                            @endphp
+                                            ({{ $labels[$initialRating] ?? 'Tuyệt vời (5 sao)' }})
+                                        </span>
+                                    </div>
+                                    @error('rating')
+                                        <p style="color: #DC2626; font-size: 13px; margin-top: -10px; margin-bottom: 12px;">{{ $message }}</p>
+                                    @enderror
+
+                                    <!-- Nhận xét chi tiết -->
+                                    <div class="review-textarea-wrap">
+                                        <label for="newReviewComment">Nhận xét của bạn</label>
+                                        <textarea name="comment" id="newReviewComment" class="review-textarea" 
+                                                  maxlength="500" placeholder="Chia sẻ trải nghiệm thực tế của bạn về địa điểm này... (Tối thiểu 10 ký tự, tối đa 500 ký tự)" 
+                                                  oninput="handleCharCounter(this)">{{ old('comment') }}</textarea>
+                                        <div class="char-counter-row">
+                                            <span id="reviewCharCount">{{ mb_strlen(old('comment', '')) }}</span> / 500 ký tự
+                                        </div>
+                                        @error('comment')
+                                            <p style="color: #DC2626; font-size: 13px; margin-top: 4px;">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Footer Form: Thông tin tài khoản & Nút thao tác -->
+                                    <div class="review-footer-row">
+                                        <div class="review-user-label">
+                                            <div class="user-avatar" style="width: 26px; height: 26px; font-size: 11px;">
+                                                {{ mb_substr(auth()->user()->name, 0, 1) }}
+                                            </div>
+                                            <span>Đăng với tên: <strong>{{ auth()->user()->name }}</strong></span>
+                                        </div>
+
+                                        <button type="submit" class="btn-submit-review">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                                            Gửi đánh giá
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        @endif
+                    @else
+                        <!-- Khối nhắc nhở đăng nhập nếu là khách vãng lai -->
+                        <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 14px; padding: 20px 24px; margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="font-size: 28px;">💬</span>
+                                <div>
+                                    <div style="font-size: 15px; font-weight: 700; color: #1E3A8A; margin-bottom: 2px;">
+                                        Bạn đã từng ghé thăm {{ $destination->name }}?
+                                    </div>
+                                    <div style="font-size: 13px; color: #3B82F6;">
+                                        Đăng nhập tài khoản để chia sẻ đánh giá và nhận xét chân thực cho cộng đồng.
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="{{ route('login') }}" class="btn-submit-review" style="text-decoration: none;">
+                                Đăng nhập để đánh giá
+                            </a>
+                        </div>
+                    @endauth
+
+                    <!-- Danh Sách Các Nhận Xét Đã Duyệt (Hình 24 Báo Cáo) -->
+                    <div>
+                        <h3 class="section-subheadline" style="margin-bottom: 16px;">
+                            Nhận xét từ du khách ({{ $reviews->count() }})
+                        </h3>
+
+                        @if($reviews->isNotEmpty())
+                            <div class="reviews-list-container">
+                                @foreach($reviews as $item)
+                                    <div class="review-card-item" id="reviewCard-{{ $item->id }}">
+                                        <div class="review-card-top">
+                                            <div class="review-author-wrap">
+                                                <div class="review-author-avatar">
+                                                    @if($item->user && $item->user->avatar_url)
+                                                        <img src="{{ $item->user->avatar_url }}" alt="{{ $item->user->name }}">
+                                                    @else
+                                                        {{ mb_substr($item->user->name ?? 'U', 0, 1) }}
+                                                    @endif
+                                                </div>
+                                                <div>
+                                                    <div class="review-author-name">
+                                                        {{ $item->user->name ?? 'Người dùng ẩn danh' }}
+                                                        @if(auth()->check() && auth()->id() === $item->user_id)
+                                                            <span style="font-size: 11px; background: #E0E7FF; color: #4338CA; padding: 2px 8px; border-radius: 12px; font-weight: 600; margin-left: 6px;">
+                                                                Bạn
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                    <div class="review-author-date">
+                                                        {{ $item->created_at ? $item->created_at->format('d/m/Y H:i') : 'Mới đây' }}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Các nút quản lý nếu là chủ sở hữu hoặc quản trị viên (Admin) -->
+                                            @if(auth()->check() && (auth()->id() === $item->user_id || auth()->user()->role === 'admin'))
+                                                <div class="review-item-actions">
+                                                    @if(auth()->id() === $item->user_id)
+                                                        <a href="#destination-reviews-section" class="btn-action-sm">
+                                                            ✏️ Sửa
+                                                        </a>
+                                                    @endif
+                                                    <button type="button" class="btn-action-sm danger" 
+                                                            onclick="triggerDeleteReview('{{ route('reviews.destroy', $item->id) }}')">
+                                                        🗑️ Xóa
+                                                    </button>
+                                                </div>
+                                            @endif
+                                        </div>
+
+                                        <!-- Số sao đánh giá -->
+                                        <div class="review-stars-display">
+                                            @for($s = 1; $s <= 5; $s++)
+                                                @if($s <= $item->rating)
+                                                    ★
+                                                @else
+                                                    <span style="color: #CBD5E1;">★</span>
+                                                @endif
+                                            @endfor
+                                            <span style="font-size: 13px; font-weight: 700; color: #0F172A; margin-left: 6px;">
+                                                {{ $item->rating }}.0 / 5.0
+                                            </span>
+                                        </div>
+
+                                        <!-- Nội dung nhận xét -->
+                                        <div class="review-comment-body">
+                                            {{ $item->comment }}
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div style="background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 12px; padding: 36px 20px; text-align: center;">
+                                <div style="font-size: 32px; margin-bottom: 8px;">🏝️</div>
+                                <div style="font-size: 15px; font-weight: 700; color: #334155; margin-bottom: 4px;">
+                                    Chưa có nhận xét nào được hiển thị
+                                </div>
+                                <div style="font-size: 13px; color: #64748B;">
+                                    Hãy là người đầu tiên chia sẻ cảm nhận và đánh giá trải nghiệm tại {{ $destination->name }}!
+                                </div>
+                            </div>
+                        @endif
+                    </div>
                 </div>
 
             </div>
@@ -1947,6 +2658,31 @@
         </div>
     </div>
 
+    <!-- Modal Xác Nhận Xóa Đánh Giá (Review Delete Modal) -->
+    <div id="deleteReviewModal" class="custom-modal-overlay">
+        <div class="custom-modal-box">
+            <div class="custom-modal-title">
+                <span style="color: #DC2626;">⚠️</span>
+                <span>Xác nhận xóa đánh giá</span>
+            </div>
+            <p class="custom-modal-desc">
+                Bạn có chắc chắn muốn xóa bài đánh giá này không? Sau khi xóa, điểm rating trung bình của địa điểm sẽ được tự động tính toán lại.
+            </p>
+            <form id="deleteReviewForm" action="" method="POST">
+                @csrf
+                @method('DELETE')
+                <div class="custom-modal-footer">
+                    <button type="button" class="btn-modal-cancel" onclick="closeDeleteReviewModal()">
+                        Hủy bỏ
+                    </button>
+                    <button type="submit" class="btn-modal-confirm-delete">
+                        Xác nhận xóa
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- JavaScript Xử Lý Tương Tác, Gallery Lightbox & AJAX Modal Room Type -->
     <script>
         // ================= Quản lý Gallery Lightbox (FR12) =================
@@ -2113,6 +2849,73 @@
             document.getElementById('addToTripModal').classList.remove('active');
         }
 
+        // ================= Quản lý Đánh Giá & Nhận Xét Destination (Hình 24, 25, 26) =================
+        let currentUserSelectedRating = parseInt(document.getElementById('reviewRatingInput')?.value || 5, 10);
+        const ratingDescriptions = {
+            1: 'Rất tệ (1 sao)',
+            2: 'Tệ (2 sao)',
+            3: 'Bình thường (3 sao)',
+            4: 'Hài lòng (4 sao)',
+            5: 'Tuyệt vời (5 sao)'
+        };
+
+        function selectUserRating(star) {
+            currentUserSelectedRating = star;
+            const ratingInput = document.getElementById('reviewRatingInput');
+            if (ratingInput) {
+                ratingInput.value = star;
+            }
+            updateStarVisuals(star);
+        }
+
+        function hoverUserRating(star) {
+            updateStarVisuals(star);
+        }
+
+        function resetUserRating() {
+            updateStarVisuals(currentUserSelectedRating);
+        }
+
+        function updateStarVisuals(star) {
+            const picker = document.querySelector('.star-picker-stars');
+            if (!picker) return;
+            const buttons = picker.querySelectorAll('.star-picker-btn');
+            buttons.forEach((btn, index) => {
+                if (index < star) {
+                    btn.classList.add('filled');
+                } else {
+                    btn.classList.remove('filled');
+                }
+            });
+            const label = document.getElementById('reviewRatingLabel');
+            if (label) {
+                label.innerText = `(${ratingDescriptions[star] || star + ' sao'})`;
+            }
+        }
+
+        function handleCharCounter(textarea) {
+            const counter = document.getElementById('reviewCharCount');
+            if (counter) {
+                counter.innerText = textarea.value.length;
+            }
+        }
+
+        function triggerDeleteReview(deleteUrl) {
+            const form = document.getElementById('deleteReviewForm');
+            const modal = document.getElementById('deleteReviewModal');
+            if (form && modal) {
+                form.action = deleteUrl;
+                modal.classList.add('active');
+            }
+        }
+
+        function closeDeleteReviewModal() {
+            const modal = document.getElementById('deleteReviewModal');
+            if (modal) {
+                modal.classList.remove('active');
+            }
+        }
+
         // Đóng modal & điều hướng Lightbox khi nhấn phím
         document.addEventListener('keydown', function (e) {
             const lightbox = document.getElementById('galleryLightboxModal');
@@ -2122,6 +2925,7 @@
                 closeRoomTypeModal();
                 closeAddToTripModal();
                 closeGalleryLightbox();
+                closeDeleteReviewModal();
             } else if (isLightboxActive) {
                 if (e.key === 'ArrowLeft') {
                     changeLightboxImage(-1);

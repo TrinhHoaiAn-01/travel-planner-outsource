@@ -121,6 +121,11 @@ Route::middleware(['auth', 'active'])->group(function () {
     // Kiểm tra trạng thái thanh toán thời gian thực & giả lập nhận tiền (Realtime Polling & Simulator)
     Route::get('/bookings/{booking}/payment-status', [\App\Http\Controllers\PaymentController::class, 'checkStatus'])->name('payments.status');
     Route::post('/bookings/{booking}/simulate-receive', [\App\Http\Controllers\PaymentController::class, 'simulateReceive'])->name('payments.simulate-receive');
+
+    // Quản lý Đánh giá & Nhận xét địa điểm (Destination Reviews - Nguyễn Trần Thành)
+    Route::post('/destinations/{destination}/reviews', [\App\Http\Controllers\ReviewController::class, 'store'])->name('reviews.store');
+    Route::match(['put', 'patch'], '/reviews/{review}', [\App\Http\Controllers\ReviewController::class, 'update'])->name('reviews.update');
+    Route::delete('/reviews/{review}', [\App\Http\Controllers\ReviewController::class, 'destroy'])->name('reviews.destroy');
 });
 
 // Tuyến tiếp nhận phản hồi từ cổng thanh toán MoMo (Callback & Webhook IPN)
