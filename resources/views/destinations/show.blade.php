@@ -1743,19 +1743,25 @@
                                     <h3 class="h5 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
                                         <i class="bi bi-pencil-square text-success"></i> Đánh giá của bạn
                                     </h3>
-                                    @if($userReview->status === \App\Models\Review::STATUS_PENDING)
-                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-1 fw-semibold">
-                                            <i class="bi bi-clock-history me-1"></i>Đang chờ duyệt
-                                        </span>
-                                    @elseif($userReview->status === \App\Models\Review::STATUS_APPROVED)
-                                        <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle rounded-pill px-3 py-1 fw-semibold">
-                                            <i class="bi bi-patch-check-fill me-1"></i>Đã được duyệt
-                                        </span>
-                                    @else
-                                        <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle rounded-pill px-3 py-1 fw-semibold">
-                                            <i class="bi bi-eye-slash-fill me-1"></i>Đã ẩn
-                                        </span>
-                                    @endif
+                                    <div class="d-flex align-items-center gap-2">
+                                        @if($userReview->status === \App\Models\Review::STATUS_PENDING)
+                                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-1 fw-semibold">
+                                                <i class="bi bi-clock-history me-1"></i>Đang chờ duyệt
+                                            </span>
+                                        @elseif($userReview->status === \App\Models\Review::STATUS_APPROVED)
+                                            <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle rounded-pill px-3 py-1 fw-semibold">
+                                                <i class="bi bi-patch-check-fill me-1"></i>Đã được duyệt
+                                            </span>
+                                        @else
+                                            <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle rounded-pill px-3 py-1 fw-semibold">
+                                                <i class="bi bi-eye-slash-fill me-1"></i>Đã ẩn
+                                            </span>
+                                        @endif
+
+                                        <a href="{{ route('reviews.my-reviews') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-semibold shadow-xs" title="Xem tất cả bài đánh giá của bạn">
+                                            <i class="bi bi-star me-1"></i>Đánh giá của tôi
+                                        </a>
+                                    </div>
                                 </div>
                                 <p class="text-secondary small mb-3">
                                     Bạn đã chia sẻ đánh giá cho địa điểm này vào ngày {{ $userReview->created_at ? $userReview->created_at->format('d/m/Y') : date('d/m/Y') }}. Bạn có thể chỉnh sửa nhận xét hoặc xóa đánh giá bất kỳ lúc nào.

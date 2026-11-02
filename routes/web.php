@@ -123,6 +123,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/bookings/{booking}/simulate-receive', [\App\Http\Controllers\PaymentController::class, 'simulateReceive'])->name('payments.simulate-receive');
 
     // Quản lý Đánh giá & Nhận xét địa điểm (Destination Reviews - Nguyễn Trần Thành)
+    Route::get('/my-reviews', [\App\Http\Controllers\ReviewController::class, 'myReviews'])->name('reviews.my-reviews');
     Route::post('/destinations/{destination}/reviews', [\App\Http\Controllers\ReviewController::class, 'store'])->name('reviews.store');
     Route::match(['put', 'patch'], '/reviews/{review}', [\App\Http\Controllers\ReviewController::class, 'update'])->name('reviews.update');
     Route::delete('/reviews/{review}', [\App\Http\Controllers\ReviewController::class, 'destroy'])->name('reviews.destroy');

@@ -214,4 +214,71 @@ class ReviewService implements ReviewServiceInterface
 
         return $distribution;
     }
+
+    /**
+     * Lấy danh sách đánh giá của cá nhân người dùng có phân trang và hỗ trợ bộ lọc (trạng thái, số sao, từ khóa).
+     *
+     * @param array<string, mixed> $filters Mảng bộ lọc gồm 'status', 'rating', 'search'
+     */
+    public function getUserReviews(User $user, array $filters = [], int $perPage = 9): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+        $query = Review::query()
+            ->where('user_id', $user->id)
+            ->with(['destination.city', 'destination.images']);
+
+        // Bộ lọc theo trạng thái: pending, approved, hidden (nếu 'all' hoặc rỗng thì bỏ qua)
+        if (! empty($filters['status']) && in_array($filters['status'], [Review::STATUS_PENDING, Review::STATUS_APPROVED, Review::STATUS_HIDDEN], true)) {
+            $query->where('status', $filters['status']);
+        }
+
+        // Bộ lọc theo số sao: 1 đến 5
+        if (! empty($filters['rating']) && is_numeric($filters['rating'])) {
+            $rating = (int) $filters['rating'];
+            if ($rating >= 1 && $rating <= 5) {
+                $query->where('rating', $rating);
+            }
+        }
+
+        // Bộ lọc tìm kiếm theo từ khóa (tìm trong tên địa điểm hoặc nội dung nhận xét)
+        if (! empty($filters['search'])) {
+            $keyword = trim((string) $filters['search']);
+            $query->where(function ($q) use ($keyword) {
+                $q->where('comment', 'like', "%{$keyword}%")
+                    ->orWhereHas('destination', function ($destQuery) use ($keyword) {
+                        $destQuery->where('name', 'like', "%{$keyword}%");
+                    });
+            });
+        }
+
+        // Sắp xếp mới nhất trước
+        return $query->latest('created_at')
+            ->paginate($perPage)
+            ->withQueryString();
+    }
+
+    /**
+     * Thống kê tổng hợp số lượng đánh giá của người dùng theo từng trạng thái (tổng cộng, đã duyệt, chờ duyệt, đã ẩn).
+     *
+     * @return array{total: int, approved: int, pending: int, hidden: int, average_rating: float}
+     */
+    public function getUserReviewStats(User $user): array
+    {
+        $baseQuery = Review::where('user_id', $user->id);
+
+        $total = (clone $baseQuery)->count();
+        $approved = (clone $baseQuery)->where('status', Review::STATUS_APPROVED)->count();
+        $pending = (clone $baseQuery)->where('status', Review::STATUS_PENDING)->count();
+        $hidden = (clone $baseQuery)->where('status', Review::STATUS_HIDDEN)->count();
+
+        $avg = (clone $baseQuery)->avg('rating');
+        $averageRating = $avg !== null ? round((float) $avg, 1) : 0.0;
+
+        return [
+            'total' => $total,
+            'approved' => $approved,
+            'pending' => $pending,
+            'hidden' => $hidden,
+            'average_rating' => $averageRating,
+        ];
+    }
 }

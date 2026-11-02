@@ -69,4 +69,18 @@ interface ReviewServiceInterface
      * @return array<int, array{count: int, percentage: float}>
      */
     public function getRatingDistribution(Destination $destination): array;
+
+    /**
+     * Lấy danh sách đánh giá của cá nhân người dùng có phân trang và hỗ trợ bộ lọc (trạng thái, số sao, từ khóa).
+     *
+     * @param array<string, mixed> $filters Mảng bộ lọc gồm 'status', 'rating', 'search'
+     */
+    public function getUserReviews(User $user, array $filters = [], int $perPage = 9): \Illuminate\Contracts\Pagination\LengthAwarePaginator;
+
+    /**
+     * Thống kê tổng hợp số lượng đánh giá của người dùng theo từng trạng thái (tổng cộng, đã duyệt, chờ duyệt, đã ẩn).
+     *
+     * @return array{total: int, approved: int, pending: int, hidden: int, average_rating: float}
+     */
+    public function getUserReviewStats(User $user): array;
 }

@@ -74,6 +74,30 @@ class ReviewController extends Controller
     }
 
     /**
+     * Hiển thị màn hình danh sách Quản lý trạng thái và quy tắc Review của User.
+     * Áp dụng đúng quy chuẩn giao diện Section 4.3: Quản lý chuyến đi (Image 1 Style).
+     */
+    public function myReviews(Request $request): \Illuminate\View\View
+    {
+        $user = $request->user();
+
+        // Thu thập các tiêu chí lọc: trạng thái, số sao và từ khóa tìm kiếm
+        $filters = [
+            'status' => $request->query('status', 'all'),
+            'rating' => $request->query('rating'),
+            'search' => $request->query('search'),
+        ];
+
+        // Lấy danh sách review có phân trang từ tầng dịch vụ
+        $reviews = $this->reviewService->getUserReviews($user, $filters, 9);
+
+        // Lấy dữ liệu thống kê tổng hợp số lượng bài đánh giá theo từng trạng thái
+        $stats = $this->reviewService->getUserReviewStats($user);
+
+        return view('reviews.my-reviews', compact('reviews', 'stats', 'filters'));
+    }
+
+    /**
      * Cập nhật số sao và nội dung nhận xét của đánh giá.
      * Quy tắc BR-06: Người dùng chỉ được sửa đánh giá do chính mình tạo (hoặc quyền Admin).
      */
@@ -82,9 +106,12 @@ class ReviewController extends Controller
         // Kiểm tra quyền chỉnh sửa qua ReviewPolicy
         Gate::authorize('update', $review);
 
+        $user = $request->user();
         $updatedReview = $this->reviewService->updateReview($review, $request->validated());
 
-        $message = 'Cập nhật đánh giá thành công!';
+        $message = ($user && $user->isAdmin())
+            ? 'Cập nhật đánh giá thành công!'
+            : 'Cập nhật đánh giá thành công! Bài đánh giá đang ở trạng thái chờ duyệt lại nội dung.';
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -92,6 +119,13 @@ class ReviewController extends Controller
                 'message' => $message,
                 'data' => $updatedReview,
             ]);
+        }
+
+        // Nếu thao tác từ trang Quản lý đánh giá của User thì quay lại đúng trang đó
+        if ($request->input('redirect_to') === 'my-reviews' || str_contains((string) $request->headers->get('referer'), 'my-reviews')) {
+            return redirect()
+                ->route('reviews.my-reviews')
+                ->with('success', $message);
         }
 
         $destinationSlug = $review->destination?->slug;
@@ -120,6 +154,13 @@ class ReviewController extends Controller
                 'success' => true,
                 'message' => $message,
             ]);
+        }
+
+        // Nếu thao tác từ trang Quản lý đánh giá của User thì quay lại đúng trang đó
+        if ($request->input('redirect_to') === 'my-reviews' || str_contains((string) $request->headers->get('referer'), 'my-reviews')) {
+            return redirect()
+                ->route('reviews.my-reviews')
+                ->with('success', $message);
         }
 
         return redirect()
