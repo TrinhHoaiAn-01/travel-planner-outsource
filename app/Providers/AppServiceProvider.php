@@ -84,6 +84,54 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\Interfaces\DestinationImageServiceInterface::class,
             \App\Services\DestinationImageService::class
         );
+
+        // Ràng buộc ActivityLogServiceInterface với triển khai cụ thể ActivityLogService
+        $this->app->bind(
+            \App\Services\Interfaces\ActivityLogServiceInterface::class,
+            \App\Services\ActivityLogService::class
+        );
+
+        // Ràng buộc ReviewModerationServiceInterface với triển khai cụ thể ReviewModerationService
+        $this->app->bind(
+            \App\Services\Interfaces\ReviewModerationServiceInterface::class,
+            \App\Services\ReviewModerationService::class
+        );
+
+        // Ràng buộc BookingServiceInterface với triển khai cụ thể BookingService
+        $this->app->bind(
+            \App\Services\Interfaces\BookingServiceInterface::class,
+            \App\Services\BookingService::class
+        );
+
+        // Ràng buộc BudgetServiceInterface với triển khai cụ thể BudgetService
+        $this->app->bind(
+            \App\Services\Interfaces\BudgetServiceInterface::class,
+            \App\Services\BudgetService::class
+        );
+
+        // Ràng buộc ExpenseServiceInterface với triển khai cụ thể ExpenseService
+        $this->app->bind(
+            \App\Services\Interfaces\ExpenseServiceInterface::class,
+            \App\Services\ExpenseService::class
+        );
+
+        // Ràng buộc ItineraryServiceInterface với triển khai cụ thể ItineraryService
+        $this->app->bind(
+            \App\Services\Interfaces\ItineraryServiceInterface::class,
+            \App\Services\ItineraryService::class
+        );
+
+        // Ràng buộc MoMoGatewayServiceInterface với triển khai cụ thể MoMoGatewayService
+        $this->app->bind(
+            \App\Services\Interfaces\MoMoGatewayServiceInterface::class,
+            \App\Services\MoMoGatewayService::class
+        );
+
+        // Ràng buộc PaymentServiceInterface với triển khai cụ thể PaymentService
+        $this->app->bind(
+            \App\Services\Interfaces\PaymentServiceInterface::class,
+            \App\Services\PaymentService::class
+        );
     }
 
     /**

@@ -510,6 +510,14 @@
                                     </form>
                                 @endif
 
+                                <!-- Nút Nhân bản chuyến đi (Nguyễn Trần Thành) -->
+                                <form action="{{ route('trips.clone', $trip->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    <button type="submit" class="btn btn-light rounded-pill px-3 fw-semibold shadow-sm text-dark d-inline-flex align-items-center" title="Tạo một bản sao mới từ chuyến đi này">
+                                        <i class="bi bi-copy me-1 text-primary"></i> Nhân Bản
+                                    </button>
+                                </form>
+
                                 <a href="{{ route('trips.budget.show', $trip->id) }}" class="btn btn-warning rounded-pill px-4 fw-bold shadow-sm text-dark d-inline-flex align-items-center" style="background-color: #F59E0B; border: none;">
                                     <i class="bi bi-wallet2 me-2"></i> Quản lý Ngân sách
                                 </a>
