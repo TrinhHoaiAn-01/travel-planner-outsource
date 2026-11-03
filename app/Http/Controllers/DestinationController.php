@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Destination;
 use App\Services\Interfaces\DestinationServiceInterface;
+use App\Services\Interfaces\ReviewServiceInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -11,13 +12,20 @@ use Illuminate\View\View;
 class DestinationController extends Controller
 {
     protected DestinationServiceInterface $destinationService;
+    protected ReviewServiceInterface $reviewService;
 
     /**
-     * Khởi tạo Controller với Service Interface tiêm phụ thuộc (Dependency Injection).
+     * Khởi tạo Controller với các Service Interface tiêm phụ thuộc (Dependency Injection).
+     *
+     * @param DestinationServiceInterface $destinationService
+     * @param ReviewServiceInterface $reviewService
      */
-    public function __construct(DestinationServiceInterface $destinationService)
-    {
+    public function __construct(
+        DestinationServiceInterface $destinationService,
+        ReviewServiceInterface $reviewService
+    ) {
         $this->destinationService = $destinationService;
+        $this->reviewService = $reviewService;
     }
 
     /**
@@ -100,10 +108,24 @@ class DestinationController extends Controller
             ? auth()->user()->trips()->whereIn('status', ['draft', 'planned'])->latest()->get()
             : collect();
 
+        // Lấy danh sách nhận xét đã được duyệt để hiển thị công khai (Hình 24 báo cáo)
+        $reviews = $this->reviewService->getApprovedReviews($destination);
+
+        // Lấy đánh giá của chính người dùng hiện tại đối với địa điểm này nếu đã đăng nhập (Hình 25, 26)
+        $userReview = auth()->check()
+            ? $this->reviewService->getUserReviewForDestination(auth()->user(), $destination)
+            : null;
+
+        // Thống kê phân bố đánh giá từ 1 đến 5 sao
+        $ratingDistribution = $this->reviewService->getRatingDistribution($destination);
+
         return view('destinations.show', [
             'destination' => $destination,
             'relatedDestinations' => $relatedDestinations,
             'userTrips' => $userTrips,
+            'reviews' => $reviews,
+            'userReview' => $userReview,
+            'ratingDistribution' => $ratingDistribution,
         ]);
     }
 

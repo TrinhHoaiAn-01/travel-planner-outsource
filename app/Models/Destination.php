@@ -122,4 +122,22 @@ class Destination extends Model
     {
         return 'slug';
     }
+
+    /**
+     * Tự động phân giải Model qua route bằng cả slug hoặc id để đảm bảo tương thích linh hoạt.
+     *
+     * @param mixed $value
+     * @param string|null $field
+     * @return Model|null
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        if ($field) {
+            return $this->where($field, $value)->first();
+        }
+
+        return $this->where('slug', $value)
+            ->orWhere('id', $value)
+            ->first();
+    }
 }

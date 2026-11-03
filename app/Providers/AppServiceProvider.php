@@ -85,52 +85,58 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\DestinationImageService::class
         );
 
-        // Ràng buộc ActivityLogServiceInterface với triển khai cụ thể ActivityLogService
+        // Ràng buộc ReviewServiceInterface với ReviewService (Nguyễn Trần Thành)
         $this->app->bind(
-            \App\Services\Interfaces\ActivityLogServiceInterface::class,
-            \App\Services\ActivityLogService::class
+            \App\Services\Interfaces\ReviewServiceInterface::class,
+            \App\Services\ReviewService::class
         );
 
-        // Ràng buộc ReviewModerationServiceInterface với triển khai cụ thể ReviewModerationService
+        // Ràng buộc ReviewModerationServiceInterface với ReviewModerationService
         $this->app->bind(
             \App\Services\Interfaces\ReviewModerationServiceInterface::class,
             \App\Services\ReviewModerationService::class
         );
 
-        // Ràng buộc BookingServiceInterface với triển khai cụ thể BookingService
+        // Ràng buộc BookingServiceInterface với BookingService (Nguyễn Văn Thắng)
         $this->app->bind(
             \App\Services\Interfaces\BookingServiceInterface::class,
             \App\Services\BookingService::class
         );
 
-        // Ràng buộc BudgetServiceInterface với triển khai cụ thể BudgetService
+        // Ràng buộc BudgetServiceInterface với BudgetService (Nguyễn Văn Thắng)
         $this->app->bind(
             \App\Services\Interfaces\BudgetServiceInterface::class,
             \App\Services\BudgetService::class
         );
 
-        // Ràng buộc ExpenseServiceInterface với triển khai cụ thể ExpenseService
+        // Ràng buộc ExpenseServiceInterface với ExpenseService (Nguyễn Văn Thắng)
         $this->app->bind(
             \App\Services\Interfaces\ExpenseServiceInterface::class,
             \App\Services\ExpenseService::class
         );
 
-        // Ràng buộc ItineraryServiceInterface với triển khai cụ thể ItineraryService
+        // Ràng buộc ItineraryServiceInterface với ItineraryService (Phạm Thị Ngọc Ái)
         $this->app->bind(
             \App\Services\Interfaces\ItineraryServiceInterface::class,
             \App\Services\ItineraryService::class
         );
 
-        // Ràng buộc MoMoGatewayServiceInterface với triển khai cụ thể MoMoGatewayService
+        // Ràng buộc MoMoGatewayServiceInterface với MoMoGatewayService
         $this->app->bind(
             \App\Services\Interfaces\MoMoGatewayServiceInterface::class,
             \App\Services\MoMoGatewayService::class
         );
 
-        // Ràng buộc PaymentServiceInterface với triển khai cụ thể PaymentService
+        // Ràng buộc PaymentServiceInterface với PaymentService (Nguyễn Văn Thắng)
         $this->app->bind(
             \App\Services\Interfaces\PaymentServiceInterface::class,
             \App\Services\PaymentService::class
+        );
+
+        // Ràng buộc ActivityLogServiceInterface với ActivityLogService (Trịnh Hoài An)
+        $this->app->bind(
+            \App\Services\Interfaces\ActivityLogServiceInterface::class,
+            \App\Services\ActivityLogService::class
         );
     }
 

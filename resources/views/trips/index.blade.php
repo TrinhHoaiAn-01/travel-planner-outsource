@@ -925,6 +925,9 @@
             <li class="nav-item active">
                 <a href="{{ route('trips.index') }}">Chuyến đi</a>
             </li>
+            <li class="nav-item">
+                <a href="{{ route('reviews.my-reviews') }}">Đánh giá của tôi</a>
+            </li>
         </ul>
 
         <div class="navbar-actions">
