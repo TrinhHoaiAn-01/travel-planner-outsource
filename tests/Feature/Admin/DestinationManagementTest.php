@@ -15,6 +15,7 @@ use Tests\TestCase;
 class DestinationManagementTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Concerns\FakesWebsiteSearch;
 
     private User $admin;
     private User $user;
@@ -118,6 +119,7 @@ class DestinationManagementTest extends TestCase
     {
         $this->seed(AdminDestinationDemoSeeder::class);
 
+        $this->fakeWebsiteSearch(['destination' => \App\Models\Destination::where('name', 'Sun World Bà Nà Hills')->pluck('id')->all()]);
         $response = $this->actingAs($this->admin)->get(route('admin.destinations.index', ['search' => 'Bà Nà Hills']));
 
         $response->assertOk();

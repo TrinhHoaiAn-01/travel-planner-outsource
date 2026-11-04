@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hành Trình & Chuyến Đi - Travel Planner</title>
+    <script>
+        if (window.top !== window.self) {
+            window.top.location.href = window.location.href;
+        }
+    </script>
     <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -1013,7 +1018,7 @@
 
                 <div class="search-input-group">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input type="text" name="search" value="{{ $searchKeyword }}" placeholder="Tìm kiếm theo tên hoặc mô tả chuyến đi...">
+                    <input type="text" name="search" data-search-suggestions="trip" value="{{ $searchKeyword }}" placeholder="Tìm kiếm theo tên hoặc mô tả chuyến đi...">
                 </div>
 
                 <div class="date-filter-group">
@@ -1536,5 +1541,7 @@
             allMenus.forEach(menu => menu.classList.remove('show'));
         });
     </script>
+    @include('commerce.launcher', ['merchant' => false])
+    @include('partials.search-suggestions')
 </body>
 </html>

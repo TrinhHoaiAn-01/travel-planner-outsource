@@ -689,7 +689,7 @@
                         <line x1="21" y1="21" x2="16.65" y2="16.65"/>
                     </svg>
                     <input type="text"
-                           name="search"
+                           name="search" data-search-suggestions="user"
                            value="{{ request('search') }}"
                            class="search-input-control"
                            placeholder="Tìm kiếm theo tên hoặc email..."

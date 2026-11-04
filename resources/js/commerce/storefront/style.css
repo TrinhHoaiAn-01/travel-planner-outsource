@@ -1,0 +1,341 @@
+/*
+ * Copyright 2026 Anthropic PBC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+@import "tailwindcss";
+@source "../shared";
+@import "../shared/base.css";
+
+@theme {
+  --font-sans: "Times New Roman", Times, Georgia, serif;
+  --font-serif: "Times New Roman", Times, Georgia, serif;
+  --font-mono: "Times New Roman", Times, Georgia, serif;
+}
+
+/*
+ * Travel Planner AI Agent Design System:
+ * Giao diện màu trắng tinh tế, chuyên nghiệp, sang trọng.
+ * Font chữ: Times New Roman ("romance time").
+ */
+
+:root {
+  --font-body: "Times New Roman", Times, Georgia, serif;
+  --font-display: "Times New Roman", Times, Georgia, serif;
+  --font-mono: "Times New Roman", Times, Georgia, serif;
+  --ground: #ffffff; /* Nền trang trắng tinh tế */
+  --surface: #ffffff; /* Bề mặt panel và cards */
+  --card: #ffffff; /* Thẻ trắng sạch sẽ */
+  --chrome: #ffffff; /* Thanh header app bar trắng */
+  --well: #f8fafc; /* Nền wells/hover slate-50 nhẹ nhàng */
+  --ink: #0f172a; /* Màu chữ slate-900 đen than đậm nét */
+  --ink-2: #334155; /* Màu chữ slate-700 thứ cấp */
+  --ink-soft: #64748b; /* Nhãn thông số slate-500 */
+  --ink-faint: #94a3b8; /* Chữ gợi ý mờ slate-400 */
+  --line: #e2e8f0; /* Đường viền thanh lịch slate-200 */
+  --line-strong: #cbd5e1; /* Viền điều khiển input slate-300 */
+  --accent: #2563eb; /* Màu xanh dương hiện đại chuyên nghiệp */
+  --accent-strong: #1d4ed8; /* Màu xanh khi hover/active */
+  --accent-soft: #eff6ff; /* Nền xanh nhạt blue-50 */
+  --accent-ink: #1e40af; /* Chữ xanh đậm trên nền soft */
+  --on-accent: #ffffff; /* Chữ trắng trên nền xanh */
+  --ok: #16a34a; /* Xanh lá xác nhận */
+  --ok-soft: #f0fdf4;
+  --warn: #d97706; /* Vàng cam cảnh báo */
+  --warn-soft: #fffbeb;
+  --danger: #dc2626; /* Đỏ lỗi */
+  --danger-soft: #fef2f2;
+  --info: #0284c7; /* Xanh dương thông tin */
+  --info-soft: #f0f9ff;
+  --violet: #7c3aed;
+  --violet-soft: #f5f3ff;
+  --star: #f59e0b; /* Màu sao đánh giá */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  --radius: 10px;
+  --radius-lg: 14px;
+}
+
+body {
+  background: #ffffff;
+  font-family: var(--font-body), "Times New Roman", Times, Georgia, serif;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+/* Tắt lớp phủ nhiễu hạt để giao diện sáng sạch, chuyên nghiệp */
+.al-grain {
+  display: none !important;
+}
+
+/* ---------------------------------------------------------------- type kit */
+
+.al-display {
+  font-family: var(--font-display), "Times New Roman", Times, Georgia, serif !important;
+}
+
+.al-meta {
+  font-family: var(--font-body), "Times New Roman", Times, Georgia, serif !important;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.al-hero {
+  font-family: var(--font-display), "Times New Roman", Times, Georgia, serif !important;
+  font-weight: 600;
+  font-size: clamp(32px, 5vw, 44px);
+  line-height: 1.15;
+  color: var(--ink);
+}
+.al-hero em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+/* ------------------------------------------------------------------ motion */
+
+@keyframes al-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.al-reveal {
+  animation: al-reveal 380ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.al-reveal-item {
+  animation: al-reveal 380ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes al-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Skeleton shimmer thanh lịch */
+.al-shimmer {
+  border-radius: var(--radius);
+  background: linear-gradient(
+    100deg,
+    var(--well) 35%,
+    rgba(255, 255, 255, 0.8) 50%,
+    var(--well) 65%
+  );
+  background-size: 200% 100%;
+  animation: al-shimmer 1.6s linear infinite;
+}
+
+/* ------------------------------------------------------ conversation chrome */
+
+.user-bubble {
+  background: var(--accent);
+  color: #ffffff;
+  border-radius: 16px 16px 4px 16px;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.2);
+  font-family: var(--font-body), "Times New Roman", Times, Georgia, serif;
+}
+
+/* Suggestion chips thiết kế phẳng, hiện đại và sạch sẽ */
+.chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-family: var(--font-body), "Times New Roman", Times, Georgia, serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  animation: al-reveal 380ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  transition: all 180ms ease-out;
+}
+.chip::before {
+  display: none;
+}
+.chip:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+  transform: translateX(3px);
+  box-shadow: var(--shadow-sm);
+}
+.chip:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ----------------------------------------------------------------- buttons */
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--accent);
+  color: #ffffff;
+  border-radius: var(--radius);
+  padding: 10px 18px;
+  font-family: var(--font-body), "Times New Roman", Times, Georgia, serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  border: none;
+  transition: all 180ms ease-out;
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-strong);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+.btn-primary:disabled {
+  background: var(--well);
+  color: var(--ink-soft);
+  cursor: default;
+}
+
+/* --------------------------------------------------------- postcard window */
+
+.al-postcard {
+  position: relative;
+  overflow: hidden;
+  container-type: inline-size;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.al-postcard-city {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  font-family: var(--font-display), "Times New Roman", Times, Georgia, serif;
+  font-style: normal;
+  font-weight: 700;
+  font-size: clamp(11.5px, 14cqw, 13px);
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.025em;
+  color: #1e293b;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.75);
+  user-select: none;
+  transition: color 180ms ease, transform 180ms ease;
+}
+
+/* Postcards trên trang chủ: phẳng, đổ bóng nhẹ, không nghiêng ngả */
+.al-postcard-rest {
+  transform: none;
+  transition: transform 180ms ease-out, box-shadow 180ms ease-out;
+}
+.al-postcard-rest--alt {
+  transform: none;
+}
+.al-postcard-rest:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+@keyframes al-postcard-mail {
+  to {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+}
+.al-postcard-mailing {
+  animation: al-postcard-mail 260ms ease-in both;
+  pointer-events: none;
+}
+
+/* -------------------------------------------------------- stamp + boarding */
+
+.al-passport-stamp {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid currentColor;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-family: var(--font-body), "Times New Roman", Times, Georgia, serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: center;
+  line-height: 1.35;
+}
+
+@keyframes al-stamp-thump {
+  0% {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.al-stamp-thump {
+  transform: none;
+  animation: al-stamp-thump 240ms cubic-bezier(0.2, 0.9, 0.3, 1) 200ms both;
+}
+
+@keyframes al-stub-snap {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.al-stub-snap {
+  animation: al-stub-snap 200ms ease-out 100ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .al-reveal,
+  .al-reveal-item,
+  .chip,
+  .al-stamp-thump,
+  .al-stub-snap,
+  .al-postcard-mailing {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+  }
+  .al-postcard-rest,
+  .al-postcard-rest--alt {
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------------------------- misc */
+
+.streaming-caret::after {
+  color: var(--accent);
+}

@@ -10,12 +10,17 @@ RUN npm run build
 FROM php:8.3-apache AS base
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        libjpeg62-turbo-dev libpng-dev libzip-dev libonig-dev libsqlite3-dev unzip \
+        libjpeg62-turbo-dev libpng-dev libzip-dev libonig-dev libsqlite3-dev unzip python3 python3-venv \
     && docker-php-ext-configure gd --with-jpeg \
     && docker-php-ext-install gd mbstring pdo_mysql pdo_sqlite zip \
     && rm -rf /var/lib/apt/lists/* \
     && a2enmod rewrite
 WORKDIR /var/www/html
+COPY plugins/commerce-agents/travel_planner/requirements.lock.txt /tmp/commerce-requirements.txt
+RUN python3 -m venv /opt/commerce-venv \
+    && /opt/commerce-venv/bin/pip install --no-cache-dir -r /tmp/commerce-requirements.txt
+ENV COMMERCE_AGENTS_PYTHON=/opt/commerce-venv/bin/python
+RUN printf 'max_execution_time=240\n' > /usr/local/etc/php/conf.d/commerce.ini
 COPY --from=composer:2.10.3 /usr/bin/composer /usr/bin/composer
 RUN printf '%s\n' \
     '<VirtualHost *:80>' \
@@ -47,6 +52,7 @@ COPY database ./database
 COPY public ./public
 COPY resources ./resources
 COPY routes ./routes
+COPY plugins/commerce-agents ./plugins/commerce-agents
 COPY artisan composer.json composer.lock .env.example ./
 RUN mkdir -p storage/app/public storage/app/private storage/logs \
         storage/framework/cache/data storage/framework/sessions storage/framework/views \

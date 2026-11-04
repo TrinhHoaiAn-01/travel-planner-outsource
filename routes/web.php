@@ -19,10 +19,18 @@ use App\Http\Controllers\BookingController;
 //Ngocai
 // Tuyến trang chủ công khai (Public Home)
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::post('/chat', [\App\Http\Controllers\ChatController::class, 'store'])
-    ->middleware('throttle:20,1')->name('chat.store');
+Route::get('/travel-assistant', [\App\Http\Controllers\CommerceAgentController::class, 'shopping'])->name('commerce.shopping');
+Route::get('/admin/commerce-agents', [\App\Http\Controllers\CommerceAgentController::class, 'merchant'])
+    ->middleware(['auth', 'active', 'admin'])->name('commerce.merchant');
+Route::post('/commerce-api/{role}/chat', [\App\Http\Controllers\CommerceAgentController::class, 'chat'])
+    ->where('role', 'shopping|merchant')->middleware('throttle:20,1');
+Route::match(['get', 'post', 'patch', 'delete'], '/commerce-api/{role}/{action?}', [\App\Http\Controllers\CommerceAgentController::class, 'surface'])
+    ->where('role', 'shopping|merchant')->where('action', '.*')->middleware('throttle:120,1')->block(240, 240);
 // Tuyến API tìm kiếm nhanh gợi ý địa điểm & thành phố từ Trang chủ (Trần Văn Trọng)
 Route::get('/quick-search', [HomeController::class, 'quickSearch'])->name('destinations.quick-search');
+Route::get('/search/suggestions/{type}', \App\Http\Controllers\SearchSuggestionController::class)
+    ->where('type', 'destination|city|category|trip|user|booking|payment|activity_log|review|property')
+    ->middleware('throttle:120,1')->name('search.suggestions');
 
 // Tuyến hiển thị nơi lưu trú, danh sách & chi tiết địa điểm, Room Type và Gallery ảnh (Trần Văn Trọng)
 Route::get('/destinations', [PublicDestinationController::class, 'index'])->name('destinations.index');

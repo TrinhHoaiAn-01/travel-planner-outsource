@@ -28,11 +28,7 @@ class CityManagementService implements CityManagementServiceInterface
         // Lọc theo từ khóa tìm kiếm (tên, mã tỉnh/thành hoặc khu vực)
         if (! empty($filters['search'])) {
             $search = trim($filters['search']);
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('code', 'like', "%{$search}%")
-                    ->orWhere('region', 'like', "%{$search}%");
-            });
+            app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'city', $search);
         }
 
         // Lọc theo khu vực (miền)
