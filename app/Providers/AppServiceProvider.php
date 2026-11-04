@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\ItineraryItem;
+use App\Policies\ItineraryPolicy;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
@@ -84,6 +87,60 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\Interfaces\DestinationImageServiceInterface::class,
             \App\Services\DestinationImageService::class
         );
+
+        // Ràng buộc ActivityLogServiceInterface với triển khai cụ thể ActivityLogService
+        $this->app->bind(
+            \App\Services\Interfaces\ActivityLogServiceInterface::class,
+            \App\Services\ActivityLogService::class
+        );
+
+        // Ràng buộc BookingServiceInterface với triển khai cụ thể BookingService
+        $this->app->bind(
+            \App\Services\Interfaces\BookingServiceInterface::class,
+            \App\Services\BookingService::class
+        );
+
+        // Ràng buộc BudgetServiceInterface với triển khai cụ thể BudgetService
+        $this->app->bind(
+            \App\Services\Interfaces\BudgetServiceInterface::class,
+            \App\Services\BudgetService::class
+        );
+
+        // Ràng buộc ExpenseServiceInterface với triển khai cụ thể ExpenseService
+        $this->app->bind(
+            \App\Services\Interfaces\ExpenseServiceInterface::class,
+            \App\Services\ExpenseService::class
+        );
+
+        // Ràng buộc ItineraryServiceInterface với triển khai cụ thể ItineraryService
+        $this->app->bind(
+            \App\Services\Interfaces\ItineraryServiceInterface::class,
+            \App\Services\ItineraryService::class
+        );
+
+        // Ràng buộc PaymentServiceInterface với triển khai cụ thể PaymentService
+        $this->app->bind(
+            \App\Services\Interfaces\PaymentServiceInterface::class,
+            \App\Services\PaymentService::class
+        );
+
+        // Ràng buộc MoMoGatewayServiceInterface với triển khai cụ thể MoMoGatewayService
+        $this->app->bind(
+            \App\Services\Interfaces\MoMoGatewayServiceInterface::class,
+            \App\Services\MoMoGatewayService::class
+        );
+
+        // Ràng buộc VnPayGatewayServiceInterface với triển khai cụ thể VnPayGatewayService
+        $this->app->bind(
+            \App\Services\Interfaces\VnPayGatewayServiceInterface::class,
+            \App\Services\VnPayGatewayService::class
+        );
+
+        // Ràng buộc ReviewModerationServiceInterface với triển khai cụ thể ReviewModerationService
+        $this->app->bind(
+            \App\Services\Interfaces\ReviewModerationServiceInterface::class,
+            \App\Services\ReviewModerationService::class
+        );
     }
 
     /**
@@ -92,6 +149,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Schema::defaultStringLength(191);
+
+        // Đăng ký tường minh chính sách bảo mật cho ItineraryItem
+        Gate::policy(ItineraryItem::class, ItineraryPolicy::class);
 
         // Thiết lập view phân trang mặc định dùng CSS tự xây dựng, tránh lỗi Tailwind mặc định
         Paginator::defaultView('vendor.pagination.default');

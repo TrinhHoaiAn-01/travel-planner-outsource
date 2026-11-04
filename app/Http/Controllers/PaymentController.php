@@ -7,17 +7,19 @@ use App\Models\Booking;
 use App\Models\Payment;
 use App\Services\Interfaces\MoMoGatewayServiceInterface;
 use App\Services\Interfaces\PaymentServiceInterface;
+use App\Services\Interfaces\VnPayGatewayServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
 class PaymentController extends Controller
 {
     /**
-     * Khởi tạo Controller với dependency PaymentServiceInterface và MoMoGatewayServiceInterface.
+     * Khởi tạo Controller với dependency PaymentServiceInterface, MoMoGatewayServiceInterface và VnPayGatewayServiceInterface.
      */
     public function __construct(
         private PaymentServiceInterface $paymentService,
-        private MoMoGatewayServiceInterface $momoGatewayService
+        private MoMoGatewayServiceInterface $momoGatewayService,
+        private VnPayGatewayServiceInterface $vnPayGatewayService
     ) {
     }
 
@@ -139,6 +141,95 @@ class PaymentController extends Controller
             'message' => 'MoMo IPN Processed Successfully',
             'resultCode' => 0,
         ]);
+    }
+
+    /**
+     * Khởi tạo liên kết thanh toán và chuyển hướng sang cổng VNPay Sandbox (VNPay Live).
+     */
+    public function payWithVnPay(Booking $booking)
+    {
+        // 1. Kiểm tra quyền thanh toán đơn (BR-11, BookingPolicy)
+        Gate::authorize('pay', $booking);
+
+        // 2. Gọi VnPayGatewayService tạo URL thanh toán
+        $result = $this->vnPayGatewayService->createPaymentUrl($booking, request()->ip());
+
+        if ($result['success'] && !empty($result['payUrl'])) {
+            return redirect()->away($result['payUrl']);
+        }
+
+        return redirect()
+            ->route('payments.create', $booking)
+            ->with('warning', 'Không thể chuyển tiếp sang cổng VNPay Sandbox (' . ($result['message'] ?? 'Lỗi kết nối') . ').');
+    }
+
+    /**
+     * Xử lý chuyển hướng trở về từ cổng VNPay sau khi người dùng thực hiện giao dịch (Return URL).
+     */
+    public function handleVnPayCallback(Request $request)
+    {
+        $data = $request->all();
+
+        // 1. Xác thực chữ ký số HMAC-SHA512 gửi từ VNPay
+        $isValid = $this->vnPayGatewayService->verifySignature($data);
+
+        if (!$isValid) {
+            return redirect()
+                ->route('bookings.index')
+                ->with('error', 'Chữ ký số xác thực từ VNPay không hợp lệ (Phát hiện nguy cơ giả mạo dữ liệu - BR-21).');
+        }
+
+        $responseCode = $data['vnp_ResponseCode'] ?? null;
+
+        // 2. Nếu thanh toán thành công (vnp_ResponseCode = '00')
+        if ($responseCode === '00') {
+            $payment = $this->vnPayGatewayService->processCallback($data);
+
+            return redirect()
+                ->route('payments.show', $payment)
+                ->with('success', 'Giao dịch qua cổng VNPay thành công! Đơn đặt phòng đã được xác nhận.');
+        }
+
+        // Ghi nhận lịch sử giao dịch thất bại phục vụ đối soát và quản trị
+        try {
+            $this->vnPayGatewayService->processCallback($data);
+        } catch (\Throwable $e) {
+            // Không làm gián đoạn chuyển hướng người dùng nếu việc ghi nhận thất bại gặp sự cố
+        }
+
+        // Giao dịch bị hủy hoặc thất bại
+        return redirect()
+            ->route('bookings.index')
+            ->with('error', 'Giao dịch VNPay không thành công hoặc người dùng đã hủy (Mã lỗi: ' . $responseCode . ').');
+    }
+
+    /**
+     * Xử lý thông báo tức thì (IPN Webhook) gửi từ máy chủ VNPay chạy ngầm.
+     */
+    public function handleVnPayIpn(Request $request)
+    {
+        $data = $request->all();
+
+        if (!$this->vnPayGatewayService->verifySignature($data)) {
+            return response()->json([
+                'RspCode' => '97',
+                'Message' => 'Invalid Checksum',
+            ]);
+        }
+
+        try {
+            $this->vnPayGatewayService->processCallback($data);
+
+            return response()->json([
+                'RspCode' => '00',
+                'Message' => 'Confirm Success',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'RspCode' => '99',
+                'Message' => 'Unknown error: ' . $e->getMessage(),
+            ]);
+        }
     }
 
     /**
