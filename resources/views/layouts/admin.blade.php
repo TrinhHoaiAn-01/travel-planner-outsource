@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script>
+        // Ngăn chặn layout Admin bị nhúng con trong iframe của trợ lý AI
+        if (window.top !== window.self) {
+            window.top.location.href = window.location.href;
+        }
+    </script>
     <title>@yield('title', 'Admin Panel') - Hệ Thống Quản Trị Travel Planner</title>
 
     <!-- Google Fonts Inter -->
@@ -594,6 +600,17 @@
                     <span>Nhật ký (Logs)</span>
                 </div>
             </a>
+
+            <!-- AI & THƯƠNG MẠI -->
+            <div class="nav-group-title">AI & THƯƠNG MẠI</div>
+            <a href="{{ route('commerce.merchant') }}" onclick="openCommerceModal(event)" class="nav-item {{ request()->routeIs('commerce.merchant') ? 'active' : '' }}">
+                <div class="nav-item-content">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                    <span>Commerce Merchant</span>
+                </div>
+            </a>
         </nav>
 
         <!-- User Profile Widget -->
@@ -712,5 +729,6 @@
         });
     </script>
     @stack('scripts')
+    @include('commerce.launcher', ['merchant' => true])
 </body>
 </html>

@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hành Trình & Chuyến Đi - Travel Planner</title>
+    <script>
+        if (window.top !== window.self) {
+            window.top.location.href = window.location.href;
+        }
+    </script>
     <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -1536,5 +1541,6 @@
             allMenus.forEach(menu => menu.classList.remove('show'));
         });
     </script>
+    @include('commerce.launcher', ['merchant' => false])
 </body>
 </html>

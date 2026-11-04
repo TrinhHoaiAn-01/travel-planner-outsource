@@ -13,6 +13,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Đăng ký agent và các dịch vụ hiện có mà luồng website sử dụng.
+        $this->app->bind(\App\Services\Interfaces\AiTravelAssistantInterface::class, \App\Services\AiTravelAssistantService::class);
+        $this->app->bind(\App\Services\Interfaces\ActivityLogServiceInterface::class, \App\Services\ActivityLogService::class);
+        $this->app->bind(\App\Services\Interfaces\BookingServiceInterface::class, \App\Services\BookingService::class);
+        $this->app->bind(\App\Services\Interfaces\BudgetServiceInterface::class, \App\Services\BudgetService::class);
+        $this->app->bind(\App\Services\Interfaces\ExpenseServiceInterface::class, \App\Services\ExpenseService::class);
+        $this->app->bind(\App\Services\Interfaces\ItineraryServiceInterface::class, \App\Services\ItineraryService::class);
+        $this->app->bind(\App\Services\Interfaces\MoMoGatewayServiceInterface::class, \App\Services\MoMoGatewayService::class);
+        $this->app->bind(\App\Services\Interfaces\PaymentServiceInterface::class, \App\Services\PaymentService::class);
+        $this->app->bind(\App\Services\Interfaces\ReviewModerationServiceInterface::class, \App\Services\ReviewModerationService::class);
         // Ràng buộc DashboardServiceInterface với triển khai cụ thể DashboardService
         $this->app->bind(
             \App\Services\Interfaces\DashboardServiceInterface::class,
@@ -90,6 +100,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        @umask(0000);
+        \App\Models\Destination::observe(\App\Observers\CommerceCatalogObserver::class);
+        \App\Models\City::observe(\App\Observers\CommerceCatalogObserver::class);
+        \App\Models\Category::observe(\App\Observers\CommerceCatalogObserver::class);
         Schema::defaultStringLength(191);
 
         // Thiết lập view phân trang mặc định dùng CSS tự xây dựng, tránh lỗi Tailwind mặc định
