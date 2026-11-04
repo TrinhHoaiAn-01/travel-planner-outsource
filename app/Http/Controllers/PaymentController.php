@@ -8,18 +8,20 @@ use App\Models\Payment;
 use App\Services\Interfaces\MoMoGatewayServiceInterface;
 use App\Services\Interfaces\PaymentServiceInterface;
 use App\Services\Interfaces\VnPayGatewayServiceInterface;
+use App\Services\Interfaces\ZaloPayGatewayServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
 class PaymentController extends Controller
 {
     /**
-     * Khởi tạo Controller với dependency PaymentServiceInterface, MoMoGatewayServiceInterface và VnPayGatewayServiceInterface.
+     * Khởi tạo Controller với dependency PaymentServiceInterface, MoMoGatewayServiceInterface, VnPayGatewayServiceInterface và ZaloPayGatewayServiceInterface.
      */
     public function __construct(
         private PaymentServiceInterface $paymentService,
         private MoMoGatewayServiceInterface $momoGatewayService,
-        private VnPayGatewayServiceInterface $vnPayGatewayService
+        private VnPayGatewayServiceInterface $vnPayGatewayService,
+        private ZaloPayGatewayServiceInterface $zaloPayGatewayService
     ) {
     }
 
@@ -228,6 +230,97 @@ class PaymentController extends Controller
             return response()->json([
                 'RspCode' => '99',
                 'Message' => 'Unknown error: ' . $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Khởi tạo liên kết thanh toán và chuyển hướng sang cổng ZaloPay Sandbox (ZaloPay Live).
+     */
+    public function payWithZaloPay(Booking $booking)
+    {
+        // 1. Kiểm tra quyền thanh toán đơn (BR-11, BookingPolicy)
+        Gate::authorize('pay', $booking);
+
+        // 2. Gọi ZaloPayGatewayService tạo đơn hàng và nhận URL thanh toán
+        $result = $this->zaloPayGatewayService->createPaymentUrl($booking);
+
+        if ($result['success'] && !empty($result['payUrl'])) {
+            return redirect()->away($result['payUrl']);
+        }
+
+        return redirect()
+            ->route('payments.create', $booking)
+            ->with('warning', 'Không thể chuyển tiếp sang cổng ZaloPay Sandbox (' . ($result['message'] ?? 'Lỗi kết nối') . ').');
+    }
+
+    /**
+     * Xử lý chuyển hướng trở về từ cổng ZaloPay sau khi người dùng thực hiện giao dịch (Return URL).
+     */
+    public function handleZaloPayCallback(Request $request)
+    {
+        $data = $request->all();
+
+        // 1. Xác thực chữ ký số Checksum gửi từ ZaloPay
+        $isValid = $this->zaloPayGatewayService->verifyRedirectChecksum($data);
+
+        if (!$isValid) {
+            return redirect()
+                ->route('bookings.index')
+                ->with('error', 'Chữ ký xác thực Checksum từ ZaloPay không hợp lệ (Phát hiện nguy cơ giả mạo dữ liệu - BR-21).');
+        }
+
+        $status = (int) ($data['status'] ?? -1);
+
+        // 2. Nếu thanh toán thành công (status = 1)
+        if ($status === 1) {
+            $payment = $this->zaloPayGatewayService->processCallback($data);
+
+            return redirect()
+                ->route('payments.show', $payment)
+                ->with('success', 'Giao dịch qua ví ZaloPay thành công! Đơn đặt phòng đã được xác nhận.');
+        }
+
+        // Ghi nhận lịch sử giao dịch thất bại phục vụ đối soát
+        try {
+            $this->zaloPayGatewayService->processCallback($data);
+        } catch (\Throwable $e) {
+            // Không làm gián đoạn thông báo lỗi cho người dùng
+        }
+
+        // Giao dịch bị hủy hoặc thất bại
+        return redirect()
+            ->route('bookings.index')
+            ->with('error', 'Giao dịch ZaloPay không thành công hoặc người dùng đã hủy (Mã trạng thái: ' . $status . ').');
+    }
+
+    /**
+     * Xử lý thông báo tức thì (Webhook Callback / IPN) gửi từ máy chủ ZaloPay chạy ngầm.
+     */
+    public function handleZaloPayIpn(Request $request)
+    {
+        $dataJson = (string) $request->input('data', '');
+        $mac = (string) $request->input('mac', '');
+
+        if (!$this->zaloPayGatewayService->verifyCallbackMac($dataJson, $mac)) {
+            return response()->json([
+                'return_code' => -1,
+                'return_message' => 'mac not equal',
+            ]);
+        }
+
+        try {
+            $data = json_decode($dataJson, true) ?: [];
+            $this->zaloPayGatewayService->processCallback($data);
+
+            return response()->json([
+                'return_code' => 1,
+                'return_message' => 'success',
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'return_code' => 0,
+                'return_message' => 'exception: ' . $e->getMessage(),
             ]);
         }
     }

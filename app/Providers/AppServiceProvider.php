@@ -136,6 +136,12 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\VnPayGatewayService::class
         );
 
+        // Ràng buộc ZaloPayGatewayServiceInterface với triển khai cụ thể ZaloPayGatewayService
+        $this->app->bind(
+            \App\Services\Interfaces\ZaloPayGatewayServiceInterface::class,
+            \App\Services\ZaloPayGatewayService::class
+        );
+
         // Ràng buộc ReviewModerationServiceInterface với triển khai cụ thể ReviewModerationService
         $this->app->bind(
             \App\Services\Interfaces\ReviewModerationServiceInterface::class,

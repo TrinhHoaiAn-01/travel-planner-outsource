@@ -18,10 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
 
-        // Miễn trừ kiểm tra mã bảo vệ CSRF cho Webhook IPN nhận từ máy chủ MoMo và VNPay
+        // Miễn trừ kiểm tra mã bảo vệ CSRF cho Webhook IPN nhận từ máy chủ MoMo, VNPay và ZaloPay
         $middleware->validateCsrfTokens(except: [
             'payments/momo/ipn',
             'payments/vnpay/ipn',
+            'payments/zalopay/callback-ipn',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

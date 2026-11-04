@@ -210,6 +210,7 @@
 
         .icon-vnpay { background: #E0F2FE; color: #0284C7; }
         .icon-momo { background: #FCE7F3; color: #DB2777; }
+        .icon-zalopay { background: #E0F7FF; color: #008FE5; }
         .icon-bank { background: #DCFCE7; color: #16A34A; }
         .icon-card { background: #FEF3C7; color: #D97706; }
         .icon-cash { background: #F3E8FF; color: #9333EA; }
@@ -467,6 +468,18 @@
                             </div>
                         </label>
 
+                        <!-- Ví ZaloPay -->
+                        <label class="payment-option-label" onclick="selectPayment('zalopay', this)">
+                            <div class="payment-option-info">
+                                <input type="radio" name="payment_method" value="zalopay" class="payment-option-input">
+                                <div class="payment-icon-box icon-zalopay">ZP</div>
+                                <div>
+                                    <div class="payment-method-name">Ví Điện Tử ZaloPay</div>
+                                    <div class="payment-method-desc">Thanh toán qua ví ZaloPay hoặc quét mã QR ZaloPay đa năng</div>
+                                </div>
+                            </div>
+                        </label>
+
                         <!-- Chuyển khoản ngân hàng -->
                         <label class="payment-option-label" onclick="selectPayment('bank_transfer', this)">
                             <div class="payment-option-info">
@@ -593,7 +606,50 @@
                             </div>
                         </div>
 
-                        <!-- 3. VietQR Real Dynamic Panel -->
+                        <!-- 3. ZaloPay Sandbox Panel -->
+                        <div id="panel-zalopay" class="sandbox-panel" style="display: none; background: #F0F9FF; border: 1.5px solid #BAE6FD; border-radius: var(--radius-md); padding: 20px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="background: #008FE5; color: white; font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 4px;">ZALOPAY SANDBOX</span>
+                                    <strong style="color: #0070B8; font-size: 14px;">Cổng Thanh Toán ZaloPay Gateway (API V2)</strong>
+                                </div>
+                                <span style="font-size: 12px; color: #008FE5; font-weight: 600;">AppID: 2553</span>
+                            </div>
+                            <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
+                                <div style="background: white; padding: 10px; border-radius: 8px; border: 1.5px solid #BAE6FD; text-align: center;">
+                                    <img src="https://img.vietqr.io/image/vietinbank-108873456789-qr_only.png?amount={{ (int)$booking->total_price }}&addInfo={{ $booking->booking_code }}&accountName=CONG%20TY%20TRAVEL%20PLANNER"
+                                         alt="Mã ZaloPay QR quét được thật"
+                                         style="width: 135px; height: 135px; display: block; border-radius: 6px; margin: 0 auto;">
+                                    <div style="font-size: 11px; color: #008FE5; margin-top: 6px; font-weight: 700;">QUÉT QUA APP ZALOPAY / BANK</div>
+                                </div>
+                                <div style="flex: 1; min-width: 250px; font-size: 13px; color: #334155;">
+                                    <div style="margin-bottom: 8px;">
+                                        <strong>Thông tin ZaloPay Sandbox Thử Nghiệm:</strong>
+                                    </div>
+                                    <div style="background: white; border: 1px solid #BAE6FD; padding: 10px 14px; border-radius: 8px; line-height: 1.6; font-size: 12.5px;">
+                                        <div>⚙️ Ứng dụng Merchant: <strong>ZaloPay Sandbox Test</strong></div>
+                                        <div>🆔 AppID: <strong style="color: #008FE5;">2553</strong></div>
+                                        <div>🌐 Cổng API: <strong>https://sb-openapi.zalopay.vn/v2/create</strong></div>
+                                        <div>📱 Tài liệu hướng dẫn: <a href="https://docs.zalopay.vn/vi/docs/guides/intro" target="_blank" style="color: #008FE5; font-weight: 600; text-decoration: underline;">docs.zalopay.vn</a></div>
+                                    </div>
+                                    <div style="margin-top: 8px; font-size: 12px; color: #64748B;">
+                                        💡 Bấm nút bên dưới để chuyển tiếp trực tiếp sang cổng ZaloPay Gateway chính thức, quét mã QR hoặc đăng nhập Zalo để thanh toán.
+                                    </div>
+
+                                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #BAE6FD; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                        <button type="button" onclick="submitZaloPayLive()" style="background: #008FE5; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 12.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,143,229,0.2);">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                            🚀 Mở Cổng ZaloPay Sandbox Trực Tiếp (Gateway V2)
+                                        </button>
+                                        <span style="font-size: 11px; color: #0070B8;">
+                                            (Chuyển sang sb-openapi.zalopay.vn)
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4. VietQR Real Dynamic Panel -->
                         <div id="panel-bank_transfer" class="sandbox-panel" style="display: none; background: #F0FDF4; border: 1.5px solid #BBF7D0; border-radius: var(--radius-md); padding: 20px;">
                             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
                                 <div style="display: flex; align-items: center; gap: 8px;">
@@ -822,6 +878,24 @@
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = "{{ route('payments.vnpay.process', $booking->id) }}";
+
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = '_token';
+            csrf.value = "{{ csrf_token() }}";
+            form.appendChild(csrf);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function submitZaloPayLive() {
+            if (isSubmitting) return;
+            isSubmitting = true;
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{{ route('payments.zalopay.process', $booking->id) }}";
 
             const csrf = document.createElement('input');
             csrf.type = 'hidden';
