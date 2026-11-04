@@ -511,22 +511,40 @@
                             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
                                 <div style="display: flex; align-items: center; gap: 8px;">
                                     <span style="background: #0284C7; color: white; font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 4px;">VNPAY SANDBOX</span>
-                                    <strong style="color: #0369A1; font-size: 14px;">Mô phỏng Cổng Thanh Toán VNPay-QR</strong>
+                                    <strong style="color: #0369A1; font-size: 14px;">Cổng Thanh Toán VNPay Sandbox (API V2.1.0)</strong>
                                 </div>
-                                <span style="font-size: 12px; color: #0284C7; font-weight: 600;">Môi trường thử nghiệm</span>
+                                <span style="font-size: 12px; color: #0284C7; font-weight: 600;">Terminal ID: UTSQQSRL</span>
                             </div>
-                            <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                            <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
                                 <div style="background: white; padding: 10px; border-radius: 8px; border: 1.5px solid #BAE6FD; text-align: center;">
                                     <img src="https://img.vietqr.io/image/vietinbank-108873456789-qr_only.png?amount={{ (int)$booking->total_price }}&addInfo={{ $booking->booking_code }}&accountName=CONG%20TY%20TRAVEL%20PLANNER" 
                                          alt="Mã VNPay-QR quét được thật" 
                                          style="width: 135px; height: 135px; display: block; border-radius: 6px; margin: 0 auto;">
                                     <div style="font-size: 11px; color: #0284C7; margin-top: 6px; font-weight: 700;">QUÉT QUA APP VNPAY / NGÂN HÀNG</div>
                                 </div>
-                                <div style="flex: 1; min-width: 200px; font-size: 13px; color: #334155;">
-                                    <p style="margin-bottom: 6px;">🔹 Hỗ trợ thanh toán qua 40+ ứng dụng ngân hàng: <strong>Vietcombank, BIDV, VietinBank, Agribank, MB, Techcombank</strong>...</p>
-                                    <p style="margin-bottom: 6px;">🔹 Bấm nút <strong>"Xác Nhận & Hoàn Tất Thanh Toán"</strong> bên dưới để hoàn tất giao dịch tự động.</p>
-                                    <div style="background: white; border: 1px solid #BAE6FD; padding: 8px 12px; border-radius: 6px; font-size: 12px; color: #0284C7;">
-                                        Mã kiểm thử: <strong>VNPAY_TEST_MERCHANT_01</strong>
+                                <div style="flex: 1; min-width: 250px; font-size: 13px; color: #334155;">
+                                    <div style="margin-bottom: 8px;">
+                                        <strong>Thông tin Thẻ Test VNPay Sandbox (Ngân hàng NCB):</strong>
+                                    </div>
+                                    <div style="background: white; border: 1px solid #BAE6FD; padding: 10px 14px; border-radius: 8px; line-height: 1.6; font-size: 12.5px;">
+                                        <div>🏦 Ngân hàng: <strong style="color: #0284C7;">NCB (Ngân hàng Quốc Dân)</strong></div>
+                                        <div>💳 Số thẻ test: <strong style="color: #0F172A; letter-spacing: 0.5px;">9704198526191432198</strong></div>
+                                        <div>👤 Tên chủ thẻ: <strong>NGUYEN VAN A</strong></div>
+                                        <div>📅 Ngày phát hành: <strong>07/15</strong></div>
+                                        <div>🔑 Mật khẩu OTP: <strong style="color: #0284C7;">123456</strong></div>
+                                    </div>
+                                    <div style="margin-top: 8px; font-size: 12px; color: #64748B;">
+                                        💡 Bạn có thể bấm nút mở Cổng VNPay Live bên dưới để test trực tiếp trên giao diện sandbox của VNPay hoặc xác nhận nhanh nội bộ.
+                                    </div>
+
+                                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #BAE6FD; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                        <button type="button" onclick="submitVnPayLive()" style="background: #0284C7; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 12.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(2,132,199,0.2);">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                            🚀 Mở Cổng VNPay Sandbox Trực Tiếp (VNPAY-QR / Thẻ ATM)
+                                        </button>
+                                        <span style="font-size: 11px; color: #0369A1;">
+                                            (Chuyển sang sandbox.vnpayment.vn)
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -795,6 +813,24 @@
             document.getElementById('demo_card_exp').value = '12/28';
             document.getElementById('demo_card_cvv').value = '888';
             alert('Đã nạp thẻ thử nghiệm Stripe/Visa Sandbox: 4242 4242 4242 4242');
+        }
+
+        function submitVnPayLive() {
+            if (isSubmitting) return;
+            isSubmitting = true;
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{{ route('payments.vnpay.process', $booking->id) }}";
+
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = '_token';
+            csrf.value = "{{ csrf_token() }}";
+            form.appendChild(csrf);
+
+            document.body.appendChild(form);
+            form.submit();
         }
 
         function submitMoMoLive() {

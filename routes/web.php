@@ -116,6 +116,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/bookings/{booking}/payment', [\App\Http\Controllers\PaymentController::class, 'create'])->name('payments.create');
     Route::post('/bookings/{booking}/payment', [\App\Http\Controllers\PaymentController::class, 'store'])->name('payments.store');
     Route::post('/bookings/{booking}/payment/momo', [\App\Http\Controllers\PaymentController::class, 'payWithMoMo'])->name('payments.momo.process');
+    Route::post('/bookings/{booking}/payment/vnpay', [\App\Http\Controllers\PaymentController::class, 'payWithVnPay'])->name('payments.vnpay.process');
     Route::get('/payments/{payment}', [\App\Http\Controllers\PaymentController::class, 'show'])->name('payments.show');
 
     // Kiểm tra trạng thái thanh toán thời gian thực & giả lập nhận tiền (Realtime Polling & Simulator)
@@ -126,6 +127,10 @@ Route::middleware(['auth', 'active'])->group(function () {
 // Tuyến tiếp nhận phản hồi từ cổng thanh toán MoMo (Callback & Webhook IPN)
 Route::get('/payments/momo/callback', [\App\Http\Controllers\PaymentController::class, 'handleMoMoCallback'])->name('payments.momo.callback');
 Route::post('/payments/momo/ipn', [\App\Http\Controllers\PaymentController::class, 'handleMoMoIpn'])->name('payments.momo.ipn');
+
+// Tuyến tiếp nhận phản hồi từ cổng thanh toán VNPay (Callback & Webhook IPN)
+Route::get('/payments/vnpay/callback', [\App\Http\Controllers\PaymentController::class, 'handleVnPayCallback'])->name('payments.vnpay.callback');
+Route::post('/payments/vnpay/ipn', [\App\Http\Controllers\PaymentController::class, 'handleVnPayIpn'])->name('payments.vnpay.ipn');
 
 // Tuyến đăng nhập nhanh người dùng thường (Demo / Test)
 Route::get('/dev/login-as-user', function () {
