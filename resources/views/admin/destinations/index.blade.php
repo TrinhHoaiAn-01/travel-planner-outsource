@@ -690,7 +690,7 @@
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
             <input type="text"
-                   name="search"
+                   name="search" data-search-suggestions="destination"
                    class="dest-search-input"
                    placeholder="Tìm theo tên địa điểm..."
                    value="{{ $filters['search'] ?? '' }}"

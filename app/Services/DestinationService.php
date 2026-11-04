@@ -79,14 +79,7 @@ class DestinationService implements DestinationServiceInterface
         // 1. Lọc theo từ khóa tìm kiếm (tên địa điểm hoặc tên thành phố hoặc địa chỉ hoặc mô tả)
         if (!empty($filters['keyword'])) {
             $keyword = trim((string) $filters['keyword']);
-            $query->where(function ($q) use ($keyword) {
-                $q->where('name', 'like', "%{$keyword}%")
-                  ->orWhere('description', 'like', "%{$keyword}%")
-                  ->orWhere('address', 'like', "%{$keyword}%")
-                  ->orWhereHas('city', function ($cityQuery) use ($keyword) {
-                      $cityQuery->where('name', 'like', "%{$keyword}%");
-                  });
-            });
+            app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'destination', $keyword);
         }
 
         // 2. Lọc theo ID thành phố
@@ -141,9 +134,10 @@ class DestinationService implements DestinationServiceInterface
         }
 
         // Tìm thành phố phù hợp kèm số lượng địa điểm
-        $cities = City::query()
-            ->withCount('destinations')
-            ->where('name', 'like', "%{$keyword}%")
+        $search = app(\App\Services\Interfaces\SearchServiceInterface::class);
+        $citiesQuery = City::query()->withCount('destinations');
+        $search->apply($citiesQuery, 'city', $keyword);
+        $cities = $citiesQuery
             ->limit(4)
             ->get()
             ->map(function ($city) {
@@ -156,14 +150,9 @@ class DestinationService implements DestinationServiceInterface
             });
 
         // Tìm địa điểm du lịch phù hợp
-        $destinations = Destination::query()
-            ->with(['city', 'category', 'roomTypes'])
-            ->where(function ($q) use ($keyword) {
-                $q->where('name', 'like', "%{$keyword}%")
-                  ->orWhereHas('city', function ($cityQuery) use ($keyword) {
-                      $cityQuery->where('name', 'like', "%{$keyword}%");
-                  });
-            })
+        $destinationsQuery = Destination::query()->with(['city', 'category', 'roomTypes']);
+        $search->apply($destinationsQuery, 'destination', $keyword);
+        $destinations = $destinationsQuery
             ->orderByDesc('rating')
             ->limit($limit)
             ->get()
@@ -205,14 +194,7 @@ class DestinationService implements DestinationServiceInterface
         // 1. Tìm kiếm theo từ khóa (tên địa điểm, mô tả, địa chỉ hoặc thành phố)
         $search = trim((string) ($filters['search'] ?? $filters['keyword'] ?? ''));
         if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhere('address', 'like', "%{$search}%")
-                  ->orWhereHas('city', function ($cityQuery) use ($search) {
-                      $cityQuery->where('name', 'like', "%{$search}%");
-                  });
-            });
+            app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'destination', $search);
         }
 
         // 2. Lọc theo Thành phố

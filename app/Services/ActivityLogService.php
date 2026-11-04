@@ -77,14 +77,7 @@ class ActivityLogService implements ActivityLogServiceInterface
         // Tìm kiếm theo từ khóa (hành động, địa chỉ IP hoặc tên/email người dùng)
         if (! empty($filters['search'])) {
             $search = trim((string) $filters['search']);
-            $query->where(function ($q) use ($search) {
-                $q->where('action', 'like', "%{$search}%")
-                    ->orWhere('ip_address', 'like', "%{$search}%")
-                    ->orWhereHas('user', function ($uq) use ($search) {
-                        $uq->where('name', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%");
-                    });
-            });
+            app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'activity_log', $search);
         }
 
         // Lọc theo loại hành động cụ thể

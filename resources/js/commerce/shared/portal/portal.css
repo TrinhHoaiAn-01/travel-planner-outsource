@@ -1,0 +1,42 @@
+/*
+ * Copyright 2026 Anthropic PBC
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The merchant portals' component styles over `../base.css`.
+ */
+
+@import "../base.css";
+
+body {
+  text-rendering: geometricPrecision;
+  font-family: "Times New Roman", Times, Georgia, serif;
+}
+
+/* Class hooks the shared conversation components render */
+.user-bubble {
+  border-radius: 16px 16px 4px 16px;
+  background: var(--accent, #2563eb);
+  color: #ffffff;
+  font-family: "Times New Roman", Times, Georgia, serif;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong, #cbd5e1);
+  background: #ffffff;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink, #0f172a);
+  font-family: "Times New Roman", Times, Georgia, serif;
+  transition: border-color 150ms, background-color 150ms, color 150ms;
+}
+.chip:hover:not(:disabled) {
+  border-color: var(--accent, #2563eb);
+  background: var(--accent-soft, #eff6ff);
+  color: var(--accent-ink, #1e40af);
+}
+.chip:disabled {
+  opacity: 0.5;
+}

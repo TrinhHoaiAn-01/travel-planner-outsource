@@ -11,6 +11,7 @@ use Tests\TestCase;
 class DestinationListAndPaginationTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Concerns\FakesWebsiteSearch;
 
     /**
      * Kiểm thử hiển thị danh sách địa điểm và phân trang mặc định (6 địa điểm / trang).
@@ -94,6 +95,7 @@ class DestinationListAndPaginationTest extends TestCase
             ]);
         }
 
+        $this->fakeWebsiteSearch(['destination' => Destination::pluck('id')->all()]);
         $response = $this->get(route('destinations.index', [
             'search' => 'Đại Nội',
             'per_page' => 6,

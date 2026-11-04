@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Bộ Sưu Tập Yêu Thích Của Bạn - Travel Planner</title>
+    <script>
+        if (window.top !== window.self) {
+            window.top.location.href = window.location.href;
+        }
+    </script>
     <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -759,7 +764,7 @@
                 <li><a href="{{ route('home') }}#destinations" class="menu-link"><i class="bi bi-geo-alt"></i> Địa điểm</a></li>
                 <li><a href="{{ route('trips.index') }}" class="menu-link"><i class="bi bi-map"></i> Chuyến đi</a></li>
                 <li><a href="{{ route('favorites.index') }}" class="menu-link active"><i class="bi bi-suit-heart-fill"></i> Yêu thích</a></li>
-                <li><a href="{{ route('trips.index') }}" class="menu-link"><i class="bi bi-calendar-event"></i> Booking</a></li>
+                <li><a href="{{ route('bookings.index') }}" class="menu-link"><i class="bi bi-calendar-event"></i> Booking</a></li>
             </ul>
 
             <div class="user-nav-actions">
@@ -1230,5 +1235,6 @@
             });
         }
     </script>
+    @include('commerce.launcher', ['merchant' => false])
 </body>
 </html>

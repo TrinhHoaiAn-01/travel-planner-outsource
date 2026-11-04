@@ -12,6 +12,7 @@ use Tests\TestCase;
 class ActivityLogAndSystemLoggingTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Concerns\FakesWebsiteSearch;
 
     private User $admin;
     private User $member;
@@ -252,6 +253,7 @@ class ActivityLogAndSystemLoggingTest extends TestCase
         $responseFilterAction->assertDontSee('192.168.1.200');
 
         // 3. Tìm kiếm theo IP
+        $this->fakeWebsiteSearch(['activity_log' => ActivityLog::where('ip_address', '192.168.1.200')->pluck('id')->all()]);
         $responseFilterIp = $this->actingAs($this->admin)->get(route('admin.activity-logs.index', ['search' => '192.168.1.200']));
         $responseFilterIp->assertStatus(200);
         $responseFilterIp->assertSee('user_locked');
