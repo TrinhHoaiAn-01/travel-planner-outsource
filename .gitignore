@@ -6,6 +6,12 @@
 /storage/*.key
 /storage/pail
 /vendor
+/test-results/
+/playwright-report/
+**/__pycache__/
+**/.venv/
+**/.pytest_cache/
+**/*.egg-info/
 /dist
 .env
 .env.backup

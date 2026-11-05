@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script>
+        // Ngăn chặn trang chủ bị nhúng con trong iframe của trợ lý AI
+        if (window.top !== window.self) {
+            window.top.location.href = window.location.href;
+        }
+    </script>
     <title>Travel Planner - Lên Lịch Trình & Khám Phá Những Vùng Đất Mới</title>
     <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -1009,12 +1015,21 @@
                     }
 
                     debounceTimer = setTimeout(() => {
-                        fetch(`{{ route('destinations.quick-search') }}?keyword=${encodeURIComponent(query)}`)
-                            .then(res => res.json())
+                        fetch(`{{ route('destinations.quick-search') }}?keyword=${encodeURIComponent(query)}`, {
+                            headers: { Accept: 'application/json' },
+                        })
+                            .then(res => {
+                                if (!res.ok) throw new Error('Search unavailable');
+                                return res.json();
+                            })
                             .then(data => {
+                                if (searchInput.value.trim() !== query) return;
                                 renderQuickSearchDropdown(data);
                             })
                             .catch(err => {
+                                if (searchInput.value.trim() !== query) return;
+                                dropdown.innerHTML = '<div class="quick-search-empty">Tìm kiếm hiện chưa sẵn sàng. Vui lòng thử lại sau.</div>';
+                                dropdown.style.display = 'block';
                                 console.error('Lỗi tìm kiếm nhanh:', err);
                             });
                     }, 250);
@@ -1194,6 +1209,6 @@
             });
         }
     </script>
-    @include('partials.chat-widget')
+    @include('commerce.launcher', ['merchant' => false])
 </body>
 </html>

@@ -22,10 +22,7 @@ class TripService implements TripServiceInterface
         // Tìm kiếm theo từ khóa (tên hoặc mô tả chuyến đi)
         if (! empty($filters['search'])) {
             $searchKeyword = trim((string) $filters['search']);
-            $query->where(function ($subQuery) use ($searchKeyword) {
-                $subQuery->where('name', 'like', "%{$searchKeyword}%")
-                    ->orWhere('description', 'like', "%{$searchKeyword}%");
-            });
+            app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'trip', $searchKeyword, $userId);
         }
 
         // Lọc theo trạng thái chuyến đi

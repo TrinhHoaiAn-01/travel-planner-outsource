@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<schema name="travel_destinations" version="1.6">
+  <uniqueKey>id</uniqueKey>
+  <fieldType name="string" class="solr.StrField" sortMissingLast="true"/>
+  <fieldType name="long" class="solr.LongPointField" docValues="true"/>
+  <fieldType name="text" class="solr.TextField">
+    <analyzer>
+      <tokenizer class="solr.StandardTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+      <filter class="solr.ASCIIFoldingFilterFactory"/>
+    </analyzer>
+  </fieldType>
+  <field name="id" type="string" indexed="true" stored="true" required="true"/>
+  <field name="_version_" type="long" indexed="false" stored="false"/>
+  <field name="name" type="text" indexed="true" stored="true"/>
+  <field name="city" type="text" indexed="true" stored="true"/>
+  <field name="category" type="text" indexed="true" stored="true"/>
+  <field name="description" type="text" indexed="true" stored="false"/>
+  <field name="address" type="text" indexed="true" stored="false"/>
+</schema>

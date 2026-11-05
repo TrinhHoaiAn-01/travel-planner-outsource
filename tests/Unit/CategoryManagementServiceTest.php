@@ -13,6 +13,7 @@ use Tests\TestCase;
 class CategoryManagementServiceTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Concerns\FakesWebsiteSearch;
 
     private CategoryManagementService $categoryService;
 
@@ -48,6 +49,7 @@ class CategoryManagementServiceTest extends TestCase
             'entrance_fee' => 0,
         ]);
 
+        $this->fakeWebsiteSearch(['category' => [$category->id]]);
         $result = $this->categoryService->getCategories(['search' => 'Resort']);
         $this->assertSame(1, $result->total());
         $this->assertSame(1, $result->first()->destinations_count);

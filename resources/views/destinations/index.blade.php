@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Khám Phá Địa Điểm Du Lịch & Nơi Lưu Trú - Travel Planner</title>
+    <script>
+        if (window.top !== window.self) {
+            window.top.location.href = window.location.href;
+        }
+    </script>
     <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -802,7 +807,7 @@
                     <!-- 1. Tìm kiếm theo tên -->
                     <div class="filter-field">
                         <label for="filterSearch">🔍 Tìm kiếm</label>
-                        <input type="text" name="search" id="filterSearch" class="filter-input" 
+                        <input type="text" name="search" data-search-suggestions="destination" id="filterSearch" class="filter-input"
                                placeholder="Tên địa điểm..." value="{{ request('search') ?? request('keyword') }}">
                     </div>
 
@@ -1056,5 +1061,7 @@
             });
         });
     </script>
+    @include('commerce.launcher', ['merchant' => false])
+    @include('partials.search-suggestions')
 </body>
 </html>

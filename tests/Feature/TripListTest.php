@@ -11,6 +11,7 @@ use Tests\TestCase;
 class TripListTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Concerns\FakesWebsiteSearch;
 
     /**
      * Khách vãng lai (Guest) chưa đăng nhập không thể xem danh sách chuyến đi và bị chuyển hướng về login.
@@ -98,6 +99,7 @@ class TripListTest extends TestCase
         ]);
 
         // Tìm từ khóa "Nha Trang"
+        $this->fakeWebsiteSearch(['trip' => [Trip::orderBy('id')->value('id')]]);
         $response = $this->actingAs($user)->get(route('trips.index', ['search' => 'Nha Trang']));
 
         $response->assertStatus(200);
@@ -105,6 +107,7 @@ class TripListTest extends TestCase
         $response->assertDontSee('Khám Phá Sapa Mùa Lúa Chín');
 
         // Tìm từ khóa "Fansipan" trong mô tả
+        $this->fakeWebsiteSearch(['trip' => [Trip::orderByDesc('id')->value('id')]]);
         $responseDesc = $this->actingAs($user)->get(route('trips.index', ['search' => 'Fansipan']));
 
         $responseDesc->assertStatus(200);

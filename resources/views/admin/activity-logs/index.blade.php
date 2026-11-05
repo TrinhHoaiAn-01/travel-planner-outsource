@@ -436,7 +436,7 @@
     <form action="{{ route('admin.activity-logs.index') }}" method="GET" class="filter-form-grid">
         <div class="form-group-filter">
             <label class="filter-label">Tìm kiếm</label>
-            <input type="text" name="search" class="filter-input" placeholder="Hành động, IP hoặc tên/email người dùng..." value="{{ request('search') }}">
+            <input type="text" name="search" data-search-suggestions="activity_log" class="filter-input" placeholder="Hành động, IP hoặc tên/email người dùng..." value="{{ request('search') }}">
         </div>
 
         <div class="form-group-filter">

@@ -11,7 +11,7 @@ class RoomType extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['destination_id', 'name', 'capacity', 'price_per_night', 'quantity', 'description'];
+    protected $fillable = ['destination_id', 'name', 'capacity', 'price_per_night', 'quantity', 'description', 'commerce_paused'];
 
     protected function casts(): array
     {
@@ -19,6 +19,7 @@ class RoomType extends Model
             'capacity' => 'integer',
             'price_per_night' => 'decimal:2',
             'quantity' => 'integer',
+            'commerce_paused' => 'boolean',
         ];
     }
 

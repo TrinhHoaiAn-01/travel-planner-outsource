@@ -27,7 +27,19 @@ class Destination extends Model
         'duration',
         'rating',
         'is_featured',
+        'price',
+        'commerce_paused',
     ];
+
+    public function setPriceAttribute($value): void
+    {
+        $this->attributes['entrance_fee'] = $value;
+    }
+
+    public function getPriceAttribute(): float
+    {
+        return (float) ($this->attributes['entrance_fee'] ?? 0);
+    }
 
     protected function casts(): array
     {
@@ -35,6 +47,7 @@ class Destination extends Model
             'entrance_fee' => 'decimal:2',
             'rating' => 'decimal:1',
             'is_featured' => 'boolean',
+            'commerce_paused' => 'boolean',
         ];
     }
 

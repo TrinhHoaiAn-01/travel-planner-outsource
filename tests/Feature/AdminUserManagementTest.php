@@ -10,6 +10,7 @@ use Tests\TestCase;
 class AdminUserManagementTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Concerns\FakesWebsiteSearch;
 
     private User $admin;
     private User $user;
@@ -217,6 +218,7 @@ class AdminUserManagementTest extends TestCase
         User::factory()->create(['name' => 'Trần Văn A', 'email' => 'a.tran@test.com', 'role' => 'user']);
         User::factory()->create(['name' => 'Nguyễn Văn B', 'email' => 'b.nguyen@test.com', 'role' => 'admin']);
 
+        $this->fakeWebsiteSearch(['user' => User::where('email', 'a.tran@test.com')->pluck('id')->all()]);
         $response = $this->actingAs($this->admin)->get(route('admin.users.index', ['search' => 'Trần Văn']));
         $response->assertOk();
         $response->assertSee('Trần Văn A');
