@@ -20,10 +20,6 @@ class AiTravelAssistantService implements AiTravelAssistantInterface
         $openaiKey = config('commerce.openai_api_key');
         $geminiKey = config('commerce.gemini_api_key') ?: config('commerce.api_key');
 
-        if (! $openaiKey && ! $geminiKey) {
-            throw new RuntimeException('Máy chủ Travel Planner hiện đang bận, xin vui lòng thử lại sau!');
-        }
-
         $geminiModel = config('commerce.gemini_model', 'gemini-flash-lite-latest');
         $openaiModel = config('commerce.openai_model', 'gpt-4o-mini');
 
@@ -195,14 +191,12 @@ class AiTravelAssistantService implements AiTravelAssistantInterface
         $identity = $role.':'.($user?->id ?? 'guest');
         if (isset($conversation['identity']) && $conversation['identity'] !== $identity) {
             if ($action === 'POST:session' || $conversation['identity'] === 'shopping:guest') {
-                $conversation = ['identity' => $identity];
+                $conversation['identity'] = $identity;
             } else {
                 abort(403, 'Phiên làm việc không thuộc người dùng này.');
             }
         }
-        if (($conversation['identity'] ?? null) !== $identity) {
-            $conversation = ['identity' => $identity];
-        }
+        $conversation['identity'] = $identity;
         return (new CommerceExperienceService)->handle($role, $action, $parameters, $conversation, $user);
     }
     private function executeRunnerProcess(

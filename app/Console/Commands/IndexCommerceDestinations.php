@@ -10,6 +10,8 @@ class IndexCommerceDestinations extends Command
 {
     protected $signature = 'commerce:index';
 
+    protected $aliases = ['commerce:index-destinations'];
+
     protected $description = 'Đồng bộ điểm đến từ database vào Apache Solr cho Commerce Agents';
 
     public function handle(): int

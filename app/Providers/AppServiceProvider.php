@@ -13,7 +13,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind(\App\Services\Interfaces\ChatServiceInterface::class, \App\Services\ChatService::class);
         $this->app->bind(\App\Services\Interfaces\SearchServiceInterface::class, \App\Services\SolrSearchService::class);
         // Đăng ký agent và các dịch vụ hiện có mà luồng website sử dụng.
         $this->app->bind(\App\Services\Interfaces\AiTravelAssistantInterface::class, \App\Services\AiTravelAssistantService::class);
@@ -116,5 +115,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Thiết lập view phân trang mặc định dùng CSS tự xây dựng, tránh lỗi Tailwind mặc định
         Paginator::defaultView('vendor.pagination.default');
+
+        \Illuminate\Support\Facades\Gate::policy(\App\Models\ItineraryItem::class, \App\Policies\ItineraryPolicy::class);
     }
 }

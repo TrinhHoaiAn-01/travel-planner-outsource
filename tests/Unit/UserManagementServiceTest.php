@@ -12,6 +12,7 @@ use Tests\TestCase;
 class UserManagementServiceTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Concerns\FakesWebsiteSearch;
 
     private UserManagementService $userService;
 
@@ -26,7 +27,7 @@ class UserManagementServiceTest extends TestCase
      */
     public function test_get_users_returns_paginated_users_and_filters_by_search_and_role(): void
     {
-        User::factory()->create([
+        $u1 = User::factory()->create([
             'name' => 'Nguyễn Bảo Ngọc',
             'email' => 'ngoc.travel@travelplanner.com',
             'role' => 'user',
@@ -38,6 +39,7 @@ class UserManagementServiceTest extends TestCase
             'role' => 'admin',
         ]);
 
+        $this->fakeWebsiteSearch(['user' => [$u1->id]]);
         $searchResult = $this->userService->getUsers(['search' => 'Bảo Ngọc']);
         $this->assertSame(1, $searchResult->total());
         $this->assertSame('Nguyễn Bảo Ngọc', $searchResult->first()->name);
@@ -47,7 +49,8 @@ class UserManagementServiceTest extends TestCase
         $this->assertSame('Hệ Thống Admin', $roleResult->first()->name);
 
         // Kiểm thử tìm kiếm theo số điện thoại
-        User::factory()->create(['name' => 'Người Dùng SĐT', 'phone' => '0911223344']);
+        $u3 = User::factory()->create(['name' => 'Người Dùng SĐT', 'phone' => '0911223344']);
+        $this->fakeWebsiteSearch(['user' => [$u3->id]]);
         $phoneResult = $this->userService->getUsers(['search' => '0911223344']);
         $this->assertSame(1, $phoneResult->total());
         $this->assertSame('Người Dùng SĐT', $phoneResult->first()->name);

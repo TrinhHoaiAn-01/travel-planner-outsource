@@ -252,4 +252,50 @@ class CommerceIntegrationAllTest extends TestCase
         Http::fake(['*' => Http::response([], 200)]);
         $this->artisan('commerce:index')->assertSuccessful();
     }
+
+    /**
+     * 12. Kiểm tra cây gợi ý phân tầng: Khi người dùng đang ở Đà Nẵng, gợi ý ẩm thực chỉ chứa món Đà Nẵng, không lọt thành phố khác và không ép đủ 4 nút
+     */
+    public function test_guided_suggestion_tree_strictly_scopes_cuisine_and_destinations_to_active_city(): void
+    {
+        $python = config('commerce.python');
+        $code = <<<'PYTHON'
+import sys, json, subprocess
+sys.path.insert(0, "plugins/commerce-agents/travel_planner")
+from runner import resolve_guided_city_or_topic, resolve_fallback_suggestions, sanitize_suggestions_for_city
+
+# 1. Khám phá Ẩm thực tại Đà Nẵng: 100% các nút phải là ẩm thực
+ans, chips = resolve_guided_city_or_topic("Ẩm thực & Chợ", "Đà Nẵng")
+assert chips == ["Mì Quảng & Bánh tráng cuốn", "Chợ Cồn ẩm thực", "Hải sản Mỹ Khê"], f"Sai chips ẩm thực ĐN: {chips}"
+assert not any(c in " ".join(chips) for c in ["Hà Nội", "Sài Gòn", "Huế"]), "Lọt thành phố khác vào ẩm thực Đà Nẵng"
+assert not any(k in " ".join(chips).lower() for k in ["khách sạn", "lưu trú", "bãi biển"]), "Ẩm thực chứa nút của lĩnh vực khác"
+
+# 2. Khách sạn tại Đà Nẵng: 100% các nút phải là khách sạn
+ans_hotel, chips_hotel = resolve_guided_city_or_topic("Khách sạn & Lưu trú", "Đà Nẵng")
+assert not any(c in " ".join(chips_hotel) for c in ["Hà Nội", "Sài Gòn", "Huế"]), f"Lọt thành phố khác vào khách sạn Đà Nẵng: {chips_hotel}"
+assert all(any(k in c.lower() for k in ["mercure", "khách sạn", "phòng"]) for c in chips_hotel), "Khách sạn chứa nút của lĩnh vực khác"
+
+# 3. Bãi biển tại Đà Nẵng: 100% các nút phải là bãi biển (không được chứa Lăng Cô hoặc Khách sạn)
+ans_beach, chips_beach = resolve_guided_city_or_topic("Bãi biển", "Đà Nẵng")
+assert "Lăng Cô" not in " ".join(chips_beach), f"Lọt Lăng Cô vào bãi biển Đà Nẵng: {chips_beach}"
+assert not any(k in " ".join(chips_beach).lower() for k in ["khách sạn", "ẩm thực", "ăn uống"]), "Bãi biển chứa nút của lĩnh vực khác"
+
+# 4. Khi bấm vào món Mì Quảng: 100% các nút tiếp theo vẫn là ẩm thực
+ans_food, chips_food = resolve_guided_city_or_topic("Mì Quảng & Bánh tráng cuốn", "Đà Nẵng")
+assert chips_food == ["Chợ Cồn ẩm thực", "Hải sản Mỹ Khê", "Bún chả cá Đà Nẵng"], f"Mì Quảng gợi ý sai: {chips_food}"
+assert not any(k in " ".join(chips_food).lower() for k in ["khách sạn", "lịch trình"]), "Món ăn chứa nút của lĩnh vực khác"
+
+# 5. Sanitize loại bỏ thành phố khác
+sanitized = sanitize_suggestions_for_city(["Ẩm thực Đà Nẵng", "Ẩm thực Hà Nội", "Ẩm thực Sài Gòn", "Ẩm thực Huế"], "Đà Nẵng")
+assert sanitized == ["Ẩm thực Đà Nẵng"], f"Sanitize thất bại: {sanitized}"
+
+print("ALL_GUIDED_TESTS_PASSED")
+PYTHON;
+
+        $process = new \Symfony\Component\Process\Process([$python, '-c', $code], base_path());
+        $process->run();
+
+        $this->assertTrue($process->isSuccessful(), 'Kiểm thử cây gợi ý thất bại: ' . $process->getErrorOutput());
+        $this->assertStringContainsString('ALL_GUIDED_TESTS_PASSED', $process->getOutput());
+    }
 }

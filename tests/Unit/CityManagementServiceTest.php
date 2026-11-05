@@ -13,6 +13,7 @@ use Tests\TestCase;
 class CityManagementServiceTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Concerns\FakesWebsiteSearch;
 
     private CityManagementService $cityService;
 
@@ -48,6 +49,7 @@ class CityManagementServiceTest extends TestCase
             'entrance_fee' => 900000,
         ]);
 
+        $this->fakeWebsiteSearch(['city' => [$city->id]]);
         $result = $this->cityService->getCities(['search' => 'Đà Nẵng']);
         $this->assertSame(1, $result->total());
         $this->assertSame(1, $result->first()->destinations_count);

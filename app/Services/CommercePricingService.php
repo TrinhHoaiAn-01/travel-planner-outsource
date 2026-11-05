@@ -24,4 +24,15 @@ class CommercePricingService
         }
         return (float) $room->price_per_night;
     }
+
+    public function calculateRoomPrice(RoomType $room, string $checkIn, string $checkOut): float
+    {
+        $start = Carbon::parse($checkIn);
+        $end = Carbon::parse($checkOut);
+        $total = 0;
+        for ($date = $start->copy(); $date->lt($end); $date->addDay()) {
+            $total += $this->nightlyPrice($room, $date->format('Y-m-d'));
+        }
+        return $total;
+    }
 }

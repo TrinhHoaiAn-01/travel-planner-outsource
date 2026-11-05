@@ -65,7 +65,11 @@ class CommerceAgentController extends Controller
         return response()->stream(function () use ($session, $user, $role, $message, $provider) {
             @ini_set('max_execution_time', '300');
             @set_time_limit(300);
-            $emit = function (array $event) {
+            $textDeltaEmitted = false;
+            $emit = function (array $event) use (&$textDeltaEmitted) {
+                if (($event['type'] ?? '') === 'text_delta') {
+                    $textDeltaEmitted = true;
+                }
                 echo 'event: '.$event['type']."\n".'data: '.json_encode($event['data'] ?? [], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)."\n\n";
                 if (! app()->runningUnitTests() && ob_get_level() > 0) {
                     @ob_flush();
@@ -91,9 +95,14 @@ class CommerceAgentController extends Controller
                 $actualProvider = $result['provider'] ?? (config('commerce.openai_api_key') ? 'openai' : 'gemini');
                 $emit(['type' => 'model_provider', 'data' => ['provider' => $actualProvider]]);
 
+                // Đảm bảo luôn phát text_delta nếu trong quá trình stream chưa phát
+                $ansText = $result['answer'] ?? 'Tôi đã chuẩn bị thông tin bên dưới.';
+                if (! $textDeltaEmitted && trim($ansText) !== '') {
+                    $emit(['type' => 'text_delta', 'data' => ['text' => $ansText]]);
+                }
+
                 // Lưu lịch sử hội thoại vào Database cho người dùng đăng nhập và Session/Cache
                 try {
-                    $ansText = $result['answer'] ?? 'Tôi đã chuẩn bị thông tin bên dưới.';
                     if ($user) {
                         $conv = AiConversation::firstOrCreate(['user_id' => $user->id]);
                         AiMessage::create([
@@ -147,7 +156,9 @@ class CommerceAgentController extends Controller
                     'message' => $exception->getMessage(),
                     'trace' => $exception->getTraceAsString(),
                 ]);
-                $msg = 'Máy chủ Travel Planner hiện đang bận, xin vui lòng thử lại sau!';
+                $msg = $exception instanceof \Symfony\Component\Process\Exception\ProcessTimedOutException
+                    ? 'Máy chủ AI phản hồi quá lâu, vui lòng thử lại câu hỏi ngắn hơn.'
+                    : 'Máy chủ Travel Planner hiện đang bận, xin vui lòng thử lại sau!';
                 $emit(['type' => 'error', 'data' => ['message' => $msg]]);
                 $emit(['type' => 'turn_complete', 'data' => ['stop_reason' => 'error']]);
             } finally {

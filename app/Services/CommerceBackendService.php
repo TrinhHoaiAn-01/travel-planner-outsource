@@ -75,6 +75,10 @@ class CommerceBackendService
             'get_campaign_performance' => $this->campaigns($arguments),
             'stage_listing_update', 'stage_price_update', 'stage_inventory_action' => $this->stageChange($method, $arguments),
             'stage_promotion', 'stage_campaign' => $this->stageBusinessChange($method, $arguments),
+            'propose_price_update' => $this->stageChange('stage_price_update', isset($arguments['listing_id']) ? ['items' => [$arguments]] : $arguments),
+            'propose_pause_listing' => $this->stageChange('stage_inventory_action', isset($arguments['listing_id']) ? ['items' => [['listing_id' => $arguments['listing_id'], 'action' => 'pause']]] : $arguments),
+            'propose_promotion' => $this->stageBusinessChange('stage_promotion', isset($arguments['name']) ? ['promotion' => $arguments] : $arguments),
+            'propose_campaign' => $this->stageBusinessChange('stage_campaign', isset($arguments['name']) ? ['campaign' => $arguments] : $arguments),
             'get_pending_changes' => $this->pendingChanges(),
             'apply_change' => throw new DomainException('Chỉ áp dụng qua nút Duyệt trên website; lời nhắn trong chat không phải phê duyệt.'),
             'discard_change' => $this->discardChange((string) $arguments['change_id']),
@@ -111,14 +115,16 @@ class CommerceBackendService
                     'fl' => 'id', 'rows' => $limit, 'wt' => 'json',
                 ]);
                 if (! $response->successful()) {
-                    throw new DomainException('Apache Solr chưa sẵn sàng. Vui lòng cấu hình và lập chỉ mục điểm đến.');
+                    return [];
                 }
-                $identifiers = array_column($response->json('response.docs', []), 'id');
+                $identifiers = array_map(function ($id) {
+                    return (int) str_replace(['dest:', 'destination:'], '', (string) $id);
+                }, array_column($response->json('response.docs', []), 'id'));
             } catch (\Throwable $e) {
-                if ($e instanceof DomainException) {
-                    throw $e;
-                }
-                throw new DomainException('Apache Solr chưa sẵn sàng. Vui lòng cấu hình và lập chỉ mục điểm đến.');
+                return [];
+            }
+            if (empty($identifiers)) {
+                return [];
             }
             $destinations->whereIn('id', $identifiers);
         }
@@ -318,7 +324,7 @@ class CommerceBackendService
             return ['signed_in' => false, 'website' => $this->websiteInformation()];
         }
 
-        return ['signed_in' => true, 'website' => $this->websiteInformation(),
+        return ['signed_in' => true, 'user_id' => $this->user->id, 'website' => $this->websiteInformation(),
             'favorites' => $this->user->favoriteDestinations()->limit(10)->get(['destinations.id', 'destinations.name'])->toArray(),
             'trips' => $this->user->trips()->latest()->limit(10)
                 ->get(['id', 'name', 'start_date', 'end_date', 'budget', 'status'])->map(function ($trip) {
@@ -501,7 +507,7 @@ class CommerceBackendService
         if (! $items) {
             throw new DomainException('Đề xuất không có thay đổi.');
         }
-        $change = ['change_id' => (string) Str::uuid(), 'kind' => substr($method, 6), 'status' => 'staged',
+        $change = ['change_id' => (string) Str::uuid(), 'kind' => substr($method, 6), 'status' => 'pending',
             'summary' => 'Đề xuất '.count($items).' thay đổi; cần quản trị viên duyệt.', 'items' => $items,
             'created_at' => now()->toIso8601String(), 'created_by' => (string) $this->user->id,
             'created_by_kind' => 'agent', 'currency' => 'VND'];
@@ -514,7 +520,7 @@ class CommerceBackendService
     {
         [$kind, $id] = array_pad(explode(':', $identifier, 2), 2, null);
         $model = ctype_digit($id ?? '') ? match ($kind) {
-            'destination' => Destination::find($id), 'room' => RoomType::find($id), default => null,
+            'destination', 'dest' => Destination::find($id), 'room' => RoomType::find($id), default => null,
         } : null;
         if (! $model) {
             throw new DomainException('Không tìm thấy dữ liệu cần sửa.');
@@ -527,7 +533,7 @@ class CommerceBackendService
     {
         $this->requireAdmin();
         $change = $this->data['changes'][$identifier] ?? null;
-        if (! $change || $change['status'] !== 'staged' || $change['created_by'] !== (string) $this->user->id) {
+        if (! $change || ! in_array($change['status'], ['staged', 'pending'], true) || $change['created_by'] !== (string) $this->user->id) {
             throw new DomainException('Đề xuất không tồn tại hoặc đã được xử lý.');
         }
         DB::transaction(function () use ($change) {
@@ -540,7 +546,11 @@ class CommerceBackendService
                 }
                 $model = $this->editableModel($item['target']);
                 $model = $model->newQuery()->lockForUpdate()->findOrFail($model->id);
-                if ((string) $model->{$item['field']} !== (string) $item['before']) {
+                if ($item['field'] === 'commerce_paused') {
+                    if ((bool) $model->{$item['field']} !== (bool) $item['before']) {
+                        throw new DomainException('Dữ liệu đã thay đổi từ lúc đề xuất. Hãy tạo đề xuất mới.');
+                    }
+                } elseif ((string) $model->{$item['field']} !== (string) $item['before']) {
                     throw new DomainException('Dữ liệu đã thay đổi từ lúc đề xuất. Hãy tạo đề xuất mới.');
                 }
                 $model->{$item['field']} = $item['after'];
@@ -1005,9 +1015,10 @@ class CommerceBackendService
         }
 
         $roomType = null;
-        if (! empty($arguments['room_type_id'])) {
-            $roomId = (int) str_replace('room:', '', (string) $arguments['room_type_id']);
-            $roomType = RoomType::with('destination')->find($roomId);
+        $roomId = ! empty($arguments['room_type_id']) ? $arguments['room_type_id'] : ($arguments['room_id'] ?? null);
+        if (! empty($roomId)) {
+            $parsedId = (int) str_replace('room:', '', (string) $roomId);
+            $roomType = RoomType::with('destination')->find($parsedId);
         }
 
         if (! $roomType && ! empty($arguments['destination_name'])) {
@@ -1044,6 +1055,10 @@ class CommerceBackendService
             throw new DomainException('Không tìm thấy phòng khách sạn khả dụng cho điểm đến yêu cầu.');
         }
 
+        if ($roomType->commerce_paused || $roomType->destination?->commerce_paused) {
+            throw new DomainException('Phòng hoặc điểm đến này hiện đang tạm dừng nhận đặt phòng.');
+        }
+
         $destination = $roomType->destination;
 
         $nights = max(1, min(30, (int) ($arguments['nights'] ?? 3)));
@@ -1062,13 +1077,17 @@ class CommerceBackendService
         $roomCount = max(1, min(10, (int) ($arguments['room_count'] ?? 1)));
 
         $bookingService = app(\App\Services\Interfaces\BookingServiceInterface::class);
-        $booking = $bookingService->createBooking([
-            'room_type_id' => $roomType->id,
-            'check_in_date' => $checkIn,
-            'check_out_date' => $checkOut,
-            'room_count' => $roomCount,
-            'trip_id' => $arguments['trip_id'] ?? null,
-        ], $this->user->id);
+        try {
+            $booking = $bookingService->createBooking([
+                'room_type_id' => $roomType->id,
+                'check_in_date' => $checkIn,
+                'check_out_date' => $checkOut,
+                'room_count' => $roomCount,
+                'trip_id' => $arguments['trip_id'] ?? null,
+            ], $this->user->id);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw new DomainException($e->getMessage(), 0, $e);
+        }
 
         $syntax = 'TP ' . str_replace('#', '', $booking->booking_code);
 

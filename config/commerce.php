@@ -2,7 +2,9 @@
 
 return [
     'enabled' => env('COMMERCE_AGENTS_ENABLED', true),
-    'python' => env('COMMERCE_AGENTS_PYTHON', 'python'),
+    'python' => (file_exists('/opt/commerce-venv/bin/python') && in_array(env('COMMERCE_AGENTS_PYTHON', 'python'), ['python', '/opt/commerce-venv/bin/python'], true))
+        ? '/opt/commerce-venv/bin/python'
+        : env('COMMERCE_AGENTS_PYTHON', 'python'),
     'provider' => env('COMMERCE_AGENT_PROVIDER', 'openai'),
     'openai_api_key' => env('OPENAI_API_KEY'),
     'openai_model' => env('OPENAI_MODEL', 'gpt-4o-mini'),

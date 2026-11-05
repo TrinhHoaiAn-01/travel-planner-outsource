@@ -207,8 +207,445 @@ def classify_general_prompt(text: str) -> str | None:
         return "destinations"
 
     # Những câu chào hỏi ngắn không gắn địa điểm
-    if any(k == t for k in ["xin chào", "chào bạn", "hello", "hi", "alo", "start", "bắt đầu"]):
+    if any(k == t for k in ["chào", "xin chào", "chào bạn", "hello", "hi", "alo", "start", "bắt đầu"]):
         return "destinations"
+
+    return None
+
+
+def sanitize_suggestions_for_city(suggestions: list[str], active_city: str | None) -> list[str]:
+    """Loại bỏ triệt để các nút gợi ý của thành phố khác khi người dùng đang ở trong chủ đề của một thành phố cụ thể.
+    Không ép buộc đủ 4 nút, chỉ giữ lại các nút thực sự thuộc thành phố hiện tại.
+    """
+    if not active_city or not suggestions:
+        return suggestions
+    target = active_city.lower()
+    other_cities_kw = []
+    for city_name, kws in CITY_MAP.items():
+        if city_name.lower() != target:
+            other_cities_kw.extend(kws)
+
+    sanitized = []
+    for s in suggestions:
+        s_lower = s.lower()
+        if any(kw in s_lower for kw in other_cities_kw):
+            continue
+        sanitized.append(s)
+    return sanitized
+
+
+def resolve_guided_city_or_topic(user_message: str, active_city: str | None) -> tuple[str, list[str]] | None:
+    """Xử lý điều hướng các điểm đến, thành phố và trải nghiệm trong cây gợi ý phân tầng khi chạy ở chế độ cục bộ/dự phòng."""
+    u = (user_message or "").lower().strip()
+    detected_city = detect_city_in_text(user_message)
+    target_city = detected_city or active_city
+
+    # Nhận diện nếu câu hỏi hướng tới một trải nghiệm/chủ đề cụ thể thay vì chỉ là chọn tên thành phố chung
+    is_specific_category = any(k in u for k in [
+        "ẩm thực", "món", "ăn uống", "ăn gì", "đặc sản",
+        "khách sạn", "resort", "lưu trú", "nghỉ dưỡng", "phòng", "đặt phòng",
+        "bãi biển", "biển", "tắm biển",
+        "núi", "bà nà", "ngũ hành sơn", "sơn trà",
+        "lịch trình", "kế hoạch", "tour",
+        "mì quảng", "bánh tráng", "chợ cồn", "hải sản",
+        "phở", "bún chả", "cà phê trứng", "chợ đồng xuân",
+        "cơm tấm", "bánh mì", "chợ bến thành",
+        "bún bò", "bánh bèo", "chợ đông ba",
+        "ngày", "đêm", "ngân sách", "trẻ nhỏ", "con nhỏ"
+    ])
+
+    # 1. Người dùng chọn hoặc hỏi giới thiệu tổng quan một thành phố cụ thể (khi không đi kèm hạng mục chi tiết)
+    if not is_specific_category:
+        if any(c in u for c in ["hồ chí minh", "sài gòn", "tphcm", "tp.hcm", "tp hcm"]):
+            ans = (
+                "Chào mừng bạn đến với Thành phố Hồ Chí Minh - trung tâm kinh tế, văn hóa sôi động và sầm uất bậc nhất Việt Nam!\n\n"
+                "TP. Hồ Chí Minh hấp dẫn du khách bởi sự giao thoa hài hòa giữa các công trình kiến trúc cổ điển và các tòa nhà chọc trời hiện đại, cùng nền ẩm thực phong phú và đời sống về đêm nhộn nhịp.\n\n"
+                "Dưới đây là các trải nghiệm và địa điểm nổi bật tại TP. Hồ Chí Minh để bạn khám phá:"
+            )
+            chips = ["Chợ Bến Thành & Mua sắm", "Phố đi bộ Nguyễn Huệ", "Dinh Độc Lập", "Khách sạn trung tâm"]
+            return ans, chips
+
+        if any(c in u for c in ["đà nẵng", "da nang"]):
+            ans = (
+                "Chào mừng bạn đến với Đà Nẵng - thành phố biển đáng sống với những bãi cát trắng mịn màng và danh lam thắng cảnh tuyệt đẹp!\n\n"
+                "Đà Nẵng sở hữu Bãi biển Mỹ Khê trong xanh, Bán đảo Sơn Trà hoang sơ hùng vĩ, quần thể Ngũ Hành Sơn huyền ảo và khu du lịch Bà Nà Hills lộng lẫy.\n\n"
+                "Dưới đây là các trải nghiệm và địa điểm nổi bật tại Đà Nẵng để bạn khám phá:"
+            )
+            chips = ["Bãi biển", "Núi & Bà Nà Hills", "Ẩm thực & Chợ", "Khách sạn & Lưu trú"]
+            return ans, chips
+
+        if any(c in u for c in ["hà nội", "ha noi"]):
+            ans = (
+                "Chào mừng bạn đến với Hà Nội - thủ đô ngàn năm văn hiến mang nét đẹp thanh lịch, cổ kính và giàu chiều sâu lịch sử!\n\n"
+                "Hà Nội quyến rũ du khách bởi 36 phố phường rợp bóng cây xanh, Hồ Hoàn Kiếm thơ mộng, Văn Miếu - Quốc Tử Giám và nền ẩm thực trứ danh.\n\n"
+                "Dưới đây là các trải nghiệm và địa điểm nổi bật tại Hà Nội để bạn khám phá:"
+            )
+            chips = ["Hồ Hoàn Kiếm & Phố cổ", "Văn Miếu - Quốc Tử Giám", "Ẩm thực Hà Nội", "Khách sạn trung tâm"]
+            return ans, chips
+
+        if any(c in u for c in ["huế", "hue"]):
+            ans = (
+                "Chào mừng bạn đến với Cố đô Huế - vùng đất di sản trầm mặc, cổ kính với dòng sông Hương thơ mộng và kiến trúc hoàng cung độc đáo!\n\n"
+                "Huế lưu giữ quần thể di tích Đại Nội cổ kính, các lăng tẩm hoàng gia uy nghiêm, Chùa Thiên Mụ linh thiêng và nền ẩm thực cung đình tinh tế.\n\n"
+                "Dưới đây là các trải nghiệm và địa điểm nổi bật tại Huế để bạn khám phá:"
+            )
+            chips = ["Đại Nội Huế di tích", "Chùa Thiên Mụ & Sông Hương", "Ẩm thực cố đô", "Khách sạn Sài Gòn Morin"]
+            return ans, chips
+
+    # 2. Xử lý theo chủ đề và thành phố hiện tại (Ưu tiên tuyệt đối thành phố người dùng đang khám phá)
+    # 2.1. ĐÀ NẴNG
+    if target_city == "Đà Nẵng" or (not target_city and any(c in u for c in ["đà nẵng", "da nang"])):
+        # a. Món ăn / Chợ / Đặc sản cụ thể tại Đà Nẵng (100% ẨM THỰC)
+        if any(k in u for k in ["mì quảng", "mi quang", "bánh tráng cuốn", "bánh tráng thịt heo", "thịt heo hai đầu da"]):
+            ans = (
+                "Mì Quảng và Bánh tráng cuốn thịt heo là hai món ngon trứ danh nhất định phải thử khi đến Đà Nẵng.\n\n"
+                "• Mì Quảng: Sợi mì gạo dẻo dai hòa quyện cùng nước dùng tôm thịt đậm đà, ăn kèm bánh đa giòn rụm và rau sống tươi non.\n"
+                "• Bánh tráng cuốn thịt heo: Thịt heo hai đầu da luộc mềm ngon, cuốn bánh tráng Đại Lộc cùng rau rừng và chấm mắm nêm đậm đà.\n\n"
+                "Mời bạn khám phá thêm các món ngon và điểm ẩm thực khác tại Đà Nẵng:"
+            )
+            chips = ["Chợ Cồn ẩm thực", "Hải sản Mỹ Khê", "Bún chả cá Đà Nẵng"]
+            return ans, sanitize_suggestions_for_city(chips, "Đà Nẵng")
+
+        if any(k in u for k in ["chợ cồn", "cho con"]):
+            ans = (
+                "Chợ Cồn được mệnh danh là 'thiên đường ẩm thực đường phố' số 1 tại Đà Nẵng.\n\n"
+                "Tại đây, bạn có thể thưởng thức vô vàn món ngon miền Trung từ ốc hút, bánh bèo, bánh xèo, nem lụi đến các loại chè mát lạnh với mức giá vô cùng bình dân và chuẩn vị địa phương.\n\n"
+                "Mời bạn chọn món ăn hoặc điểm ẩm thực tiếp theo tại Đà Nẵng:"
+            )
+            chips = ["Mì Quảng & Bánh tráng cuốn", "Hải sản Mỹ Khê", "Bánh xèo & Nem lụi"]
+            return ans, sanitize_suggestions_for_city(chips, "Đà Nẵng")
+
+        if any(k in u for k in ["hải sản", "hai san"]):
+            ans = (
+                "Hải sản tươi sống tại Đà Nẵng vô cùng phong phú và nổi tiếng tươi ngon, đặc biệt tập trung dọc theo đường ven biển Võ Nguyên Giáp và bãi biển Mỹ Khê.\n\n"
+                "Bạn có thể tự tay chọn các loại tôm hùm, ghẹ, chíp chíp hấp sả, mực một nắng nướng sa tế và cua rang me được chế biến thơm ngon tại chỗ.\n\n"
+                "Mời bạn chọn món ăn hoặc điểm ẩm thực tiếp theo tại Đà Nẵng:"
+            )
+            chips = ["Chợ Cồn ẩm thực", "Mì Quảng & Bánh tráng cuốn", "Hải sản bờ biển Mỹ Khê"]
+            return ans, sanitize_suggestions_for_city(chips, "Đà Nẵng")
+
+        # b. Người dùng chọn danh mục 'Ẩm thực & Chợ' tại Đà Nẵng (100% ẨM THỰC)
+        if any(k in u for k in ["ẩm thực", "món ngon", "ăn uống", "đặc sản", "quán ăn", "ăn gì"]):
+            ans = (
+                "Ẩm thực tại Đà Nẵng vô cùng phong phú và hấp dẫn du khách gần xa.\n\n"
+                "Mời bạn chọn món ăn hoặc điểm ẩm thực đặc trưng của Đà Nẵng bạn muốn tìm hiểu:"
+            )
+            chips = ["Mì Quảng & Bánh tráng cuốn", "Chợ Cồn ẩm thực", "Hải sản Mỹ Khê"]
+            return ans, sanitize_suggestions_for_city(chips, "Đà Nẵng")
+
+        # c. Điểm tham quan / Núi cụ thể tại Đà Nẵng (100% DANH THẮNG)
+        if any(k in u for k in ["bà nà", "ba na", "cáp treo", "cầu vàng", "french village"]):
+            ans = (
+                "Sun World Bà Nà Hills là khu du lịch sinh thái và nghỉ dưỡng nổi tiếng trên đỉnh núi Chúa tại Đà Nẵng.\n\n"
+                "Nơi đây có khí hậu mát mẻ 4 mùa trong 1 ngày, Cầu Vàng lừng danh thế giới, Làng Pháp cổ kính và khu vui chơi Fantasy Park hấp dẫn.\n\n"
+                "Mời bạn chọn danh thắng tiếp theo tại Đà Nẵng để khám phá:"
+            )
+            chips = ["Danh thắng Ngũ Hành Sơn", "Bán đảo Sơn Trà", "Cáp treo & Cầu Vàng Bà Nà"]
+            return ans, sanitize_suggestions_for_city(chips, "Đà Nẵng")
+
+        if any(k in u for k in ["mỹ khê", "my khe"]):
+            ans = (
+                "Bãi biển Mỹ Khê được tạp chí Forbes bình chọn là một trong những bãi biển quyến rũ nhất hành tinh.\n\n"
+                "Với bờ cát trắng mịn, độ dốc thoai thoải và làn nước trong xanh ấm áp quanh năm, Mỹ Khê rất lý tưởng cho tắm biển và thể thao dưới nước.\n\n"
+                "Mời bạn chọn bãi biển hoặc vịnh biển tiếp theo tại Đà Nẵng:"
+            )
+            chips = ["Bán đảo Sơn Trà & Bãi Bụt", "Bãi biển Non Nước", "Bãi Rạng & Bãi Nam"]
+            return ans, sanitize_suggestions_for_city(chips, "Đà Nẵng")
+
+        if any(k in u for k in ["ngũ hành sơn", "ngu hanh son", "động huyền không"]):
+            ans = (
+                "Danh thắng Ngũ Hành Sơn gồm 5 ngọn núi đá vôi kỳ vĩ mang tên Kim, Mộc, Thủy, Hỏa, Thổ.\n\n"
+                "Nơi đây hội tụ nhiều hang động huyền bí như động Huyền Không, các ngôi chùa cổ kính linh thiêng và làng đá Non Nước truyền thống.\n\n"
+                "Mời bạn chọn danh thắng tiếp theo tại Đà Nẵng:"
+            )
+            chips = ["Sun World Bà Nà Hills", "Bán đảo Sơn Trà", "Động Huyền Không & Chùa Non Nước"]
+            return ans, sanitize_suggestions_for_city(chips, "Đà Nẵng")
+
+        if any(k in u for k in ["sơn trà", "son tra", "chùa linh ứng", "bãi bụt"]):
+            ans = (
+                "Bán đảo Sơn Trà được mệnh danh là 'viên ngọc quý' của Đà Nẵng với thảm rừng nguyên sinh tiếp giáp biển.\n\n"
+                "Bạn có thể chiêm bái tượng Phật Bà cao 67m tại Chùa Linh Ứng, ngắm toàn cảnh thành phố từ đỉnh Bàn Cờ và khám phá Bãi Bụt tuyệt đẹp.\n\n"
+                "Mời bạn chọn danh thắng tiếp theo tại Đà Nẵng:"
+            )
+            chips = ["Sun World Bà Nà Hills", "Danh thắng Ngũ Hành Sơn", "Chùa Linh Ứng Bãi Bụt"]
+            return ans, sanitize_suggestions_for_city(chips, "Đà Nẵng")
+
+        # d. Khi người dùng nhập thông tin bổ sung về chuyến đi (số ngày, ngân sách, trẻ nhỏ, gần biển...) (100% LỊCH TRÌNH)
+        has_trip_constraints = any(k in u for k in ["ngân sách", "trẻ nhỏ", "con nhỏ", "triệu"]) or (
+            any(k in u for k in ["ngày", "đêm"]) and any(k in u for k in ["trẻ", "bé", "triệu", "ngân sách", "người", "biển", "đi"])
+        )
+        if has_trip_constraints:
+            ans = (
+                "Travel Planner đã ghi nhận kế hoạch chuyến đi của bạn tại Đà Nẵng:\n\n"
+                "• Thời gian: Phù hợp lịch trình khám phá Đà Nẵng\n"
+                "• Thành viên: Tư vấn lộ trình an toàn, thuận tiện cho cả gia đình\n"
+                "• Lưu trú: Ưu tiên khách sạn ven biển Mỹ Khê hoặc khu nghỉ dưỡng Bà Nà Hills\n"
+                "• Trải nghiệm: Tắm biển Mỹ Khê, vui chơi Fantasy Park tại Bà Nà Hills và thưởng thức ẩm thực miền Trung\n\n"
+                "Mời bạn chọn phương án lịch trình phù hợp để hoàn thiện kế hoạch:"
+            )
+            chips = ["Lịch trình Đà Nẵng 3 ngày 2 đêm", "Lịch trình Đà Nẵng 4 ngày 3 đêm", "Lịch trình Đà Nẵng 2 ngày 1 đêm"]
+            return ans, sanitize_suggestions_for_city(chips, "Đà Nẵng")
+
+        # e. Các danh mục chung tại Đà Nẵng (100% CÙNG THỂ LOẠI)
+        if any(k in u for k in ["bãi biển", "biển", "tắm biển"]):
+            ans = (
+                "Đà Nẵng sở hữu những bãi biển đẹp hàng đầu hành tinh với bờ cát trắng mịn và làn nước trong xanh.\n\n"
+                "Mời bạn chọn bãi biển muốn khám phá tại Đà Nẵng:"
+            )
+            chips = ["Bãi biển Mỹ Khê", "Bán đảo Sơn Trà & Bãi Bụt", "Bãi biển Non Nước"]
+            return ans, sanitize_suggestions_for_city(chips, "Đà Nẵng")
+
+        if any(k in u for k in ["núi", "sinh thái", "cảnh quan"]):
+            ans = (
+                "Đà Nẵng có những danh thắng núi non kỳ vĩ và khu nghỉ dưỡng sinh thái độc đáo bậc nhất.\n\n"
+                "Mời bạn chọn địa danh bạn muốn khám phá tại Đà Nẵng:"
+            )
+            chips = ["Sun World Bà Nà Hills", "Danh thắng Ngũ Hành Sơn", "Bán đảo Sơn Trà"]
+            return ans, sanitize_suggestions_for_city(chips, "Đà Nẵng")
+
+        if any(k in u for k in ["khách sạn", "lưu trú", "resort", "phòng", "đặt phòng"]):
+            ans = (
+                "Hệ thống Travel Planner cung cấp đa dạng các khách sạn và resort tiện nghi tại Đà Nẵng từ ven biển Mỹ Khê đến đỉnh Bà Nà Hills.\n\n"
+                "Bạn có thể xem chi tiết giá phòng, tiện ích và thực hiện đặt phòng trực tiếp trên hệ thống.\n\n"
+                "Mời bạn chọn điểm lưu trú hoặc xem phòng trống:"
+            )
+            chips = ["Mercure Danang French Village", "Khách sạn ven biển Mỹ Khê", "Xem phòng trống"]
+            return ans, sanitize_suggestions_for_city(chips, "Đà Nẵng")
+
+        if any(k in u for k in ["lịch trình", "kế hoạch", "tour"]):
+            ans = (
+                "Travel Planner gợi ý các khung lịch trình du lịch Đà Nẵng tối ưu thời gian, kết hợp hài hòa giữa biển, núi và ẩm thực.\n\n"
+                "Mời bạn chọn lịch trình bạn muốn tham khảo:"
+            )
+            chips = ["Lịch trình Đà Nẵng 3 ngày 2 đêm", "Lịch trình Đà Nẵng 4 ngày 3 đêm", "Lịch trình Đà Nẵng 2 ngày 1 đêm"]
+            return ans, sanitize_suggestions_for_city(chips, "Đà Nẵng")
+
+    # 2.2. HÀ NỘI
+    elif target_city == "Hà Nội" or (not target_city and any(c in u for c in ["hà nội", "ha noi"])):
+        if any(k in u for k in ["phở", "bún chả"]):
+            ans = (
+                "Phở và Bún chả là hai món ăn tinh hoa ẩm thực của Thủ đô Hà Nội.\n\n"
+                "• Phở Hà Nội: Nước dùng trong, thơm mùi thảo mộc, quế hồi, thịt bò mềm và bánh phở tươi dẻo.\n"
+                "• Bún chả: Thịt chả nướng than hoa thơm lừng chấm cùng nước mắm chua ngọt, đu đủ giòn và bún sợi nhỏ.\n\n"
+                "Mời bạn chọn món ăn hoặc điểm ẩm thực tiếp theo tại Hà Nội:"
+            )
+            chips = ["Cà phê trứng phố cổ", "Chợ Đồng Xuân ẩm thực", "Bún thang & Chả cá Lã Vọng"]
+            return ans, sanitize_suggestions_for_city(chips, "Hà Nội")
+
+        if any(k in u for k in ["cà phê trứng", "ca phe trung"]):
+            ans = (
+                "Cà phê trứng là thức uống sáng tạo độc đáo của người Hà Nội, nổi tiếng từ quán Giảng phố cổ.\n\n"
+                "Lớp kem trứng béo ngậy được đánh bông mịn màng hòa quyện cùng cà phê nguyên chất đậm đà khó quên.\n\n"
+                "Mời bạn chọn món ẩm thực tiếp theo tại Hà Nội:"
+            )
+            chips = ["Phở & Bún chả Hà Nội", "Chợ Đồng Xuân ẩm thực", "Cà phê Giảng & Đinh"]
+            return ans, sanitize_suggestions_for_city(chips, "Hà Nội")
+
+        if any(k in u for k in ["chợ đồng xuân", "cho dong xuan"]):
+            ans = (
+                "Chợ Đồng Xuân là khu chợ sầm uất lâu đời bậc nhất Hà Nội với ngõ chợ ẩm thực nức tiếng.\n\n"
+                "Tại ngõ chợ Đồng Xuân, bạn có thể thưởng thức bún ốc nguội, bún chả kẹp que tre, chè sắn nóng chuẩn vị Hà thành.\n\n"
+                "Mời bạn chọn món ẩm thực tiếp theo tại Hà Nội:"
+            )
+            chips = ["Phở & Bún chả Hà Nội", "Cà phê trứng phố cổ", "Bún ốc ngõ chợ Đồng Xuân"]
+            return ans, sanitize_suggestions_for_city(chips, "Hà Nội")
+
+        if any(k in u for k in ["ẩm thực", "món ngon", "ăn uống", "đặc sản"]):
+            ans = (
+                "Ẩm thực tại Hà Nội mang nét thanh lịch, tinh tế và lâu đời của đất kinh kỳ ngàn năm văn hiến.\n\n"
+                "Mời bạn chọn món ăn hoặc điểm ẩm thực Hà Nội bạn muốn tìm hiểu:"
+            )
+            chips = ["Phở & Bún chả Hà Nội", "Cà phê trứng phố cổ", "Chợ Đồng Xuân ẩm thực"]
+            return ans, sanitize_suggestions_for_city(chips, "Hà Nội")
+
+        if any(k in u for k in ["khách sạn", "lưu trú", "resort", "phòng"]):
+            ans = (
+                "Hệ thống Travel Planner cung cấp nhiều khách sạn tiện nghi tại khu vực Phố Cổ và trung tâm Hoàn Kiếm, Hà Nội.\n\n"
+                "Mời bạn chọn điểm lưu trú phù hợp:"
+            )
+            chips = ["Khách sạn phố cổ Hà Nội", "Khách sạn gần Hồ Gươm", "Xem phòng trống"]
+            return ans, sanitize_suggestions_for_city(chips, "Hà Nội")
+
+        if any(k in u for k in ["lịch trình", "kế hoạch", "tour"]):
+            ans = (
+                "Travel Planner cung cấp các khung lịch trình khám phá Hà Nội kết hợp di tích lịch sử và văn hóa phố cổ.\n\n"
+                "Mời bạn chọn lịch trình bạn muốn tham khảo:"
+            )
+            chips = ["Lịch trình Hà Nội 3 ngày 2 đêm", "Lịch trình Hà Nội 2 ngày 1 đêm", "Lịch trình Hà Nội 1 ngày city tour"]
+            return ans, sanitize_suggestions_for_city(chips, "Hà Nội")
+
+        if any(k in u for k in ["hồ hoàn kiếm", "phố cổ", "văn miếu", "hồ gươm"]):
+            place = "Hồ Hoàn Kiếm & Phố cổ" if ("hồ" in u or "phố cổ" in u) else "Văn Miếu - Quốc Tử Giám"
+            ans = (
+                f"{place} là biểu tượng văn hóa lịch sử lâu đời của Thủ đô Hà Nội.\n\n"
+                "Bạn có thể dạo bộ khám phá các góc phố rêu phong và tham quan các di tích văn hóa ngàn năm.\n\n"
+                "Mời bạn chọn điểm tham quan tiếp theo tại Hà Nội:"
+            )
+            chips = ["Hồ Hoàn Kiếm & Phố cổ", "Văn Miếu - Quốc Tử Giám", "Lăng Chủ tịch Hồ Chí Minh"]
+            return ans, sanitize_suggestions_for_city(chips, "Hà Nội")
+
+    # 2.3. THÀNH PHỐ HỒ CHÍ MINH
+    elif target_city == "Thành phố Hồ Chí Minh" or (not target_city and any(c in u for c in ["hồ chí minh", "sài gòn", "tphcm"])):
+        if any(k in u for k in ["cơm tấm", "bánh mì"]):
+            ans = (
+                "Cơm tấm và Bánh mì là hai món ăn biểu tượng gắn liền với nhịp sống sôi động của TP. Hồ Chí Minh.\n\n"
+                "• Cơm tấm Sài Gòn: Hạt tấm tơi xốp ăn kèm sườn nướng mỡ hành đậm vị, chả trứng, bì giòn và nước mắm chua ngọt.\n"
+                "• Bánh mì Sài Gòn: Vỏ bánh giòn rụm bên trong đầy ắp pate béo ngậy, thịt nguội, dưa leo và đồ chua tươi mát.\n\n"
+                "Mời bạn chọn món ăn hoặc điểm ẩm thực tiếp theo tại TP.HCM:"
+            )
+            chips = ["Ẩm thực Chợ Bến Thành", "Hủ tiếu Nam Vang", "Cà phê bệt & Ăn vặt Sài Gòn"]
+            return ans, sanitize_suggestions_for_city(chips, "Thành phố Hồ Chí Minh")
+
+        if any(k in u for k in ["bến thành", "nguyễn huệ", "dinh độc lập"]):
+            place = "Chợ Bến Thành" if "bến thành" in u else ("Phố đi bộ Nguyễn Huệ" if "nguyễn huệ" in u else "Dinh Độc Lập")
+            ans = (
+                f"{place} là một trong những điểm tham quan tiêu biểu nhất tại trung tâm TP. Hồ Chí Minh.\n\n"
+                "Bạn có thể kết hợp tham quan các công trình kiến trúc lịch sử và không gian đô thị sôi động của Sài Gòn.\n\n"
+                "Mời bạn chọn điểm tham quan tiếp theo tại TP.HCM:"
+            )
+            chips = ["Chợ Bến Thành & Mua sắm", "Phố đi bộ Nguyễn Huệ", "Dinh Độc Lập"]
+            return ans, sanitize_suggestions_for_city(chips, "Thành phố Hồ Chí Minh")
+
+        if any(k in u for k in ["ẩm thực", "món ngon", "ăn uống", "đặc sản"]):
+            ans = (
+                "Ẩm thực tại TP. Hồ Chí Minh là sự hội tụ tinh hoa ẩm thực khắp mọi miền với sự sáng tạo phong phú.\n\n"
+                "Mời bạn chọn món ngon hoặc điểm ẩm thực TP.HCM bạn muốn tìm hiểu:"
+            )
+            chips = ["Cơm tấm & Bánh mì Sài Gòn", "Ẩm thực Chợ Bến Thành", "Cà phê bệt & Ăn vặt"]
+            return ans, sanitize_suggestions_for_city(chips, "Thành phố Hồ Chí Minh")
+
+        if any(k in u for k in ["khách sạn", "lưu trú", "resort", "phòng"]):
+            ans = (
+                "Hệ thống Travel Planner cung cấp các khách sạn trung tâm Quận 1 tiện lợi cho việc di chuyển và tham quan TP.HCM.\n\n"
+                "Mời bạn chọn điểm lưu trú phù hợp:"
+            )
+            chips = ["Khách sạn trung tâm Q1", "Khách sạn gần Chợ Bến Thành", "Xem phòng trống"]
+            return ans, sanitize_suggestions_for_city(chips, "Thành phố Hồ Chí Minh")
+
+        if any(k in u for k in ["lịch trình", "kế hoạch", "tour"]):
+            ans = (
+                "Travel Planner cung cấp các khung lịch trình khám phá nhịp sống sôi động và văn hóa lịch sử của TP.HCM.\n\n"
+                "Mời bạn chọn lịch trình bạn muốn tham khảo:"
+            )
+            chips = ["Lịch trình TP.HCM 2 ngày 1 đêm", "Lịch trình TP.HCM 3 ngày 2 đêm", "Lịch trình Sài Gòn 1 ngày city tour"]
+            return ans, sanitize_suggestions_for_city(chips, "Thành phố Hồ Chí Minh")
+
+    # 2.4. HUẾ
+    elif target_city == "Huế" or (not target_city and any(c in u for c in ["huế", "hue"])):
+        if any(k in u for k in ["bún bò"]):
+            ans = (
+                "Bún bò Huế là niềm tự hào ẩm thực của Cố đô với hương vị thơm nồng đặc trưng.\n\n"
+                "Nước dùng hầm xương đậm đà dậy mùi sả tươi và mắm ruốc, ăn cùng bắp bò mềm, chả cua thơm bùi và ớt cay nồng chuẩn xứ Huế.\n\n"
+                "Mời bạn chọn món ăn hoặc điểm ẩm thực tiếp theo tại Huế:"
+            )
+            chips = ["Bánh bèo - nậm - lọc", "Chợ Đông Ba ẩm thực", "Chè hẻm Cung đình Huế"]
+            return ans, sanitize_suggestions_for_city(chips, "Huế")
+
+        if any(k in u for k in ["bánh bèo", "bánh nậm", "bánh lọc", "bột lọc"]):
+            ans = (
+                "Các loại bánh truyền thống như bánh bèo chén tôm chấy, bánh nậm lá dong, bánh bột lọc bọc tôm rim là nét văn hóa ẩm thực cung đình Huế tinh tế.\n\n"
+                "Mời bạn chọn món ăn hoặc điểm ẩm thực tiếp theo tại Huế:"
+            )
+            chips = ["Bún bò Huế gia truyền", "Chợ Đông Ba ẩm thực", "Cơm hến & Bún hến Huế"]
+            return ans, sanitize_suggestions_for_city(chips, "Huế")
+
+        if any(k in u for k in ["chợ đông ba", "cho dong ba"]):
+            ans = (
+                "Chợ Đông Ba là khu chợ cổ truyền sầm uất bên bờ sông Hương, lưu giữ trọn vẹn văn hóa và ẩm thực xứ Huế.\n\n"
+                "Nơi đây quy tụ tất cả đặc sản Cố đô: mè xửng, nem tré, các loại mắm, chè bột lọc bọc heo quay cùng các quầy bún bánh thơm ngon.\n\n"
+                "Mời bạn chọn món ăn hoặc điểm ẩm thực tiếp theo tại Huế:"
+            )
+            chips = ["Bún bò Huế gia truyền", "Bánh bèo - nậm - lọc", "Chè bột lọc heo quay"]
+            return ans, sanitize_suggestions_for_city(chips, "Huế")
+
+        if any(k in u for k in ["ẩm thực", "món ngon", "ăn uống", "đặc sản"]):
+            ans = (
+                "Ẩm thực Cố đô Huế nổi danh với sự cầu kỳ, tinh tế từ ẩm thực cung đình đến các món ăn dân dã đậm đà.\n\n"
+                "Mời bạn chọn món ăn hoặc điểm ẩm thực Huế bạn muốn tìm hiểu:"
+            )
+            chips = ["Bún bò Huế gia truyền", "Bánh bèo - nậm - lọc", "Chợ Đông Ba ẩm thực"]
+            return ans, sanitize_suggestions_for_city(chips, "Huế")
+
+        if any(k in u for k in ["đại nội", "thiên mụ", "sông hương"]):
+            place = "Đại Nội Huế" if "đại nội" in u else ("Chùa Thiên Mụ" if "thiên mụ" in u else "Sông Hương")
+            ans = (
+                f"{place} mang vẻ đẹp trầm mặc, thơ mộng của vùng đất cố đô.\n\n"
+                "Mời bạn chọn điểm tham quan tiếp theo để khám phá trọn vẹn di sản Huế:"
+            )
+            chips = ["Đại Nội Huế di tích", "Chùa Thiên Mụ & Sông Hương", "Lăng Khải Định & Tự Đức"]
+            return ans, sanitize_suggestions_for_city(chips, "Huế")
+
+        if any(k in u for k in ["bãi biển", "biển"]):
+            ans = (
+                "Huế sở hữu bãi biển Lăng Cô thơ mộng và bãi biển Thuận An trong xanh hiền hòa.\n\n"
+                "Mời bạn chọn bãi biển muốn khám phá tại Huế:"
+            )
+            chips = ["Bãi biển Lăng Cô", "Bãi biển Thuận An", "Bãi biển Cảnh Dương"]
+            return ans, sanitize_suggestions_for_city(chips, "Huế")
+
+        if any(k in u for k in ["khách sạn", "lưu trú", "resort", "phòng"]):
+            ans = (
+                "Hệ thống Travel Planner cung cấp các khách sạn và resort thanh bình ven dòng sông Hương tại Huế.\n\n"
+                "Mời bạn chọn điểm lưu trú phù hợp:"
+            )
+            chips = ["Khách sạn Sài Gòn Morin", "Resort ven sông Hương", "Xem phòng trống"]
+            return ans, sanitize_suggestions_for_city(chips, "Huế")
+
+        if any(k in u for k in ["lịch trình", "kế hoạch", "tour"]):
+            ans = (
+                "Travel Planner cung cấp các khung lịch trình khám phá di sản cố đô Huế và lăng tẩm hoàng gia.\n\n"
+                "Mời bạn chọn lịch trình bạn muốn tham khảo:"
+            )
+            chips = ["Lịch trình Huế 2 ngày 1 đêm", "Lịch trình Huế 3 ngày 2 đêm", "Lịch trình Huế 1 ngày di sản"]
+            return ans, sanitize_suggestions_for_city(chips, "Huế")
+
+    # 3. KHI CHƯA CHỌN THÀNH PHỐ NÀO (CHỦ ĐỀ CHUNG TOÀN HỆ THỐNG)
+    if any(k in u for k in ["ẩm thực", "món ngon", "ăn uống", "đặc sản"]):
+        ans = (
+            "Chào bạn! Ẩm thực ba miền Việt Nam vô cùng phong phú và đặc sắc.\n\n"
+            "Mời bạn chọn thành phố để khám phá các món ngon nổi tiếng:"
+        )
+        chips = ["Ẩm thực Đà Nẵng", "Ẩm thực Hà Nội", "Ẩm thực Sài Gòn", "Ẩm thực Huế"]
+        return ans, chips
+
+    if any(k in u for k in ["khách sạn", "lưu trú", "resort", "phòng"]):
+        ans = (
+            "Hệ thống Travel Planner cung cấp đa dạng các khách sạn và resort tiện nghi tại các thành phố du lịch trọng điểm.\n\n"
+            "Mời bạn chọn thành phố bạn muốn tìm phòng:"
+        )
+        chips = ["Khách sạn Đà Nẵng", "Khách sạn TP. Hồ Chí Minh", "Khách sạn Hà Nội", "Khách sạn Huế"]
+        return ans, chips
+
+    if any(k in u for k in ["bãi biển", "biển"]):
+        ans = (
+            "Travel Planner giới thiệu các bãi biển đẹp và trong xanh nhất Việt Nam để bạn tận hưởng kỳ nghỉ sảng khoái.\n\n"
+            "Mời bạn chọn bãi biển bạn muốn khám phá:"
+        )
+        chips = ["Bãi biển Mỹ Khê", "Bãi biển Lăng Cô", "Bãi biển Non Nước", "Khách sạn gần biển"]
+        return ans, chips
+
+    if any(k in u for k in ["núi", "sinh thái", "cảnh quan"]):
+        ans = (
+            "Travel Planner giới thiệu các danh thắng núi non và khu du lịch sinh thái nổi tiếng.\n\n"
+            "Mời bạn chọn địa điểm tham quan:"
+        )
+        chips = ["Bà Nà Hills", "Danh thắng Ngũ Hành Sơn", "Bán đảo Sơn Trà", "Khám phá bãi biển"]
+        return ans, chips
+
+    if any(k in u for k in ["lịch trình", "kế hoạch", "tour"]):
+        ans = (
+            "Travel Planner cung cấp các khung lịch trình du lịch tối ưu thời gian và chi phí.\n\n"
+            "Mời bạn chọn lịch trình bạn muốn tham khảo:"
+        )
+        chips = ["Lịch trình Đà Nẵng 3 ngày", "Lịch trình Hà Nội 3 ngày", "Lịch trình TP.HCM 2 ngày", "Lịch trình Huế 2 ngày"]
+        return ans, chips
+
+    if any(k in u for k in ["điểm đến khác", "chọn thành phố khác", "thành phố khác"]):
+        ans = (
+            "Mời bạn chọn một thành phố du lịch dưới đây để bắt đầu hành trình khám phá mới:"
+        )
+        chips = ["Đà Nẵng", "Thành phố Hồ Chí Minh", "Hà Nội", "Huế"]
+        return ans, chips
 
     return None
 
@@ -458,8 +895,11 @@ def extract_all_memory_facts(
     return facts
 
 
-def resolve_fallback_suggestions(user_message: str, assistant_text: str, merchant: bool = False) -> list[str]:
-    """Tự động suy luận 2-4 nút bấm gợi ý bước tiếp theo theo cấu trúc cây tương tác khi mô hình chưa gọi present_suggestions."""
+def resolve_fallback_suggestions(user_message: str, assistant_text: str, active_city: str | None = None, merchant: bool = False) -> list[str]:
+    """Tự động suy luận nút bấm gợi ý bước tiếp theo theo cấu trúc cây tương tác khi mô hình chưa gọi present_suggestions.
+    BẮT BUỘC tuân thủ chủ đề thành phố hiện tại (nếu có): tuyệt đối không hiển thị các thành phố khác làm lệch hướng người dùng.
+    Không ép buộc đủ 4 nút nếu số lượng lựa chọn thực tế chỉ có 2-3 nút.
+    """
     if merchant:
         return ["Xem tổng quan doanh thu", "Cảnh báo quỹ phòng", "Đơn đặt phòng gần đây", "Duyệt thay đổi"]
 
@@ -471,7 +911,61 @@ def resolve_fallback_suggestions(user_message: str, assistant_text: str, merchan
     if any(s in u for s in ["tạm biệt", "cảm ơn bạn", "cám ơn bạn", "done", "bye"]):
         return []
 
-    # Kiểm tra xem có phải câu hỏi chung chung không
+    # Xác định thành phố mục tiêu ưu tiên: active_city > city in user_message > city in assistant_text
+    target_city = active_city or detect_city_in_text(user_message) or detect_city_in_text(assistant_text)
+
+    # 1. NẾU ĐANG CÓ MỘT THÀNH PHỐ CỤ THỂ ĐƯỢC CHỌN / KHÁM PHÁ
+    if target_city:
+        tc = target_city.lower()
+        if "đà nẵng" in tc:
+            # Ẩm thực / món ngon / chợ Đà Nẵng (100% ẨM THỰC)
+            if any(k in combined for k in ["ẩm thực", "món ngon", "ăn uống", "đặc sản", "mì quảng", "bánh tráng", "chợ cồn", "hải sản"]):
+                return sanitize_suggestions_for_city(["Mì Quảng & Bánh tráng cuốn", "Chợ Cồn ẩm thực", "Hải sản Mỹ Khê"], "Đà Nẵng")
+            # Khách sạn / lưu trú Đà Nẵng (100% LƯU TRÚ)
+            if any(k in combined for k in ["khách sạn", "resort", "lưu trú", "nghỉ dưỡng", "phòng", "đặt phòng"]):
+                return sanitize_suggestions_for_city(["Mercure Danang French Village", "Khách sạn ven biển Mỹ Khê", "Xem phòng trống"], "Đà Nẵng")
+            # Bãi biển Đà Nẵng (100% BÃI BIỂN)
+            if any(k in combined for k in ["bãi biển", "biển", "tắm biển", "mỹ khê", "sơn trà", "bãi bụt", "non nước"]):
+                return sanitize_suggestions_for_city(["Bãi biển Mỹ Khê", "Bán đảo Sơn Trà & Bãi Bụt", "Bãi biển Non Nước"], "Đà Nẵng")
+            # Núi / Bà Nà / Ngũ Hành Sơn (100% DANH THẮNG)
+            if any(k in combined for k in ["núi", "bà nà", "ngũ hành sơn"]):
+                return sanitize_suggestions_for_city(["Sun World Bà Nà Hills", "Danh thắng Ngũ Hành Sơn", "Bán đảo Sơn Trà"], "Đà Nẵng")
+            # Lịch trình Đà Nẵng (100% LỊCH TRÌNH)
+            if any(k in combined for k in ["lịch trình", "kế hoạch", "tour", "ngày", "đêm"]):
+                return sanitize_suggestions_for_city(["Lịch trình Đà Nẵng 3 ngày 2 đêm", "Lịch trình Đà Nẵng 4 ngày 3 đêm", "Lịch trình Đà Nẵng 2 ngày 1 đêm"], "Đà Nẵng")
+            # Mặc định của Đà Nẵng khi vừa chọn thành phố
+            return ["Bãi biển", "Núi & Bà Nà Hills", "Ẩm thực & Chợ", "Khách sạn & Lưu trú"]
+
+        if "hà nội" in tc:
+            if any(k in combined for k in ["ẩm thực", "món ngon", "ăn uống", "đặc sản", "phở", "bún chả", "cà phê trứng", "chợ đồng xuân"]):
+                return sanitize_suggestions_for_city(["Phở & Bún chả Hà Nội", "Cà phê trứng phố cổ", "Chợ Đồng Xuân ẩm thực"], "Hà Nội")
+            if any(k in combined for k in ["khách sạn", "resort", "lưu trú", "phòng"]):
+                return sanitize_suggestions_for_city(["Khách sạn phố cổ Hà Nội", "Khách sạn gần Hồ Gươm", "Xem phòng trống"], "Hà Nội")
+            if any(k in combined for k in ["lịch trình", "kế hoạch", "tour"]):
+                return sanitize_suggestions_for_city(["Lịch trình Hà Nội 3 ngày 2 đêm", "Lịch trình Hà Nội 2 ngày 1 đêm", "Lịch trình Hà Nội 1 ngày city tour"], "Hà Nội")
+            return ["Hồ Hoàn Kiếm & Phố cổ", "Văn Miếu - Quốc Tử Giám", "Lăng Chủ tịch Hồ Chí Minh"]
+
+        if any(c in tc for c in ["hồ chí minh", "sài gòn"]):
+            if any(k in combined for k in ["ẩm thực", "món ngon", "ăn uống", "đặc sản", "cơm tấm", "bánh mì", "chợ bến thành"]):
+                return sanitize_suggestions_for_city(["Cơm tấm & Bánh mì Sài Gòn", "Ẩm thực Chợ Bến Thành", "Cà phê bệt & Ăn vặt"], "Thành phố Hồ Chí Minh")
+            if any(k in combined for k in ["khách sạn", "resort", "lưu trú", "phòng"]):
+                return sanitize_suggestions_for_city(["Khách sạn trung tâm Q1", "Khách sạn gần Chợ Bến Thành", "Xem phòng trống"], "Thành phố Hồ Chí Minh")
+            if any(k in combined for k in ["lịch trình", "kế hoạch", "tour"]):
+                return sanitize_suggestions_for_city(["Lịch trình TP.HCM 2 ngày 1 đêm", "Lịch trình TP.HCM 3 ngày 2 đêm", "Lịch trình Sài Gòn 1 ngày city tour"], "Thành phố Hồ Chí Minh")
+            return ["Chợ Bến Thành & Mua sắm", "Phố đi bộ Nguyễn Huệ", "Dinh Độc Lập"]
+
+        if "huế" in tc:
+            if any(k in combined for k in ["ẩm thực", "món ngon", "ăn uống", "đặc sản", "bún bò", "bánh bèo", "chợ đông ba"]):
+                return sanitize_suggestions_for_city(["Bún bò Huế gia truyền", "Bánh bèo - nậm - lọc", "Chợ Đông Ba ẩm thực"], "Huế")
+            if any(k in combined for k in ["khách sạn", "resort", "lưu trú", "phòng"]):
+                return sanitize_suggestions_for_city(["Khách sạn Sài Gòn Morin", "Resort ven sông Hương", "Xem phòng trống"], "Huế")
+            if any(k in combined for k in ["bãi biển", "biển"]):
+                return sanitize_suggestions_for_city(["Bãi biển Lăng Cô", "Bãi biển Thuận An", "Bãi biển Cảnh Dương"], "Huế")
+            if any(k in combined for k in ["lịch trình", "kế hoạch", "tour"]):
+                return sanitize_suggestions_for_city(["Lịch trình Huế 2 ngày 1 đêm", "Lịch trình Huế 3 ngày 2 đêm", "Lịch trình Huế 1 ngày di sản"], "Huế")
+            return ["Đại Nội Huế di tích", "Chùa Thiên Mụ & Sông Hương", "Lăng Khải Định & Tự Đức"]
+
+    # 2. KHI CHƯA CHỌN THÀNH PHỐ NÀO (CHỦ ĐỀ CHUNG)
     cat = classify_general_prompt(user_message)
     if cat == "hotels":
         return ["Khách sạn Đà Nẵng", "Khách sạn TP. Hồ Chí Minh", "Khách sạn Hà Nội", "Khách sạn Huế"]
@@ -482,79 +976,6 @@ def resolve_fallback_suggestions(user_message: str, assistant_text: str, merchan
     if cat == "destinations":
         return ["Đà Nẵng", "Thành phố Hồ Chí Minh", "Hà Nội", "Huế"]
 
-    # 1. Người dùng hỏi/chọn Khách sạn / Lưu trú / Resort / Đặt phòng
-    if any(k in u for k in ["khách sạn", "resort", "lưu trú", "nghỉ dưỡng", "phòng"]):
-        if any(c in combined for c in ["đà nẵng", "da nang", "mỹ khê"]):
-            return ["Novotel Danang Premier", "Resort ven biển Mỹ Khê", "Xem phòng trống", "Lịch trình 3 ngày"]
-        if any(c in combined for c in ["sài gòn", "hồ chí minh", "bến thành"]):
-            return ["Liberty Central Saigon", "Khách sạn trung tâm Q1", "Xem phòng trống", "Điểm tham quan"]
-        if any(c in combined for c in ["huế", "hue"]):
-            return ["Khách sạn Sài Gòn Morin", "Resort ven sông Hương", "Xem phòng trống", "Điểm di tích"]
-        if any(c in combined for c in ["hà nội", "ha noi", "hồ gươm", "phố cổ"]):
-            return ["Khách sạn phố cổ Hà Nội", "Khách sạn gần Hồ Gươm", "Xem phòng trống", "Lịch trình Hà Nội"]
-        return ["Novotel Danang Premier", "Liberty Central Saigon", "Khách sạn Sài Gòn Morin", "Tìm phòng theo ngân sách"]
-
-    # 2. Tầng 4: Người dùng chọn một địa danh cụ thể (Mỹ Khê, Non Nước, Bà Nà, Ngũ Hành Sơn, v.v.)
-    if "mỹ khê" in u:
-        return ["Khách sạn gần Mỹ Khê", "Lên lịch trình 3 ngày Đà Nẵng", "Thêm vào chuyến đi", "Xem điểm đến khác"]
-    if any(p in u for p in ["non nước", "bãi bụt", "bãi rạng"]):
-        return ["Khách sạn gần bãi biển", "Lên lịch trình tham quan", "Thêm vào chuyến đi", "Bãi biển khác"]
-    if "bà nà" in u or "cáp treo" in u:
-        return ["Giá vé & Cáp treo Bà Nà", "Khách sạn tại Đà Nẵng", "Lên lịch trình 1 ngày", "Điểm đến khác"]
-    if "ngũ hành sơn" in u:
-        return ["Động Huyền Không", "Làng đá Non Nước", "Thêm vào chuyến đi", "Điểm đến khác"]
-    if any(p in u for p in ["bến thành", "nguyễn huệ", "dinh độc lập"]):
-        return ["Khách sạn gần trung tâm Q1", "Lên lịch trình TP.HCM", "Ẩm thực Sài Gòn", "Điểm đến khác"]
-    if any(p in u for p in ["hồ hoàn kiếm", "văn miếu", "hồ gươm"]):
-        return ["Khách sạn phố cổ Hà Nội", "Lên lịch trình Hà Nội 3 ngày", "Ẩm thực Hà Nội", "Điểm đến khác"]
-    if any(p in u for p in ["đại nội", "thiên mụ", "sông hương"]):
-        return ["Lịch trình khám phá Huế", "Khách sạn Sài Gòn Morin", "Ẩm thực cố đô Huế", "Điểm đến khác"]
-
-    # 3. Tầng 3: Người dùng chọn một loại hình/trải nghiệm cụ thể (Bãi biển, Núi, Ẩm thực)
-    if any(k in u for k in ["bãi biển", "biển", "tắm biển", "beach"]):
-        if any(c in combined for c in ["đà nẵng", "da nang"]):
-            return ["Bãi biển Mỹ Khê", "Bán đảo Sơn Trà & Bãi Bụt", "Khách sạn ven biển Đà Nẵng", "Khám phá danh lam khác"]
-        if any(c in combined for c in ["huế", "hue"]):
-            return ["Bãi biển Lăng Cô", "Bãi biển Thuận An", "Khách sạn ven biển", "Điểm di tích"]
-        if any(c in combined for c in ["hồ chí minh", "sài gòn"]):
-            return ["Bãi biển Cần Giờ", "Khách sạn ven biển", "Tour trong ngày", "Điểm đến khác"]
-        return ["Bãi biển Mỹ Khê", "Bãi biển Non Nước", "Bãi biển Lăng Cô", "Khách sạn gần biển"]
-
-    if any(k in u for k in ["núi", "sinh thái", "cảnh quan", "thiên nhiên"]):
-        if any(c in combined for c in ["đà nẵng", "da nang"]):
-            return ["Bà Nà Hills", "Danh thắng Ngũ Hành Sơn", "Bán đảo Sơn Trà", "Khám phá bãi biển"]
-        return ["Danh thắng Ngũ Hành Sơn", "Bà Nà Hills", "Bảo tàng Dân tộc học", "Điểm đến khác"]
-
-    if any(k in u for k in ["ẩm thực", "ăn uống", "chợ", "món ngon", "food"]):
-        if any(c in combined for c in ["đà nẵng", "da nang"]):
-            return ["Mì Quảng & Bánh tráng cuốn", "Chợ Cồn ẩm thực", "Hải sản Mỹ Khê", "Điểm vui chơi"]
-        if any(c in combined for c in ["hà nội", "ha noi"]):
-            return ["Phở & Bún chả Hà Nội", "Cà phê trứng phố cổ", "Chợ Đồng Xuân", "Lịch trình Hà Nội"]
-        if any(c in combined for c in ["hồ chí minh", "sài gòn", "tphcm"]):
-            return ["Ẩm thực Chợ Bến Thành", "Cơm tấm & Bánh mì Sài Gòn", "Phố đi bộ Nguyễn Huệ", "Lịch trình TP.HCM"]
-        return ["Chợ Bến Thành Sài Gòn", "Chợ Đông Ba Huế", "Ẩm thực Hà Nội", "Ẩm thực Đà Nẵng"]
-
-    # 4. Tầng 2: Người dùng chọn/nhắc đến một thành phố
-    if any(c in u for c in ["đà nẵng", "da nang"]):
-        return ["Bãi biển", "Núi & Bà Nà Hills", "Ẩm thực & Chợ", "Khách sạn & Lưu trú"]
-    if any(c in u for c in ["hà nội", "ha noi"]):
-        return ["Hồ Hoàn Kiếm & Phố cổ", "Văn Miếu - Quốc Tử Giám", "Ẩm thực Hà Nội", "Khách sạn trung tâm"]
-    if any(c in u for c in ["hồ chí minh", "sài gòn", "tphcm"]):
-        return ["Chợ Bến Thành & Mua sắm", "Phố đi bộ Nguyễn Huệ", "Dinh Độc Lập", "Khách sạn trung tâm"]
-    if any(c in u for c in ["huế", "hue"]):
-        return ["Đại Nội Huế di tích", "Chùa Thiên Mụ & Sông Hương", "Ẩm thực cố đô", "Khách sạn Sài Gòn Morin"]
-
-    # Nếu câu trả lời AI nhắc đến một thành phố rõ ràng
-    if "đà nẵng" in a and not any(other in a for other in ["hà nội", "sài gòn", "huế"]):
-        return ["Bãi biển", "Núi & Bà Nà Hills", "Ẩm thực & Chợ", "Khách sạn & Lưu trú"]
-    if "hà nội" in a and not any(other in a for other in ["đà nẵng", "sài gòn", "huế"]):
-        return ["Hồ Hoàn Kiếm & Phố cổ", "Văn Miếu - Quốc Tử Giám", "Ẩm thực Hà Nội", "Khách sạn trung tâm"]
-    if any(other in a for other in ["hồ chí minh", "sài gòn"]) and not any(other in a for other in ["đà nẵng", "hà nội", "huế"]):
-        return ["Chợ Bến Thành & Mua sắm", "Phố đi bộ Nguyễn Huệ", "Dinh Độc Lập", "Khách sạn trung tâm"]
-    if "huế" in a and not any(other in a for other in ["đà nẵng", "hà nội", "sài gòn"]):
-        return ["Đại Nội Huế di tích", "Chùa Thiên Mụ & Sông Hương", "Ẩm thực cố đô", "Khách sạn Sài Gòn Morin"]
-
-    # 5. Tầng 1: Mở đầu / Câu hỏi chung chung
     return ["Đà Nẵng", "Thành phố Hồ Chí Minh", "Hà Nội", "Huế"]
 
 
@@ -601,12 +1022,6 @@ async def main():
             primary_client, primary_model = (None, None)
             fallback_client, fallback_model = (None, None)
 
-    if not primary_client:
-        emit({'type': 'error', 'error_class': 'ServerBusyError', 'detail': 'Máy chủ Travel Planner hiện đang bận, xin vui lòng thử lại sau!'})
-        sys.exit(1)
-
-    emit({'type': 'agent_event', 'event': {'type': 'model_provider', 'data': {'provider': provider}}})
-    client = primary_client
     merchant = request['role'] == 'merchant'
     is_guest = request.get('user_id') == 'guest'
     memory = InMemoryMemoryStore()
@@ -717,6 +1132,70 @@ async def main():
         })
         return
 
+    # 3. Khi chưa có AI API Client được cấu hình (chưa có GEMINI_API_KEY hoặc OPENAI_API_KEY)
+    if not primary_client:
+        user_msg = (request.get('message') or '').strip()
+        active_city = current_mentioned_city or previous_active_city
+        guided_result = resolve_guided_city_or_topic(user_msg, active_city)
+        if guided_result:
+            ans_text, chips = guided_result
+            if current_mentioned_city:
+                raw_state['active_city'] = current_mentioned_city
+            topic_label = f"Thông tin bổ sung ở du lịch {raw_state.get('active_city')}" if raw_state.get('active_city') else "Thông tin bổ sung ở thời điểm hiện tại"
+            suggestions_event = AgentEvent.ui(component='suggestions', payload={'suggestions': chips, 'topic_label': topic_label})
+
+            emit({'type': 'agent_event', 'event': AgentEvent.text_delta(ans_text).model_dump(mode='json')})
+            emit({'type': 'agent_event', 'event': suggestions_event.model_dump(mode='json')})
+
+            messages.append({'role': 'user', 'content': user_msg})
+            messages.append({'role': 'assistant', 'content': ans_text})
+
+            auto_facts = extract_all_memory_facts(
+                user_text=user_msg,
+                assistant_text=ans_text,
+                active_city=raw_state.get('active_city'),
+                session_id=request['session_id'],
+                tools_called=[],
+            )
+            if auto_facts:
+                await memory.upsert_facts(subject, auto_facts)
+
+            emit({
+                'type': 'result',
+                'answer': ans_text,
+                'presentations': [suggestions_event.data],
+                'messages': messages,
+                'state': raw_state,
+                'memory': [fact.model_dump(mode='json') for fact in await memory.get_facts(subject)]
+            })
+            return
+
+        fallback_ans = 'Máy chủ Travel Planner hiện đang bận, xin vui lòng thử lại sau!'
+        auto_facts = extract_all_memory_facts(
+            user_text=user_msg,
+            assistant_text=fallback_ans,
+            active_city=detect_city_in_text(user_msg),
+            session_id=request.get('session_id', 'default'),
+            tools_called=[],
+        )
+        if auto_facts:
+            await memory.upsert_facts(subject, auto_facts)
+
+        emit({'type': 'agent_event', 'event': AgentEvent.text_delta(fallback_ans).model_dump(mode='json')})
+
+        emit({
+            'type': 'result',
+            'answer': fallback_ans,
+            'presentations': [],
+            'messages': request.get('messages', []) + [{'role': 'user', 'content': user_msg}],
+            'state': request.get('state', {}),
+            'memory': [fact.model_dump(mode='json') for fact in await memory.get_facts(subject)]
+        })
+        return
+
+    emit({'type': 'agent_event', 'event': {'type': 'model_provider', 'data': {'provider': provider}}})
+    client = primary_client
+
     active_city = current_mentioned_city or previous_active_city
     raw_state['active_city'] = active_city
 
@@ -787,11 +1266,18 @@ async def main():
 
     suggestion_tree_rules = (
         'QUY TẮC BẮT BUỘC VỀ NÚT GỢI Ý ĐIỀU HƯỚNG LIÊN TỤC (GUIDED SUGGESTION TREE): '
-        'Mỗi lượt phản hồi (trừ khi khách chào tạm biệt), bạn BẮT BUỘC PHẢI GỌI CÔNG CỤ present_suggestions để sinh ra 2 đến 4 nút lựa chọn (chips) cho bước tiếp theo theo cấu trúc cây phân tầng: '
-        '1. Khi khách hỏi chung chung (ví dụ: "tôi muốn địa điểm du lịch", "gợi ý điểm đến", "đi đâu chơi"): Tóm tắt ngắn gọn và gọi present_suggestions với các thành phố: ["Đà Nẵng", "Thành phố Hồ Chí Minh", "Hà Nội", "Huế"]. '
-        '2. Khi khách chọn/hỏi về một thành phố (ví dụ: "Đà Nẵng"): Giới thiệu đặc trưng và gọi present_suggestions với các phân loại trải nghiệm tại đó: ["Bãi biển", "Núi & Bà Nà Hills", "Ẩm thực & Chợ", "Khách sạn & Lưu trú"]. '
-        '3. Khi khách chọn một loại hình (ví dụ: "Bãi biển"): Liệt kê các bãi biển đẹp và gọi present_suggestions với các bãi biển cụ thể: ["Bãi biển Mỹ Khê", "Bán đảo Sơn Trà & Bãi Bụt", "Bãi biển Non Nước", "Khách sạn gần biển"]. '
-        '4. Khi khách chọn một địa danh cụ thể (ví dụ: "Bãi biển Mỹ Khê"): Trình bày chi tiết thông tin và gọi present_suggestions với các hành động tiếp theo: ["Khách sạn gần Mỹ Khê", "Lên lịch trình 3 ngày", "Thêm vào chuyến đi", "Xem bãi biển khác"]. '
+        'Mỗi lượt phản hồi (trừ khi khách chào tạm biệt hoặc thực hiện tính năng nghiệp vụ), bạn BẮT BUỘC PHẢI GỌI CÔNG CỤ present_suggestions để sinh ra 2 đến 4 nút lựa chọn (chips) cho bước tiếp theo theo đúng cấu trúc cây phân tầng: '
+        '1. Khi khách hỏi chung chung mở đầu: Gọi present_suggestions với các thành phố: ["Đà Nẵng", "Thành phố Hồ Chí Minh", "Hà Nội", "Huế"]. '
+        '2. Khi khách chọn/hỏi về một thành phố (ví dụ: "Đà Nẵng"): Giới thiệu đặc trưng và gọi present_suggestions với 4 phân loại trải nghiệm tại đó: ["Bãi biển", "Núi & Bà Nà Hills", "Ẩm thực & Chợ", "Khách sạn & Lưu trú"]. '
+        '3. ĐẶC BIỆT BẮT BUỘC - TÍNH ĐỒNG NHẤT 100% CỦA LĨNH VỰC/CHỦ ĐỀ (STRICT TOPIC HOMOGENEITY): '
+        '   Khi người dùng đã bước vào một lĩnh vực/chủ đề cụ thể, TẤT CẢ các nút gợi ý bước tiếp theo BẮT BUỘC PHẢI THUỘC VỀ CHÍNH LĨNH VỰC ĐÓ VÀ THUỘC VỀ THÀNH PHỐ ĐÓ. TUYỆT ĐỐI KHÔNG TRỘN LẪN CÁC LĨNH VỰC KHÁC NHAU: '
+        '   - Khách đang nói/hỏi về ẨM THỰC (món ngon, ăn uống, quán ăn, chợ ẩm thực): 100% các nút gợi ý BẮT BUỘC phải là Ẩm thực (các món ăn, đồ uống, chợ ẩm thực cụ thể). TUYỆT ĐỐI KHÔNG chèn nút khách sạn, bãi biển hay lịch trình vào chủ đề ẩm thực! '
+        '   - Khách đang nói/hỏi về KHÁCH SẠN/LƯU TRÚ: 100% các nút gợi ý BẮT BUỘC phải là Khách sạn/Resort/Xem phòng trống. TUYỆT ĐỐI KHÔNG chèn nút ẩm thực hay danh thắng! '
+        '   - Khách đang nói/hỏi về BÃI BIỂN: 100% các nút gợi ý BẮT BUỘC phải là các bãi biển cụ thể. TUYỆT ĐỐI KHÔNG chèn nút khách sạn hay ẩm thực! '
+        '   - Khách đang nói/hỏi về DANH THẮNG/NÚI NON/THAM QUAN: 100% các nút gợi ý BẮT BUỘC phải là các điểm tham quan/danh thắng cụ thể. '
+        '   - Khách đang nói/hỏi về LỊCH TRÌNH: 100% các nút gợi ý BẮT BUỘC phải là các phương án lịch trình theo thời gian (ví dụ: Lịch trình 3 ngày 2 đêm, 4 ngày 3 đêm, 2 ngày 1 đêm). '
+        '4. KHÔNG ÉP BUỘC CỐ ĐỊNH 4 NÚT: Chỉ cần hiển thị đúng các lựa chọn thực sự phù hợp với lĩnh vực hiện tại (từ 2 đến 3 hoặc 4 nút), không được chèn các nội dung khác vào chỉ để cho đủ số lượng. '
+        '5. NGHIÊM CẤM BỊA ĐẶT THÔNG TIN: Mọi thông tin tư vấn phải dựa trên dữ liệu có thật của Travel Planner, trả lời ngắn gọn, đúng trọng tâm, hiểu đúng nhu cầu của từng câu prompt, không trả lời lan man ngoài phạm vi. '
         'NGOẠI LỆ ĐẶC BIỆT QUAN TRỌNG: Khi khách yêu cầu thực hiện trực tiếp một tính năng nghiệp vụ cụ thể (như thêm/xóa mục yêu thích, thêm/xóa vào chuyến đi, đặt lịch phòng khách sạn, xác nhận chuyển khoản thanh toán, đổi ngày lưu trú), chứng tỏ khách đã biết rõ thông tin cần làm, bạn TUYỆT ĐỐI KHÔNG gọi công cụ present_suggestions và KHÔNG hiển thị các nút gợi ý điều hướng hay ô thông tin bổ sung. Hãy luôn tuân thủ quy tắc này để đảm bảo giao diện gọn gàng, chuyên nghiệp.'
     )
 
@@ -951,8 +1437,10 @@ async def main():
                     payload = event.data.setdefault('payload', {})
                     suggs = payload.get('suggestions', [])
                     clean_suggs = [s for s in suggs if '#' not in s]
+                    if active_city:
+                        clean_suggs = sanitize_suggestions_for_city(clean_suggs, active_city)
                     if not clean_suggs and active_city:
-                        clean_suggs = resolve_fallback_suggestions(active_city, '', merchant=merchant)
+                        clean_suggs = resolve_fallback_suggestions(active_city, '', active_city=active_city, merchant=merchant)
                     payload['suggestions'] = clean_suggs
                     payload['topic_label'] = topic_label
 
@@ -964,8 +1452,10 @@ async def main():
         elif not has_suggestions:
             # Cơ chế Fallback bảo đảm: nếu là lượt khám phá và mô hình chưa gọi present_suggestions, tự động sinh nút gợi ý bước tiếp theo
             ans_text = ''.join(text).strip()
-            fallback_chips = resolve_fallback_suggestions(request['message'], ans_text, merchant=merchant)
+            fallback_chips = resolve_fallback_suggestions(request['message'], ans_text, active_city=active_city, merchant=merchant)
             clean_fallback = [s for s in fallback_chips if '#' not in s]
+            if active_city:
+                clean_fallback = sanitize_suggestions_for_city(clean_fallback, active_city)
             if clean_fallback:
                 fallback_event = AgentEvent.ui(component='suggestions', payload={'suggestions': clean_fallback, 'topic_label': topic_label})
                 emit({'type': 'agent_event', 'event': fallback_event.model_dump(mode='json')})

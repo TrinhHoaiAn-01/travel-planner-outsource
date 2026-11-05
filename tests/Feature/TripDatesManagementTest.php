@@ -196,7 +196,7 @@ class TripDatesManagementTest extends TestCase
             'end_date' => '2026-11-05',
         ]);
 
-        $response->assertRedirect(route('trips.show', $trip->id));
+        $response->assertRedirect(route('itinerary.index', $trip->id));
         $response->assertSessionHas('success');
 
         $trip->refresh();
@@ -240,7 +240,7 @@ class TripDatesManagementTest extends TestCase
             'end_date' => '2026-10-12', // 3 ngày
         ]);
 
-        $response->assertRedirect(route('trips.show', $trip->id));
+        $response->assertRedirect(route('itinerary.index', $trip->id));
 
         // Kiểm tra item ngày 1 giữ nguyên
         $itemDay1->refresh();
@@ -265,7 +265,9 @@ class TripDatesManagementTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)->get(route('trips.show', $trip->id));
+        $response->assertRedirect(route('itinerary.index', $trip->id));
 
+        $response = $this->actingAs($user)->get(route('itinerary.index', $trip->id));
         $response->assertStatus(200);
         $response->assertSeeText('Khám phá Hà Giang 3N2Đ', false);
         $response->assertSee('Ngày 1');
