@@ -1,0 +1,37 @@
+services:
+  app:
+    build:
+      context: .
+      target: testing
+    image: travel-planner-commerce:local
+    pull_policy: never
+    environment:
+      COMMERCE_AGENTS_ENABLED: "true"
+      COMMERCE_AGENTS_PYTHON: /opt/commerce-venv/bin/python
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
+      COMMERCE_SOLR_URL: http://solr:8983/solr/travel_destinations
+      SEARCH_SOLR_URL: http://solr:8983/solr/website_search
+      SESSION_DRIVER: file
+      CACHE_STORE: database
+    volumes:
+      - ./plugins/commerce-agents:/var/www/html/plugins/commerce-agents:ro
+    depends_on:
+      solr:
+        condition: service_started
+
+  solr:
+    image: solr:9
+    command:
+      - bash
+      - -c
+      - precreate-core travel_destinations /opt/commerce-solr && precreate-core website_search /opt/website-solr && exec solr-foreground
+    ports:
+      - "127.0.0.1:8983:8983"
+    volumes:
+      - commerce_solr_data:/var/solr
+      - ./deploy/solr:/opt/commerce-solr:ro
+      - ./deploy/solr-search:/opt/website-solr:ro
+
+volumes:
+  commerce_solr_data:

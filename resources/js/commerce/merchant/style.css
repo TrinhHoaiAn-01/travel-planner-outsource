@@ -1,0 +1,70 @@
+/*
+ * Copyright 2026 Anthropic PBC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+@import "tailwindcss";
+@source "../shared";
+@import "../shared/portal/portal.css";
+
+@theme {
+  --font-sans: "Times New Roman", Times, Georgia, serif;
+  --font-serif: "Times New Roman", Times, Georgia, serif;
+  --font-mono: "Times New Roman", Times, Georgia, serif;
+}
+
+/*
+ * ACME Travel supplier portal design system:
+ * Giao diện màu trắng chuyên nghiệp, thanh lịch.
+ * Font: Times New Roman ("romance time").
+ */
+
+:root {
+  --font-body: "Times New Roman", Times, Georgia, serif;
+  --font-display: "Times New Roman", Times, Georgia, serif;
+  --font-mono: "Times New Roman", Times, Georgia, serif;
+  --ground: #ffffff; /* Nền trang trắng */
+  --surface: #ffffff; /* Bề mặt trắng */
+  --card: #ffffff; /* Thẻ trắng */
+  --chrome: #ffffff; /* Sidebar và thanh điều hướng trắng */
+  --well: #f8fafc; /* Nền wells slate-50 */
+  --ink: #0f172a; /* Màu chữ slate-900 đậm nét */
+  --ink-2: #334155; /* Slate-700 */
+  --ink-soft: #64748b; /* Slate-500 */
+  --ink-faint: #94a3b8; /* Slate-400 */
+  --line: #e2e8f0; /* Viền slate-200 */
+  --line-strong: #cbd5e1; /* Viền nút/input slate-300 */
+  --accent: #2563eb; /* Xanh dương hiện đại chuyên nghiệp */
+  --accent-strong: #1d4ed8;
+  --accent-soft: #eff6ff;
+  --accent-ink: #1e40af;
+  --on-accent: #ffffff;
+  --ok: #16a34a;
+  --ok-soft: #f0fdf4;
+  --warn: #d97706;
+  --warn-soft: #fffbeb;
+  --danger: #dc2626;
+  --danger-soft: #fef2f2;
+  --info: #0284c7;
+  --info-soft: #f0f9ff;
+  --violet: #7c3aed;
+  --violet-soft: #f5f3ff;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  --radius: 8px;
+}
+
+body {
+  font-family: var(--font-body), "Times New Roman", Times, Georgia, serif;
+  font-size: 14px;
+  line-height: 1.4;
+  background: #ffffff;
+  color: var(--ink);
+}
+
+/* Display face */
+.page-title,
+.al-display {
+  font-family: var(--font-display), "Times New Roman", Times, Georgia, serif;
+}

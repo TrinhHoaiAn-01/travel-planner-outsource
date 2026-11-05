@@ -63,6 +63,9 @@ class BookingService implements BookingServiceInterface
         $roomType = RoomType::findOrFail($roomTypeId);
 
         // Đếm tổng số phòng đã được đặt và chưa hủy trong khoảng ngày này
+        if ($roomType->commerce_paused || $roomType->destination?->commerce_paused) {
+            return false;
+        }
         $bookedRooms = Booking::where('room_type_id', $roomTypeId)
             ->where('status', '!=', 'cancelled')
             ->where(function ($query) use ($checkIn, $checkOut) {
@@ -84,7 +87,12 @@ class BookingService implements BookingServiceInterface
         $endDate = Carbon::parse($checkOut);
         $nights = max(1, $startDate->diffInDays($endDate));
 
-        return (float) ($nights * (float) $roomType->price_per_night * $roomCount);
+        $total = 0;
+        $pricing = app(CommercePricingService::class);
+        for ($day = 0; $day < $nights; $day++) {
+            $total += $pricing->nightlyPrice($roomType, $startDate->copy()->addDays($day)->toDateString()) * $roomCount;
+        }
+        return (float) $total;
     }
 
     /**
@@ -208,16 +216,7 @@ class BookingService implements BookingServiceInterface
         }
 
         if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('booking_code', 'like', "%{$search}%")
-                    ->orWhereHas('user', function ($uq) use ($search) {
-                        $uq->where('name', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%");
-                    })
-                    ->orWhereHas('roomType.destination', function ($dq) use ($search) {
-                        $dq->where('name', 'like', "%{$search}%");
-                    });
-            });
+            app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'booking', $search);
         }
 
         return $query->paginate($perPage);

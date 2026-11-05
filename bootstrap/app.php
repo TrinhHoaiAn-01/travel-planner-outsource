@@ -11,6 +11,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->appendToGroup('web', \App\Http\Middleware\ValidateSearchInput::class);
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'active' => \App\Http\Middleware\EnsureUserIsActive::class,
@@ -25,6 +26,13 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->render(function (\App\Exceptions\SearchUnavailableException $exception, \Illuminate\Http\Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $exception->getMessage()], 503, ['Retry-After' => '30']);
+            }
+
+            return response()->view('errors.search-unavailable', [], 503, ['Retry-After' => '30']);
+        });
         $exceptions->report(function (\Throwable $e) {
             // Bỏ qua các ngoại lệ nghiệp vụ thông thường (Validation, Auth, 404, 403)
             if ($e instanceof \Illuminate\Validation\ValidationException ||

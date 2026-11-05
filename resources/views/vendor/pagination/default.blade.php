@@ -83,7 +83,7 @@
         <ul class="custom-pagination-list">
             {{-- Nút trang trước (Previous) --}}
             @if ($paginator->onFirstPage())
-                <li class="page-item disabled" aria-disabled="true" aria-label="Trang trước">
+                <li class="page-item disabled" aria-disabled="true" aria-label="Trước">
                     <span class="page-link" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="15 18 9 12 15 6"></polyline>
@@ -92,7 +92,7 @@
                 </li>
             @else
                 <li class="page-item">
-                    <a class="page-link" href="{{ $paginator->previousPageUrl() }}" rel="prev" aria-label="Trang trước">
+                    <a class="page-link" href="{{ $paginator->previousPageUrl() }}" rel="prev" aria-label="Trước">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="15 18 9 12 15 6"></polyline>
                         </svg>
@@ -122,14 +122,14 @@
             {{-- Nút trang kế tiếp (Next) --}}
             @if ($paginator->hasMorePages())
                 <li class="page-item">
-                    <a class="page-link" href="{{ $paginator->nextPageUrl() }}" rel="next" aria-label="Trang sau">
+                    <a class="page-link" href="{{ $paginator->nextPageUrl() }}" rel="next" aria-label="Sau">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="9 18 15 12 9 6"></polyline>
                         </svg>
                     </a>
                 </li>
             @else
-                <li class="page-item disabled" aria-disabled="true" aria-label="Trang sau">
+                <li class="page-item disabled" aria-disabled="true" aria-label="Sau">
                     <span class="page-link" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="9 18 15 12 9 6"></polyline>
