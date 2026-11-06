@@ -45,8 +45,13 @@ DEFAULT_GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/open
 
 
 def get_openai_model(default: str = DEFAULT_GEMINI_MODEL) -> str:
-    """Lấy tên model từ GEMINI_MODEL hoặc OPENAI_MODEL."""
-    return os.environ.get("GEMINI_MODEL", "").strip() or os.environ.get("OPENAI_MODEL", "").strip() or default
+    """Lấy tên model từ OPENAI_MODEL hoặc GEMINI_MODEL, tự động chuẩn hóa model hợp lệ."""
+    model = os.environ.get("OPENAI_MODEL", "").strip() or os.environ.get("GEMINI_MODEL", "").strip() or default
+    if model in ("gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.0-flash-lite"):
+        return DEFAULT_GEMINI_MODEL
+    if model == "gpt-4.1-mini":
+        return "gpt-4o-mini"
+    return model
 
 
 def get_openai_client(
@@ -221,7 +226,10 @@ async def run_openai_stream_turn(
         chat_messages = convert_messages_to_chat_messages(instructions, messages)
 
         success = False
-        for attempt in range(4):
+        switched_to_fallback = False
+        attempt = 0
+        max_attempts = 4
+        while attempt < max_attempts:
             assistant_text = ""
             active_tool_calls = {}
             tool_call_order = []
@@ -303,32 +311,52 @@ async def run_openai_stream_turn(
                 success = True
                 break
             except (openai.RateLimitError, openai.InternalServerError, openai.APITimeoutError, openai.AuthenticationError, openai.APIConnectionError, openai.NotFoundError, openai.BadRequestError) as ai_err:
-                if fallback_client and active_client != fallback_client:
+                if fallback_client and active_client != fallback_client and not switched_to_fallback:
+                    switched_to_fallback = True
                     logger.warning(
                         "Primary AI model (%s) failed with %s: %s. Switching to fallback (%s)...",
                         active_model, type(ai_err).__name__, ai_err, fallback_model
                     )
                     active_client = fallback_client
-                    active_model = fallback_model or "gemini-flash-lite-latest"
+                    active_model = fallback_model or DEFAULT_GEMINI_MODEL
+                    yield AgentEvent.model_provider("gemini", active_model)
+                    attempt = 0
                     continue
-                if attempt < 3:
-                    wait_s = 2.0 * (attempt + 1)
+
+                if active_model != DEFAULT_GEMINI_MODEL and isinstance(ai_err, openai.NotFoundError):
+                    logger.warning(
+                        "Model %s returned 404, falling back to %s",
+                        active_model, DEFAULT_GEMINI_MODEL
+                    )
+                    active_model = DEFAULT_GEMINI_MODEL
+                    yield AgentEvent.model_provider("gemini", active_model)
+                    attempt = 0
+                    continue
+
+                if attempt < 2 and isinstance(ai_err, (openai.RateLimitError, openai.InternalServerError, openai.APITimeoutError, openai.APIConnectionError)):
+                    wait_s = 1.0 * (attempt + 1)
                     await asyncio.sleep(wait_s)
+                    attempt += 1
                     continue
+
                 logger.exception("AI stream failed after retries: %s", ai_err)
                 yield AgentEvent.error(
                     f"Máy chủ AI ({active_model}) đang phản hồi chậm hoặc lỗi kết nối. Vui lòng thử lại sau giây lát."
                 )
                 return
             except Exception as e:
-                if fallback_client and active_client != fallback_client:
+                if fallback_client and active_client != fallback_client and not switched_to_fallback:
+                    switched_to_fallback = True
                     logger.warning(
                         "Primary AI model (%s) failed with %s: %s. Switching to fallback (%s)...",
                         active_model, type(e).__name__, e, fallback_model
                     )
                     active_client = fallback_client
-                    active_model = fallback_model or "gemini-flash-lite-latest"
+                    active_model = fallback_model or DEFAULT_GEMINI_MODEL
+                    yield AgentEvent.model_provider("gemini", active_model)
+                    attempt = 0
                     continue
+
                 logger.exception("AI stream failed: %s", e)
                 yield AgentEvent.error(f"Đã xảy ra lỗi trong quá trình xử lý: {e}")
                 return

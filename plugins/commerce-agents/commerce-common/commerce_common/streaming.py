@@ -47,12 +47,20 @@ EventType = Literal[
     "progress",
     "turn_complete",
     "error",
+    "model_provider",
 ]
 
 
 class AgentEvent(BaseModel):
     type: EventType
     data: dict[str, Any] = Field(default_factory=dict)
+
+    @classmethod
+    def model_provider(cls, provider: str, model: str | None = None) -> AgentEvent:
+        payload = {"provider": provider}
+        if model:
+            payload["model"] = model
+        return cls(type="model_provider", data=payload)
 
     @classmethod
     def text_delta(cls, text: str) -> AgentEvent:

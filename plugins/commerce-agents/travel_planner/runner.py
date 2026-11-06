@@ -986,41 +986,37 @@ async def main():
     # Cấu hình hai nhà cung cấp OpenAI và Gemini để hỗ trợ chuyển đổi và dự phòng tự động
     openai_key = request.get('openai_key') or os.environ.get('OPENAI_API_KEY', '')
     openai_model = request.get('openai_model') or os.environ.get('OPENAI_MODEL', 'gpt-4o-mini')
+    if openai_model == 'gpt-4.1-mini':
+        openai_model = 'gpt-4o-mini'
+
     gemini_key = request.get('gemini_key') or os.environ.get('GEMINI_API_KEY', '')
     gemini_model = request.get('gemini_model') or os.environ.get('GEMINI_MODEL', 'gemini-flash-lite-latest')
+    if gemini_model in ('gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.0-flash-lite'):
+        gemini_model = 'gemini-flash-lite-latest'
+
     gemini_base = os.environ.get('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta/openai/')
     provider = (request.get('provider') or os.environ.get('COMMERCE_AGENT_PROVIDER', 'openai')).lower()
 
     openai_client = AsyncOpenAI(api_key=openai_key, timeout=60, max_retries=1) if openai_key else None
     gemini_client = AsyncOpenAI(api_key=gemini_key, base_url=gemini_base, timeout=60, max_retries=1) if gemini_key else None
 
-    # Tự động điều chỉnh provider nếu provider yêu cầu chưa có key tương ứng
-    if provider == 'openai' and not openai_client and gemini_client:
-        provider = 'gemini'
-    elif provider == 'gemini' and not gemini_client and openai_client:
-        provider = 'openai'
-
-    # Phân bổ client và model chuẩn xác theo provider
-    if provider == 'gemini':
-        if gemini_client:
-            primary_client, primary_model = gemini_client, gemini_model
-            fallback_client, fallback_model = (openai_client, openai_model) if openai_client else (None, None)
-        elif openai_client:
-            primary_client, primary_model = openai_client, openai_model
-            fallback_client, fallback_model = (None, None)
-        else:
-            primary_client, primary_model = (None, None)
-            fallback_client, fallback_model = (None, None)
-    else:  # 'openai' hoặc 'auto'
-        if openai_client:
-            primary_client, primary_model = openai_client, openai_model
-            fallback_client, fallback_model = (gemini_client, gemini_model) if gemini_client else (None, None)
-        elif gemini_client:
-            primary_client, primary_model = gemini_client, gemini_model
-            fallback_client, fallback_model = (None, None)
-        else:
-            primary_client, primary_model = (None, None)
-            fallback_client, fallback_model = (None, None)
+    # Tự động điều chỉnh provider và ưu tiên OpenAI
+    if provider == 'gemini' and gemini_client:
+        primary_client, primary_model = gemini_client, gemini_model
+        fallback_client, fallback_model = (openai_client, openai_model) if openai_client else (None, None)
+        active_provider = 'gemini'
+    elif openai_client:
+        primary_client, primary_model = openai_client, openai_model
+        fallback_client, fallback_model = (gemini_client, gemini_model) if gemini_client else (None, None)
+        active_provider = 'openai'
+    elif gemini_client:
+        primary_client, primary_model = gemini_client, gemini_model
+        fallback_client, fallback_model = (None, None)
+        active_provider = 'gemini'
+    else:
+        primary_client, primary_model = (None, None)
+        fallback_client, fallback_model = (None, None)
+        active_provider = 'none'
 
     merchant = request['role'] == 'merchant'
     is_guest = request.get('user_id') == 'guest'
@@ -1193,7 +1189,7 @@ async def main():
         })
         return
 
-    emit({'type': 'agent_event', 'event': {'type': 'model_provider', 'data': {'provider': provider}}})
+    emit({'type': 'agent_event', 'event': {'type': 'model_provider', 'data': {'provider': active_provider}}})
     client = primary_client
 
     active_city = current_mentioned_city or previous_active_city
