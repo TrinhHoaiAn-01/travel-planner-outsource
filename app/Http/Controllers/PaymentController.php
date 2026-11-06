@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\Payment;
 use App\Services\Interfaces\MoMoGatewayServiceInterface;
 use App\Services\Interfaces\PaymentServiceInterface;
+use App\Services\Interfaces\SePayGatewayServiceInterface;
 use App\Services\Interfaces\VnPayGatewayServiceInterface;
 use App\Services\Interfaces\ZaloPayGatewayServiceInterface;
 use Illuminate\Http\Request;
@@ -15,13 +16,14 @@ use Illuminate\Support\Facades\Gate;
 class PaymentController extends Controller
 {
     /**
-     * Khởi tạo Controller với dependency PaymentServiceInterface, MoMoGatewayServiceInterface, VnPayGatewayServiceInterface và ZaloPayGatewayServiceInterface.
+     * Khởi tạo Controller với dependency PaymentServiceInterface, MoMoGatewayServiceInterface, VnPayGatewayServiceInterface, ZaloPayGatewayServiceInterface và SePayGatewayServiceInterface.
      */
     public function __construct(
         private PaymentServiceInterface $paymentService,
         private MoMoGatewayServiceInterface $momoGatewayService,
         private VnPayGatewayServiceInterface $vnPayGatewayService,
-        private ZaloPayGatewayServiceInterface $zaloPayGatewayService
+        private ZaloPayGatewayServiceInterface $zaloPayGatewayService,
+        private SePayGatewayServiceInterface $sePayGatewayService
     ) {
     }
 
@@ -370,6 +372,86 @@ class PaymentController extends Controller
             'is_paid' => true,
             'message' => 'Hệ thống đã nhận được tiền thành công từ ví MoMo / tài khoản ngân hàng!',
             'redirect_url' => route('payments.show', $payment->id),
+        ]);
+    }
+
+    /**
+     * Khởi tạo phiên thanh toán Chuyển khoản Ngân hàng tự động qua SePay (VietQR).
+     */
+    public function payWithSePay(Booking $booking)
+    {
+        // 1. Kiểm tra quyền thanh toán đơn (BR-11, BookingPolicy)
+        Gate::authorize('pay', $booking);
+
+        // 2. Tạo hoặc lấy bản ghi Payment ở trạng thái pending
+        $payment = $this->sePayGatewayService->createOrGetPayment($booking);
+
+        // 3. Chuyển hướng sang màn hình hiển thị mã QR và hướng dẫn chuyển khoản
+        return redirect()->route('payments.sepay', $payment);
+    }
+
+    /**
+     * Hiển thị giao diện quét mã VietQR và hướng dẫn chuyển khoản SePay.
+     */
+    public function showSePayTransfer(Payment $payment)
+    {
+        // 1. Kiểm tra quyền xem đơn đặt phòng (BR-11, BookingPolicy)
+        Gate::authorize('view', $payment->booking);
+
+        // 2. Nạp quan hệ dữ liệu
+        $payment->load(['booking.user', 'booking.roomType.destination', 'booking.trip']);
+
+        // 3. Lấy chi tiết tài khoản ngân hàng và link mã VietQR động từ SePay
+        $sepayDetails = $this->sePayGatewayService->getPaymentDetails($payment->booking);
+
+        return view('payments.sepay', [
+            'payment' => $payment,
+            'booking' => $payment->booking,
+            'sepayDetails' => $sepayDetails,
+        ]);
+    }
+
+    /**
+     * Xử lý thông báo biến động số dư (Webhook POST) gửi tự động từ máy chủ SePay.
+     */
+    public function handleSePayWebhook(Request $request)
+    {
+        // 1. Xác thực API Key / Token trong tiêu đề Authorization hoặc Header tùy chỉnh
+        $authHeader = $request->header('Authorization') ?? $request->header('X-API-KEY') ?? $request->input('api_key');
+
+        if (!$this->sePayGatewayService->verifyWebhookApiKey($authHeader)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: Khóa xác thực SePay API Key không hợp lệ hoặc thiếu tiêu đề Authorization.',
+            ], 401);
+        }
+
+        // 2. Xử lý dữ liệu giao dịch webhook và cập nhật đơn đặt phòng
+        $result = $this->sePayGatewayService->processWebhook($request->all());
+
+        if (!$result['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'],
+            ], 400);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $result['message'],
+        ], 200);
+    }
+
+    /**
+     * Phản hồi thân thiện khi truy cập Webhook SePay qua phương thức GET (Trình duyệt hoặc công cụ kiểm tra URL).
+     */
+    public function handleSePayWebhookGet()
+    {
+        return response()->json([
+            'status' => 'active',
+            'gateway' => 'SePay VietQR Webhook Service',
+            'message' => 'Cổng nhận Webhook SePay đang hoạt động bình thường và sẵn sàng nhận thông báo POST biến động số dư ngân hàng.',
+            'timestamp' => now()->toIso8601String(),
         ]);
     }
 }

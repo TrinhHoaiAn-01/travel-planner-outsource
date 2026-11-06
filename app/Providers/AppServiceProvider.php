@@ -152,6 +152,12 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\ZaloPayGatewayService::class
         );
 
+        // Ràng buộc SePayGatewayServiceInterface với triển khai cụ thể SePayGatewayService
+        $this->app->bind(
+            \App\Services\Interfaces\SePayGatewayServiceInterface::class,
+            \App\Services\SePayGatewayService::class
+        );
+
         // Ràng buộc ReviewModerationServiceInterface với triển khai cụ thể ReviewModerationService
         $this->app->bind(
             \App\Services\Interfaces\ReviewModerationServiceInterface::class,
@@ -183,5 +189,11 @@ class AppServiceProvider extends ServiceProvider
         Paginator::defaultView('vendor.pagination.default');
 
         \Illuminate\Support\Facades\Gate::policy(\App\Models\ItineraryItem::class, \App\Policies\ItineraryPolicy::class);
+
+        // Tự động nhận diện HTTPS khi chạy qua Reverse Proxy / Tunnel như ngrok để form submit luôn dùng https://
+        if ((isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ||
+            (isset($_SERVER['HTTP_HOST']) && str_contains($_SERVER['HTTP_HOST'], 'ngrok'))) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
     }
 }

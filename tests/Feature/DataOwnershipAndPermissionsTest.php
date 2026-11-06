@@ -31,6 +31,9 @@ class DataOwnershipAndPermissionsTest extends TestCase
     {
         parent::setUp();
 
+        // Vô hiệu hóa kiểm tra CSRF token trong môi trường test để tập trung kiểm thử phân quyền và chống IDOR
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+
         $this->admin = User::factory()->create([
             'name' => 'Quản Trị Viên',
             'email' => 'admin.perm@travelplanner.test',
