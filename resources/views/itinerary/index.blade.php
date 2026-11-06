@@ -1076,7 +1076,7 @@
             </div>
 
             <div class="hero-actions-group">
-                <a href="javascript:void(0)" onclick="alert('Tính năng Quản lý Ngân sách đang được phát triển!')" class="btn-hero-action btn-hero-warning" title="Quản lý ngân sách chuyến đi">
+                <a href="{{ route('trips.budget.show', $trip->id) }}" class="btn-hero-action btn-hero-warning" title="Quản lý ngân sách chuyến đi">
                     <i class="bi bi-wallet2"></i> Quản lý Ngân sách
                 </a>
                 <a href="{{ route('trips.edit', $trip->id) }}" class="btn-hero-action btn-hero-edit" title="Chỉnh sửa thông tin chuyến đi">

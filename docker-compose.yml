@@ -7,7 +7,7 @@ services:
     container_name: travel-planner-app
 
     ports:
-      - "8080:80"
+      - "${APP_PORT:-8000}:80"
 
     environment:
       APP_ENV: local

@@ -11,6 +11,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Tin cậy mọi reverse proxy từ ngrok và docker để nhận diện đúng giao thức HTTPS (tránh lỗi Form Not Secure)
+        $middleware->trustProxies(at: '*');
+
         $middleware->appendToGroup('web', \App\Http\Middleware\ValidateSearchInput::class);
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
@@ -19,10 +22,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
 
-        // Miễn trừ kiểm tra mã bảo vệ CSRF cho Webhook IPN nhận từ máy chủ MoMo và VNPay
+        // Miễn trừ kiểm tra mã bảo vệ CSRF cho Webhook IPN nhận từ máy chủ MoMo, VNPay, ZaloPay và SePay
         $middleware->validateCsrfTokens(except: [
             'payments/momo/ipn',
             'payments/vnpay/ipn',
+            'payments/zalopay/callback-ipn',
+            'payments/sepay/webhook',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

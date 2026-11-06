@@ -123,6 +123,9 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/bookings/{booking}/payment', [\App\Http\Controllers\PaymentController::class, 'store'])->name('payments.store');
     Route::post('/bookings/{booking}/payment/momo', [\App\Http\Controllers\PaymentController::class, 'payWithMoMo'])->name('payments.momo.process');
     Route::post('/bookings/{booking}/payment/vnpay', [\App\Http\Controllers\PaymentController::class, 'payWithVnPay'])->name('payments.vnpay.process');
+    Route::post('/bookings/{booking}/payment/zalopay', [\App\Http\Controllers\PaymentController::class, 'payWithZaloPay'])->name('payments.zalopay.process');
+    Route::post('/bookings/{booking}/payment/sepay', [\App\Http\Controllers\PaymentController::class, 'payWithSePay'])->name('payments.sepay.process');
+    Route::get('/payments/{payment}/sepay', [\App\Http\Controllers\PaymentController::class, 'showSePayTransfer'])->name('payments.sepay');
     Route::get('/payments/{payment}', [\App\Http\Controllers\PaymentController::class, 'show'])->name('payments.show');
 
     // Kiểm tra trạng thái thanh toán thời gian thực & giả lập nhận tiền (Realtime Polling & Simulator)
@@ -137,6 +140,14 @@ Route::post('/payments/momo/ipn', [\App\Http\Controllers\PaymentController::clas
 // Tuyến tiếp nhận phản hồi từ cổng thanh toán VNPay (Callback & Webhook IPN)
 Route::get('/payments/vnpay/callback', [\App\Http\Controllers\PaymentController::class, 'handleVnPayCallback'])->name('payments.vnpay.callback');
 Route::post('/payments/vnpay/ipn', [\App\Http\Controllers\PaymentController::class, 'handleVnPayIpn'])->name('payments.vnpay.ipn');
+
+// Tuyến tiếp nhận phản hồi từ cổng thanh toán ZaloPay (Callback & Webhook IPN)
+Route::get('/payments/zalopay/callback', [\App\Http\Controllers\PaymentController::class, 'handleZaloPayCallback'])->name('payments.zalopay.callback');
+Route::post('/payments/zalopay/callback-ipn', [\App\Http\Controllers\PaymentController::class, 'handleZaloPayIpn'])->name('payments.zalopay.callback-ipn');
+
+// Tuyến tiếp nhận phản hồi từ cổng thanh toán Chuyển khoản SePay (Webhook IPN & Health Check)
+Route::post('/payments/sepay/webhook', [\App\Http\Controllers\PaymentController::class, 'handleSePayWebhook'])->name('payments.sepay.webhook');
+Route::get('/payments/sepay/webhook', [\App\Http\Controllers\PaymentController::class, 'handleSePayWebhookGet'])->name('payments.sepay.webhook.get');
 
 // Tuyến đăng nhập nhanh người dùng thường (Demo / Test)
 Route::get('/dev/login-as-user', function () {

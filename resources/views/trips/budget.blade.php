@@ -145,27 +145,6 @@
             gap: 12px;
         }
 
-        .btn-demo-toggle {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 9px 18px;
-            background-color: #FFFFFF;
-            border: 1.5px solid #F87171;
-            border-radius: 9999px;
-            color: #EF4444;
-            font-size: 13.5px;
-            font-weight: 600;
-            text-decoration: none;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-demo-toggle:hover {
-            background-color: #FEF2F2;
-            border-color: #DC2626;
-        }
-
         .btn-add-expense {
             display: inline-flex;
             align-items: center;
@@ -862,7 +841,7 @@
             </div>
         @endif
 
-        @if($errors->any())
+        @if(isset($errors) && $errors->any())
             <div class="over-budget-banner" style="background-color: #FEF2F2; border-color: #F87171; margin-bottom: 20px;">
                 <div class="warning-icon-box">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -888,16 +867,6 @@
             <h1 class="page-title">Theo Dõi Ngân Sách & Chi Tiêu</h1>
 
             <div class="top-action-buttons">
-                <!-- Demo Toggle Button -->
-                <button type="button" class="btn-demo-toggle" id="btnToggleDemoOverBudget" onclick="toggleDemoOverBudget()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="8" x2="12" y2="12"></line>
-                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                    </svg>
-                    <span id="demoButtonText">{{ $summary['is_over_budget'] ? 'Tắt Giả lập Demo' : 'Giả lập Vượt ngân sách (Demo)' }}</span>
-                </button>
-
                 <!-- Add Expense Button -->
                 <button type="button" class="btn-add-expense" onclick="openAddExpenseModal()">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -919,7 +888,7 @@
             </div>
         @endif
 
-        @if($errors->any())
+        @if(isset($errors) && $errors->any())
             <div style="background-color: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; padding: 14px 18px; border-radius: 12px; margin-bottom: 20px; font-size: 14px;">
                 <div style="font-weight: 700; margin-bottom: 6px;">Đã xảy ra lỗi, vui lòng kiểm tra lại:</div>
                 <ul style="margin: 0; padding-left: 20px;">
@@ -1394,85 +1363,6 @@
                 }
             });
         });
-
-        // Demo Over-Budget Toggle (Phục vụ trình chiếu demo theo Hình 22)
-        let isDemoOverBudgetActive = false;
-        const initialBudget = {{ (float) $summary['budget'] }};
-        const initialSpent = {{ (float) $summary['total_expenses'] }};
-        const initialRemaining = {{ (float) $summary['remaining_budget'] }};
-        const initialPercentage = {{ (float) $summary['percentage_used'] }};
-        const isActuallyOverBudget = {{ $summary['is_over_budget'] ? 'true' : 'false' }};
-
-        function formatVND(number) {
-            return new Intl.NumberFormat('vi-VN').format(number) + 'đ';
-        }
-
-        function toggleDemoOverBudget() {
-            if (isActuallyOverBudget) {
-                alert('Chuyến đi này hiện đã vượt ngân sách thực tế!');
-                return;
-            }
-
-            isDemoOverBudgetActive = !isDemoOverBudgetActive;
-
-            const banner = document.getElementById('overBudgetBanner');
-            const spentEl = document.getElementById('displaySpentValue');
-            const spentSubtext = document.getElementById('displaySpentSubtext');
-            const remainingEl = document.getElementById('displayRemainingValue');
-            const remainingBadge = document.getElementById('displayRemainingBadge');
-            const progressText = document.getElementById('displayProgressText');
-            const progressBar = document.getElementById('progressTrackBar');
-            const btnText = document.getElementById('demoButtonText');
-
-            if (isDemoOverBudgetActive) {
-                // Chuyển sang giao diện demo Vượt ngân sách (Hình 22: Chi 17.500.000đ, Ngân sách 15.000.000đ, Âm -2.500.000đ)
-                banner.style.display = 'flex';
-                spentEl.textContent = formatVND(17500000);
-                spentSubtext.textContent = '100% ngân sách đã dùng';
-
-                remainingEl.textContent = '-2.500.000đ';
-                remainingEl.className = 'metric-value metric-value-danger';
-                remainingBadge.innerHTML = `
-                    <span class="metric-badge-danger">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="12" y1="8" x2="12" y2="12"></line>
-                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                        </svg>
-                        <span>Vượt hạn mức chi tiêu</span>
-                    </span>
-                `;
-
-                progressText.textContent = '100%';
-                progressBar.className = 'progress-fill-danger';
-                progressBar.style.width = '100%';
-
-                btnText.textContent = 'Tắt Giả lập Demo';
-            } else {
-                // Quay lại giao diện trong vùng an toàn (Hình 21)
-                banner.style.display = 'none';
-                spentEl.textContent = formatVND(initialSpent);
-                spentSubtext.textContent = initialPercentage + '% ngân sách đã dùng';
-
-                remainingEl.textContent = formatVND(initialRemaining);
-                remainingEl.className = 'metric-value metric-value-safe';
-                remainingBadge.innerHTML = `
-                    <span class="metric-badge-safe">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                            <polyline points="9 12 11 14 15 10"></polyline>
-                        </svg>
-                        <span>Trong vùng an toàn</span>
-                    </span>
-                `;
-
-                progressText.textContent = initialPercentage + '%';
-                progressBar.className = 'progress-fill-blue';
-                progressBar.style.width = Math.min(100, initialPercentage) + '%';
-
-                btnText.textContent = 'Giả lập Vượt ngân sách (Demo)';
-            }
-        }
     </script>
 </body>
 </html>
