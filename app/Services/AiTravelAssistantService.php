@@ -21,7 +21,13 @@ class AiTravelAssistantService implements AiTravelAssistantInterface
         $geminiKey = config('commerce.gemini_api_key') ?: config('commerce.api_key');
 
         $geminiModel = config('commerce.gemini_model', 'gemini-flash-lite-latest');
+        if (in_array($geminiModel, ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.0-flash-lite'], true)) {
+            $geminiModel = 'gemini-flash-lite-latest';
+        }
         $openaiModel = config('commerce.openai_model', 'gpt-4o-mini');
+        if ($openaiModel === 'gpt-4.1-mini') {
+            $openaiModel = 'gpt-4o-mini';
+        }
 
         $role ??= $user?->role === 'admin' ? 'merchant' : 'shopping';
         abort_unless(in_array($role, ['shopping', 'merchant'], true), 422);
@@ -91,7 +97,7 @@ class AiTravelAssistantService implements AiTravelAssistantInterface
         }
 
         try {
-            [$result, $wireResult] = $this->executeRunnerProcess(
+            [$result, $wireResult, $detectedProvider] = $this->executeRunnerProcess(
                 $providerToRun,
                 $sanitizedMessage,
                 $role,
@@ -107,6 +113,9 @@ class AiTravelAssistantService implements AiTravelAssistantInterface
                 $backend,
                 $onEvent
             );
+            if ($detectedProvider) {
+                $actualProvider = $detectedProvider;
+            }
         } catch (\Throwable $primaryErr) {
             if ($providerToRun === 'openai' && $geminiKey) {
                 \Illuminate\Support\Facades\Log::warning('OpenAI không hoạt động, chuyển đổi âm thầm sang Gemini: ' . $primaryErr->getMessage());
@@ -115,7 +124,7 @@ class AiTravelAssistantService implements AiTravelAssistantInterface
                     if ($onEvent) {
                         $onEvent(['type' => 'model_provider', 'data' => ['provider' => 'gemini']]);
                     }
-                    [$result, $wireResult] = $this->executeRunnerProcess(
+                    [$result, $wireResult, $detectedProvider] = $this->executeRunnerProcess(
                         'gemini',
                         $sanitizedMessage,
                         $role,
@@ -131,6 +140,9 @@ class AiTravelAssistantService implements AiTravelAssistantInterface
                         $backend,
                         $onEvent
                     );
+                    if ($detectedProvider) {
+                        $actualProvider = $detectedProvider;
+                    }
                 } catch (\Throwable $geminiErr) {
                     \Illuminate\Support\Facades\Log::error('Cả OpenAI và Gemini đều không hoạt động: ' . $geminiErr->getMessage());
                     throw new RuntimeException('Máy chủ Travel Planner hiện đang bận, xin vui lòng thử lại sau!');
@@ -260,9 +272,10 @@ class AiTravelAssistantService implements AiTravelAssistantInterface
         $result = null;
         $failureClass = null;
         $wireResult = null;
+        $detectedProvider = null;
 
         try {
-            $process->run(function (string $type, string $output) use (&$buffer, &$result, &$failureClass, &$wireResult, $input, $backend, $onEvent) {
+            $process->run(function (string $type, string $output) use (&$buffer, &$result, &$failureClass, &$wireResult, &$detectedProvider, $input, $backend, $onEvent) {
                 if ($type !== Process::OUT) {
                     return;
                 }
@@ -272,6 +285,9 @@ class AiTravelAssistantService implements AiTravelAssistantInterface
                     $buffer = substr($buffer, $position + 1);
                     $event = json_decode($line, true, 64, JSON_THROW_ON_ERROR);
                     if ($event['type'] === 'agent_event') {
+                        if (($event['event']['type'] ?? '') === 'model_provider' && ! empty($event['event']['data']['provider'])) {
+                            $detectedProvider = $event['event']['data']['provider'];
+                        }
                         if ($onEvent && $event['event']['type'] !== 'turn_complete') {
                             $onEvent($event['event']);
                         }
@@ -308,6 +324,6 @@ class AiTravelAssistantService implements AiTravelAssistantInterface
             throw new RuntimeException('Không thể hoàn tất lượt chạy Commerce Agent.'.($stderr ? ' ('.$stderr.')' : ''));
         }
 
-        return [$result, $wireResult];
+        return [$result, $wireResult, $detectedProvider];
     }
 }
