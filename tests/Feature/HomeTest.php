@@ -101,7 +101,7 @@ class HomeTest extends TestCase
             'is_featured' => true,
         ]);
 
-        $this->fakeWebsiteSearch(['destination' => [$dest1->id]]);
+        // $this->fakeWebsiteSearch(['destination' => [$dest1->id]]);
         $response = $this->get(route('home', ['keyword' => 'Bà Nà']));
 
         $response->assertStatus(200);
@@ -132,7 +132,7 @@ class HomeTest extends TestCase
             'is_featured' => false,
         ]);
 
-        $this->fakeWebsiteSearch(['destination' => Destination::where('city_id', $cityDaNang->id)->pluck('id')->all()]);
+        // $this->fakeWebsiteSearch(['destination' => Destination::where('city_id', $cityDaNang->id)->pluck('id')->all()]);
         $response = $this->get(route('home', ['keyword' => 'Đà Nẵng']));
 
         $response->assertStatus(200);

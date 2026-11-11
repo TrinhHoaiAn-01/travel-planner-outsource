@@ -137,7 +137,11 @@ class BookingService implements BookingServiceInterface
             ->latest();
 
         if ($status && $status !== 'all') {
-            $query->where('status', $status);
+            if ($status === 'upcoming') {
+                $query->whereIn('status', ['pending', 'confirmed']);
+            } else {
+                $query->where('status', $status);
+            }
         }
 
         return $query->paginate($perPage);
@@ -216,7 +220,10 @@ class BookingService implements BookingServiceInterface
         }
 
         if (!empty($search)) {
-            app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'booking', $search);
+            $query->where(function ($q) use ($search) {
+                $q->where('code', 'LIKE', "%{$search}%")
+                    ->orWhereHas('user', fn ($uq) => $uq->where('name', 'LIKE', "%{$search}%")->orWhere('email', 'LIKE', "%{$search}%"));
+            });
         }
 
         return $query->paginate($perPage);

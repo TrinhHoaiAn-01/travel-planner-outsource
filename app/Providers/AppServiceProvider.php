@@ -16,7 +16,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind(\App\Services\Interfaces\SearchServiceInterface::class, \App\Services\SolrSearchService::class);
         // Đăng ký agent và các dịch vụ hiện có mà luồng website sử dụng.
         $this->app->bind(\App\Services\Interfaces\AiTravelAssistantInterface::class, \App\Services\AiTravelAssistantService::class);
         $this->app->bind(\App\Services\Interfaces\ActivityLogServiceInterface::class, \App\Services\ActivityLogService::class);
@@ -171,12 +170,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         @umask(0000);
-        foreach ([\App\Models\Destination::class, \App\Models\City::class, \App\Models\Category::class,
-            \App\Models\Trip::class, \App\Models\User::class, \App\Models\Booking::class,
-            \App\Models\Payment::class, \App\Models\ActivityLog::class, \App\Models\Review::class,
-            \App\Models\RoomType::class] as $searchModel) {
-            $searchModel::observe(\App\Observers\SearchIndexObserver::class);
-        }
         \App\Models\Destination::observe(\App\Observers\CommerceCatalogObserver::class);
         \App\Models\City::observe(\App\Observers\CommerceCatalogObserver::class);
         \App\Models\Category::observe(\App\Observers\CommerceCatalogObserver::class);

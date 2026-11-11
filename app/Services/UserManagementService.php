@@ -25,7 +25,11 @@ class UserManagementService implements UserManagementServiceInterface
         // Lọc theo từ khóa tìm kiếm (tên, email hoặc số điện thoại)
         if (! empty($filters['search'])) {
             $search = trim((string) $filters['search']);
-            app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'user', $search);
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                    ->orWhere('email', 'LIKE', "%{$search}%")
+                    ->orWhere('phone', 'LIKE', "%{$search}%");
+            });
         }
 
         // Lọc theo vai trò (admin hoặc user)

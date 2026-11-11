@@ -202,10 +202,25 @@
 
         .search-grid {
             display: grid;
-            grid-template-columns: 1.8fr 1.3fr 1.3fr auto;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
             gap: 16px;
             align-items: flex-end;
             text-align: left;
+        }
+
+        .btn-label-placeholder {
+            visibility: hidden;
+            pointer-events: none;
+            height: 20px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            line-height: 1;
+        }
+
+        .search-field {
+            display: flex;
+            flex-direction: column;
         }
 
         .search-field label {
@@ -215,45 +230,98 @@
             font-size: 13px;
             font-weight: 600;
             color: #F8FAFC;
+            height: 20px;
             margin-bottom: 8px;
+            line-height: 1;
         }
 
         .search-input-box {
             background: #FFFFFF;
-            border-radius: 10px;
-            padding: 10px 14px;
+            border-radius: 12px;
+            height: 50px;
+            padding: 0 14px;
             display: flex;
             align-items: center;
+            box-sizing: border-box;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: box-shadow 0.2s, border-color 0.2s;
+        }
+
+        .search-input-box:focus-within {
+            box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.25);
+            border-color: #0066FF;
         }
 
         .search-input-box input, .search-input-box select {
             border: none;
             outline: none;
             width: 100%;
+            height: 100%;
             font-family: inherit;
             font-size: 14px;
             color: #0F172A;
             background: transparent;
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0;
+        }
+
+        .search-engine-select {
+            width: auto !important;
+            min-width: 78px;
+            height: 36px !important;
+            margin-right: 14px !important;
+            padding: 0 10px !important;
+            border: 1px solid #E2E8F0 !important;
+            border-radius: 8px;
+            background: #F1F5F9 !important;
+            color: #1E293B !important;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        #homeSearchKeyword {
+            padding-left: 4px;
+        }
+
+        .search-engine-select:focus {
+            border-color: #3B82F6 !important;
+            background: #FFFFFF !important;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
         }
 
         .btn-search-hero {
             background: #0066FF;
             color: #FFFFFF;
             border: none;
-            padding: 12px 26px;
-            border-radius: 10px;
+            padding: 0 20px;
+            border-radius: 12px;
             font-weight: 700;
             font-size: 14px;
             cursor: pointer;
-            display: flex;
+            display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
-            height: 44px;
-            transition: background 0.2s;
+            height: 50px;
+            width: 100%;
+            box-sizing: border-box;
+            transition: background 0.2s, transform 0.1s;
+            white-space: nowrap;
         }
 
         .btn-search-hero:hover {
             background: #0052CC;
+        }
+
+        .btn-search-hero:active {
+            transform: scale(0.98);
         }
 
         /* Dropdown gợi ý tìm kiếm nhanh */
@@ -276,35 +344,33 @@
         .quick-search-header {
             font-size: 11px;
             font-weight: 700;
-            color: #64748B;
+            color: #94A3B8;
             text-transform: uppercase;
-            letter-spacing: 0.6px;
-            padding: 8px 16px 4px;
+            letter-spacing: 0.8px;
+            padding: 10px 16px 4px;
         }
 
         .quick-search-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 9px 16px;
+            padding: 10px 16px;
             color: #0F172A;
             text-decoration: none;
             cursor: pointer;
             transition: background-color 0.15s ease;
-            gap: 10px;
+            gap: 12px;
         }
 
         .quick-search-item:hover {
-            background-color: #F1F5F9;
+            background-color: #F8FAFC;
         }
 
         .quick-item-title {
-            font-size: 13.5px;
+            font-size: 14px;
             font-weight: 600;
             color: #0F172A;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            line-height: 1.4;
         }
 
         .quick-item-subtitle {
@@ -314,13 +380,32 @@
         }
 
         .quick-item-badge {
-            font-size: 11px;
+            font-size: 11.5px;
             font-weight: 600;
-            padding: 2px 8px;
-            border-radius: 12px;
-            background: #EFF6FF;
-            color: #0066FF;
+            padding: 3px 9px;
+            border-radius: 6px;
+            background: #F1F5F9;
+            color: #475569;
             white-space: nowrap;
+        }
+
+        .quick-rating-badge {
+            background: #FEF3C7;
+            color: #92400E;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 2px 7px;
+            border-radius: 6px;
+            font-weight: 700;
+        }
+
+        .quick-item-price {
+            font-size: 12px;
+            color: #0066FF;
+            font-weight: 700;
+            margin-top: 3px;
+            text-align: right;
         }
 
         .quick-search-divider {
@@ -688,15 +773,18 @@
                 <div class="search-field" style="position: relative; z-index: 60;">
                     <label for="homeSearchKeyword">📍 Điểm đến / Thành phố</label>
                     <div class="search-input-box">
+                        <select name="engine" id="homeSearchEngine" class="search-engine-select" title="Chọn công cụ tìm kiếm">
+                            <option value="solr" {{ request('engine', 'solr') === 'solr' ? 'selected' : '' }}>Solr</option>
+                            <option value="sql" {{ request('engine') === 'sql' ? 'selected' : '' }}>SQL</option>
+                        </select>
                         <input type="text"
                                name="keyword"
                                id="homeSearchKeyword"
                                value="{{ request('keyword') }}"
-                               placeholder="Ví dụ: Đà Nẵng, Phú Quốc, Bà Nà..."
+                               placeholder="Đà Nẵng"
                                autocomplete="off">
                     </div>
-                    <!-- Dropdown gợi ý tìm kiếm nhanh (Quick Search Autocomplete) -->
-                    <div id="quickSearchDropdown" class="quick-search-dropdown" style="display: none;"></div>
+                    <div id="homeQuickSearchDropdown" class="quick-search-dropdown" style="display: none;"></div>
                 </div>
 
                 <div class="search-field">
@@ -725,13 +813,16 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn-search-hero" id="btnSubmitSearch">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                    Tìm kiếm
-                </button>
+                <div class="search-field">
+                    <label class="btn-label-placeholder" aria-hidden="true">&nbsp;</label>
+                    <button type="submit" class="btn-search-hero" id="btnSubmitSearch">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        Tìm kiếm
+                    </button>
+                </div>
             </div>
         </form>
     </section>
@@ -744,7 +835,7 @@
             <section id="search-results-section" style="margin-bottom: 55px; scroll-margin-top: 80px;">
                 <div class="section-header-wrap">
                     <div>
-                        <span class="sub-tag-blue">KẾT QUẢ TÌM KIẾM NHANH</span>
+                        <span class="sub-tag-blue">KẾT QUẢ TÌM KIẾM NHANH ({{ strtoupper(request('engine', 'solr')) }})</span>
                         <h2 class="sec-title-main">
                             @if(request('keyword'))
                                 Kết quả cho "{{ request('keyword') }}"
@@ -995,15 +1086,26 @@
         }
     </style>
 
-    <!-- JavaScript Xử Lý Tìm Kiếm Nhanh & Thả Tim AJAX -->
+    <!-- JavaScript Xử Lý Trang Chủ & Thả Tim AJAX -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const searchInput = document.getElementById('homeSearchKeyword');
-            const searchForm = document.getElementById('homeSearchForm');
-            const dropdown = document.getElementById('quickSearchDropdown');
-            let debounceTimer = null;
+            @if($hasSearch)
+                // Tự động cuộn đến khu vực kết quả tìm kiếm nếu có tham số tìm kiếm
+                const resultsSection = document.getElementById('search-results-section');
+                if (resultsSection) {
+                    resultsSection.scrollIntoView({ behavior: 'smooth' });
+                }
+            @endif
 
-            if (searchInput && dropdown) {
+            // Xử lý Autocomplete gợi ý tìm kiếm nhanh (Ưu tiên Solr Engine)
+            const searchInput = document.getElementById('homeSearchKeyword');
+            const dropdown = document.getElementById('homeQuickSearchDropdown');
+            const searchForm = document.getElementById('homeSearchForm');
+            const engineSelect = document.getElementById('homeSearchEngine');
+
+            if (searchInput && dropdown && searchForm) {
+                let debounceTimer = null;
+
                 searchInput.addEventListener('input', function () {
                     const query = this.value.trim();
                     clearTimeout(debounceTimer);
@@ -1015,7 +1117,8 @@
                     }
 
                     debounceTimer = setTimeout(() => {
-                        fetch(`{{ route('destinations.quick-search') }}?keyword=${encodeURIComponent(query)}`, {
+                        const engine = engineSelect ? engineSelect.value : 'solr';
+                        fetch(`{{ route('destinations.quick-search') }}?keyword=${encodeURIComponent(query)}&engine=${encodeURIComponent(engine)}`, {
                             headers: { Accept: 'application/json' },
                         })
                             .then(res => {
@@ -1032,7 +1135,7 @@
                                 dropdown.style.display = 'block';
                                 console.error('Lỗi tìm kiếm nhanh:', err);
                             });
-                    }, 250);
+                    }, 220);
                 });
 
                 // Đóng dropdown khi nhấp ra ngoài
@@ -1055,24 +1158,28 @@
                 const hasDestinations = data.destinations && data.destinations.length > 0;
 
                 if (!hasCities && !hasDestinations) {
-                    dropdown.innerHTML = `<div class="quick-search-empty">Không tìm thấy địa điểm hoặc thành phố nào khớp với "<strong>${escapeHtml(data.keyword)}</strong>".</div>`;
+                    dropdown.innerHTML = `<div class="quick-search-empty">Không tìm thấy địa điểm hoặc thành phố nào khớp với "<strong>${escapeHtml(data.keyword || '')}</strong>".</div>`;
                     dropdown.style.display = 'block';
                     return;
                 }
 
                 let html = '';
 
-                // Danh sách thành phố phù hợp
-                if (hasCities) {
-                    html += `<div class="quick-search-header">🏙️ Thành phố</div>`;
-                    data.cities.forEach(city => {
+                // 1. Danh sách địa điểm du lịch phù hợp (Giao diện tinh gọn, chuyên nghiệp, không dùng icon/emoji thừa)
+                if (hasDestinations) {
+                    html += `<div class="quick-search-header">Địa điểm du lịch</div>`;
+                    data.destinations.forEach(dest => {
+                        const subtitle = [dest.city_name, dest.category_name].filter(Boolean).map(escapeHtml).join(' &bull; ');
                         html += `
-                            <div class="quick-search-item" data-type="city" data-name="${escapeHtml(city.name)}">
-                                <div class="quick-item-title">
-                                    <span>🏙️</span>
-                                    <span>${escapeHtml(city.name)}</span>
+                            <div class="quick-search-item" data-type="destination" data-name="${escapeHtml(dest.name)}">
+                                <div style="min-width: 0; flex: 1;">
+                                    <div class="quick-item-title">${escapeHtml(dest.name)}</div>
+                                    ${subtitle ? `<div class="quick-item-subtitle">${subtitle}</div>` : ''}
                                 </div>
-                                <span class="quick-item-badge">${city.destinations_count} địa điểm</span>
+                                <div style="text-align: right; flex-shrink: 0;">
+                                    <span class="quick-item-badge quick-rating-badge">★ ${dest.rating}</span>
+                                    <div class="quick-item-price">${escapeHtml(dest.formatted_price)}</div>
+                                </div>
                             </div>
                         `;
                     });
@@ -1082,23 +1189,14 @@
                     html += `<div class="quick-search-divider"></div>`;
                 }
 
-                // Danh sách địa điểm du lịch phù hợp
-                if (hasDestinations) {
-                    html += `<div class="quick-search-header">📍 Địa điểm du lịch</div>`;
-                    data.destinations.forEach(dest => {
+                // 2. Danh sách thành phố phù hợp
+                if (hasCities) {
+                    html += `<div class="quick-search-header">Thành phố</div>`;
+                    data.cities.forEach(city => {
                         html += `
-                            <div class="quick-search-item" data-type="destination" data-name="${escapeHtml(dest.name)}">
-                                <div>
-                                    <div class="quick-item-title">
-                                        <span>📍</span>
-                                        <span>${escapeHtml(dest.name)}</span>
-                                    </div>
-                                    <div class="quick-item-subtitle">${escapeHtml(dest.city_name)} &bull; ${escapeHtml(dest.category_name)}</div>
-                                </div>
-                                <div style="text-align: right;">
-                                    <span class="quick-item-badge" style="background: #FEF3C7; color: #B45309;">⭐ ${dest.rating}</span>
-                                    <div style="font-size: 11px; color: #0066FF; font-weight: 700; margin-top: 3px;">${escapeHtml(dest.formatted_price)}</div>
-                                </div>
+                            <div class="quick-search-item" data-type="city" data-name="${escapeHtml(city.name)}">
+                                <div class="quick-item-title">${escapeHtml(city.name)}</div>
+                                <span class="quick-item-badge">${city.destinations_count} địa điểm</span>
                             </div>
                         `;
                     });
@@ -1120,17 +1218,9 @@
 
             function escapeHtml(text) {
                 const div = document.createElement('div');
-                div.textContent = text;
+                div.textContent = text || '';
                 return div.innerHTML;
             }
-
-            @if($hasSearch)
-                // Tự động cuộn đến khu vực kết quả tìm kiếm nếu có tham số tìm kiếm
-                const resultsSection = document.getElementById('search-results-section');
-                if (resultsSection) {
-                    resultsSection.scrollIntoView({ behavior: 'smooth' });
-                }
-            @endif
         });
 
         // Hàm thông báo Toast Trang chủ

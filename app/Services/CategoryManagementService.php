@@ -27,7 +27,10 @@ class CategoryManagementService implements CategoryManagementServiceInterface, C
         // Lọc theo từ khóa tìm kiếm (tên danh mục hoặc slug)
         if (! empty($filters['search'])) {
             $search = trim($filters['search']);
-            app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'category', $search);
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                    ->orWhere('slug', 'LIKE', "%{$search}%");
+            });
         }
 
         // Lọc theo trạng thái hiển thị

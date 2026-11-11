@@ -379,8 +379,13 @@ class CommerceBackendService
     {
         $keyword = trim((string) ($arguments['query'] ?? ''));
         if ($keyword !== '') {
-            $query = Destination::query()->where('name', 'NOT LIKE', '%#%');
-            app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'destination', $keyword);
+            $query = Destination::query()
+                ->where('name', 'NOT LIKE', '%#%')
+                ->where(function ($q) use ($keyword) {
+                    $q->where('name', 'LIKE', "%{$keyword}%")
+                        ->orWhere('address', 'LIKE', "%{$keyword}%")
+                        ->orWhere('description', 'LIKE', "%{$keyword}%");
+                });
 
             return $query->orderByDesc('rating')->limit(max(1, min(100, (int) ($arguments['limit'] ?? 20))))
                 ->get()->map(fn ($destination) => $this->listing('destination:'.$destination->id))->all();

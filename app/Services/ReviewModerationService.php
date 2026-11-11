@@ -29,7 +29,11 @@ class ReviewModerationService implements ReviewModerationServiceInterface
         // Tìm kiếm theo từ khóa nếu có (tên người dùng, email, tên địa điểm hoặc nội dung nhận xét)
         if (! empty($filters['search'])) {
             $searchTerm = trim((string) $filters['search']);
-            app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'review', $searchTerm);
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('comment', 'LIKE', "%{$searchTerm}%")
+                    ->orWhereHas('user', fn ($uq) => $uq->where('name', 'LIKE', "%{$searchTerm}%")->orWhere('email', 'LIKE', "%{$searchTerm}%"))
+                    ->orWhereHas('destination', fn ($dq) => $dq->where('name', 'LIKE', "%{$searchTerm}%"));
+            });
         }
 
         // Sắp xếp các đánh giá mới nhất lên đầu danh sách

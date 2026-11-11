@@ -32,7 +32,11 @@ class DestinationManagementService implements DestinationManagementServiceInterf
         // Bộ lọc 1: Tìm kiếm theo tên, địa chỉ hoặc mô tả
         if (! empty($filters['search'])) {
             $searchTerm = trim($filters['search']);
-            app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'destination', $searchTerm);
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'LIKE', "%{$searchTerm}%")
+                    ->orWhere('address', 'LIKE', "%{$searchTerm}%")
+                    ->orWhere('description', 'LIKE', "%{$searchTerm}%");
+            });
         }
 
         // Bộ lọc 2: Lọc theo Tỉnh / Thành phố

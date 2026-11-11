@@ -53,9 +53,10 @@ interface DestinationServiceInterface
      *
      * @param string $keyword
      * @param int $limit
+     * @param string $engine 'solr' (mặc định) hoặc 'sql'
      * @return array<string, mixed>
      */
-    public function quickSearch(string $keyword, int $limit = 6): array;
+    public function quickSearch(string $keyword, int $limit = 6, string $engine = 'solr'): array;
 
     /**
      * Lấy danh sách địa điểm du lịch có phân trang, hỗ trợ bộ lọc và lọc theo nơi lưu trú.

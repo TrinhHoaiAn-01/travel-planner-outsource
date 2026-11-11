@@ -175,7 +175,11 @@ class PaymentService implements PaymentServiceInterface
         }
 
         if (!empty($search)) {
-            app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'payment', $search);
+            $query->where(function ($q) use ($search) {
+                $q->where('transaction_id', 'LIKE', "%{$search}%")
+                    ->orWhere('payment_method', 'LIKE', "%{$search}%")
+                    ->orWhereHas('booking', fn ($bq) => $bq->where('code', 'LIKE', "%{$search}%"));
+            });
         }
 
         return $query->paginate($perPage);
