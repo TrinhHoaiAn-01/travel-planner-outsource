@@ -13,8 +13,6 @@
     <title>Travel Planner - Lên Lịch Trình & Khám Phá Những Vùng Đất Mới</title>
     <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         * {
             margin: 0;
@@ -202,12 +200,25 @@
             padding: 20px 24px;
         }
 
+
         .search-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
-            gap: 16px;
+            grid-template-columns: 1.6fr 1.1fr 1.1fr auto;
+            gap: 14px;
             align-items: flex-end;
             text-align: left;
+        }
+
+        @media (max-width: 900px) {
+            .search-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 550px) {
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .btn-label-placeholder {
@@ -326,19 +337,18 @@
             background: #0066FF;
             color: #FFFFFF;
             border: none;
-            padding: 0 20px;
             border-radius: 12px;
+            height: 50px;
+            padding: 0 22px;
+            font-size: 15px;
             font-weight: 700;
-            font-size: 14px;
-            cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            height: 50px;
-            width: 100%;
-            box-sizing: border-box;
+            cursor: pointer;
             transition: background 0.2s, transform 0.1s;
+            box-shadow: 0 4px 14px rgba(0, 102, 255, 0.35);
             white-space: nowrap;
         }
 
@@ -876,7 +886,7 @@
             <section id="search-results-section" style="margin-bottom: 55px; scroll-margin-top: 80px;">
                 <div class="section-header-wrap">
                     <div>
-                        <span class="sub-tag-blue">KẾT QUẢ TÌM KIẾM NHANH ({{ strtoupper(request('engine', 'solr')) }})</span>
+                        <span class="sub-tag-blue">KẾT QUẢ TÌM KIẾM NHANH</span>
                         <h2 class="sec-title-main">
                             @if(request('keyword'))
                                 Kết quả cho "{{ request('keyword') }}"

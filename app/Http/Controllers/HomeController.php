@@ -2,13 +2,9 @@
 
 namespace App\Http\Controllers;
 
-require_once app_path('Services/Search/Home/home_search.php');
-require_once app_path('Services/Search/Home/home_search_sql_index.php');
-
+use App\Http\Requests\HomeSearchRequest;
 use App\Services\Interfaces\DestinationServiceInterface;
 use App\Services\Interfaces\FavoriteServiceInterface;
-use App\Services\Search\Home\HomeSearch;
-use App\Services\Search\Home\HomeSearchSqlIndex;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -28,10 +24,10 @@ class HomeController extends Controller
      * Hiển thị Trang chủ công khai (Public Home) kèm kết quả tìm kiếm nếu có.
      * Hỗ trợ trả về JSON khi test qua Postman (Accept: application/json hoặc ?format=json).
      *
-     * @param Request $request
+     * @param HomeSearchRequest $request Form Request đã được xác thực an toàn
      * @return View|JsonResponse
      */
-    public function index(Request $request): View|JsonResponse
+    public function index(HomeSearchRequest $request): View|JsonResponse
     {
         $hasSearch = $request->filled('keyword')
             || $request->filled('category_id')
@@ -42,11 +38,9 @@ class HomeController extends Controller
         $engine = strtolower((string) $request->input('engine', 'solr'));
 
         if ($hasSearch) {
-            $filters = $request->only(['keyword', 'category_id', 'budget', 'city_id']);
-            // Điều hướng sang công cụ tìm kiếm tương ứng
-            $searchResults = ($engine === 'sql')
-                ? HomeSearchSqlIndex::search($filters)
-                : HomeSearch::search($filters);
+            $filters = $request->validated();
+            // Điều hướng tìm kiếm qua Service Interface chuẩn kiến trúc MVC
+            $searchResults = $this->destinationService->searchHomeDestinations($filters, $engine);
         } else {
             $searchResults = null;
         }

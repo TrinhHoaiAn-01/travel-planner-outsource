@@ -49,6 +49,16 @@ interface DestinationServiceInterface
     public function searchDestinations(array $filters = []): Collection;
 
     /**
+     * Tìm kiếm địa điểm cho Trang chủ theo bộ lọc và công cụ lựa chọn (Solr / SQL).
+     * Tích hợp qua Vendor Package Search\HomeSearch\HomeSearchManager.
+     *
+     * @param array<string, mixed> $filters Mảng tiêu chí tìm kiếm
+     * @param string $engine 'solr' (mặc định) hoặc 'sql'
+     * @return Collection
+     */
+    public function searchHomeDestinations(array $filters = [], string $engine = 'solr'): Collection;
+
+    /**
      * Tìm kiếm nhanh gợi ý địa điểm và thành phố cho thanh tìm kiếm (Quick Search Autocomplete).
      *
      * @param string $keyword

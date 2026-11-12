@@ -1,0 +1,21 @@
+{
+    "name": "search/home-search",
+    "description": "Thư viện tìm kiếm Trang chủ cho đồ án Travel Planner (Apache Solr 9 & SQL Index)",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Tran Van Trong",
+            "email": "email.tranvantrong.2014@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Search\\HomeSearch\\": "src/"
+        }
+    }
+}
+

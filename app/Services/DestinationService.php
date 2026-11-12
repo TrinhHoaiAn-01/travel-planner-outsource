@@ -121,6 +121,84 @@ class DestinationService implements DestinationServiceInterface
     }
 
     /**
+     * Tìm kiếm địa điểm cho Trang chủ theo bộ lọc và công cụ lựa chọn (Solr / SQL).
+     * Tích hợp qua Vendor Package Search\HomeSearch\HomeSearchManager.
+     *
+     * @param array<string, mixed> $filters
+     * @param string $engine 'solr' (mặc định) hoặc 'sql'
+     * @return Collection
+     */
+    public function searchHomeDestinations(array $filters = [], string $engine = 'solr'): Collection
+    {
+        $homeSearchManager = new \Search\HomeSearch\HomeSearchManager();
+        $searchResult = $homeSearchManager->search($filters, $engine);
+        $ids = $searchResult['ids'] ?? [];
+
+        $keyword = trim((string) ($filters['keyword'] ?? ''));
+        $cityId = !empty($filters['city_id']) ? (int) $filters['city_id'] : null;
+        $categoryId = !empty($filters['category_id']) ? (int) $filters['category_id'] : null;
+        $budget = !empty($filters['budget']) ? (int) $filters['budget'] : null;
+
+        // Nếu có từ khóa tìm kiếm nhưng Solr không tìm thấy bất kỳ ID nào thì trả về rỗng ngay
+        if (empty($ids) && $keyword !== '' && ($searchResult['engine_used'] ?? '') === 'solr') {
+            return new Collection();
+        }
+
+        $query = Destination::query()
+            ->with(['city', 'category', 'primaryImage', 'roomTypes']);
+
+        // Nếu có danh sách ID từ search engine (Solr hoặc SQL)
+        if (!empty($ids)) {
+            $query->whereIn('id', $ids);
+            if (($searchResult['engine_used'] ?? '') === 'solr') {
+                if ($query->getConnection()->getDriverName() === 'sqlite') {
+                    $orderCases = [];
+                    foreach ($ids as $index => $id) {
+                        $orderCases[] = "WHEN {$id} THEN {$index}";
+                    }
+                    $query->orderByRaw('CASE id ' . implode(' ', $orderCases) . ' END');
+                } else {
+                    $query->orderByRaw('FIELD(id, ' . implode(',', $ids) . ')');
+                }
+            }
+        } elseif ($keyword !== '') {
+            // Trường hợp fallback SQL tìm theo LIKE
+            $query->where(function ($q) use ($keyword) {
+                $q->where('name', 'LIKE', "%{$keyword}%")
+                    ->orWhere('address', 'LIKE', "%{$keyword}%")
+                    ->orWhere('description', 'LIKE', "%{$keyword}%")
+                    ->orWhereHas('city', fn ($cq) => $cq->where('name', 'LIKE', "%{$keyword}%"));
+            });
+        }
+
+        if ($cityId !== null) {
+            $query->where('city_id', $cityId);
+        }
+
+        if ($categoryId !== null) {
+            $query->where('category_id', $categoryId);
+        }
+
+        if ($budget === 1) {
+            $query->where('entrance_fee', '<', 500000);
+        } elseif ($budget === 2) {
+            $query->whereBetween('entrance_fee', [500000, 1500000]);
+        } elseif ($budget === 3) {
+            $query->where('entrance_fee', '>', 1500000);
+        }
+
+        if (!empty($filters['is_lodging'])) {
+            $query->whereHas('roomTypes');
+        }
+
+        if (empty($ids) || ($searchResult['engine_used'] ?? '') !== 'solr') {
+            $query->orderByDesc('rating')->orderBy('name');
+        }
+
+        return $query->get();
+    }
+
+    /**
      * Tìm kiếm nhanh danh sách gợi ý thành phố và địa điểm cho ô tìm kiếm (Autocomplete).
      *
      * @param string $keyword
@@ -143,13 +221,11 @@ class DestinationService implements DestinationServiceInterface
             || class_exists(\PHPUnit\Framework\TestCase::class, false)
             || (function_exists('app') && (app()->environment('testing') || app()->runningUnitTests()));
 
-        // 1. Nếu chọn Solr và không trong môi trường test, ưu tiên tìm kiếm bằng Solr engine (Fuzzy, Transposition)
+        // 1. Nếu chọn Solr và không trong môi trường test, ưu tiên tìm kiếm bằng Solr engine qua Vendor Package
         if ($engine === 'solr' && ! $isTesting) {
             try {
-                require_once app_path('Services/Search/Home/solr.php');
-                require_once app_path('Services/Search/Home/home_search.php');
-
-                $solrQ = \App\Services\Search\Home\HomeSearch::buildSolrQuery($keyword);
+                $solrClient = new \Search\HomeSearch\Solr\SolrClient();
+                $solrQ = \Search\HomeSearch\Solr\SolrQueryBuilder::build($keyword);
                 $params = [
                     'q' => $solrQ,
                     'defType' => 'edismax',
@@ -159,7 +235,7 @@ class DestinationService implements DestinationServiceInterface
                     'wt' => 'json',
                 ];
 
-                $searchResult = solr_search($params);
+                $searchResult = $solrClient->select($params);
                 $docs = $searchResult['docs'] ?? [];
 
                 // Lấy danh sách điểm đến từ Solr
@@ -167,11 +243,21 @@ class DestinationService implements DestinationServiceInterface
                 if (! empty($docs)) {
                     $ids = array_map(fn ($doc) => (int) $doc['id'], $docs);
 
-                    $destinations = Destination::query()
+                    $destQuery = Destination::query()
                         ->with(['city', 'category', 'roomTypes'])
-                        ->whereIn('id', $ids)
-                        ->orderByRaw('FIELD(id, ' . implode(',', $ids) . ')')
-                        ->get()
+                        ->whereIn('id', $ids);
+
+                    if ($destQuery->getConnection()->getDriverName() === 'sqlite') {
+                        $orderCases = [];
+                        foreach ($ids as $index => $id) {
+                            $orderCases[] = "WHEN {$id} THEN {$index}";
+                        }
+                        $destQuery->orderByRaw('CASE id ' . implode(' ', $orderCases) . ' END');
+                    } else {
+                        $destQuery->orderByRaw('FIELD(id, ' . implode(',', $ids) . ')');
+                    }
+
+                    $destinations = $destQuery->get()
                         ->map(function ($destination) {
                             return [
                                 'id' => $destination->id,
