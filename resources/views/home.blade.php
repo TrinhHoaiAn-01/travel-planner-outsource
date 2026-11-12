@@ -13,8 +13,6 @@
     <title>Travel Planner - Lên Lịch Trình & Khám Phá Những Vùng Đất Mới</title>
     <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         * {
             margin: 0;
@@ -237,17 +235,6 @@
             line-height: 1;
         }
 
-        .search-field label svg,
-        .search-field label i {
-            color: #38BDF8;
-            fill: #38BDF8;
-            font-size: 15px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
         .search-input-box {
             background: #FFFFFF;
             border-radius: 12px;
@@ -277,19 +264,6 @@
             box-sizing: border-box;
             padding: 0;
             margin: 0;
-        }
-
-        .search-input-box select:not(.search-engine-select) {
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background-color: transparent;
-            background-image: url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 6px center;
-            background-size: 14px 14px;
-            padding-right: 26px;
-            cursor: pointer;
         }
 
         .search-engine-select {
@@ -797,12 +771,7 @@
         <form action="{{ route('home') }}" method="GET" class="search-card-wrapper" id="homeSearchForm">
             <div class="search-grid">
                 <div class="search-field" style="position: relative; z-index: 60;">
-                    <label for="homeSearchKeyword">
-                        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor">
-                            <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
-                        </svg>
-                        <span>Điểm đến / Thành phố</span>
-                    </label>
+                    <label for="homeSearchKeyword">📍 Điểm đến / Thành phố</label>
                     <div class="search-input-box">
                         <select name="engine" id="homeSearchEngine" class="search-engine-select" title="Chọn công cụ tìm kiếm">
                             <option value="solr" {{ request('engine', 'solr') === 'solr' ? 'selected' : '' }}>Solr</option>
@@ -812,19 +781,14 @@
                                name="keyword"
                                id="homeSearchKeyword"
                                value="{{ request('keyword') }}"
-                               placeholder="Ví dụ: Đà Nẵng, Phú Quốc..."
+                               placeholder="Đà Nẵng"
                                autocomplete="off">
                     </div>
                     <div id="homeQuickSearchDropdown" class="quick-search-dropdown" style="display: none;"></div>
                 </div>
 
                 <div class="search-field">
-                    <label for="homeSearchCategory">
-                        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor">
-                            <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3z"/>
-                        </svg>
-                        <span>Danh mục</span>
-                    </label>
+                    <label for="homeSearchCategory">🗂️ Danh mục</label>
                     <div class="search-input-box">
                         <select name="category_id" id="homeSearchCategory">
                             <option value="">Tất cả danh mục</option>
@@ -838,12 +802,7 @@
                 </div>
 
                 <div class="search-field">
-                    <label for="homeSearchBudget">
-                        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor">
-                            <path d="M4 10.781c.148 1.667 1.513 2.85 3.591 3.003V15h1.043v-1.216c2.27-.179 3.678-1.438 3.678-3.3 0-1.59-.947-2.51-2.956-3.028l-.722-.187V3.467c1.122.11 1.879.714 2.07 1.616h1.47c-.166-1.6-1.54-2.748-3.54-2.875V1H7.591v1.233c-1.939.23-3.27 1.472-3.27 3.156 0 1.454.966 2.483 2.661 2.917l.61.162v4.031c-1.149-.17-1.94-.8-2.131-1.718zm3.391-3.836c-1.253-.323-1.656-.826-1.656-1.584 0-.928.704-1.652 1.656-1.801v3.385zm1.251 1.681c1.386.378 1.964.846 1.964 1.705 0 1.018-.706 1.74-1.964 1.893z"/>
-                        </svg>
-                        <span>Mức ngân sách</span>
-                    </label>
+                    <label for="homeSearchBudget">💵 Mức ngân sách</label>
                     <div class="search-input-box">
                         <select name="budget" id="homeSearchBudget">
                             <option value="">Tất cả mức giá</option>
@@ -861,7 +820,7 @@
                             <circle cx="11" cy="11" r="8"></circle>
                             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                         </svg>
-                        <span>Tìm kiếm</span>
+                        Tìm kiếm
                     </button>
                 </div>
             </div>
