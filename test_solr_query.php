@@ -1,6 +1,8 @@
 <?php
 
-require_once __DIR__ . '/app/Services/Search/Home/solr.php';
+require_once __DIR__ . '/vendor/autoload.php';
+
+$solrClient = new \Search\HomeSearch\Solr\SolrClient();
 
 function buildSolrQuery(string $keyword): string {
     // 1. Loại bỏ các ký tự đặc biệt của cú pháp Solr/Lucene
@@ -79,7 +81,7 @@ foreach ($testCases as $name => $kw) {
         'fl' => 'name',
         'wt' => 'json'
     ];
-    $res = solr_search($params);
+    $res = $solrClient->select($params);
     $docs = array_map(fn($d) => $d['name'], $res['docs'] ?? []);
-    echo sprintf("[%-20s] '%s' => Found: %d | Top: %s\n", $name, $kw, $res['numFound'] ?? 0, implode('; ', $docs));
+    echo sprintf("[%-20s] '%s' => Found: %d | Top: %s\n", $name, $kw, $res['total'] ?? 0, implode('; ', $docs));
 }
