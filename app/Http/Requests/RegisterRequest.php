@@ -19,9 +19,14 @@ class RegisterRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
+        // Loại bỏ các trường phân quyền để ngăn chặn tấn công leo thang đặc quyền (Privilege Escalation)
+        $this->request->remove('role');
+        $this->request->remove('is_active');
+        $this->request->remove('email_verified_at');
+
         $this->merge([
-            'name' => is_string($this->name) ? trim($this->name) : $this->name,
-            'email' => is_string($this->email) ? trim($this->email) : $this->email,
+            'name' => is_string($this->name) ? \App\Support\SecuritySanitizer::clean($this->name) : $this->name,
+            'email' => is_string($this->email) ? strtolower(trim($this->email)) : $this->email,
         ]);
     }
 

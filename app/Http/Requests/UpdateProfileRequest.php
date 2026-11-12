@@ -20,9 +20,17 @@ class UpdateProfileRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
+        // Loại bỏ các trường nhạy cảm để chống Parameter Tampering và leo thang đặc quyền
+        $this->request->remove('role');
+        $this->request->remove('is_active');
+        $this->request->remove('id');
+        $this->request->remove('deleted_at');
+        $this->request->remove('email_verified_at');
+        $this->request->remove('password');
+
         if ($this->has('name')) {
             $this->merge([
-                'name' => trim((string) $this->input('name')),
+                'name' => \App\Support\SecuritySanitizer::clean((string) $this->input('name')),
             ]);
         }
         if ($this->has('email')) {
@@ -37,7 +45,12 @@ class UpdateProfileRequest extends FormRequest
         }
         if ($this->has('city')) {
             $this->merge([
-                'city' => trim((string) $this->input('city')),
+                'city' => \App\Support\SecuritySanitizer::clean((string) $this->input('city')),
+            ]);
+        }
+        if ($this->has('bio')) {
+            $this->merge([
+                'bio' => \App\Support\SecuritySanitizer::clean((string) $this->input('bio')),
             ]);
         }
     }
@@ -60,7 +73,19 @@ class UpdateProfileRequest extends FormRequest
                 'max:255',
                 Rule::unique('users', 'email')->ignore($userId),
             ],
-            'phone' => ['nullable', 'string', 'max:20'],
+            'phone' => [
+                'nullable',
+                'string',
+                'max:20',
+                function ($attribute, $value, $fail) {
+                    if (! empty($value)) {
+                        $digits = preg_replace('/\D/', '', (string) $value);
+                        if (! preg_match('/^(0[3|5|7|8|9])[0-9]{8}$/', $digits)) {
+                            $fail('Số điện thoại không đúng định dạng di động Việt Nam (gồm 10 chữ số, bắt đầu bằng 03, 05, 07, 08 hoặc 09).');
+                        }
+                    }
+                },
+            ],
             'city' => ['nullable', 'string', 'max:100'],
             'avatar_url' => ['nullable', 'string', 'max:1000'],
             'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],

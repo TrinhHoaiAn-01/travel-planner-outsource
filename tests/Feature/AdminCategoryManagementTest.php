@@ -13,6 +13,7 @@ use Tests\TestCase;
 class AdminCategoryManagementTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Concerns\FakesWebsiteSearch;
 
     private User $admin;
     private User $user;
@@ -230,6 +231,7 @@ class AdminCategoryManagementTest extends TestCase
         Category::create(['name' => 'Nghỉ dưỡng & Resort', 'slug' => 'resort-spa', 'is_active' => true]);
         Category::create(['name' => 'Biển & Đảo', 'slug' => 'bien-dao', 'is_active' => true]);
 
+        $this->fakeWebsiteSearch(['category' => Category::where('slug', 'resort-spa')->pluck('id')->all()]);
         $response = $this->actingAs($this->admin)->get(route('admin.categories.index', ['search' => 'Resort']));
 
         $response->assertOk();

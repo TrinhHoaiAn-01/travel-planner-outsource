@@ -27,7 +27,19 @@ class Destination extends Model
         'duration',
         'rating',
         'is_featured',
+        'price',
+        'commerce_paused',
     ];
+
+    public function setPriceAttribute($value): void
+    {
+        $this->attributes['entrance_fee'] = $value;
+    }
+
+    public function getPriceAttribute(): float
+    {
+        return (float) ($this->attributes['entrance_fee'] ?? 0);
+    }
 
     protected function casts(): array
     {
@@ -35,6 +47,7 @@ class Destination extends Model
             'entrance_fee' => 'decimal:2',
             'rating' => 'decimal:1',
             'is_featured' => 'boolean',
+            'commerce_paused' => 'boolean',
         ];
     }
 
@@ -88,6 +101,29 @@ class Destination extends Model
         return $this->relationLoaded('roomTypes')
             ? $this->roomTypes->isNotEmpty()
             : $this->roomTypes()->exists();
+    }
+
+    /**
+     * Lấy giá phòng thấp nhất từ danh sách các loại phòng (Room Types).
+     */
+    public function getMinRoomPriceAttribute(): ?float
+    {
+        if ($this->relationLoaded('roomTypes')) {
+            $minPrice = $this->roomTypes->min('price_per_night');
+            return $minPrice !== null ? (float) $minPrice : null;
+        }
+
+        $minPrice = $this->roomTypes()->min('price_per_night');
+        return $minPrice !== null ? (float) $minPrice : null;
+    }
+
+    /**
+     * Định dạng giá phòng thấp nhất theo định dạng VND.
+     */
+    public function getFormattedMinRoomPriceAttribute(): ?string
+    {
+        $minPrice = $this->min_room_price;
+        return $minPrice !== null ? number_format($minPrice, 0, ',', '.') . 'đ' : null;
     }
 
     public function scopeFeatured(Builder $query): Builder

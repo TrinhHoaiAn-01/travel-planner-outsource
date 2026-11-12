@@ -1,61 +1,65 @@
+name: travel-planner
+
 services:
-
   app:
-    image: ghcr.io/trinhhoaian-01/travel-planner:latest
-
-    container_name: travel-planner-app
-
+    image: ${APP_IMAGE:-ghcr.io/trinhhoaian-01/travel-planner:latest}
+    restart: unless-stopped
     ports:
-      - "8080:80"
-
+      - "${APP_PORT:-8080}:80"
     environment:
+      APP_NAME: Travel Planner
       APP_ENV: production
       APP_DEBUG: "false"
-      APP_KEY: ${APP_KEY}
-
+      APP_KEY: ${APP_KEY:?Set APP_KEY in .env}
+      APP_URL: ${APP_URL:-http://localhost:8080}
       DB_CONNECTION: mysql
       DB_HOST: mysql
       DB_PORT: 3306
-      DB_DATABASE: travel_planner
-      DB_USERNAME: root
-      DB_PASSWORD: root@admin
-
+      DB_DATABASE: ${DB_DATABASE:-travel_planner}
+      DB_USERNAME: ${DB_USERNAME:-travel_planner}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      SESSION_DRIVER: database
+      CACHE_STORE: database
+      QUEUE_CONNECTION: sync
+      FILESYSTEM_DISK: public
+      LOG_CHANNEL: stderr
+      MAIL_MAILER: ${MAIL_MAILER:-log}
+      MAIL_HOST: ${MAIL_HOST:-127.0.0.1}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_SCHEME: ${MAIL_SCHEME:-}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-hello@example.com}
+      MAIL_FROM_NAME: Travel Planner
+    volumes:
+      - app_storage:/var/www/html/storage
     depends_on:
       mysql:
         condition: service_healthy
-
-    command: >
-      sh -c "
-        php artisan migrate --force &&
-        apache2-foreground
-      "
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://localhost/up') === false ? 1 : 0);"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
 
   mysql:
     image: mysql:8.4
-
-    container_name: travel-planner-mysql
-
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root@admin
-      MYSQL_DATABASE: travel_planner
-
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: ${DB_DATABASE:-travel_planner}
+      MYSQL_USER: ${DB_USERNAME:-travel_planner}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
     volumes:
       - mysql_data:/var/lib/mysql
-
     healthcheck:
-      test:
-        [
-          "CMD",
-          "mysqladmin",
-          "ping",
-          "-h",
-          "localhost",
-          "-uroot",
-          "-proot@admin"
-        ]
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$$MYSQL_ROOT_PASSWORD\" mysqladmin ping -h 127.0.0.1 -uroot --silent"]
       interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 12
+      start_period: 30s
 
 volumes:
   mysql_data:
+  app_storage:

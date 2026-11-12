@@ -12,6 +12,7 @@ use Tests\TestCase;
 class HomeTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Concerns\FakesWebsiteSearch;
 
     /**
      * Kiểm thử khách vãng lai truy cập trang chủ thành công và thấy dữ liệu.
@@ -100,6 +101,7 @@ class HomeTest extends TestCase
             'is_featured' => true,
         ]);
 
+        // $this->fakeWebsiteSearch(['destination' => [$dest1->id]]);
         $response = $this->get(route('home', ['keyword' => 'Bà Nà']));
 
         $response->assertStatus(200);
@@ -130,6 +132,7 @@ class HomeTest extends TestCase
             'is_featured' => false,
         ]);
 
+        // $this->fakeWebsiteSearch(['destination' => Destination::where('city_id', $cityDaNang->id)->pluck('id')->all()]);
         $response = $this->get(route('home', ['keyword' => 'Đà Nẵng']));
 
         $response->assertStatus(200);
@@ -215,6 +218,7 @@ class HomeTest extends TestCase
             'name' => 'Thung Lũng Tình Yêu Đà Lạt',
         ]);
 
+        $this->fakeWebsiteSearch(['city' => [$city->id], 'destination' => Destination::pluck('id')->all()]);
         $response = $this->getJson(route('destinations.quick-search', ['keyword' => 'Đà Lạt']));
 
         $response->assertStatus(200);
@@ -233,6 +237,7 @@ class HomeTest extends TestCase
      */
     public function test_home_search_shows_empty_state_when_no_destinations_match(): void
     {
+        $this->fakeWebsiteSearch([]);
         $response = $this->get(route('home', ['keyword' => 'Từ Khóa Không Tồn Tại 9999']));
 
         $response->assertStatus(200);

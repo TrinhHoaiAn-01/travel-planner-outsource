@@ -1,0 +1,194 @@
+/* ==========================================================================
+   AUTHENTICATION PAGES (Login, Register, Forgot Password, Reset, Change)
+   ========================================================================== */
+
+.auth-wrapper {
+  min-height: calc(100vh - 80px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1rem;
+  background: radial-gradient(circle at top right, #e0f2fe 0%, #f8fafc 60%);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 480px;
+  background: #ffffff;
+  border-radius: var(--radius-xl);
+  padding: 2.5rem;
+  box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.1);
+  border: 1px solid var(--border-color);
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: var(--primary-gradient);
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.auth-header .logo-badge {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--primary-light);
+  color: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  margin-bottom: 1rem;
+}
+
+.auth-header h2 {
+  font-weight: 800;
+  margin-bottom: 0.35rem;
+}
+
+.auth-header p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+  color: var(--primary);
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.5rem 0;
+  color: var(--text-light);
+  font-size: 0.85rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.auth-divider::before {
+  margin-right: 0.75rem;
+}
+
+.auth-divider::after {
+  margin-left: 0.75rem;
+}
+
+.social-auth-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.7rem;
+  border: 1px solid var(--border-color);
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  color: var(--text-main);
+  transition: var(--transition-fast);
+}
+
+.social-auth-btn:hover {
+  background: var(--bg-surface);
+  border-color: #cbd5e1;
+}
+
+.password-toggle-icon {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #94a3b8;
+  z-index: 10;
+  font-size: 1rem;
+}
+
+.password-toggle-icon:hover {
+  color: var(--primary);
+}
+
+.captcha-display {
+  flex-grow: 1;
+  height: 44px;
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  background: repeating-linear-gradient(
+    -45deg,
+    #f8fafc,
+    #f8fafc 8px,
+    #e9ecef 8px,
+    #e9ecef 10px
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.35rem;
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: 8px;
+  color: #1e293b;
+  user-select: none;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.captcha-refresh-btn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  background: #ffffff;
+  color: #0d6efd;
+  transition: var(--transition-fast);
+}
+
+.captcha-refresh-btn:hover {
+  background: #f1f5f9;
+  color: #0b5ed7;
+  border-color: #cbd5e1;
+}
+
+.btn-facebook {
+  background-color: #3b5998 !important;
+  color: #ffffff !important;
+  border: none;
+  font-size: 0.85rem;
+}
+
+.btn-facebook:hover {
+  background-color: #2d4373 !important;
+  color: #ffffff !important;
+}
+
+.btn-google {
+  background-color: #ea4335 !important;
+  color: #ffffff !important;
+  border: none;
+  font-size: 0.85rem;
+}
+
+.btn-google:hover {
+  background-color: #d33426 !important;
+  color: #ffffff !important;
+}

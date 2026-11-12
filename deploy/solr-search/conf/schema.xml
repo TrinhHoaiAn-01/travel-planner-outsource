@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<schema name="website_search" version="1.6">
+  <uniqueKey>id</uniqueKey>
+  <fieldType name="string" class="solr.StrField" docValues="true"/>
+  <fieldType name="long" class="solr.LongPointField" docValues="true"/>
+  <fieldType name="partial_text" class="solr.TextField">
+    <analyzer type="index">
+      <tokenizer class="solr.StandardTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+      <filter class="solr.ASCIIFoldingFilterFactory"/>
+      <filter class="solr.NGramFilterFactory" minGramSize="1" maxGramSize="25" preserveOriginal="true"/>
+    </analyzer>
+    <analyzer type="query">
+      <tokenizer class="solr.StandardTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+      <filter class="solr.ASCIIFoldingFilterFactory"/>
+    </analyzer>
+  </fieldType>
+  <field name="id" type="string" indexed="true" stored="true" required="true"/>
+  <field name="record_id" type="long" indexed="true" stored="true" required="true"/>
+  <field name="entity_type" type="string" indexed="true" stored="false" required="true"/>
+  <field name="owner_id" type="long" indexed="true" stored="false"/>
+  <field name="search_text" type="partial_text" indexed="true" stored="false" multiValued="true"/>
+  <field name="_version_" type="long" indexed="false" stored="false"/>
+</schema>

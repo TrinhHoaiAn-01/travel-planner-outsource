@@ -29,15 +29,10 @@ class ReviewModerationService implements ReviewModerationServiceInterface
         // Tìm kiếm theo từ khóa nếu có (tên người dùng, email, tên địa điểm hoặc nội dung nhận xét)
         if (! empty($filters['search'])) {
             $searchTerm = trim((string) $filters['search']);
-            $query->where(function ($subQuery) use ($searchTerm) {
-                $subQuery->where('comment', 'like', "%{$searchTerm}%")
-                    ->orWhereHas('user', function ($userQuery) use ($searchTerm) {
-                        $userQuery->where('name', 'like', "%{$searchTerm}%")
-                            ->orWhere('email', 'like', "%{$searchTerm}%");
-                    })
-                    ->orWhereHas('destination', function ($destQuery) use ($searchTerm) {
-                        $destQuery->where('name', 'like', "%{$searchTerm}%");
-                    });
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('comment', 'LIKE', "%{$searchTerm}%")
+                    ->orWhereHas('user', fn ($uq) => $uq->where('name', 'LIKE', "%{$searchTerm}%")->orWhere('email', 'LIKE', "%{$searchTerm}%"))
+                    ->orWhereHas('destination', fn ($dq) => $dq->where('name', 'LIKE', "%{$searchTerm}%"));
             });
         }
 

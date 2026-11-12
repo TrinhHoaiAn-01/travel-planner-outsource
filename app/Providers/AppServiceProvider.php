@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\ItineraryItem;
+use App\Policies\ItineraryPolicy;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
@@ -12,6 +16,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Đăng ký agent và các dịch vụ hiện có mà luồng website sử dụng.
+        $this->app->bind(\App\Services\Interfaces\AiTravelAssistantInterface::class, \App\Services\AiTravelAssistantService::class);
+        $this->app->bind(\App\Services\Interfaces\ActivityLogServiceInterface::class, \App\Services\ActivityLogService::class);
+        $this->app->bind(\App\Services\Interfaces\BookingServiceInterface::class, \App\Services\BookingService::class);
+        $this->app->bind(\App\Services\Interfaces\BudgetServiceInterface::class, \App\Services\BudgetService::class);
+        $this->app->bind(\App\Services\Interfaces\ExpenseServiceInterface::class, \App\Services\ExpenseService::class);
+        $this->app->bind(\App\Services\Interfaces\ItineraryServiceInterface::class, \App\Services\ItineraryService::class);
+        $this->app->bind(\App\Services\Interfaces\MoMoGatewayServiceInterface::class, \App\Services\MoMoGatewayService::class);
+        $this->app->bind(\App\Services\Interfaces\PaymentServiceInterface::class, \App\Services\PaymentService::class);
+        $this->app->bind(\App\Services\Interfaces\ReviewModerationServiceInterface::class, \App\Services\ReviewModerationService::class);
         // Ràng buộc DashboardServiceInterface với triển khai cụ thể DashboardService
         $this->app->bind(
             \App\Services\Interfaces\DashboardServiceInterface::class,
@@ -83,7 +97,67 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\DestinationImageService::class
         );
 
-        // Ràng buộc ReviewModerationServiceInterface với ReviewModerationService (Trần Văn Trọng)
+        // Ràng buộc ActivityLogServiceInterface với triển khai cụ thể ActivityLogService
+        $this->app->bind(
+            \App\Services\Interfaces\ActivityLogServiceInterface::class,
+            \App\Services\ActivityLogService::class
+        );
+
+        // Ràng buộc BookingServiceInterface với triển khai cụ thể BookingService
+        $this->app->bind(
+            \App\Services\Interfaces\BookingServiceInterface::class,
+            \App\Services\BookingService::class
+        );
+
+        // Ràng buộc BudgetServiceInterface với triển khai cụ thể BudgetService
+        $this->app->bind(
+            \App\Services\Interfaces\BudgetServiceInterface::class,
+            \App\Services\BudgetService::class
+        );
+
+        // Ràng buộc ExpenseServiceInterface với triển khai cụ thể ExpenseService
+        $this->app->bind(
+            \App\Services\Interfaces\ExpenseServiceInterface::class,
+            \App\Services\ExpenseService::class
+        );
+
+        // Ràng buộc ItineraryServiceInterface với triển khai cụ thể ItineraryService
+        $this->app->bind(
+            \App\Services\Interfaces\ItineraryServiceInterface::class,
+            \App\Services\ItineraryService::class
+        );
+
+        // Ràng buộc PaymentServiceInterface với triển khai cụ thể PaymentService
+        $this->app->bind(
+            \App\Services\Interfaces\PaymentServiceInterface::class,
+            \App\Services\PaymentService::class
+        );
+
+        // Ràng buộc MoMoGatewayServiceInterface với triển khai cụ thể MoMoGatewayService
+        $this->app->bind(
+            \App\Services\Interfaces\MoMoGatewayServiceInterface::class,
+            \App\Services\MoMoGatewayService::class
+        );
+
+        // Ràng buộc VnPayGatewayServiceInterface với triển khai cụ thể VnPayGatewayService
+        $this->app->bind(
+            \App\Services\Interfaces\VnPayGatewayServiceInterface::class,
+            \App\Services\VnPayGatewayService::class
+        );
+
+        // Ràng buộc ZaloPayGatewayServiceInterface với triển khai cụ thể ZaloPayGatewayService
+        $this->app->bind(
+            \App\Services\Interfaces\ZaloPayGatewayServiceInterface::class,
+            \App\Services\ZaloPayGatewayService::class
+        );
+
+        // Ràng buộc SePayGatewayServiceInterface với triển khai cụ thể SePayGatewayService
+        $this->app->bind(
+            \App\Services\Interfaces\SePayGatewayServiceInterface::class,
+            \App\Services\SePayGatewayService::class
+        );
+
+        // Ràng buộc ReviewModerationServiceInterface với triển khai cụ thể ReviewModerationService
         $this->app->bind(
             \App\Services\Interfaces\ReviewModerationServiceInterface::class,
             \App\Services\ReviewModerationService::class
@@ -95,7 +169,24 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        @umask(0000);
+        \App\Models\Destination::observe(\App\Observers\CommerceCatalogObserver::class);
+        \App\Models\City::observe(\App\Observers\CommerceCatalogObserver::class);
+        \App\Models\Category::observe(\App\Observers\CommerceCatalogObserver::class);
         Schema::defaultStringLength(191);
+
+        // Đăng ký tường minh chính sách bảo mật cho ItineraryItem
+        Gate::policy(ItineraryItem::class, ItineraryPolicy::class);
+
+        // Thiết lập view phân trang mặc định dùng CSS tự xây dựng, tránh lỗi Tailwind mặc định
+        Paginator::defaultView('vendor.pagination.default');
+
+        \Illuminate\Support\Facades\Gate::policy(\App\Models\ItineraryItem::class, \App\Policies\ItineraryPolicy::class);
+
+        // Tự động nhận diện HTTPS khi chạy qua Reverse Proxy / Tunnel như ngrok để form submit luôn dùng https://
+        if ((isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ||
+            (isset($_SERVER['HTTP_HOST']) && str_contains($_SERVER['HTTP_HOST'], 'ngrok'))) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
     }
 }

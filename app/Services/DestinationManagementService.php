@@ -27,15 +27,15 @@ class DestinationManagementService implements DestinationManagementServiceInterf
      */
     public function getDestinations(array $filters = [], int $perPage = 10): LengthAwarePaginator
     {
-        $query = Destination::with(['city', 'category', 'primaryImage', 'roomTypes']);
+        $query = Destination::with(['city', 'category', 'primaryImage', 'images', 'roomTypes']);
 
         // Bộ lọc 1: Tìm kiếm theo tên, địa chỉ hoặc mô tả
         if (! empty($filters['search'])) {
             $searchTerm = trim($filters['search']);
-            $query->where(function ($subQuery) use ($searchTerm) {
-                $subQuery->where('name', 'like', "%{$searchTerm}%")
-                    ->orWhere('address', 'like', "%{$searchTerm}%")
-                    ->orWhere('description', 'like', "%{$searchTerm}%");
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'LIKE', "%{$searchTerm}%")
+                    ->orWhere('address', 'LIKE', "%{$searchTerm}%")
+                    ->orWhere('description', 'LIKE', "%{$searchTerm}%");
             });
         }
 

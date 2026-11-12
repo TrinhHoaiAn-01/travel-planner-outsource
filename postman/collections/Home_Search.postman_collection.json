@@ -1,0 +1,258 @@
+{
+  "info": {
+    "_postman_id": "7a35c24e-4e6f-4c59-b1cb-9a998bb3c19b",
+    "name": "Travel Planner - Home Search & Solr Engine",
+    "description": "Bộ API Collection kiểm thử Solr Engine và SQL Index trên Trang chủ Travel Planner: hỗ trợ gõ thiếu chữ, dư chữ, đảo từ, viết liền không dấu.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Quick Search - Dư chữ (mesii -> Messi)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/quick-search?keyword=mesii",
+          "host": ["{{base_url}}"],
+          "path": ["quick-search"],
+          "query": [
+            {
+              "key": "keyword",
+              "value": "mesii",
+              "description": "Gõ dư chữ i -> Solr vẫn tự sửa thành Lionel Messi"
+            }
+          ]
+        },
+        "description": "Test tính năng Solr trong API Quick Search khi gõ dư chữ (mesii)."
+      },
+      "response": []
+    },
+    {
+      "name": "2. Quick Search - Thiếu chữ (mesi -> Messi)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/quick-search?keyword=mesi",
+          "host": ["{{base_url}}"],
+          "path": ["quick-search"],
+          "query": [
+            {
+              "key": "keyword",
+              "value": "mesi",
+              "description": "Gõ thiếu chữ s -> Solr Fuzzy tự sửa thành Lionel Messi"
+            }
+          ]
+        },
+        "description": "Test tính năng Solr trong API Quick Search khi gõ thiếu chữ (mesi)."
+      },
+      "response": []
+    },
+    {
+      "name": "3. Quick Search - Đảo từ (Hills Bà Nà -> Bà Nà Hills)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/quick-search?keyword=Hills Bà Nà",
+          "host": ["{{base_url}}"],
+          "path": ["quick-search"],
+          "query": [
+            {
+              "key": "keyword",
+              "value": "Hills Bà Nà",
+              "description": "Đảo ngược thứ tự từ"
+            }
+          ]
+        },
+        "description": "Test tính năng Solr trong API Quick Search khi đảo ngược thứ tự từ."
+      },
+      "response": []
+    },
+    {
+      "name": "4. Quick Search - Đảo từ (Phú Vinpearl Quốc)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/quick-search?keyword=Phú Vinpearl Quốc",
+          "host": ["{{base_url}}"],
+          "path": ["quick-search"],
+          "query": [
+            {
+              "key": "keyword",
+              "value": "Phú Vinpearl Quốc"
+            }
+          ]
+        },
+        "description": "Test đảo ngược từ tiếng Việt (Phú Vinpearl Quốc -> Vinpearl Resort & Spa Phú Quốc)."
+      },
+      "response": []
+    },
+    {
+      "name": "5. Quick Search - Gõ liền không dấu (danang)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/quick-search?keyword=danang",
+          "host": ["{{base_url}}"],
+          "path": ["quick-search"],
+          "query": [
+            {
+              "key": "keyword",
+              "value": "danang"
+            }
+          ]
+        },
+        "description": "Test gõ liền không dấu danh từ riêng (danang -> Đà Nẵng)."
+      },
+      "response": []
+    },
+    {
+      "name": "6. Home Search - Dư chữ (mesii & format=json)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/?keyword=mesii&format=json",
+          "host": ["{{base_url}}"],
+          "path": [""],
+          "query": [
+            {
+              "key": "keyword",
+              "value": "mesii"
+            },
+            {
+              "key": "format",
+              "value": "json"
+            }
+          ]
+        },
+        "description": "Tìm kiếm Trang chủ mặc định Solr với từ khóa dư chữ (mesii)."
+      },
+      "response": []
+    },
+    {
+      "name": "7. Home Search - Thiếu chữ (mesi & format=json)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/?keyword=mesi&format=json",
+          "host": ["{{base_url}}"],
+          "path": [""],
+          "query": [
+            {
+              "key": "keyword",
+              "value": "mesi"
+            },
+            {
+              "key": "format",
+              "value": "json"
+            }
+          ]
+        },
+        "description": "Tìm kiếm Trang chủ mặc định Solr với từ khóa thiếu chữ (mesi)."
+      },
+      "response": []
+    },
+    {
+      "name": "8. Home Search - Đảo từ (Hills Bà Nà & format=json)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/?keyword=Hills Bà Nà&format=json",
+          "host": ["{{base_url}}"],
+          "path": [""],
+          "query": [
+            {
+              "key": "keyword",
+              "value": "Hills Bà Nà"
+            },
+            {
+              "key": "format",
+              "value": "json"
+            }
+          ]
+        },
+        "description": "Tìm kiếm Trang chủ Solr với từ khóa đảo ngược thứ tự từ."
+      },
+      "response": []
+    },
+    {
+      "name": "9. Suggestions Destination - Dư chữ (mesii)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/search/suggestions/destination?keyword=mesii",
+          "host": ["{{base_url}}"],
+          "path": ["search", "suggestions", "destination"],
+          "query": [
+            {
+              "key": "keyword",
+              "value": "mesii"
+            }
+          ]
+        },
+        "description": "Gợi ý từ khóa điểm đến sử dụng Solr khi gõ dư chữ."
+      },
+      "response": []
+    },
+    {
+      "name": "10. Đối chứng SQL - Thiếu chữ (mesi -> ra 0 kết quả)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/?keyword=mesi&engine=sql&format=json",
+          "host": ["{{base_url}}"],
+          "path": [""],
+          "query": [
+            {
+              "key": "keyword",
+              "value": "mesi"
+            },
+            {
+              "key": "engine",
+              "value": "sql"
+            },
+            {
+              "key": "format",
+              "value": "json"
+            }
+          ]
+        },
+        "description": "Đối chứng với SQL Engine: gõ sai/thiếu chữ sẽ trả về 0 kết quả để so sánh với Solr."
+      },
+      "response": []
+    }
+  ]
+}

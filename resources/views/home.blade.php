@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script>
+        // Ngăn chặn trang chủ bị nhúng con trong iframe của trợ lý AI
+        if (window.top !== window.self) {
+            window.top.location.href = window.location.href;
+        }
+    </script>
     <title>Travel Planner - Lên Lịch Trình & Khám Phá Những Vùng Đất Mới</title>
     <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -195,10 +202,25 @@
 
         .search-grid {
             display: grid;
-            grid-template-columns: 1.8fr 1.3fr 1.3fr auto;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
             gap: 16px;
             align-items: flex-end;
             text-align: left;
+        }
+
+        .btn-label-placeholder {
+            visibility: hidden;
+            pointer-events: none;
+            height: 20px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            line-height: 1;
+        }
+
+        .search-field {
+            display: flex;
+            flex-direction: column;
         }
 
         .search-field label {
@@ -208,45 +230,98 @@
             font-size: 13px;
             font-weight: 600;
             color: #F8FAFC;
+            height: 20px;
             margin-bottom: 8px;
+            line-height: 1;
         }
 
         .search-input-box {
             background: #FFFFFF;
-            border-radius: 10px;
-            padding: 10px 14px;
+            border-radius: 12px;
+            height: 50px;
+            padding: 0 14px;
             display: flex;
             align-items: center;
+            box-sizing: border-box;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: box-shadow 0.2s, border-color 0.2s;
+        }
+
+        .search-input-box:focus-within {
+            box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.25);
+            border-color: #0066FF;
         }
 
         .search-input-box input, .search-input-box select {
             border: none;
             outline: none;
             width: 100%;
+            height: 100%;
             font-family: inherit;
             font-size: 14px;
             color: #0F172A;
             background: transparent;
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0;
+        }
+
+        .search-engine-select {
+            width: auto !important;
+            min-width: 78px;
+            height: 36px !important;
+            margin-right: 14px !important;
+            padding: 0 10px !important;
+            border: 1px solid #E2E8F0 !important;
+            border-radius: 8px;
+            background: #F1F5F9 !important;
+            color: #1E293B !important;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        #homeSearchKeyword {
+            padding-left: 4px;
+        }
+
+        .search-engine-select:focus {
+            border-color: #3B82F6 !important;
+            background: #FFFFFF !important;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
         }
 
         .btn-search-hero {
             background: #0066FF;
             color: #FFFFFF;
             border: none;
-            padding: 12px 26px;
-            border-radius: 10px;
+            padding: 0 20px;
+            border-radius: 12px;
             font-weight: 700;
             font-size: 14px;
             cursor: pointer;
-            display: flex;
+            display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
-            height: 44px;
-            transition: background 0.2s;
+            height: 50px;
+            width: 100%;
+            box-sizing: border-box;
+            transition: background 0.2s, transform 0.1s;
+            white-space: nowrap;
         }
 
         .btn-search-hero:hover {
             background: #0052CC;
+        }
+
+        .btn-search-hero:active {
+            transform: scale(0.98);
         }
 
         /* Dropdown gợi ý tìm kiếm nhanh */
@@ -269,35 +344,33 @@
         .quick-search-header {
             font-size: 11px;
             font-weight: 700;
-            color: #64748B;
+            color: #94A3B8;
             text-transform: uppercase;
-            letter-spacing: 0.6px;
-            padding: 8px 16px 4px;
+            letter-spacing: 0.8px;
+            padding: 10px 16px 4px;
         }
 
         .quick-search-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 9px 16px;
+            padding: 10px 16px;
             color: #0F172A;
             text-decoration: none;
             cursor: pointer;
             transition: background-color 0.15s ease;
-            gap: 10px;
+            gap: 12px;
         }
 
         .quick-search-item:hover {
-            background-color: #F1F5F9;
+            background-color: #F8FAFC;
         }
 
         .quick-item-title {
-            font-size: 13.5px;
+            font-size: 14px;
             font-weight: 600;
             color: #0F172A;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            line-height: 1.4;
         }
 
         .quick-item-subtitle {
@@ -307,13 +380,32 @@
         }
 
         .quick-item-badge {
-            font-size: 11px;
+            font-size: 11.5px;
             font-weight: 600;
-            padding: 2px 8px;
-            border-radius: 12px;
-            background: #EFF6FF;
-            color: #0066FF;
+            padding: 3px 9px;
+            border-radius: 6px;
+            background: #F1F5F9;
+            color: #475569;
             white-space: nowrap;
+        }
+
+        .quick-rating-badge {
+            background: #FEF3C7;
+            color: #92400E;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 2px 7px;
+            border-radius: 6px;
+            font-weight: 700;
+        }
+
+        .quick-item-price {
+            font-size: 12px;
+            color: #0066FF;
+            font-weight: 700;
+            margin-top: 3px;
+            text-align: right;
         }
 
         .quick-search-divider {
@@ -609,7 +701,7 @@
                 </a>
             </li>
             <li>
-                <a href="#destinations" class="nav-link">
+                <a href="{{ route('destinations.index') }}" class="nav-link">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                     Địa điểm
                 </a>
@@ -627,7 +719,7 @@
                 </a>
             </li>
             <li>
-                <a href="#" class="nav-link">
+                <a href="{{ route('bookings.index') }}" class="nav-link">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>
                     Booking
                 </a>
@@ -654,6 +746,15 @@
         </div>
     </header>
 
+    @if(session('success'))
+        <div style="max-width: 1200px; margin: 20px auto 0; padding: 0 20px;">
+            <div style="background: #ECFDF5; border: 1px solid #10B981; color: #065F46; padding: 14px 20px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-weight: 600; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>{{ session('success') }}</span>
+            </div>
+        </div>
+    @endif
+
     <!-- 2. Hero Banner -->
     <section class="hero-section">
         <div class="badge-pill-hero">
@@ -672,15 +773,18 @@
                 <div class="search-field" style="position: relative; z-index: 60;">
                     <label for="homeSearchKeyword">📍 Điểm đến / Thành phố</label>
                     <div class="search-input-box">
+                        <select name="engine" id="homeSearchEngine" class="search-engine-select" title="Chọn công cụ tìm kiếm">
+                            <option value="solr" {{ request('engine', 'solr') === 'solr' ? 'selected' : '' }}>Solr</option>
+                            <option value="sql" {{ request('engine') === 'sql' ? 'selected' : '' }}>SQL</option>
+                        </select>
                         <input type="text"
                                name="keyword"
                                id="homeSearchKeyword"
                                value="{{ request('keyword') }}"
-                               placeholder="Ví dụ: Đà Nẵng, Phú Quốc, Bà Nà..."
+                               placeholder="Đà Nẵng"
                                autocomplete="off">
                     </div>
-                    <!-- Dropdown gợi ý tìm kiếm nhanh (Quick Search Autocomplete) -->
-                    <div id="quickSearchDropdown" class="quick-search-dropdown" style="display: none;"></div>
+                    <div id="homeQuickSearchDropdown" class="quick-search-dropdown" style="display: none;"></div>
                 </div>
 
                 <div class="search-field">
@@ -709,13 +813,16 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn-search-hero" id="btnSubmitSearch">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                    Tìm kiếm
-                </button>
+                <div class="search-field">
+                    <label class="btn-label-placeholder" aria-hidden="true">&nbsp;</label>
+                    <button type="submit" class="btn-search-hero" id="btnSubmitSearch">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        Tìm kiếm
+                    </button>
+                </div>
             </div>
         </form>
     </section>
@@ -728,7 +835,7 @@
             <section id="search-results-section" style="margin-bottom: 55px; scroll-margin-top: 80px;">
                 <div class="section-header-wrap">
                     <div>
-                        <span class="sub-tag-blue">KẾT QUẢ TÌM KIẾM NHANH</span>
+                        <span class="sub-tag-blue">KẾT QUẢ TÌM KIẾM NHANH ({{ strtoupper(request('engine', 'solr')) }})</span>
                         <h2 class="sec-title-main">
                             @if(request('keyword'))
                                 Kết quả cho "{{ request('keyword') }}"
@@ -777,7 +884,7 @@
                                                 {{ $destination->entrance_fee > 0 ? number_format($destination->entrance_fee, 0, ',', '.') . 'đ' : 'Miễn phí' }}
                                             </div>
                                         </div>
-                                        <a href="#destinations" class="btn-detail-blue">Chi tiết</a>
+                                        <a href="{{ route('destinations.show', $destination->slug) }}" class="btn-detail-blue">Chi tiết</a>
                                     </div>
                                 </div>
                             </div>
@@ -828,7 +935,7 @@
                 </a>
 
                 <!-- 3. Resort & Spa -->
-                <a href="#destinations" class="cat-card-img" style="background-image: url('https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=500&q=80');">
+                <a href="{{ route('destinations.index', ['is_lodging' => 1]) }}" class="cat-card-img" style="background-image: url('https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=500&q=80');">
                     <div class="cat-card-content">
                         <div class="cat-card-title">Resort & Spa</div>
                         <div class="cat-card-count">65 nơi lưu trú</div>
@@ -868,7 +975,7 @@
                     <span class="sub-tag-blue">ĐIỂM ĐẾN HÀNG ĐẦU</span>
                     <h2 class="sec-title-main">Địa Điểm Nổi Bật</h2>
                 </div>
-                <a href="#destinations" class="btn-pill-outline">Khám phá thêm &rarr;</a>
+                <a href="{{ route('destinations.index') }}" class="btn-pill-outline">Khám phá thêm &rarr;</a>
             </div>
 
             <div class="destinations-grid-4">
@@ -883,10 +990,21 @@
                             <span class="tag-dest-badge tag-blue-light">
                                 {{ $destination->category->name ?? 'Du lịch' }}
                             </span>
-                            <form action="{{ route('favorites.toggle', $destination->id) }}" method="POST" style="position: absolute; top: 12px; right: 12px; z-index: 5;">
-                                @csrf
-                                <button type="submit" class="btn-heart-fav" title="Lưu yêu thích">🤍</button>
-                            </form>
+                            @php
+                                $isFavorited = in_array($destination->id, $userFavoriteIds ?? []);
+                            @endphp
+                            <button type="button" 
+                                    class="btn-heart-fav {{ $isFavorited ? 'is-favorited' : '' }}" 
+                                    data-id="{{ $destination->id }}"
+                                    onclick="toggleFavoriteHeart(this, {{ $destination->id }})" 
+                                    title="{{ $isFavorited ? 'Bỏ yêu thích' : 'Lưu yêu thích' }}">
+                                <svg class="heart-icon-svg" viewBox="0 0 24 24" width="20" height="20" 
+                                     fill="{{ $isFavorited ? '#EF4444' : 'none' }}" 
+                                     stroke="{{ $isFavorited ? '#EF4444' : '#0F172A' }}" 
+                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                                </svg>
+                            </button>
                         </div>
                         <div class="dest-body-content">
                             <div class="dest-meta-row">
@@ -902,7 +1020,7 @@
                                         {{ $destination->entrance_fee > 0 ? number_format($destination->entrance_fee, 0, ',', '.') . 'đ' : 'Miễn phí' }}
                                     </div>
                                 </div>
-                                <a href="#" class="btn-detail-blue">Chi tiết</a>
+                                <a href="{{ route('destinations.show', $destination->slug) }}" class="btn-detail-blue">Chi tiết</a>
                             </div>
                         </div>
                     </div>
@@ -916,15 +1034,78 @@
 
     </div>
 
-    <!-- JavaScript Xử Lý Tìm Kiếm Nhanh & Gợi Ý Autocomplete -->
+    <!-- Toast container cho thông báo yêu thích -->
+    <div id="homeToastContainer" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
+
+    <style>
+        .btn-heart-fav {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 5;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s;
+        }
+        .btn-heart-fav:hover {
+            transform: scale(1.12);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+        }
+        .btn-heart-fav:active {
+            transform: scale(0.9);
+        }
+        .btn-heart-fav.heart-pop {
+            animation: heartPopAnim 0.35s ease;
+        }
+        @keyframes heartPopAnim {
+            0% { transform: scale(1); }
+            45% { transform: scale(1.3); }
+            75% { transform: scale(0.92); }
+            100% { transform: scale(1); }
+        }
+        .tag-dest-badge.tag-blue-light {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            background: #EBF5FF;
+            color: #0066FF;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            z-index: 2;
+        }
+    </style>
+
+    <!-- JavaScript Xử Lý Trang Chủ & Thả Tim AJAX -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const searchInput = document.getElementById('homeSearchKeyword');
-            const searchForm = document.getElementById('homeSearchForm');
-            const dropdown = document.getElementById('quickSearchDropdown');
-            let debounceTimer = null;
+            @if($hasSearch)
+                // Tự động cuộn đến khu vực kết quả tìm kiếm nếu có tham số tìm kiếm
+                const resultsSection = document.getElementById('search-results-section');
+                if (resultsSection) {
+                    resultsSection.scrollIntoView({ behavior: 'smooth' });
+                }
+            @endif
 
-            if (searchInput && dropdown) {
+            // Xử lý Autocomplete gợi ý tìm kiếm nhanh (Ưu tiên Solr Engine)
+            const searchInput = document.getElementById('homeSearchKeyword');
+            const dropdown = document.getElementById('homeQuickSearchDropdown');
+            const searchForm = document.getElementById('homeSearchForm');
+            const engineSelect = document.getElementById('homeSearchEngine');
+
+            if (searchInput && dropdown && searchForm) {
+                let debounceTimer = null;
+
                 searchInput.addEventListener('input', function () {
                     const query = this.value.trim();
                     clearTimeout(debounceTimer);
@@ -936,15 +1117,25 @@
                     }
 
                     debounceTimer = setTimeout(() => {
-                        fetch(`{{ route('destinations.quick-search') }}?keyword=${encodeURIComponent(query)}`)
-                            .then(res => res.json())
+                        const engine = engineSelect ? engineSelect.value : 'solr';
+                        fetch(`{{ route('destinations.quick-search') }}?keyword=${encodeURIComponent(query)}&engine=${encodeURIComponent(engine)}`, {
+                            headers: { Accept: 'application/json' },
+                        })
+                            .then(res => {
+                                if (!res.ok) throw new Error('Search unavailable');
+                                return res.json();
+                            })
                             .then(data => {
+                                if (searchInput.value.trim() !== query) return;
                                 renderQuickSearchDropdown(data);
                             })
                             .catch(err => {
+                                if (searchInput.value.trim() !== query) return;
+                                dropdown.innerHTML = '<div class="quick-search-empty">Tìm kiếm hiện chưa sẵn sàng. Vui lòng thử lại sau.</div>';
+                                dropdown.style.display = 'block';
                                 console.error('Lỗi tìm kiếm nhanh:', err);
                             });
-                    }, 250);
+                    }, 220);
                 });
 
                 // Đóng dropdown khi nhấp ra ngoài
@@ -967,24 +1158,28 @@
                 const hasDestinations = data.destinations && data.destinations.length > 0;
 
                 if (!hasCities && !hasDestinations) {
-                    dropdown.innerHTML = `<div class="quick-search-empty">Không tìm thấy địa điểm hoặc thành phố nào khớp với "<strong>${escapeHtml(data.keyword)}</strong>".</div>`;
+                    dropdown.innerHTML = `<div class="quick-search-empty">Không tìm thấy địa điểm hoặc thành phố nào khớp với "<strong>${escapeHtml(data.keyword || '')}</strong>".</div>`;
                     dropdown.style.display = 'block';
                     return;
                 }
 
                 let html = '';
 
-                // Danh sách thành phố phù hợp
-                if (hasCities) {
-                    html += `<div class="quick-search-header">🏙️ Thành phố</div>`;
-                    data.cities.forEach(city => {
+                // 1. Danh sách địa điểm du lịch phù hợp (Giao diện tinh gọn, chuyên nghiệp, không dùng icon/emoji thừa)
+                if (hasDestinations) {
+                    html += `<div class="quick-search-header">Địa điểm du lịch</div>`;
+                    data.destinations.forEach(dest => {
+                        const subtitle = [dest.city_name, dest.category_name].filter(Boolean).map(escapeHtml).join(' &bull; ');
                         html += `
-                            <div class="quick-search-item" data-type="city" data-name="${escapeHtml(city.name)}">
-                                <div class="quick-item-title">
-                                    <span>🏙️</span>
-                                    <span>${escapeHtml(city.name)}</span>
+                            <div class="quick-search-item" data-type="destination" data-name="${escapeHtml(dest.name)}">
+                                <div style="min-width: 0; flex: 1;">
+                                    <div class="quick-item-title">${escapeHtml(dest.name)}</div>
+                                    ${subtitle ? `<div class="quick-item-subtitle">${subtitle}</div>` : ''}
                                 </div>
-                                <span class="quick-item-badge">${city.destinations_count} địa điểm</span>
+                                <div style="text-align: right; flex-shrink: 0;">
+                                    <span class="quick-item-badge quick-rating-badge">★ ${dest.rating}</span>
+                                    <div class="quick-item-price">${escapeHtml(dest.formatted_price)}</div>
+                                </div>
                             </div>
                         `;
                     });
@@ -994,23 +1189,14 @@
                     html += `<div class="quick-search-divider"></div>`;
                 }
 
-                // Danh sách địa điểm du lịch phù hợp
-                if (hasDestinations) {
-                    html += `<div class="quick-search-header">📍 Địa điểm du lịch</div>`;
-                    data.destinations.forEach(dest => {
+                // 2. Danh sách thành phố phù hợp
+                if (hasCities) {
+                    html += `<div class="quick-search-header">Thành phố</div>`;
+                    data.cities.forEach(city => {
                         html += `
-                            <div class="quick-search-item" data-type="destination" data-name="${escapeHtml(dest.name)}">
-                                <div>
-                                    <div class="quick-item-title">
-                                        <span>📍</span>
-                                        <span>${escapeHtml(dest.name)}</span>
-                                    </div>
-                                    <div class="quick-item-subtitle">${escapeHtml(dest.city_name)} &bull; ${escapeHtml(dest.category_name)}</div>
-                                </div>
-                                <div style="text-align: right;">
-                                    <span class="quick-item-badge" style="background: #FEF3C7; color: #B45309;">⭐ ${dest.rating}</span>
-                                    <div style="font-size: 11px; color: #0066FF; font-weight: 700; margin-top: 3px;">${escapeHtml(dest.formatted_price)}</div>
-                                </div>
+                            <div class="quick-search-item" data-type="city" data-name="${escapeHtml(city.name)}">
+                                <div class="quick-item-title">${escapeHtml(city.name)}</div>
+                                <span class="quick-item-badge">${city.destinations_count} địa điểm</span>
                             </div>
                         `;
                     });
@@ -1032,18 +1218,87 @@
 
             function escapeHtml(text) {
                 const div = document.createElement('div');
-                div.textContent = text;
+                div.textContent = text || '';
                 return div.innerHTML;
             }
-
-            @if($hasSearch)
-                // Tự động cuộn đến khu vực kết quả tìm kiếm nếu có tham số tìm kiếm
-                const resultsSection = document.getElementById('search-results-section');
-                if (resultsSection) {
-                    resultsSection.scrollIntoView({ behavior: 'smooth' });
-                }
-            @endif
         });
+
+        // Hàm thông báo Toast Trang chủ
+        function showHomeToast(msg, type = 'success') {
+            const container = document.getElementById('homeToastContainer');
+            const toast = document.createElement('div');
+            const borderCol = type === 'success' ? '#10B981' : (type === 'error' ? '#EF4444' : '#0066FF');
+            toast.style.cssText = `background:#FFFFFF; color:#0F172A; padding:12px 18px; border-radius:12px; font-weight:600; font-size:14px; box-shadow:0 10px 25px rgba(0,0,0,0.12); border-left:4px solid ${borderCol}; transition:all 0.3s ease; display:flex; align-items:center; gap:8px;`;
+            toast.innerHTML = `<span>${msg}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Thao tác Thả tim AJAX không load lại trang
+        function toggleFavoriteHeart(btn, destId) {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            
+            @guest
+                showHomeToast('Vui lòng đăng nhập để lưu địa điểm yêu thích!', 'info');
+                setTimeout(() => { window.location.href = "{{ route('login') }}"; }, 1200);
+                return;
+            @endguest
+
+            // Nếu đang là yêu thích (tim đỏ), hỏi xác nhận trước khi xóa
+            if (btn.classList.contains('is-favorited')) {
+                if (!confirm('Bạn có chắc chắn muốn xóa địa điểm này khỏi danh sách yêu thích không?')) {
+                    return;
+                }
+            }
+
+            fetch(`/favorites/toggle/${destId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => {
+                if (res.status === 401) {
+                    window.location.href = "{{ route('login') }}";
+                    return;
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data && data.success) {
+                    const svg = btn.querySelector('.heart-icon-svg');
+                    btn.classList.add('heart-pop');
+                    if (data.is_favorited) {
+                        btn.classList.add('is-favorited');
+                        btn.setAttribute('title', 'Bỏ yêu thích');
+                        svg.setAttribute('fill', '#EF4444');
+                        svg.setAttribute('stroke', '#EF4444');
+                        showHomeToast(data.message || 'Đã thêm vào danh sách yêu thích!', 'success');
+                    } else {
+                        btn.classList.remove('is-favorited');
+                        btn.setAttribute('title', 'Lưu yêu thích');
+                        svg.setAttribute('fill', 'none');
+                        svg.setAttribute('stroke', '#0F172A');
+                        showHomeToast(data.message || 'Đã gỡ khỏi danh sách yêu thích.', 'info');
+                    }
+                    setTimeout(() => btn.classList.remove('heart-pop'), 350);
+                } else {
+                    showHomeToast(data.message || 'Không thể cập nhật yêu thích.', 'error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showHomeToast('Lỗi kết nối máy chủ.', 'error');
+            });
+        }
     </script>
+    @include('commerce.launcher', ['merchant' => false])
 </body>
 </html>

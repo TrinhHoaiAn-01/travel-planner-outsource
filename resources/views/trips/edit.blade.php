@@ -137,7 +137,7 @@
                 <span>TRAVEL PLANNER</span>
             </a>
             <div class="ms-auto d-flex align-items-center gap-2">
-                <a href="{{ route('trips.show', $trip->id) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                <a href="{{ route('itinerary.index', $trip->id) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
                     <i class="bi bi-arrow-left me-1"></i> Quay lại chi tiết
                 </a>
             </div>
@@ -152,7 +152,7 @@
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-decoration-none text-muted">Trang chủ</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('trips.index') }}" class="text-decoration-none text-muted">Chuyến đi</a></li>
-                    <li class="breadcrumb-item"><a href="{{ route('trips.show', $trip->id) }}" class="text-decoration-none text-muted">{{ Str::limit($trip->name, 25) }}</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('itinerary.index', $trip->id) }}" class="text-decoration-none text-muted">{{ Str::limit($trip->name, 25) }}</a></li>
                     <li class="breadcrumb-item active fw-medium text-dark" aria-current="page">Chỉnh sửa</li>
                 </ol>
             </nav>
@@ -243,6 +243,50 @@
                         </div>
                     </div>
 
+                    <!-- Hộp thông báo thời lượng tính toán theo thời gian thực (Real-time Duration Feedback Box) -->
+                    <div class="alert alert-light border rounded-3 p-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2" id="dateFeedbackBox">
+                        <div class="d-flex align-items-center gap-2 text-primary fw-semibold fs-6">
+                            <i class="bi bi-clock-history"></i>
+                            <span>Thời lượng chuyến đi: <strong class="text-dark" id="calculatedDuration">{{ $trip->duration_label }}</strong></span>
+                        </div>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold" id="dateRangeBadge">
+                            {{ $trip->date_range_formatted }}
+                        </span>
+                    </div>
+
+                    <!-- Cảnh báo lỗi ngày không hợp lệ chuẩn theo form.html và Phần 4.3 -->
+                    <div id="dateAlert" class="alert alert-danger alert-dismissible fade d-none mb-4" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                            <span id="dateAlertText" class="fw-semibold">Ngày bắt đầu không được lớn hơn ngày kết thúc!</span>
+                        </div>
+                    </div>
+
+                    <!-- Cảnh báo và xử lý lịch trình phụ thuộc khi rút ngắn thời lượng chuyến đi (Phần 4.3 Quản lý chuyến đi) -->
+                    <div id="itineraryDependencyWarningBox" class="alert alert-warning border border-warning-subtle rounded-4 p-3 mb-4 d-none shadow-sm" role="alert">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="text-warning-emphasis fs-4 mt-1">
+                                <i class="bi bi-exclamation-diamond-fill"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <h6 class="fw-bold text-dark mb-0">Lưu ý: Có hoạt động lịch trình phụ thuộc bị ảnh hưởng do rút ngắn ngày</h6>
+                                    <span class="badge bg-warning text-dark px-2 py-1 rounded-pill fw-semibold" id="affectedBadge">
+                                        <span id="affectedCountText">0</span> hoạt động
+                                    </span>
+                                </div>
+                                <p class="small text-secondary mb-2" id="affectedNoticeText">
+                                    Thời lượng chuyến đi mới bị rút ngắn so với lịch trình hiện tại. Hệ thống sẽ <strong>tự động bảo toàn an toàn 100%</strong> toàn bộ các hoạt động ở các ngày vượt quá bằng cách chuyển chúng về <strong>Ngày <span id="targetDayNotice">cuối cùng</span></strong> ngay khi bạn lưu chuyến đi.
+                                </p>
+                                <div class="bg-white rounded-3 p-2 border border-warning-subtle small shadow-sm" id="affectedItemsListContainer">
+                                    <div class="fw-semibold text-muted mb-1 small text-uppercase"><i class="bi bi-arrow-repeat me-1 text-primary"></i> Danh sách hoạt động sẽ được tự động dời ngày:</div>
+                                    <ul class="mb-0 ps-3 text-dark small" id="affectedItemsList">
+                                        <!-- Danh sách hoạt động do JavaScript điền vào -->
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <!-- Ngân sách dự kiến & Trạng thái -->
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
@@ -314,7 +358,7 @@
 
                     <!-- Nút hành động -->
                     <div class="d-flex justify-content-end gap-2 border-top pt-4">
-                        <a href="{{ route('trips.show', $trip->id) }}" class="btn btn-light rounded-pill px-4">Hủy bỏ</a>
+                        <a href="{{ route('itinerary.index', $trip->id) }}" class="btn btn-light rounded-pill px-4">Hủy bỏ</a>
                         <button type="submit" class="btn btn-primary px-4 shadow-sm">
                             <i class="bi bi-check2-circle me-1"></i> Lưu Thay Đổi
                         </button>
@@ -361,15 +405,120 @@
     <!-- Bootstrap 5 Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Hàm kiểm tra tính hợp lệ của ngày tháng theo thời gian thực
-        function validateDates() {
-            const start = document.getElementById('startDate').value;
-            const end = document.getElementById('endDate').value;
-            if (start && end && new Date(start) > new Date(end)) {
-                document.getElementById('endDate').setCustomValidity('Ngày kết thúc không được trước ngày bắt đầu.');
-            } else {
-                document.getElementById('endDate').setCustomValidity('');
+        // Hàm định dạng ngày hiển thị dd/mm/yyyy từ chuỗi yyyy-mm-dd
+        function formatDisplayDate(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
             }
+            return dateStr;
+        }
+
+        // Kiểm tra tính hợp lệ và tự động tính toán thời lượng số ngày, số đêm theo thời gian thực (Phần 4.3 Quản lý chuyến đi)
+        function validateAndCalculateDates() {
+            const startInput = document.getElementById('startDate');
+            const endInput = document.getElementById('endDate');
+            const dateAlert = document.getElementById('dateAlert');
+            const dateFeedbackBox = document.getElementById('dateFeedbackBox');
+            const durationEl = document.getElementById('calculatedDuration');
+            const rangeEl = document.getElementById('dateRangeBadge');
+
+            if (!startInput || !endInput) return true;
+
+            const startVal = startInput.value;
+            const endVal = endInput.value;
+
+            // Ràng buộc min ngày kết thúc phải từ ngày bắt đầu
+            if (startVal) {
+                endInput.min = startVal;
+            }
+
+            if (!startVal || !endVal) {
+                if (dateFeedbackBox) dateFeedbackBox.classList.add('d-none');
+                if (dateAlert) dateAlert.classList.add('d-none');
+                return true;
+            }
+
+            const startDate = new Date(startVal);
+            const endDate = new Date(endVal);
+
+            // Kiểm tra: ngày bắt đầu không được lớn hơn ngày kết thúc
+            if (startDate > endDate) {
+                if (dateAlert) {
+                    dateAlert.classList.remove('d-none');
+                    dateAlert.classList.add('show');
+                }
+                if (dateFeedbackBox) {
+                    dateFeedbackBox.classList.add('d-none');
+                }
+                endInput.setCustomValidity('Ngày kết thúc không được trước ngày bắt đầu.');
+                checkItineraryDependencies(0);
+                return false;
+            } else {
+                if (dateAlert) {
+                    dateAlert.classList.add('d-none');
+                    dateAlert.classList.remove('show');
+                }
+                endInput.setCustomValidity('');
+            }
+
+            // Tính toán chính xác số ngày và số đêm
+            const diffTime = Math.abs(endDate - startDate);
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            const diffNights = Math.max(0, diffDays - 1);
+
+            let durationLabel = `${diffDays} ngày`;
+            if (diffNights > 0) {
+                durationLabel = `${diffDays} ngày ${diffNights} đêm`;
+            }
+
+            if (durationEl) durationEl.textContent = durationLabel;
+            if (rangeEl) rangeEl.textContent = `${formatDisplayDate(startVal)} — ${formatDisplayDate(endVal)}`;
+            if (dateFeedbackBox) dateFeedbackBox.classList.remove('d-none');
+
+            // Kiểm tra các hoạt động lịch trình phụ thuộc khi số ngày chuyến đi thay đổi
+            checkItineraryDependencies(diffDays);
+
+            return true;
+        }
+
+        // Dữ liệu các hoạt động lịch trình phụ thuộc hiện có của chuyến đi
+        const tripItineraryItems = {!! json_encode($itineraryItemsList ?? [], JSON_UNESCAPED_UNICODE) !!};
+        const originalTotalDays = {{ (int) $trip->total_days }};
+
+        // Hàm kiểm tra các hoạt động lịch trình bị ảnh hưởng khi rút ngắn chuyến đi
+        function checkItineraryDependencies(newDays) {
+            const warningBox = document.getElementById('itineraryDependencyWarningBox');
+            const affectedCountText = document.getElementById('affectedCountText');
+            const targetDayNotice = document.getElementById('targetDayNotice');
+            const affectedItemsList = document.getElementById('affectedItemsList');
+
+            if (!warningBox) return;
+
+            // Chỉ kích hoạt khi chuyến đi thực sự bị rút ngắn số ngày và có hoạt động ở các ngày thừa
+            if (newDays > 0 && originalTotalDays > 0 && newDays < originalTotalDays && tripItineraryItems.length > 0) {
+                const affected = tripItineraryItems.filter(item => item.day_number > newDays);
+                if (affected.length > 0) {
+                    warningBox.classList.remove('d-none');
+                    if (affectedCountText) affectedCountText.textContent = affected.length;
+                    if (targetDayNotice) targetDayNotice.textContent = newDays;
+                    if (affectedItemsList) {
+                        affectedItemsList.innerHTML = affected.map(item => {
+                            const timeStr = item.start_time ? ` (${item.start_time}${item.end_time ? ' - ' + item.end_time : ''})` : '';
+                            return `<li class="mb-1"><span class="badge bg-secondary me-1">Ngày ${item.day_number}</span> <strong>${item.destination_name}</strong>${timeStr} <i class="bi bi-arrow-right text-warning-emphasis mx-1"></i> Sẽ dời về <strong class="text-primary">Ngày ${newDays}</strong></li>`;
+                        }).join('');
+                    }
+                    return;
+                }
+            }
+
+            // Nếu không bị rút ngắn hoặc không có hoạt động phụ thuộc nào bị thừa ngày
+            warningBox.classList.add('d-none');
+        }
+        // Tương thích với onchange trên input
+        function validateDates() {
+            return validateAndCalculateDates();
         }
 
         // Xử lý kiểm tra các trường nhập liệu không hợp lệ phía Client
@@ -381,6 +530,21 @@
             const validationModalElement = document.getElementById('clientValidationModal');
             const validationModalList = document.getElementById('clientValidationModalList');
             const btnModalOk = document.getElementById('btnModalOk');
+            const startInput = document.getElementById('startDate');
+            const endInput = document.getElementById('endDate');
+
+            // Lắng nghe sự kiện thay đổi ngày
+            if (startInput) {
+                startInput.addEventListener('input', validateAndCalculateDates);
+                startInput.addEventListener('change', validateAndCalculateDates);
+            }
+            if (endInput) {
+                endInput.addEventListener('input', validateAndCalculateDates);
+                endInput.addEventListener('change', validateAndCalculateDates);
+            }
+
+            // Tính toán thời lượng ban đầu
+            validateAndCalculateDates();
 
             let validationModal = null;
             if (validationModalElement && typeof bootstrap !== 'undefined') {

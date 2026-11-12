@@ -66,3 +66,10 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
 ## CI/CD Deployment Automation
+
+Releases publish from `main` after CI passes. GitHub Actions builds a production
+image in GHCR, uploads an application archive, and commits the pinned image digest
+and deployment files to the `deployment` branch.
+
+See [Deployment instructions](docs/DEPLOYMENT.md) for first-time setup, future
+releases, Docker hosting, archive installation, and rollback.

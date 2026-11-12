@@ -101,14 +101,25 @@ interface TripServiceInterface
     public function reopenTrip(int $tripId): Trip;
 
     /**
-     * Xử lý khi ngày của chuyến đi bị thay đổi.
+     * Lấy thông tin chi tiết các hoạt động lịch trình phụ thuộc bị ảnh hưởng khi thay đổi hoặc rút ngắn ngày chuyến đi.
      *
      * @param int $tripId Mã định danh chuyến đi
      * @param string|null $newStartDate Ngày bắt đầu mới
      * @param string|null $newEndDate Ngày kết thúc mới
-     * @return void
+     * @return array Mảng chứa: is_shortened, old_total_days, new_total_days, target_day, affected_count, affected_items
      */
-    public function handleTripDateChange(int $tripId, ?string $newStartDate, ?string $newEndDate): void;
+    public function getAffectedItineraryItems(int $tripId, ?string $newStartDate, ?string $newEndDate): array;
+
+    /**
+     * Xử lý khi ngày của chuyến đi bị thay đổi hoặc rút ngắn khi có lịch trình phụ thuộc.
+     * Tự động bảo toàn dữ liệu bằng cách dời an toàn các hoạt động vượt quá số ngày về ngày cuối cùng mới và tái cấu trúc thứ tự hiển thị.
+     *
+     * @param int $tripId Mã định danh chuyến đi
+     * @param string|null $newStartDate Ngày bắt đầu mới
+     * @param string|null $newEndDate Ngày kết thúc mới
+     * @return array Kết quả xử lý: [date_changed, is_shortened, reassigned_count, affected_items, target_day, message]
+     */
+    public function handleTripDateChange(int $tripId, ?string $newStartDate, ?string $newEndDate): array;
 
     /**
      * Cập nhật mô tả và ghi chú tổng quát của chuyến đi.
@@ -118,5 +129,22 @@ interface TripServiceInterface
      * @return Trip
      */
     public function updateTripNotes(int $tripId, ?string $notes): Trip;
+
+    /**
+     * Tính toán thời lượng chuyến đi (số ngày, số đêm, nhãn hiển thị và tính hợp lệ) từ ngày bắt đầu và kết thúc.
+     *
+     * @param string|null $startDate Ngày bắt đầu
+     * @param string|null $endDate Ngày kết thúc
+     * @return array Mảng chứa: days, nights, label, is_valid
+     */
+    public function calculateTripDuration(?string $startDate, ?string $endDate): array;
+
+    /**
+     * Lấy danh sách chi tiết các ngày của chuyến đi (từ Ngày 1 đến Ngày N kèm ngày trong tuần tiếng Việt).
+     *
+     * @param int $tripId Mã định danh chuyến đi
+     * @return array Mảng chứa danh sách các ngày với day_number, date, formatted_date, day_name, label
+     */
+    public function getTripDaysList(int $tripId): array;
 }
 

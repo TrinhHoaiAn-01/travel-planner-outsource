@@ -153,6 +153,14 @@ class ProfileService implements ProfileServiceInterface
         $user->password = Hash::make((string) $data['password']);
         $user->save();
 
+        // Ghi nhật ký đổi mật khẩu thành công (không lưu mật khẩu vào metadata)
+        app(\App\Services\Interfaces\ActivityLogServiceInterface::class)->logActivity(
+            $user->id,
+            'password_change',
+            'User',
+            $user->id
+        );
+
         return true;
     }
 }

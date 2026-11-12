@@ -97,6 +97,15 @@ class AuthService implements AuthServiceInterface
 
         // Kiểm tra tài khoản có bị khóa không
         if ($user && ! $user->is_active) {
+            // Ghi nhật ký đăng nhập thất bại do tài khoản bị khóa
+            app(\App\Services\Interfaces\ActivityLogServiceInterface::class)->logActivity(
+                $user->id,
+                'login_failed',
+                'User',
+                $user->id,
+                ['email' => $normalizedEmail, 'reason' => 'account_locked']
+            );
+
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'email' => 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.',
             ]);
@@ -107,10 +116,29 @@ class AuthService implements AuthServiceInterface
             'email' => $normalizedEmail,
             'password' => (string) $credentials['password'],
         ], $remember)) {
+            // Ghi nhật ký đăng nhập thất bại do sai thông tin
+            app(\App\Services\Interfaces\ActivityLogServiceInterface::class)->logActivity(
+                $user?->id,
+                'login_failed',
+                'User',
+                $user?->id,
+                ['email' => $normalizedEmail, 'reason' => 'invalid_credentials']
+            );
+
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'email' => 'Thông tin đăng nhập không chính xác.',
             ]);
         }
+
+        // Ghi nhật ký đăng nhập thành công
+        $authenticatedUser = \Illuminate\Support\Facades\Auth::user();
+        app(\App\Services\Interfaces\ActivityLogServiceInterface::class)->logActivity(
+            $authenticatedUser?->id,
+            'login',
+            'User',
+            $authenticatedUser?->id,
+            ['email' => $normalizedEmail, 'role' => $authenticatedUser?->role]
+        );
 
         // Tạo mới session ID để chống tấn công Session Fixation
         request()->session()->regenerate();
@@ -123,6 +151,18 @@ class AuthService implements AuthServiceInterface
      */
     public function logoutUser(): void
     {
+        $currentUserId = \Illuminate\Support\Facades\Auth::id();
+
+        if ($currentUserId) {
+            // Ghi nhật ký đăng xuất người dùng
+            app(\App\Services\Interfaces\ActivityLogServiceInterface::class)->logActivity(
+                $currentUserId,
+                'logout',
+                'User',
+                $currentUserId
+            );
+        }
+
         \Illuminate\Support\Facades\Auth::logout();
         request()->session()->invalidate();
         request()->session()->regenerateToken();

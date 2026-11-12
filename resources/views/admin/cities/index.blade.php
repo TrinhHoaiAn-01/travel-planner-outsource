@@ -470,7 +470,21 @@
         padding: 16px 24px;
         border-top: 1px solid #F1F5F9;
         display: flex;
-        justify-content: flex-end;
+        align-items: center;
+        justify-content: space-between;
+        background-color: #FFFFFF;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .pagination-info-text {
+        font-size: 13.5px;
+        color: #64748B;
+    }
+
+    .pagination-info-text strong {
+        color: #0F172A;
+        font-weight: 600;
     }
 </style>
 @endpush
@@ -618,7 +632,12 @@
 
     @if($cities->hasPages())
     <div class="pagination-wrap">
-        {{ $cities->links() }}
+        <div class="pagination-info-text">
+            Hiển thị <strong>{{ $cities->firstItem() }}–{{ $cities->lastItem() }}</strong> trong tổng số <strong>{{ $cities->total() }}</strong> tỉnh / thành phố
+        </div>
+        <div class="pagination-controls">
+            {{ $cities->links() }}
+        </div>
     </div>
     @endif
 </div>

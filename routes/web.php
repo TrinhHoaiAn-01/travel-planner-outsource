@@ -8,17 +8,38 @@ use App\Http\Controllers\Admin\DestinationImageController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DestinationController as PublicDestinationController;
 use App\Http\Controllers\HomeController;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BookingController;
 
 //Ngocai
 // Tuyến trang chủ công khai (Public Home)
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/travel-assistant', [\App\Http\Controllers\CommerceAgentController::class, 'shopping'])->name('commerce.shopping');
+Route::get('/admin/commerce-agents', [\App\Http\Controllers\CommerceAgentController::class, 'merchant'])
+    ->middleware(['auth', 'active', 'admin'])->name('commerce.merchant');
+Route::post('/commerce-api/{role}/chat', [\App\Http\Controllers\CommerceAgentController::class, 'chat'])
+    ->where('role', 'shopping|merchant')->middleware('throttle:20,1');
+Route::match(['get', 'post', 'patch', 'delete'], '/commerce-api/{role}/{action?}', [\App\Http\Controllers\CommerceAgentController::class, 'surface'])
+    ->where('role', 'shopping|merchant')->where('action', '.*')->middleware('throttle:120,1')->block(240, 240);
 // Tuyến API tìm kiếm nhanh gợi ý địa điểm & thành phố từ Trang chủ (Trần Văn Trọng)
 Route::get('/quick-search', [HomeController::class, 'quickSearch'])->name('destinations.quick-search');
+Route::get('/search/suggestions/{type}', \App\Http\Controllers\SearchSuggestionController::class)
+    ->where('type', 'destination|city|category|trip|user|booking|payment|activity_log|review|property')
+    ->middleware('throttle:120,1')->name('search.suggestions');
+
+// Tuyến hiển thị nơi lưu trú, danh sách & chi tiết địa điểm, Room Type và Gallery ảnh (Trần Văn Trọng)
+Route::get('/destinations', [PublicDestinationController::class, 'index'])->name('destinations.index');
+Route::get('/destinations/{slug}', [PublicDestinationController::class, 'show'])->name('destinations.show');
+Route::get('/destinations/{slug}/gallery', [PublicDestinationController::class, 'gallery'])->name('destinations.gallery');
+Route::get('/room-types/{roomType}', [PublicDestinationController::class, 'getRoomType'])->name('room-types.show');
+Route::get('/cities/{city}/destinations', [PublicDestinationController::class, 'byCity'])->name('cities.destinations');
+Route::get('/categories/{category}/destinations', [PublicDestinationController::class, 'byCategory'])->name('categories.destinations');
+
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TripController;
@@ -40,7 +61,7 @@ Route::middleware('guest')->group(function () {
 });
 
 // Các tuyến xác thực thông tin đăng ký / email (Dành cho tài khoản đã đăng nhập)
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/email/verify', [AuthController::class, 'showVerificationNotice'])->name('verification.notice');
     Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
     Route::post('/email/verification-notification', [AuthController::class, 'resendVerificationEmail'])->name('verification.send');
@@ -60,17 +81,73 @@ Route::middleware('auth')->group(function () {
     Route::get('/trips/{trip}', [TripController::class, 'show'])->name('trips.show');
     Route::get('/trips/{trip}/edit', [TripController::class, 'edit'])->name('trips.edit');
     Route::put('/trips/{trip}', [TripController::class, 'update'])->name('trips.update');
+    Route::patch('/trips/{trip}/status', [TripController::class, 'updateStatus'])->name('trips.update-status');
     Route::patch('/trips/{trip}/notes', [TripController::class, 'updateNotes'])->name('trips.update-notes');
     Route::delete('/trips/{trip}', [TripController::class, 'destroy'])->name('trips.destroy');
     Route::post('/trips/{trip}/clone', [TripController::class, 'clone'])->name('trips.clone');
     Route::post('/trips/{trip}/reopen', [TripController::class, 'reopen'])->name('trips.reopen');
 
-    //Ngocai
-    // Quản lý danh sách địa điểm yêu thích (Favorites) & Thêm vào Trip
+    // Quản lý danh sách địa điểm yêu thích (Favorites - Bảng 20 Báo cáo Đồ án) & Thêm vào Trip
     Route::get('/favorites', [\App\Http\Controllers\FavoriteController::class, 'index'])->name('favorites.index');
     Route::post('/favorites/toggle/{destinationId}', [\App\Http\Controllers\FavoriteController::class, 'toggle'])->name('favorites.toggle');
     Route::post('/favorites/add-to-trip', [\App\Http\Controllers\FavoriteController::class, 'addToTrip'])->name('favorites.add-to-trip');
+    Route::post('/destinations/{destination}/favorite', [\App\Http\Controllers\FavoriteController::class, 'toggle'])->name('destinations.favorite.store');
+    Route::delete('/destinations/{destination}/favorite', [\App\Http\Controllers\FavoriteController::class, 'toggle'])->name('destinations.favorite.destroy');
+
+    // Quản lý Lịch trình chuyến đi (Itinerary Management - Bảng 22 Báo cáo Đồ án - Phạm Thị Ngọc Ái - Chức năng 5, 6, 7 & 8)
+    Route::get('/trips/{trip}/itinerary', [\App\Http\Controllers\ItineraryController::class, 'index'])->name('itinerary.index');
+    Route::get('/trips/{trip}/itinerary/create', [\App\Http\Controllers\ItineraryController::class, 'create'])->name('itinerary.create');
+    Route::post('/trips/{trip}/itinerary', [\App\Http\Controllers\ItineraryController::class, 'store'])->name('itinerary.store');
+    Route::get('/itinerary/{itinerary}/edit', [\App\Http\Controllers\ItineraryController::class, 'edit'])->name('itinerary.edit');
+    Route::match(['put', 'patch'], '/itinerary/{itinerary}', [\App\Http\Controllers\ItineraryController::class, 'update'])->name('itinerary.update');
+    Route::patch('/itinerary/{itinerary}/note', [\App\Http\Controllers\ItineraryController::class, 'updateNote'])->name('itinerary.note.update');
+    Route::patch('/itinerary/{itinerary}/booking', [\App\Http\Controllers\ItineraryController::class, 'linkBooking'])->name('itinerary.booking.update');
+    Route::delete('/itinerary/{itinerary}', [\App\Http\Controllers\ItineraryController::class, 'destroy'])->name('itinerary.destroy');
+    Route::patch('/trips/{trip}/itinerary/reorder', [\App\Http\Controllers\ItineraryController::class, 'reorder'])->name('itinerary.reorder');
+
+    // Quản lý Ngân sách & Chi tiêu (Budget & Expenses - Nguyễn Văn Thắng)
+    Route::get('/trips/{trip}/budget', [\App\Http\Controllers\BudgetController::class, 'show'])->name('trips.budget.show');
+    Route::patch('/trips/{trip}/budget', [\App\Http\Controllers\BudgetController::class, 'update'])->name('trips.budget.update');
+    Route::post('/trips/{trip}/expenses', [\App\Http\Controllers\ExpenseController::class, 'store'])->name('trips.expenses.store');
+    Route::patch('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'update'])->name('expenses.update');
+    Route::delete('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'destroy'])->name('expenses.destroy');
+
+    // Quản lý Đặt phòng (Bookings - Nguyễn Văn Thắng - STT 5, 6, 7, 8)
+    Route::get('/bookings', [\App\Http\Controllers\BookingController::class, 'index'])->name('bookings.index');
+    Route::post('/bookings', [\App\Http\Controllers\BookingController::class, 'store'])->name('bookings.store');
+    Route::get('/bookings/{booking}', [\App\Http\Controllers\BookingController::class, 'show'])->name('bookings.show');
+    Route::patch('/bookings/{booking}/cancel', [\App\Http\Controllers\BookingController::class, 'cancel'])->name('bookings.cancel');
+
+    // Quản lý Thanh toán (Payments - Nguyễn Văn Thắng - STT 9, 10)
+    Route::get('/bookings/{booking}/payment', [\App\Http\Controllers\PaymentController::class, 'create'])->name('payments.create');
+    Route::post('/bookings/{booking}/payment', [\App\Http\Controllers\PaymentController::class, 'store'])->name('payments.store');
+    Route::post('/bookings/{booking}/payment/momo', [\App\Http\Controllers\PaymentController::class, 'payWithMoMo'])->name('payments.momo.process');
+    Route::post('/bookings/{booking}/payment/vnpay', [\App\Http\Controllers\PaymentController::class, 'payWithVnPay'])->name('payments.vnpay.process');
+    Route::post('/bookings/{booking}/payment/zalopay', [\App\Http\Controllers\PaymentController::class, 'payWithZaloPay'])->name('payments.zalopay.process');
+    Route::post('/bookings/{booking}/payment/sepay', [\App\Http\Controllers\PaymentController::class, 'payWithSePay'])->name('payments.sepay.process');
+    Route::get('/payments/{payment}/sepay', [\App\Http\Controllers\PaymentController::class, 'showSePayTransfer'])->name('payments.sepay');
+    Route::get('/payments/{payment}', [\App\Http\Controllers\PaymentController::class, 'show'])->name('payments.show');
+
+    // Kiểm tra trạng thái thanh toán thời gian thực & giả lập nhận tiền (Realtime Polling & Simulator)
+    Route::get('/bookings/{booking}/payment-status', [\App\Http\Controllers\PaymentController::class, 'checkStatus'])->name('payments.status');
+    Route::post('/bookings/{booking}/simulate-receive', [\App\Http\Controllers\PaymentController::class, 'simulateReceive'])->name('payments.simulate-receive');
 });
+
+// Tuyến tiếp nhận phản hồi từ cổng thanh toán MoMo (Callback & Webhook IPN)
+Route::get('/payments/momo/callback', [\App\Http\Controllers\PaymentController::class, 'handleMoMoCallback'])->name('payments.momo.callback');
+Route::post('/payments/momo/ipn', [\App\Http\Controllers\PaymentController::class, 'handleMoMoIpn'])->name('payments.momo.ipn');
+
+// Tuyến tiếp nhận phản hồi từ cổng thanh toán VNPay (Callback & Webhook IPN)
+Route::get('/payments/vnpay/callback', [\App\Http\Controllers\PaymentController::class, 'handleVnPayCallback'])->name('payments.vnpay.callback');
+Route::post('/payments/vnpay/ipn', [\App\Http\Controllers\PaymentController::class, 'handleVnPayIpn'])->name('payments.vnpay.ipn');
+
+// Tuyến tiếp nhận phản hồi từ cổng thanh toán ZaloPay (Callback & Webhook IPN)
+Route::get('/payments/zalopay/callback', [\App\Http\Controllers\PaymentController::class, 'handleZaloPayCallback'])->name('payments.zalopay.callback');
+Route::post('/payments/zalopay/callback-ipn', [\App\Http\Controllers\PaymentController::class, 'handleZaloPayIpn'])->name('payments.zalopay.callback-ipn');
+
+// Tuyến tiếp nhận phản hồi từ cổng thanh toán Chuyển khoản SePay (Webhook IPN & Health Check)
+Route::post('/payments/sepay/webhook', [\App\Http\Controllers\PaymentController::class, 'handleSePayWebhook'])->name('payments.sepay.webhook');
+Route::get('/payments/sepay/webhook', [\App\Http\Controllers\PaymentController::class, 'handleSePayWebhookGet'])->name('payments.sepay.webhook.get');
 
 // Tuyến đăng nhập nhanh người dùng thường (Demo / Test)
 Route::get('/dev/login-as-user', function () {
@@ -108,20 +185,26 @@ Route::get('/dev/login-as-admin', function () {
     return redirect()->route('admin.dashboard');
 })->name('dev.login.admin');
 
-// Nhóm các tuyến quản trị viên Admin (Bảo vệ bởi auth và admin middleware)
+// Nhóm các tuyến quản trị viên Admin (Bảo vệ bởi auth, active và admin middleware)
 Route::prefix('admin')
     ->name('admin.')
-    ->middleware(['auth', 'admin'])
+    ->middleware(['auth', 'active', 'admin'])
     ->group(function () {
         // Bảng điều khiển chính (Dashboard)
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/export-report', [DashboardController::class, 'exportReport'])->name('dashboard.export');
 
-        // Quản lý Người dùng hệ thống (Admin Users - Trần Văn Trọng)
+        // Quản lý Người dùng hệ thống (Admin Users - Trịnh Hoài An)
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+        Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
+        Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
-        Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::match(['put', 'patch'], '/users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::patch('/users/{user}/status', [UserController::class, 'toggleStatus'])->name('users.update-status');
         Route::post('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+        Route::post('/users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
 
         // Quản lý Tỉnh / Thành phố (Admin Cities - Trần Văn Trọng)
         Route::get('/cities', [CityController::class, 'index'])->name('cities.index');
@@ -157,11 +240,19 @@ Route::prefix('admin')
         Route::post('/reviews/{review}/hide', [ReviewController::class, 'hide'])->name('reviews.hide');
         Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
 
-        Route::get('/bookings', function () {
-            return view('admin.placeholder', ['pageTitle' => 'Quản lý Đơn đặt phòng (Bookings)']);
-        })->name('bookings.index');
 
-        Route::get('/bookings/{booking}', function ($booking) {
-            return view('admin.placeholder', ['pageTitle' => "Chi tiết Đơn đặt phòng #{$booking}"]);
-        })->name('bookings.show');
+
+        // Quản lý Đơn đặt phòng (Admin Bookings - Nguyễn Văn Thắng - STT 11)
+        Route::get('/bookings', [\App\Http\Controllers\Admin\BookingController::class, 'index'])->name('bookings.index');
+        Route::get('/bookings/{booking}', [\App\Http\Controllers\Admin\BookingController::class, 'show'])->name('bookings.show');
+        Route::patch('/bookings/{booking}/status', [\App\Http\Controllers\Admin\BookingController::class, 'updateStatus'])->name('bookings.update-status');
+
+        // Quản lý Giao dịch thanh toán (Admin Payments - Nguyễn Văn Thắng - STT 11)
+        Route::get('/payments', [\App\Http\Controllers\Admin\PaymentController::class, 'index'])->name('payments.index');
+        Route::get('/payments/{payment}', [\App\Http\Controllers\Admin\PaymentController::class, 'show'])->name('payments.show');
+        Route::patch('/payments/{payment}/status', [\App\Http\Controllers\Admin\PaymentController::class, 'updateStatus'])->name('payments.update-status');
+
+        // Quản lý Nhật ký hoạt động hệ thống (Activity Logs - Trịnh Hoài An)
+        Route::get('/activity-logs', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('activity-logs.index');
+        Route::get('/activity-logs/{activityLog}', [\App\Http\Controllers\Admin\ActivityLogController::class, 'show'])->name('activity-logs.show');
     });

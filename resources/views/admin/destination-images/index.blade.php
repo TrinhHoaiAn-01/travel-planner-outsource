@@ -233,6 +233,88 @@
         line-height: 1.2;
     }
 
+    .photo-card.is-primary-card {
+        box-shadow: 0 0 0 3px #2563EB, 0 4px 12px rgba(37, 99, 235, 0.25);
+    }
+
+    /* Banner dòng icon ảnh đại diện hiện tại */
+    .dest-primary-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%);
+        border: 1px solid #DBEAFE;
+        border-radius: 12px;
+        padding: 12px 18px;
+        margin-bottom: 24px;
+        gap: 16px;
+    }
+
+    .dest-primary-info-cell {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .dest-primary-thumb-wrap {
+        width: 52px;
+        height: 52px;
+        border-radius: 10px;
+        overflow: hidden;
+        background-color: #FFFFFF;
+        border: 2px solid #2563EB;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .dest-primary-thumb-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .dest-primary-thumb-placeholder {
+        font-size: 11px;
+        font-weight: 700;
+        color: #94A3B8;
+    }
+
+    .dest-primary-title-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 4px;
+    }
+
+    .dest-primary-name {
+        font-size: 15px;
+        font-weight: 700;
+        color: #0F172A;
+    }
+
+    .badge-active-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background-color: #2563EB;
+        color: #FFFFFF;
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 3px 9px;
+        border-radius: 9999px;
+        box-shadow: 0 1px 4px rgba(37, 99, 235, 0.3);
+    }
+
+    .dest-primary-subtext {
+        font-size: 12.5px;
+        color: #64748B;
+        font-weight: 500;
+    }
+
     /* Lớp phủ hành động khi hover (Overlay actions) */
     .photo-overlay {
         position: absolute;
@@ -536,11 +618,47 @@
         </div>
     </div>
 
+    @php
+        $primaryImgObj = $images->firstWhere('is_primary', true) 
+            ?? $selectedDestination?->primaryImage 
+            ?? $images->first();
+        $currentPrimaryImg = $primaryImgObj?->image_path;
+    @endphp
+
+    {{-- Dòng Icon Ảnh Đại Diện Hiện Tại Của Địa Điểm Đang Chọn --}}
+    @if($selectedDestination)
+    <div class="dest-primary-banner">
+        <div class="dest-primary-info-cell">
+            <div class="dest-primary-thumb-wrap">
+                @if($currentPrimaryImg)
+                    <img src="{{ $currentPrimaryImg }}" alt="{{ $selectedDestination->name }}" class="dest-primary-thumb-img" onerror="this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=150&q=80'">
+                @else
+                    <span class="dest-primary-thumb-placeholder">NO IMG</span>
+                @endif
+            </div>
+            <div>
+                <div class="dest-primary-title-row">
+                    <span class="dest-primary-name">{{ $selectedDestination->name }}</span>
+                    <span class="badge-active-primary">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                        Ảnh đại diện hiện tại
+                    </span>
+                </div>
+                <div class="dest-primary-subtext">
+                    {{ $selectedDestination->city?->name ?? 'Việt Nam' }} &bull; {{ $selectedDestination->category?->name ?? 'Điểm đến' }} &bull; ID: #DST-{{ sprintf('%03d', $selectedDestination->id) }}
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Lưới Thư Viện Hình Ảnh -->
     @if($images->isNotEmpty())
     <div class="gallery-grid">
         @foreach($images as $image)
-        <div class="photo-card">
+        <div class="photo-card {{ $image->is_primary ? 'is-primary-card' : '' }}">
             @if($image->is_primary)
                 <div class="badge-primary-photo">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">

@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hành Trình & Chuyến Đi - Travel Planner</title>
+    <script>
+        if (window.top !== window.self) {
+            window.top.location.href = window.location.href;
+        }
+    </script>
     <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -612,7 +617,8 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 9px 22px;
+            gap: 8px;
+            padding: 9px 20px;
             border-radius: 9999px;
             font-size: 14px;
             font-weight: 600;
@@ -988,6 +994,10 @@
                    class="status-pill {{ $currentStatus === 'all' || empty($currentStatus) ? 'active' : '' }}">
                     Tất cả ({{ $counts['all'] ?? 0 }})
                 </a>
+                <a href="{{ route('trips.index', array_merge(request()->query(), ['status' => 'draft'])) }}"
+                   class="status-pill {{ $currentStatus === 'draft' ? 'active' : '' }}">
+                    Bản nháp ({{ $counts['draft'] ?? 0 }})
+                </a>
                 <a href="{{ route('trips.index', array_merge(request()->query(), ['status' => 'planned'])) }}"
                    class="status-pill {{ $currentStatus === 'planned' ? 'active' : '' }}">
                     Sắp tới ({{ $counts['planned'] ?? 0 }})
@@ -1008,7 +1018,7 @@
 
                 <div class="search-input-group">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input type="text" name="search" value="{{ $searchKeyword }}" placeholder="Tìm kiếm theo tên hoặc mô tả chuyến đi...">
+                    <input type="text" name="search" data-search-suggestions="trip" value="{{ $searchKeyword }}" placeholder="Tìm kiếm theo tên hoặc mô tả chuyến đi...">
                 </div>
 
                 <div class="date-filter-group">
@@ -1087,10 +1097,16 @@
 
                         <!-- Dropdown Menu -->
                         <div id="menu-{{ $trip->id }}" class="menu-dropdown">
-                            <!-- Xem chi tiết chuyến đi (Nguyễn Trần Thành) -->
-                            <a href="{{ route('trips.show', $trip->id) }}" class="menu-item-btn" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                            <!-- Xem lịch trình chi tiết chuyến đi -->
+                            <a href="{{ route('itinerary.index', $trip->id) }}" class="menu-item-btn" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="12 8 8 12 12 16 12 8"></polygon></svg>
-                                Xem chi tiết lịch trình
+                                Lịch trình chi tiết
+                            </a>
+
+                            <!-- Xem lịch trình theo từng ngày (Phạm Thị Ngọc Ái - Chức năng 5) -->
+                            <a href="{{ route('itinerary.index', $trip->id) }}" class="menu-item-btn" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>
+                                Xem lịch trình theo ngày
                             </a>
 
                             <!-- Chỉnh sửa chuyến đi (Nguyễn Trần Thành) -->
@@ -1098,6 +1114,48 @@
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                 Chỉnh sửa chuyến đi
                             </a>
+
+                            <!-- Chuyển đổi trạng thái nhanh (Quản lý trạng thái: Nháp - Lập kế hoạch - Hoàn thành) -->
+                            @if($trip->status === \App\Models\Trip::STATUS_DRAFT)
+                                <form action="{{ route('trips.update-status', $trip->id) }}" method="POST">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="planned">
+                                    <button type="submit" class="menu-item-btn" style="color: #0066FF;">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                        Lên kế hoạch (Sắp tới)
+                                    </button>
+                                </form>
+                            @elseif($trip->status === \App\Models\Trip::STATUS_PLANNED)
+                                <form action="{{ route('trips.update-status', $trip->id) }}" method="POST">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="completed">
+                                    <button type="submit" class="menu-item-btn" style="color: #059669;">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                        Đánh dấu Hoàn thành
+                                    </button>
+                                </form>
+                                <form action="{{ route('trips.update-status', $trip->id) }}" method="POST">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="draft">
+                                    <button type="submit" class="menu-item-btn" style="color: #64748B;">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                                        Chuyển về Bản nháp
+                                    </button>
+                                </form>
+                            @elseif($trip->status === 'ongoing')
+                                <form action="{{ route('trips.update-status', $trip->id) }}" method="POST">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="completed">
+                                    <button type="submit" class="menu-item-btn" style="color: #059669;">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                        Đánh dấu Hoàn thành
+                                    </button>
+                                </form>
+                            @endif
 
                             <!-- Nhân bản chuyến đi (Nguyễn Trần Thành) -->
                             <form action="{{ route('trips.clone', $trip->id) }}" method="POST">
@@ -1144,14 +1202,14 @@
                             </span>
                         </div>
 
-                        <a href="{{ route('trips.show', $trip->id) }}" style="text-decoration: none; color: inherit;">
+                        <a href="{{ route('itinerary.index', $trip->id) }}" style="text-decoration: none; color: inherit;">
                             <h3 class="trip-name">{{ $trip->name }}</h3>
                         </a>
                         <p class="trip-description">{{ $trip->description ?: 'Bà Nà Hills, Bán đảo Sơn Trà, Ngũ Hành Sơn và phố đèn lồng Hội An thơ mộng.' }}</p>
 
                         <!-- Footer -->
                         <div class="card-footer">
-                            <div class="budget-block">
+                            <a href="{{ route('trips.budget.show', $trip) }}" class="budget-block" style="text-decoration: none;" title="Quản lý ngân sách và chi tiêu">
                                 @if($isCompleted)
                                     <span class="budget-label">Tổng chi thực tế</span>
                                     <span class="budget-amount">{{ number_format($trip->expenses->sum('amount'), 0, ',', '.') }}đ</span>
@@ -1159,23 +1217,18 @@
                                     <span class="budget-label">Ngân sách dự kiến</span>
                                     <span class="budget-amount">{{ number_format($trip->budget, 0, ',', '.') }}đ</span>
                                 @endif
-                            </div>
+                            </a>
 
                             <div class="action-buttons">
-                                <a href="{{ route('trips.show', $trip->id) }}" class="btn-calendar-icon" title="Xem chi tiết lịch trình" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <a href="{{ route('itinerary.index', $trip->id) }}" class="btn-primary-action" title="Xem lịch trình theo từng ngày">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                         <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
                                         <line x1="16" x2="16" y1="2" y2="6"></line>
                                         <line x1="8" x2="8" y1="2" y2="6"></line>
                                         <line x1="3" x2="21" y1="10" y2="10"></line>
                                     </svg>
+                                    <span>Lịch trình</span>
                                 </a>
-
-                                @if($isCompleted)
-                                    <a href="{{ route('trips.show', $trip->id) }}" class="btn-primary-action" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Xem lại</a>
-                                @else
-                                    <a href="{{ route('trips.show', $trip->id) }}" class="btn-primary-action" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Lịch trình</a>
-                                @endif
                             </div>
                         </div>
                     </div>
@@ -1371,6 +1424,23 @@
                               placeholder="Chuyến đi 6 ngày 5 đêm khám phá các điểm nổi tiếng tại Đà Nẵng và Hội An. Dự kiến tham quan Bà Nà Hills, tắm biển Mỹ Khê, chèo SUP ngắm bình minh và thưởng thức đặc sản mì Quảng, bánh mì Phượng.">Chuyến đi 6 ngày 5 đêm khám phá các điểm nổi tiếng tại Đà Nẵng và Hội An. Dự kiến tham quan Bà Nà Hills, tắm biển Mỹ Khê, chèo SUP ngắm bình minh và thưởng thức đặc sản mì Quảng, bánh mì Phượng.</textarea>
                 </div>
 
+                <!-- Trạng thái khởi tạo: Lập kế hoạch hoặc Bản nháp -->
+                <div class="form-group">
+                    <label class="form-label">
+                        Trạng thái ban đầu
+                    </label>
+                    <div style="display: flex; gap: 20px; padding: 10px 14px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13.5px; font-weight: 500; color: #0F172A;">
+                            <input type="radio" name="status" value="planned" checked style="accent-color: #0066FF;">
+                            <span>Sắp tới (Đã lên kế hoạch)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13.5px; font-weight: 500; color: #64748B;">
+                            <input type="radio" name="status" value="draft" style="accent-color: #0066FF;">
+                            <span>Lưu bản nháp (Đang soạn thảo)</span>
+                        </label>
+                    </div>
+                </div>
+
                 <!-- Nút thao tác -->
                 <div class="form-actions">
                     <button type="button" class="btn-cancel" onclick="closeCreateTripModal()">Hủy bỏ</button>
@@ -1471,5 +1541,7 @@
             allMenus.forEach(menu => menu.classList.remove('show'));
         });
     </script>
+    @include('commerce.launcher', ['merchant' => false])
+    @include('partials.search-suggestions')
 </body>
 </html>

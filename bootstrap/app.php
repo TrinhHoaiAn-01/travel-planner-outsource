@@ -11,10 +11,54 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Tin cậy mọi reverse proxy từ ngrok và docker để nhận diện đúng giao thức HTTPS (tránh lỗi Form Not Secure)
+        $middleware->trustProxies(at: '*');
+
+        $middleware->appendToGroup('web', \App\Http\Middleware\ValidateSearchInput::class);
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'active' => \App\Http\Middleware\EnsureUserIsActive::class,
+            'auth.active' => \App\Http\Middleware\EnsureUserIsActive::class,
+            'role' => \App\Http\Middleware\RoleMiddleware::class,
+        ]);
+
+        // Miễn trừ kiểm tra mã bảo vệ CSRF cho Webhook IPN nhận từ máy chủ MoMo, VNPay, ZaloPay và SePay
+        $middleware->validateCsrfTokens(except: [
+            'payments/momo/ipn',
+            'payments/vnpay/ipn',
+            'payments/zalopay/callback-ipn',
+            'payments/sepay/webhook',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->render(function (\App\Exceptions\SearchUnavailableException $exception, \Illuminate\Http\Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $exception->getMessage()], 503, ['Retry-After' => '30']);
+            }
+
+            return response()->view('errors.search-unavailable', [], 503, ['Retry-After' => '30']);
+        });
+        $exceptions->report(function (\Throwable $e) {
+            // Bỏ qua các ngoại lệ nghiệp vụ thông thường (Validation, Auth, 404, 403)
+            if ($e instanceof \Illuminate\Validation\ValidationException ||
+                $e instanceof \Illuminate\Auth\AuthenticationException ||
+                $e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException ||
+                $e instanceof \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException) {
+                return;
+            }
+
+            // Ghi nhật ký lỗi hệ thống có cấu trúc, phục vụ giám sát và khắc phục sự cố
+            $context = [
+                'exception' => get_class($e),
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'url' => request()?->fullUrl(),
+                'method' => request()?->method(),
+                'ip' => request()?->ip(),
+                'user_id' => auth()->id(),
+            ];
+
+            \Illuminate\Support\Facades\Log::error('Hệ thống phát sinh lỗi ngoại lệ: ' . $e->getMessage(), $context);
+        });
     })->create();

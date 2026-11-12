@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script>
+        // Ngăn chặn layout Admin bị nhúng con trong iframe của trợ lý AI
+        if (window.top !== window.self) {
+            window.top.location.href = window.location.href;
+        }
+    </script>
     <title>@yield('title', 'Admin Panel') - Hệ Thống Quản Trị Travel Planner</title>
 
     <!-- Google Fonts Inter -->
@@ -544,6 +550,28 @@
                 </div>
             </a>
 
+            <!-- LƯU TRÚ & THANH TOÁN -->
+            <div class="nav-group-title">LƯU TRÚ & THANH TOÁN</div>
+            <a href="{{ route('admin.bookings.index') }}" class="nav-item {{ request()->routeIs('admin.bookings.*') ? 'active' : '' }}">
+                <div class="nav-item-content">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                    <span>Đặt phòng (Bookings)</span>
+                </div>
+            </a>
+
+            <a href="{{ route('admin.payments.index') }}" class="nav-item {{ request()->routeIs('admin.payments.*') ? 'active' : '' }}">
+                <div class="nav-item-content">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="20" height="14" x="2" y="5" rx="2"/>
+                        <line x1="2" x2="22" y1="10" y2="10"/>
+                    </svg>
+                    <span>Thanh toán (Payments)</span>
+                </div>
+            </a>
+
             <!-- KIỂM DUYỆT -->
             <div class="nav-group-title">KIỂM DUYỆT</div>
             <a href="{{ route('admin.reviews.index') }}" class="nav-item {{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}">
@@ -559,6 +587,29 @@
                 @if($sidebarPendingReviewsCount > 0)
                     <span class="nav-badge-pill">{{ $sidebarPendingReviewsCount }}</span>
                 @endif
+            </a>
+
+            <!-- BẢO MẬT & HỆ THỐNG -->
+            <div class="nav-group-title">BẢO MẬT & HỆ THỐNG</div>
+            <a href="{{ route('admin.activity-logs.index') }}" class="nav-item {{ request()->routeIs('admin.activity-logs.*') ? 'active' : '' }}">
+                <div class="nav-item-content">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    <span>Nhật ký (Logs)</span>
+                </div>
+            </a>
+
+            <!-- AI & THƯƠNG MẠI -->
+            <div class="nav-group-title">AI & THƯƠNG MẠI</div>
+            <a href="{{ route('commerce.merchant') }}" onclick="openCommerceModal(event)" class="nav-item {{ request()->routeIs('commerce.merchant') ? 'active' : '' }}">
+                <div class="nav-item-content">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                    <span>Commerce Merchant</span>
+                </div>
             </a>
         </nav>
 
@@ -678,5 +729,7 @@
         });
     </script>
     @stack('scripts')
+    @include('commerce.launcher', ['merchant' => true])
+    @include('partials.search-suggestions')
 </body>
 </html>
