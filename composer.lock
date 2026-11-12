@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d8f67b824a1bf31c8999ead558d9b485",
+    "content-hash": "e90c9cf6ca9b1d19399308238926df9a",
     "packages": [
         {
             "name": "brick/math",
@@ -3305,6 +3305,38 @@
                 "source": "https://github.com/ramsey/uuid/tree/4.9.3"
             },
             "time": "2026-06-18T03:57:49+00:00"
+        },
+        {
+            "name": "search/home-search",
+            "version": "dev-main",
+            "dist": {
+                "type": "path",
+                "url": "packages/search/home-search",
+                "reference": "bbfd4d8f1644313f0a0b7d53b383b620b30501a8"
+            },
+            "require": {
+                "php": "^8.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Search\\HomeSearch\\": "src/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Tran Van Trong",
+                    "email": "email.tranvantrong.2014@gmail.com"
+                }
+            ],
+            "description": "Thư viện tìm kiếm Trang chủ cho đồ án Travel Planner (Apache Solr 9 & SQL Index)",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "symfony/clock",
@@ -8396,7 +8428,9 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": {},
+    "stability-flags": {
+        "search/home-search": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

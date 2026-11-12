@@ -200,6 +200,7 @@
             padding: 20px 24px;
         }
 
+
         .search-grid {
             display: grid;
             grid-template-columns: 1.6fr 1.1fr 1.1fr auto;
@@ -856,7 +857,7 @@
             <section id="search-results-section" style="margin-bottom: 55px; scroll-margin-top: 80px;">
                 <div class="section-header-wrap">
                     <div>
-                        <span class="sub-tag-blue">KẾT QUẢ TÌM KIẾM NHANH ({{ strtoupper(request('engine', 'solr')) }})</span>
+                        <span class="sub-tag-blue">KẾT QUẢ TÌM KIẾM NHANH</span>
                         <h2 class="sec-title-main">
                             @if(request('keyword'))
                                 Kết quả cho "{{ request('keyword') }}"

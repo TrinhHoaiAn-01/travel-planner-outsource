@@ -22,14 +22,12 @@ class SearchSuggestionController extends Controller
             || class_exists(\PHPUnit\Framework\TestCase::class, false)
             || (function_exists('app') && (app()->environment('testing') || app()->runningUnitTests()));
 
-        // Ưu tiên sử dụng Solr khi type=destination để hỗ trợ fuzzy, đảo từ
+        // Ưu tiên sử dụng Solr khi type=destination để hỗ trợ fuzzy, đảo từ qua Vendor Package
         if ($engine === 'solr' && ! $isTesting && $type === 'destination') {
             try {
-                require_once app_path('Services/Search/Home/solr.php');
-                require_once app_path('Services/Search/Home/home_search.php');
-
-                $solrQ = \App\Services\Search\Home\HomeSearch::buildSolrQuery($keyword);
-                $res = solr_search([
+                $solrClient = new \Search\HomeSearch\Solr\SolrClient();
+                $solrQ = \Search\HomeSearch\Solr\SolrQueryBuilder::build($keyword);
+                $res = $solrClient->select([
                     'q' => $solrQ,
                     'defType' => 'edismax',
                     'qf' => 'name^6 city_name^4 category_name^2 address^2 description',
