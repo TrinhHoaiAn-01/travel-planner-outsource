@@ -444,62 +444,14 @@
                     <input type="hidden" name="amount" value="{{ $booking->total_price }}">
 
                     <div class="payment-methods-grid">
-                        <!-- VNPay -->
-                        <label class="payment-option-label active" onclick="selectPayment('vnpay', this)">
+                        <!-- Chuyển khoản ngân hàng (VietQR) - Mặc định -->
+                        <label class="payment-option-label active" onclick="selectPayment('bank_transfer', this)">
                             <div class="payment-option-info">
-                                <input type="radio" name="payment_method" value="vnpay" class="payment-option-input" checked>
-                                <div class="payment-icon-box icon-vnpay">VN</div>
-                                <div>
-                                    <div class="payment-method-name">Cổng thanh toán VNPay QR</div>
-                                    <div class="payment-method-desc">Quét mã VNPAY-QR hoặc qua ứng dụng ngân hàng nội địa</div>
-                                </div>
-                            </div>
-                        </label>
-
-                        <!-- Ví MoMo -->
-                        <label class="payment-option-label" onclick="selectPayment('momo', this)">
-                            <div class="payment-option-info">
-                                <input type="radio" name="payment_method" value="momo" class="payment-option-input">
-                                <div class="payment-icon-box icon-momo">MM</div>
-                                <div>
-                                    <div class="payment-method-name">Ví Điện Tử MoMo</div>
-                                    <div class="payment-method-desc">Thanh toán tức thì qua ví điện tử MoMo siêu tiện lợi</div>
-                                </div>
-                            </div>
-                        </label>
-
-                        <!-- Ví ZaloPay -->
-                        <label class="payment-option-label" onclick="selectPayment('zalopay', this)">
-                            <div class="payment-option-info">
-                                <input type="radio" name="payment_method" value="zalopay" class="payment-option-input">
-                                <div class="payment-icon-box icon-zalopay">ZP</div>
-                                <div>
-                                    <div class="payment-method-name">Ví Điện Tử ZaloPay</div>
-                                    <div class="payment-method-desc">Thanh toán qua ví ZaloPay hoặc quét mã QR ZaloPay đa năng</div>
-                                </div>
-                            </div>
-                        </label>
-
-                        <!-- Chuyển khoản ngân hàng -->
-                        <label class="payment-option-label" onclick="selectPayment('bank_transfer', this)">
-                            <div class="payment-option-info">
-                                <input type="radio" name="payment_method" value="bank_transfer" class="payment-option-input">
+                                <input type="radio" name="payment_method" value="bank_transfer" class="payment-option-input" checked>
                                 <div class="payment-icon-box icon-bank">CK</div>
                                 <div>
-                                    <div class="payment-method-name">Chuyển Khoản Ngân Hàng (VietQR)</div>
-                                    <div class="payment-method-desc">Chuyển khoản trực tiếp tới tài khoản ngân hàng của hệ thống</div>
-                                </div>
-                            </div>
-                        </label>
-
-                        <!-- Thẻ quốc tế Visa / MasterCard -->
-                        <label class="payment-option-label" onclick="selectPayment('credit_card', this)">
-                            <div class="payment-option-info">
-                                <input type="radio" name="payment_method" value="credit_card" class="payment-option-input">
-                                <div class="payment-icon-box icon-card">CC</div>
-                                <div>
-                                    <div class="payment-method-name">Thẻ Tín Dụng Quốc Tế (Visa / Mastercard)</div>
-                                    <div class="payment-method-desc">Hỗ trợ thanh toán toàn cầu với thẻ tín dụng hoặc ghi nợ</div>
+                                    <div class="payment-method-name">Chuyển Khoản Ngân Hàng (VietQR Chuẩn NAPAS 24/7)</div>
+                                    <div class="payment-method-desc">Quét mã QR tự động qua ứng dụng ngân hàng, xác nhận tức thì</div>
                                 </div>
                             </div>
                         </label>
@@ -511,171 +463,47 @@
                                 <div class="payment-icon-box icon-cash">TM</div>
                                 <div>
                                     <div class="payment-method-name">Thanh Toán Tiền Mặt Khi Nhận Phòng</div>
-                                    <div class="payment-method-desc">Thanh toán trực tiếp tại quầy lễ tân khi làm thủ tục check-in</div>
+                                    <div class="payment-method-desc">Giữ chỗ trước, thanh toán trực tiếp tại quầy lễ tân khi làm thủ tục check-in</div>
                                 </div>
                             </div>
                         </label>
                     </div>
 
-                    <!-- Sandbox Developer Panels (Khu vực mô phỏng Cổng thanh toán cho Dev) -->
+                    <!-- Sandbox / Instruction Panels -->
                     <div id="sandbox-container" style="margin-bottom: 24px;">
-                        <!-- 1. VNPay Sandbox Panel -->
-                        <div id="panel-vnpay" class="sandbox-panel" style="background: #F0F9FF; border: 1.5px solid #BAE6FD; border-radius: var(--radius-md); padding: 20px;">
-                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <span style="background: #0284C7; color: white; font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 4px;">VNPAY SANDBOX</span>
-                                    <strong style="color: #0369A1; font-size: 14px;">Cổng Thanh Toán VNPay Sandbox (API V2.1.0)</strong>
-                                </div>
-                                <span style="font-size: 12px; color: #0284C7; font-weight: 600;">Terminal ID: UTSQQSRL</span>
-                            </div>
-                            <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
-                                <div style="background: white; padding: 10px; border-radius: 8px; border: 1.5px solid #BAE6FD; text-align: center;">
-                                    <img src="https://img.vietqr.io/image/vietinbank-108873456789-qr_only.png?amount={{ (int)$booking->total_price }}&addInfo={{ $booking->booking_code }}&accountName=CONG%20TY%20TRAVEL%20PLANNER" 
-                                         alt="Mã VNPay-QR quét được thật" 
-                                         style="width: 135px; height: 135px; display: block; border-radius: 6px; margin: 0 auto;">
-                                    <div style="font-size: 11px; color: #0284C7; margin-top: 6px; font-weight: 700;">QUÉT QUA APP VNPAY / NGÂN HÀNG</div>
-                                </div>
-                                <div style="flex: 1; min-width: 250px; font-size: 13px; color: #334155;">
-                                    <div style="margin-bottom: 8px;">
-                                        <strong>Thông tin Thẻ Test VNPay Sandbox (Ngân hàng NCB):</strong>
-                                    </div>
-                                    <div style="background: white; border: 1px solid #BAE6FD; padding: 10px 14px; border-radius: 8px; line-height: 1.6; font-size: 12.5px;">
-                                        <div>🏦 Ngân hàng: <strong style="color: #0284C7;">NCB (Ngân hàng Quốc Dân)</strong></div>
-                                        <div>💳 Số thẻ test: <strong style="color: #0F172A; letter-spacing: 0.5px;">9704198526191432198</strong></div>
-                                        <div>👤 Tên chủ thẻ: <strong>NGUYEN VAN A</strong></div>
-                                        <div>📅 Ngày phát hành: <strong>07/15</strong></div>
-                                        <div>🔑 Mật khẩu OTP: <strong style="color: #0284C7;">123456</strong></div>
-                                    </div>
-                                    <div style="margin-top: 8px; font-size: 12px; color: #64748B;">
-                                        💡 Bạn có thể bấm nút mở Cổng VNPay Live bên dưới để test trực tiếp trên giao diện sandbox của VNPay hoặc xác nhận nhanh nội bộ.
-                                    </div>
-
-                                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #BAE6FD; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                        <button type="button" onclick="submitVnPayLive()" style="background: #0284C7; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 12.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(2,132,199,0.2);">
-                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                                            🚀 Mở Cổng VNPay Sandbox Trực Tiếp (VNPAY-QR / Thẻ ATM)
-                                        </button>
-                                        <span style="font-size: 11px; color: #0369A1;">
-                                            (Chuyển sang sandbox.vnpayment.vn)
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 2. MoMo Sandbox Panel -->
-                        <div id="panel-momo" class="sandbox-panel" style="display: none; background: #FDF2F8; border: 1.5px solid #FBCFE8; border-radius: var(--radius-md); padding: 20px;">
-                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <span style="background: #A50064; color: white; font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 4px;">MOMO DEVELOPER</span>
-                                    <strong style="color: #A50064; font-size: 14px;">Cổng Thanh Toán MoMo Sandbox</strong>
-                                </div>
-                                <span style="font-size: 12px; color: #A50064; font-weight: 600;">developers.momo.vn</span>
-                            </div>
-                            <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
-                                <div style="background: white; padding: 10px; border-radius: 8px; border: 1.5px solid #FCE7F3; text-align: center;">
-                                    <img src="https://img.vietqr.io/image/vietinbank-108873456789-qr_only.png?amount={{ (int)$booking->total_price }}&addInfo={{ $booking->booking_code }}&accountName=CONG%20TY%20TRAVEL%20PLANNER" 
-                                         alt="Mã MoMo QR quét được thật" 
-                                         style="width: 135px; height: 135px; display: block; border-radius: 6px; margin: 0 auto;">
-                                    <div style="font-size: 11px; color: #A50064; margin-top: 6px; font-weight: 700;">QUÉT BẰNG APP MOMO THẬT</div>
-                                </div>
-                                <div style="flex: 1; min-width: 200px; font-size: 13px; color: #334155;">
-                                    <div style="margin-bottom: 8px;">
-                                        <strong>Thông tin tài khoản ví MoMo Test (Sandbox):</strong>
-                                    </div>
-                                    <div style="background: white; border: 1px solid #FCE7F3; padding: 10px 14px; border-radius: 8px; line-height: 1.6; font-size: 12.5px;">
-                                        <div>📱 Số điện thoại test: <strong style="color: #A50064;">0901 234 567</strong></div>
-                                        <div>💰 Số dư ví thử nghiệm: <strong>50.000.000đ</strong></div>
-                                        <div>🔑 Mã xác thực OTP test: <strong>123456</strong></div>
-                                        <div>⚙️ Partner Code: <strong>MOMOBKUN20180529</strong></div>
-                                    </div>
-                                    <div style="margin-top: 8px; font-size: 12px; color: #64748B;">
-                                        💡 Nhóm hỗ trợ cả 2 chế độ: Mở cổng MoMo API Live chính thức hoặc Giả lập Sandbox duyệt tức thì.
-                                    </div>
-
-                                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #FBCFE8; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                        <button type="button" onclick="submitMoMoLive()" style="background: #A50064; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 12.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(165,0,100,0.2);">
-                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                                            🚀 Mở Cổng MoMo Sandbox Trực Tiếp (API V2)
-                                        </button>
-                                        <span style="font-size: 11px; color: #9D174D;">
-                                            (Chuyển sang test-payment.momo.vn hoặc dùng nút xanh bên dưới để test nội bộ)
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 3. ZaloPay Sandbox Panel -->
-                        <div id="panel-zalopay" class="sandbox-panel" style="display: none; background: #F0F9FF; border: 1.5px solid #BAE6FD; border-radius: var(--radius-md); padding: 20px;">
-                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <span style="background: #008FE5; color: white; font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 4px;">ZALOPAY SANDBOX</span>
-                                    <strong style="color: #0070B8; font-size: 14px;">Cổng Thanh Toán ZaloPay Gateway (API V2)</strong>
-                                </div>
-                                <span style="font-size: 12px; color: #008FE5; font-weight: 600;">AppID: 2553</span>
-                            </div>
-                            <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
-                                <div style="background: white; padding: 10px; border-radius: 8px; border: 1.5px solid #BAE6FD; text-align: center;">
-                                    <img src="https://img.vietqr.io/image/vietinbank-108873456789-qr_only.png?amount={{ (int)$booking->total_price }}&addInfo={{ $booking->booking_code }}&accountName=CONG%20TY%20TRAVEL%20PLANNER"
-                                         alt="Mã ZaloPay QR quét được thật"
-                                         style="width: 135px; height: 135px; display: block; border-radius: 6px; margin: 0 auto;">
-                                    <div style="font-size: 11px; color: #008FE5; margin-top: 6px; font-weight: 700;">QUÉT QUA APP ZALOPAY / BANK</div>
-                                </div>
-                                <div style="flex: 1; min-width: 250px; font-size: 13px; color: #334155;">
-                                    <div style="margin-bottom: 8px;">
-                                        <strong>Thông tin ZaloPay Sandbox Thử Nghiệm:</strong>
-                                    </div>
-                                    <div style="background: white; border: 1px solid #BAE6FD; padding: 10px 14px; border-radius: 8px; line-height: 1.6; font-size: 12.5px;">
-                                        <div>⚙️ Ứng dụng Merchant: <strong>ZaloPay Sandbox Test</strong></div>
-                                        <div>🆔 AppID: <strong style="color: #008FE5;">2553</strong></div>
-                                        <div>🌐 Cổng API: <strong>https://sb-openapi.zalopay.vn/v2/create</strong></div>
-                                        <div>📱 Tài liệu hướng dẫn: <a href="https://docs.zalopay.vn/vi/docs/guides/intro" target="_blank" style="color: #008FE5; font-weight: 600; text-decoration: underline;">docs.zalopay.vn</a></div>
-                                    </div>
-                                    <div style="margin-top: 8px; font-size: 12px; color: #64748B;">
-                                        💡 Bấm nút bên dưới để chuyển tiếp trực tiếp sang cổng ZaloPay Gateway chính thức, quét mã QR hoặc đăng nhập Zalo để thanh toán.
-                                    </div>
-
-                                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #BAE6FD; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                        <button type="button" onclick="submitZaloPayLive()" style="background: #008FE5; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 12.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,143,229,0.2);">
-                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                                            🚀 Mở Cổng ZaloPay Sandbox Trực Tiếp (Gateway V2)
-                                        </button>
-                                        <span style="font-size: 11px; color: #0070B8;">
-                                            (Chuyển sang sb-openapi.zalopay.vn)
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 4. VietQR Real Dynamic Panel -->
-                        <div id="panel-bank_transfer" class="sandbox-panel" style="display: none; background: #F0FDF4; border: 1.5px solid #BBF7D0; border-radius: var(--radius-md); padding: 20px;">
-                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+                        <!-- 1. VietQR Real Dynamic Panel (Mặc định hiển thị) -->
+                        <div id="panel-bank_transfer" class="sandbox-panel" style="background: #F0FDF4; border: 1.5px solid #BBF7D0; border-radius: var(--radius-md); padding: 20px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
                                 <div style="display: flex; align-items: center; gap: 8px;">
                                     <span style="background: #16A34A; color: white; font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 4px;">VIETQR CHUẨN NAPAS 24/7</span>
-                                    <strong style="color: #15803D; font-size: 14px;">Quét Mã Chuyển Khoản Ngân Hàng</strong>
+                                    <strong style="color: #15803D; font-size: 14px;">Quét Mã Chuyển Khoản Ngân Hàng Tự Động</strong>
                                 </div>
                                 <span style="font-size: 12px; color: #16A34A; font-weight: 600;">Tự động điền tiền & nội dung</span>
                             </div>
                             <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
-                                <div style="background: white; padding: 8px; border-radius: 8px; border: 1px solid #DCFCE7; text-align: center;">
+                                <div style="background: white; padding: 10px; border-radius: 8px; border: 1px solid #DCFCE7; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                                     <!-- Gọi trực tiếp VietQR API tạo ảnh QR thanh toán khớp với tài khoản SePay Test Mode -->
                                     <img src="https://img.vietqr.io/image/mbbank-0000000002-compact2.png?amount={{ (int)$booking->total_price }}&addInfo=TPB%20{{ $booking->booking_code }}&accountName=TRAVEL%20PLANNER%20TEST" 
                                          alt="VietQR Chuyển Khoản" 
-                                         style="width: 145px; height: 145px; object-fit: contain; border-radius: 4px; display: block;">
-                                    <div style="font-size: 10.5px; color: #16A34A; margin-top: 4px; font-weight: 700;">QUÉT QUA MỌI APP NGÂN HÀNG</div>
+                                         style="width: 150px; height: 150px; object-fit: contain; border-radius: 4px; display: block; margin: 0 auto;">
+                                    <div style="font-size: 10.5px; color: #16A34A; margin-top: 6px; font-weight: 700;">QUÉT QUA MỌI APP NGÂN HÀNG</div>
                                 </div>
-                                <div style="flex: 1; min-width: 220px; font-size: 13px; color: #334155;">
+                                <div style="flex: 1; min-width: 240px; font-size: 13px; color: #334155;">
                                     <div style="background: white; border: 1px solid #DCFCE7; padding: 12px 16px; border-radius: 8px; line-height: 1.7; font-size: 12.5px;">
                                         <div>🏦 Ngân hàng: <strong>MBBank (Ngân Hàng Quân Đội)</strong></div>
-                                        <div>💳 Số tài khoản: <strong style="color: #15803D; font-size: 13.5px;">0000000002</strong></div>
+                                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                                            <span>💳 Số tài khoản: <strong style="color: #15803D; font-size: 13.5px;">0000000002</strong></span>
+                                            <button type="button" onclick="copyPaymentText('0000000002', this)" style="border: 1px solid #BBF7D0; background: #F0FDF4; color: #16A34A; padding: 2px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: 600;">Sao chép</button>
+                                        </div>
                                         <div>👤 Tên chủ TK: <strong>TRAVEL PLANNER TEST</strong></div>
                                         <div>💵 Số tiền: <strong style="color: #059669; font-size: 14px;">{{ number_format($booking->total_price, 0, ',', '.') }}đ</strong></div>
-                                        <div>📝 Cú pháp chuyển khoản: <strong style="color: #2563EB; font-family: monospace;">TPB {{ $booking->booking_code }}</strong></div>
+                                        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 2px;">
+                                            <span>📝 Cú pháp: <strong style="color: #2563EB; font-family: monospace; font-size: 13px;">TPB {{ $booking->booking_code }}</strong></span>
+                                            <button type="button" onclick="copyPaymentText('TPB {{ $booking->booking_code }}', this)" style="border: 1px solid #BBF7D0; background: #F0FDF4; color: #16A34A; padding: 2px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: 600;">Sao chép</button>
+                                        </div>
                                     </div>
                                     <div style="margin-top: 8px; font-size: 11.5px; color: #15803D;">
-                                        ✨ <em>Bạn có thể mở app ngân hàng thật trên điện thoại quét mã QR bên cạnh để xem chức năng tự động nhận diện đúng số tiền và mã đơn!</em>
+                                        ✨ <em>Mở app ngân hàng quét mã QR để thanh toán tự động, hoặc bấm nút bên dưới để mở màn hình SePay chuyên dụng với đồng hồ đếm ngược.</em>
                                     </div>
 
                                     <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #BBF7D0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
@@ -684,62 +512,45 @@
                                             🚀 Mở Màn Hình Chuyển Khoản VietQR Tự Động (SePay Banking)
                                         </button>
                                         <span style="font-size: 11px; color: #15803D;">
-                                            (Quét mã QR động và tự động kiểm tra biến động số dư 24/7)
+                                            (Trang đếm ngược thời gian thực 24/7)
                                         </span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- 4. Thẻ Quốc Tế Sandbox Panel -->
-                        <div id="panel-credit_card" class="sandbox-panel" style="display: none; background: #FFFBEB; border: 1.5px solid #FDE68A; border-radius: var(--radius-md); padding: 20px;">
-                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <span style="background: #D97706; color: white; font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 4px;">VISA / MASTERCARD SANDBOX</span>
-                                    <strong style="color: #B45309; font-size: 14px;">Cổng Thẻ Quốc Tế Thử Nghiệm</strong>
-                                </div>
-                                <button type="button" onclick="fillTestCard()" style="background: white; border: 1px solid #D97706; color: #D97706; font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
-                                    ⚡ Điền Thẻ Test Sandbox
-                                </button>
+                        <!-- 2. Tiền Mặt Panel (Hiển thị khi chọn Tiền mặt) -->
+                        <div id="panel-cash" class="sandbox-panel" style="display: none; background: #FAF5FF; border: 1.5px solid #E9D5FF; border-radius: var(--radius-md); padding: 20px;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                <span style="background: #9333EA; color: white; font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 4px;">TIỀN MẶT KHI NHẬN PHÒNG</span>
+                                <strong style="color: #7E22CE; font-size: 14px;">Thanh Toán Trực Tiếp Tại Quầy Lễ Tân Khách Sạn</strong>
                             </div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
-                                <div style="grid-column: span 2;">
-                                    <label style="display: block; font-size: 12px; font-weight: 600; color: #78350F; margin-bottom: 4px;">Số Thẻ Tín Dụng Test:</label>
-                                    <input type="text" id="demo_card_number" value="4242 &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; 4242" readonly style="width: 100%; padding: 8px 12px; border: 1px solid #FCD34D; border-radius: 6px; font-family: monospace; font-weight: 700; background: white;">
-                                </div>
-                                <div>
-                                    <label style="display: block; font-size: 12px; font-weight: 600; color: #78350F; margin-bottom: 4px;">Ngày Hết Hạn:</label>
-                                    <input type="text" id="demo_card_exp" value="12/28" readonly style="width: 100%; padding: 8px 12px; border: 1px solid #FCD34D; border-radius: 6px; font-family: monospace; background: white;">
-                                </div>
-                                <div>
-                                    <label style="display: block; font-size: 12px; font-weight: 600; color: #78350F; margin-bottom: 4px;">Mã CVV/CVC:</label>
-                                    <input type="text" id="demo_card_cvv" value="888" readonly style="width: 100%; padding: 8px 12px; border: 1px solid #FCD34D; border-radius: 6px; font-family: monospace; background: white;">
+                            <div style="background: white; border: 1px solid #E9D5FF; padding: 14px 18px; border-radius: 8px; line-height: 1.7; font-size: 13px; color: #4B5563;">
+                                <p style="margin-bottom: 8px;">
+                                    Quý khách vui lòng chuẩn bị số tiền <strong>{{ number_format($booking->total_price, 0, ',', '.') }}đ</strong> để thanh toán trực tiếp tại quầy lễ tân khi làm thủ tục check-in.
+                                </p>
+                                <div style="display: flex; gap: 12px; margin-top: 10px; font-size: 12.5px; flex-wrap: wrap;">
+                                    <div style="flex: 1; min-width: 200px; background: #FDF4FF; padding: 10px 12px; border-radius: 6px; border: 1px dashed #D8B4FE;">
+                                        <strong style="color: #9333EA;">📌 Quy trình giữ chỗ:</strong>
+                                        <div style="color: #6B7280; margin-top: 4px;">Đơn đặt phòng sẽ được giữ ở trạng thái <em>Chờ xác nhận (Pending)</em> ngay khi quý khách bấm xác nhận.</div>
+                                    </div>
+                                    <div style="flex: 1; min-width: 200px; background: #FDF4FF; padding: 10px 12px; border-radius: 6px; border: 1px dashed #D8B4FE;">
+                                        <strong style="color: #9333EA;">🏨 Khi đến nơi:</strong>
+                                        <div style="color: #6B7280; margin-top: 4px;">Xuất trình mã đơn <strong>#{{ $booking->booking_code }}</strong> cho lễ tân để nhận phòng và nhận biên lai thanh toán.</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- 5. Tiền Mặt Panel -->
-                        <div id="panel-cash" class="sandbox-panel" style="display: none; background: #FAF5FF; border: 1.5px solid #E9D5FF; border-radius: var(--radius-md); padding: 18px;">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                                <span style="background: #9333EA; color: white; font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 4px;">TIỀN MẶT</span>
-                                <strong style="color: #7E22CE; font-size: 14px;">Thanh Toán Trực Tiếp Tại Khách Sạn</strong>
-                            </div>
-                            <p style="font-size: 13px; color: #4B5563; line-height: 1.6;">
-                                Quý khách vui lòng thanh toán trực tiếp số tiền <strong>{{ number_format($booking->total_price, 0, ',', '.') }}đ</strong> bằng tiền mặt tại quầy lễ tân khi làm thủ tục nhận phòng (Check-in). Đơn đặt phòng sẽ được giữ chỗ ở trạng thái <em>Chờ xác nhận (Pending)</em>.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div style="margin-top: 18px;">
+                    </div><div style="margin-top: 18px;">
                         <label style="display: block; font-weight: 700; font-size: 13.5px; color: var(--secondary); margin-bottom: 6px;">
                             Ghi chú thanh toán (tùy chọn)
                         </label>
                         <textarea name="note" rows="2" placeholder="Ví dụ: Giao dịch thanh toán đặt phòng qua app..." style="width: 100%; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 10px 14px; font-family: inherit; font-size: 14px; resize: vertical;"></textarea>
                     </div>
 
-                    <button type="submit" class="btn-submit-pay">
+                    <button type="submit" class="btn-submit-pay" id="btnSubmitPay">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                        Xác Nhận & Hoàn Tất Thanh Toán
+                        <span id="btnSubmitText">Xác Nhận Đã Chuyển Khoản VietQR</span>
                     </button>
 
                     <a href="{{ route('bookings.show', $booking->id) }}" class="btn-back">
@@ -810,7 +621,7 @@
             element.classList.add('active');
             element.querySelector('input[type="radio"]').checked = true;
 
-            // Ẩn tất cả các panel sandbox
+            // Ẩn tất cả các panel
             document.querySelectorAll('.sandbox-panel').forEach(panel => panel.style.display = 'none');
 
             // Hiển thị panel tương ứng với phương thức được chọn
@@ -818,6 +629,28 @@
             if (targetPanel) {
                 targetPanel.style.display = 'block';
             }
+
+            // Cập nhật text nút submit cho phù hợp
+            const submitText = document.getElementById('btnSubmitText');
+            if (submitText) {
+                if (method === 'cash') {
+                    submitText.innerText = 'Xác Nhận Giữ Chỗ (Thanh Toán Khi Nhận Phòng)';
+                } else {
+                    submitText.innerText = 'Xác Nhận Đã Chuyển Khoản VietQR';
+                }
+            }
+        }
+
+        function copyPaymentText(text, btnElement) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btnElement.innerText;
+                btnElement.innerText = '✓ Đã chép';
+                btnElement.style.color = '#10B981';
+                setTimeout(() => {
+                    btnElement.innerText = originalText;
+                    btnElement.style.color = '';
+                }, 2000);
+            });
         }
 
         let isSubmitting = false;
@@ -831,54 +664,11 @@
             const btn = form.querySelector('.btn-submit-pay');
             if (btn) {
                 btn.disabled = true;
-                btn.innerHTML = '<span>Đang xác nhận thanh toán...</span>';
+                btn.innerHTML = '<span>Đang xử lý đơn đặt phòng...</span>';
                 btn.style.opacity = '0.7';
                 btn.style.cursor = 'not-allowed';
             }
             return true;
-        }
-
-        function fillTestCard() {
-            document.getElementById('demo_card_number').value = '4242 4242 4242 4242';
-            document.getElementById('demo_card_exp').value = '12/28';
-            document.getElementById('demo_card_cvv').value = '888';
-            alert('Đã nạp thẻ thử nghiệm Stripe/Visa Sandbox: 4242 4242 4242 4242');
-        }
-
-        function submitVnPayLive() {
-            if (isSubmitting) return;
-            isSubmitting = true;
-
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = "{{ route('payments.vnpay.process', $booking->id) }}";
-
-            const csrf = document.createElement('input');
-            csrf.type = 'hidden';
-            csrf.name = '_token';
-            csrf.value = "{{ csrf_token() }}";
-            form.appendChild(csrf);
-
-            document.body.appendChild(form);
-            form.submit();
-        }
-
-        function submitZaloPayLive() {
-            if (isSubmitting) return;
-            isSubmitting = true;
-
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = "{{ route('payments.zalopay.process', $booking->id) }}";
-
-            const csrf = document.createElement('input');
-            csrf.type = 'hidden';
-            csrf.name = '_token';
-            csrf.value = "{{ csrf_token() }}";
-            form.appendChild(csrf);
-
-            document.body.appendChild(form);
-            form.submit();
         }
 
         function submitSePayTransfer() {
@@ -889,24 +679,6 @@
             form.method = 'POST';
             form.action = "{{ route('payments.sepay.process', $booking->id) }}";
 
-            const csrf = document.createElement('input');
-            csrf.type = 'hidden';
-            csrf.name = '_token';
-            csrf.value = "{{ csrf_token() }}";
-            form.appendChild(csrf);
-
-            document.body.appendChild(form);
-            form.submit();
-        }
-
-        function submitMoMoLive() {
-            if (isSubmitting) return;
-            isSubmitting = true;
-
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = "{{ route('payments.momo.process', $booking->id) }}";
-            
             const csrf = document.createElement('input');
             csrf.type = 'hidden';
             csrf.name = '_token';
@@ -952,8 +724,6 @@
             if (data.redirect_url) {
                 window.location.href = data.redirect_url;
             }
-        }
-            }, 1200);
         }
 
         // Khởi động lắng nghe biến động ngầm ngay khi tải trang

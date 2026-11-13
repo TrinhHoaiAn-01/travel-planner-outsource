@@ -25,6 +25,8 @@ class PaymentManagementTest extends TestCase
     {
         parent::setUp();
 
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+
         $this->user = User::factory()->create(['role' => 'user', 'is_active' => true]);
         $this->otherUser = User::factory()->create(['role' => 'user', 'is_active' => true]);
 

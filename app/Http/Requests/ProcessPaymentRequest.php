@@ -20,7 +20,7 @@ class ProcessPaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'payment_method' => ['required', 'string', 'in:vnpay,momo,bank_transfer,credit_card,cash'],
+            'payment_method' => ['required', 'string', 'in:vnpay,momo,bank_transfer,banking,credit_card,cash'],
             'amount' => ['required', 'numeric', 'min:0'],
             'note' => ['nullable', 'string', 'max:500'],
         ];

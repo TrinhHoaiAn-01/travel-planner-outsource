@@ -263,9 +263,23 @@
                     @endif
                 </div>
                 <h1 class="status-title">
-                    {{ $payment->status === 'completed' ? 'Thanh Toán Thành Công!' : 'Giao Dịch Đang Chờ Xử Lý' }}
+                    @if($payment->status === 'completed')
+                        Thanh Toán Thành Công!
+                    @elseif($payment->payment_method === 'cash')
+                        Giữ Chỗ Thành Công (Chờ Thanh Toán Tại Khách Sạn)
+                    @else
+                        Giao Dịch Đang Chờ Xử Lý
+                    @endif
                 </h1>
-                <p class="status-desc">Cảm ơn quý khách đã hoàn tất thanh toán cho đơn đặt phòng trên hệ thống Travel Planner.</p>
+                <p class="status-desc">
+                    @if($payment->status === 'completed')
+                        Cảm ơn quý khách đã hoàn tất thanh toán cho đơn đặt phòng trên hệ thống Travel Planner.
+                    @elseif($payment->payment_method === 'cash')
+                        Đơn đặt phòng đã được giữ chỗ thành công! Quý khách vui lòng thanh toán trực tiếp số tiền bằng tiền mặt tại quầy lễ tân khi làm thủ tục nhận phòng.
+                    @else
+                        Giao dịch đang chờ hệ thống và ngân hàng ghi nhận biến động số dư.
+                    @endif
+                </p>
             </div>
 
             <!-- Bảng Chi Tiết Giao Dịch -->
@@ -304,6 +318,7 @@
                         @switch($payment->payment_method)
                             @case('vnpay') Cổng thanh toán VNPay QR @break
                             @case('momo') Ví điện tử MoMo @break
+                            @case('banking')
                             @case('bank_transfer') Chuyển khoản VietQR @break
                             @case('credit_card') Thẻ tín dụng quốc tế @break
                             @case('cash') Tiền mặt tại quầy nhận phòng @break
