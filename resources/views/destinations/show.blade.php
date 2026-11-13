@@ -1763,9 +1763,11 @@
                                             </span>
                                         @endif
 
-                                        <a href="{{ route('reviews.my-reviews') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-semibold shadow-xs" title="Xem tất cả bài đánh giá của bạn">
-                                            <i class="bi bi-star me-1"></i>Đánh giá của tôi
-                                        </a>
+                                        @if(Route::has('reviews.my-reviews'))
+                                            <a href="{{ route('reviews.my-reviews') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-semibold shadow-xs" title="Xem tất cả bài đánh giá của bạn">
+                                                <i class="bi bi-star me-1"></i>Đánh giá của tôi
+                                            </a>
+                                        @endif
                                     </div>
                                 </div>
                                 <p class="text-secondary small mb-3">
