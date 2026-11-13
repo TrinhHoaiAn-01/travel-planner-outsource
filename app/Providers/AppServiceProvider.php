@@ -127,6 +127,12 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\ItineraryService::class
         );
 
+        // Ràng buộc ReviewServiceInterface với ReviewService (Nguyễn Trần Thành)
+        $this->app->bind(
+            \App\Services\Interfaces\ReviewServiceInterface::class,
+            \App\Services\ReviewService::class
+        );
+
         // Ràng buộc PaymentServiceInterface với triển khai cụ thể PaymentService
         $this->app->bind(
             \App\Services\Interfaces\PaymentServiceInterface::class,

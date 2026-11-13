@@ -108,6 +108,41 @@ class AdminReviewDemoSeeder extends Seeder
             ],
         ];
 
+        // Bổ sung review mẫu với đủ 3 trạng thái cho tài khoản Demo User (user@travelplanner.test)
+        $demoUser = User::where('email', 'user@travelplanner.test')->first();
+        if ($demoUser) {
+            if ($banaHills) {
+                $reviewsData[] = [
+                    'user' => $demoUser,
+                    'destination' => $banaHills,
+                    'rating' => 5,
+                    'comment' => 'Không gian Bà Nà Hills tuyệt đẹp, làng Pháp kiến trúc cổ kính và thời tiết 4 mùa trong một ngày rất thú vị!',
+                    'status' => Review::STATUS_APPROVED,
+                    'created_at' => Carbon::create(2026, 10, 15, 10, 0, 0),
+                ];
+            }
+            if ($vinpearlPhuQuoc) {
+                $reviewsData[] = [
+                    'user' => $demoUser,
+                    'destination' => $vinpearlPhuQuoc,
+                    'rating' => 4,
+                    'comment' => 'Khu nghỉ dưỡng sang trọng, hồ bơi lớn sát biển và buffet sáng rất phong phú, các bạn nhân viên nhiệt tình.',
+                    'status' => Review::STATUS_PENDING,
+                    'created_at' => Carbon::create(2026, 10, 25, 14, 20, 0),
+                ];
+            }
+            if ($hoiAn) {
+                $reviewsData[] = [
+                    'user' => $demoUser,
+                    'destination' => $hoiAn,
+                    'rating' => 2,
+                    'comment' => 'Phố cổ Hội An đông đúc và chèo kéo khách quá mức vào buổi tối, cần có biện pháp quản lý tốt hơn.',
+                    'status' => Review::STATUS_HIDDEN,
+                    'created_at' => Carbon::create(2026, 10, 5, 18, 45, 0),
+                ];
+            }
+        }
+
         foreach ($reviewsData as $item) {
             if ($item['user'] && $item['destination']) {
                 $review = Review::updateOrCreate(
