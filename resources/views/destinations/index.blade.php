@@ -178,12 +178,21 @@
             margin-bottom: 20px;
         }
 
-        .breadcrumb-wrap a {
-            color: #64748B;
-            text-decoration: none;
+        .breadcrumb-wrap {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 8px;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .breadcrumb-wrap a {
+            color: #1E293B;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 500;
             transition: color 0.2s;
         }
 
@@ -191,7 +200,12 @@
             color: #0066FF;
         }
 
-        .breadcrumb-wrap span {
+        .breadcrumb-wrap .breadcrumb-sep {
+            color: #64748B;
+            font-weight: 400;
+        }
+
+        .breadcrumb-wrap .breadcrumb-current {
             color: #0066FF;
             font-weight: 600;
         }
@@ -207,18 +221,18 @@
         }
 
         .page-title {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: 800;
             color: #0F172A;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.6px;
         }
 
         .badge-results-count {
-            background: #EBF5FF;
-            color: #0066FF;
-            border: 1px solid #BAE6FD;
-            padding: 6px 14px;
-            border-radius: 20px;
+            background: #EFF6FF;
+            color: #1D4ED8;
+            border: 1px solid #93C5FD;
+            padding: 6px 16px;
+            border-radius: 9999px;
             font-size: 14px;
             font-weight: 600;
             display: inline-flex;
@@ -233,14 +247,26 @@
             border-radius: 16px;
             padding: 20px 24px;
             margin-bottom: 30px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
         }
 
         .filter-form-grid {
             display: grid;
-            grid-template-columns: 2fr 1.3fr 1.3fr 1.3fr 1.3fr auto;
-            gap: 16px;
+            grid-template-columns: 1.5fr 1.2fr 1.2fr 1.2fr 1.1fr auto;
+            gap: 14px;
             align-items: flex-end;
+        }
+
+        @media (max-width: 1024px) {
+            .filter-form-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .filter-form-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .filter-field {
@@ -250,44 +276,56 @@
         }
 
         .filter-field label {
-            font-size: 13px;
+            font-size: 13.5px;
             font-weight: 600;
-            color: #334155;
+            color: #1E293B;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
         }
 
         .filter-input, .filter-select {
             width: 100%;
             height: 42px;
-            padding: 0 12px;
+            padding: 0 14px;
             border: 1px solid #E2E8F0;
-            border-radius: 10px;
-            background: #F8FAFC;
+            border-radius: 8px;
+            background: #FFFFFF;
             color: #0F172A;
             font-size: 14px;
             outline: none;
             transition: all 0.2s;
         }
 
+        .filter-select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-color: #FFFFFF;
+            background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 12px 12px;
+            padding-right: 28px;
+            cursor: pointer;
+        }
+
         .filter-input:focus, .filter-select:focus {
             border-color: #0066FF;
-            background: #FFFFFF;
             box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.12);
         }
 
         .btn-reset-filter {
             height: 42px;
-            padding: 0 18px;
+            padding: 0 20px;
             background: #0066FF;
             color: #FFFFFF;
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             font-weight: 600;
             font-size: 14px;
             cursor: pointer;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
@@ -305,7 +343,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-top: 18px;
+            margin-top: 20px;
             padding-top: 16px;
             border-top: 1px solid #F1F5F9;
             flex-wrap: wrap;
@@ -315,7 +353,7 @@
         .toggle-lodging-wrap {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             cursor: pointer;
             user-select: none;
         }
@@ -336,7 +374,10 @@
         .slider-round {
             position: absolute;
             cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background-color: #CBD5E1;
             transition: .3s;
             border-radius: 24px;
@@ -365,7 +406,7 @@
         .toggle-label-text {
             font-size: 14px;
             font-weight: 600;
-            color: #1E293B;
+            color: #0F172A;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -374,36 +415,36 @@
         .quick-cities-wrap {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             flex-wrap: wrap;
         }
 
         .quick-city-label {
-            font-size: 13px;
-            color: #64748B;
+            font-size: 13.5px;
             font-weight: 500;
+            color: #64748B;
         }
 
         .pill-city {
-            display: inline-block;
-            padding: 5px 14px;
-            background: #F1F5F9;
-            color: #475569;
-            border-radius: 20px;
-            text-decoration: none;
-            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 18px;
+            border-radius: 9999px;
+            font-size: 13.5px;
             font-weight: 500;
+            color: #1E293B;
+            background: #F1F5F9;
+            text-decoration: none;
             transition: all 0.2s;
         }
 
         .pill-city:hover {
             background: #E2E8F0;
-            color: #0F172A;
         }
 
         .pill-city.active {
-            background: #0066FF;
-            color: #FFFFFF;
+            background: #DBEAFE;
+            color: #1D4ED8;
             font-weight: 600;
         }
 
@@ -781,39 +822,46 @@
 
     <!-- 2. Nội dung chính: Khám phá Địa Điểm & Nơi Lưu Trú -->
     <main class="container">
-        <!-- Breadcrumb -->
+        <!-- Breadcrumb Matching Image 1 -->
         <div class="breadcrumb-wrap">
             <a href="{{ route('home') }}">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                 Trang chủ
             </a>
-            <span>/</span>
-            <span>Địa điểm</span>
+            <span class="breadcrumb-sep">/</span>
+            <span class="breadcrumb-current">Địa điểm</span>
         </div>
 
-        <!-- Tiêu đề trang & Badge kết quả -->
+        <!-- Tiêu đề trang & Badge kết quả Matching Image 1 -->
         <div class="page-header-row">
             <h1 class="page-title">Khám Phá Địa Điểm Du Lịch</h1>
             <div class="badge-results-count" id="resultsCountBadge">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 1 0-16 0"></path></svg>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="#EF4444"><circle cx="12" cy="7" r="4"></circle><path d="M5.5 21a6.5 6.5 0 0 1 13 0"></path></svg>
                 <span>{{ $destinations->total() }} điểm đến phù hợp</span>
             </div>
         </div>
 
-        <!-- Khối Bộ Lọc (Filter Form) -->
+        <!-- Khối Bộ Lọc (Filter Form) Matching Image 1 -->
         <div class="filter-card">
             <form action="{{ route('destinations.index') }}" method="GET" id="destinationsFilterForm">
+                <input type="hidden" name="per_page" value="{{ request('per_page', $perPage ?? 6) }}">
                 <div class="filter-form-grid">
                     <!-- 1. Tìm kiếm theo tên -->
                     <div class="filter-field">
-                        <label for="filterSearch">🔍 Tìm kiếm</label>
+                        <label for="filterSearch">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            <span>Tìm kiếm</span>
+                        </label>
                         <input type="text" name="search" data-search-suggestions="destination" id="filterSearch" class="filter-input"
                                placeholder="Tên địa điểm..." value="{{ request('search') ?? request('keyword') }}">
                     </div>
 
                     <!-- 2. Thành phố -->
                     <div class="filter-field">
-                        <label for="filterCity">📍 Thành phố</label>
+                        <label for="filterCity">
+                            <svg width="15" height="15" viewBox="0 0 16 16" fill="#EF4444"><path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg>
+                            <span>Thành phố</span>
+                        </label>
                         <select name="city_id" id="filterCity" class="filter-select">
                             <option value="">Tất cả thành phố</option>
                             @foreach($cities as $c)
@@ -826,7 +874,10 @@
 
                     <!-- 3. Danh mục -->
                     <div class="filter-field">
-                        <label for="filterCategory">⊞ Danh mục</label>
+                        <label for="filterCategory">
+                            <svg width="15" height="15" viewBox="0 0 16 16" fill="#0066FF"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3z"/></svg>
+                            <span>Danh mục</span>
+                        </label>
                         <select name="category_id" id="filterCategory" class="filter-select">
                             <option value="">Tất cả danh mục</option>
                             @foreach($categories as $cat)
@@ -839,7 +890,10 @@
 
                     <!-- 4. Khoảng giá -->
                     <div class="filter-field">
-                        <label for="filterBudget">💵 Khoảng giá</label>
+                        <label for="filterBudget">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="#10B981"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v12M8 10h8" stroke="#FFFFFF" stroke-width="2"></path></svg>
+                            <span>Khoảng giá</span>
+                        </label>
                         <select name="budget" id="filterBudget" class="filter-select">
                             <option value="">Tất cả mức giá</option>
                             <option value="1" {{ request('budget') == '1' ? 'selected' : '' }}>Dưới 500.000đ</option>
@@ -850,7 +904,10 @@
 
                     <!-- 5. Sắp xếp -->
                     <div class="filter-field">
-                        <label for="filterSort">⋮= Sắp xếp</label>
+                        <label for="filterSort">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2.5"><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="12" x2="14" y2="12"></line><line x1="4" y1="18" x2="8" y2="18"></line></svg>
+                            <span>Sắp xếp</span>
+                        </label>
                         <select name="sort" id="filterSort" class="filter-select">
                             <option value="popular" {{ request('sort') == 'popular' ? 'selected' : '' }}>Độ phổ biến</option>
                             <option value="rating_desc" {{ request('sort') == 'rating_desc' ? 'selected' : '' }}>Đánh giá cao nhất</option>
@@ -860,27 +917,17 @@
                         </select>
                     </div>
 
-                    <!-- 6. Số lượng mỗi trang -->
+                    <!-- Nút Đặt lại Matching Image 1 -->
                     <div class="filter-field">
-                        <label for="filterPerPage">📄 Hiển thị</label>
-                        <select name="per_page" id="filterPerPage" class="filter-select">
-                            <option value="6" {{ (request('per_page', $perPage ?? 6) == 6) ? 'selected' : '' }}>6 / trang</option>
-                            <option value="9" {{ (request('per_page') == 9) ? 'selected' : '' }}>9 / trang</option>
-                            <option value="12" {{ (request('per_page') == 12) ? 'selected' : '' }}>12 / trang</option>
-                            <option value="18" {{ (request('per_page') == 18) ? 'selected' : '' }}>18 / trang</option>
-                        </select>
-                    </div>
-
-                    <!-- Nút Đặt lại / Tìm kiếm -->
-                    <div class="filter-field">
+                        <label style="visibility: hidden;">&nbsp;</label>
                         <a href="{{ route('destinations.index') }}" class="btn-reset-filter" title="Đặt lại bộ lọc">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
-                            Đặt lại
+                            <span>Đặt lại</span>
                         </a>
                     </div>
                 </div>
 
-                <!-- Sub-bar: Toggle Nơi lưu trú & Lọc nhanh Thành phố -->
+                <!-- Sub-bar: Toggle Nơi lưu trú & Lọc nhanh Thành phố Matching Image 1 -->
                 <div class="filter-sub-bar">
                     <label class="toggle-lodging-wrap" for="toggleLodging">
                         <span class="switch-box">
@@ -888,23 +935,30 @@
                                    {{ request('is_lodging') == '1' ? 'checked' : '' }} onchange="document.getElementById('destinationsFilterForm').submit();">
                             <span class="slider-round"></span>
                         </span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#0066FF" style="margin-left: 2px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                         <span class="toggle-label-text">
-                            🏨 Chỉ hiển thị Nơi lưu trú (Khách sạn / Resort)
+                            Chỉ hiển thị Nơi lưu trú (Khách sạn / Resort)
                         </span>
                     </label>
 
                     <div class="quick-cities-wrap">
                         <span class="quick-city-label">Lọc nhanh:</span>
                         @php
-                            $quickCities = ['Đà Nẵng', 'Phú Quốc', 'Hạ Long', 'Hà Nội', 'Đà Lạt', 'Hội An'];
+                            $quickCitiesConfig = [
+                                'Đà Nẵng' => $cities->first(fn($c) => str_contains(mb_strtolower($c->name), 'đà nẵng') || str_contains(mb_strtolower($c->name), 'da nang')),
+                                'Phú Quốc' => $cities->first(fn($c) => str_contains(mb_strtolower($c->name), 'phú quốc') || str_contains(mb_strtolower($c->name), 'phu quoc')),
+                                'Hạ Long' => $cities->first(fn($c) => str_contains(mb_strtolower($c->name), 'hạ long') || str_contains(mb_strtolower($c->name), 'ha long')),
+                            ];
                         @endphp
-                        @foreach($cities as $quickCity)
-                            @if(in_array($quickCity->name, $quickCities))
-                                <a href="{{ route('destinations.index', array_merge(request()->except(['city_id', 'page']), ['city_id' => $quickCity->id])) }}" 
-                                   class="pill-city {{ (string)request('city_id') === (string)$quickCity->id ? 'active' : '' }}">
-                                    {{ $quickCity->name }}
-                                </a>
-                            @endif
+                        @foreach($quickCitiesConfig as $label => $cityObj)
+                            @php
+                                $cityId = $cityObj ? $cityObj->id : null;
+                                $isActive = $cityId && (string)request('city_id') === (string)$cityId;
+                            @endphp
+                            <a href="{{ $cityId ? route('destinations.index', array_merge(request()->except(['city_id', 'page']), ['city_id' => $cityId])) : '#' }}" 
+                               class="pill-city {{ $isActive ? 'active' : '' }}">
+                                {{ $label }}
+                            </a>
                         @endforeach
                     </div>
                 </div>

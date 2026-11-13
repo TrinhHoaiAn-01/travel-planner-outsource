@@ -27,16 +27,17 @@
         }
 
         /* Top Navigation Header */
+        /* Top Navigation Header - Đồng bộ hoàn toàn với các trang khác */
         .navbar {
             background-color: #FFFFFF;
             border-bottom: 1px solid #E2E8F0;
-            padding: 12px 32px;
+            padding: 14px 36px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             position: sticky;
             top: 0;
-            z-index: 50;
+            z-index: 100;
         }
 
         .navbar-brand {
@@ -45,8 +46,8 @@
             gap: 10px;
             text-decoration: none;
             color: #0F172A;
-            font-weight: 700;
-            font-size: 18px;
+            font-weight: 800;
+            font-size: 19px;
             letter-spacing: -0.5px;
         }
 
@@ -64,84 +65,97 @@
         .navbar-nav {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
             list-style: none;
         }
 
-        .nav-item a {
+        .nav-link {
+            text-decoration: none;
+            color: #475569;
+            font-weight: 500;
+            font-size: 14px;
             display: flex;
             align-items: center;
             gap: 6px;
-            padding: 8px 14px;
-            border-radius: 9999px;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            color: #475569;
+            padding: 8px 16px;
+            border-radius: 20px;
             transition: all 0.2s;
         }
 
-        .nav-item a:hover {
-            color: #0066FF;
-            background-color: #F1F5F9;
-        }
-
-        .nav-item.active a {
+        .nav-link.active {
             background-color: #EBF5FF;
             color: #0066FF;
             font-weight: 600;
         }
 
-        .navbar-actions {
+        .nav-link:hover:not(.active) {
+            color: #0066FF;
+            background-color: #F1F5F9;
+        }
+
+        .nav-actions {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
         }
 
         .btn-admin {
-            display: inline-flex;
+            display: flex;
             align-items: center;
             gap: 6px;
-            padding: 6px 14px;
-            border: 1px solid #CBD5E1;
-            border-radius: 9999px;
+            padding: 7px 16px;
+            border-radius: 20px;
+            border: 1px solid #0F172A;
+            background: #FFFFFF;
+            color: #0F172A;
             font-size: 13px;
             font-weight: 600;
             text-decoration: none;
-            color: #0F172A;
-            background: #FFFFFF;
-            transition: background 0.2s;
+            transition: all 0.2s;
         }
 
         .btn-admin:hover {
-            background-color: #F8FAFC;
+            background: #F8FAFC;
         }
 
         .user-dropdown {
-            position: relative;
             display: flex;
             align-items: center;
             gap: 8px;
-            cursor: pointer;
+            text-decoration: none;
+            color: #0F172A;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 4px 8px;
+            border-radius: 20px;
         }
 
         .user-avatar {
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
-            background: #2563EB;
+            background: #0066FF;
+            color: #FFF;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #fff;
-            font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 13px;
         }
 
-        .user-name {
+        .btn-login {
+            background: #0066FF;
+            color: #FFFFFF;
+            padding: 8px 20px;
+            border-radius: 20px;
+            text-decoration: none;
             font-size: 14px;
             font-weight: 600;
-            color: #1E293B;
+            transition: background 0.2s;
+        }
+
+        .btn-login:hover {
+            background: #0052CC;
         }
 
         /* Container */
@@ -236,25 +250,22 @@
         }
 
         /* Status Filter Tabs Matching Image 1 */
-        .tabs-and-search-container {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin-bottom: 30px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #F1F5F9;
+        .status-tabs-container {
+            border-bottom: 1px solid #E2E8F0;
+            padding-bottom: 16px;
+            margin-bottom: 28px;
         }
 
         .status-tabs {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             overflow-x: auto;
             scrollbar-width: none;
         }
 
         .status-pill {
-            padding: 8px 20px;
+            padding: 7px 20px;
             border-radius: 9999px;
             font-size: 14px;
             font-weight: 500;
@@ -273,90 +284,7 @@
             background-color: #0066FF;
             color: #FFFFFF;
             font-weight: 600;
-            box-shadow: 0 2px 8px rgba(0, 102, 255, 0.2);
-        }
-
-        /* Compact Search Bar */
-        .search-bar {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: #F8FAFC;
-            padding: 8px 14px;
-            border-radius: 12px;
-            border: 1px solid #E2E8F0;
-            flex-wrap: wrap;
-        }
-
-        .search-input-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-            min-width: 240px;
-        }
-
-        .search-input-group input {
-            width: 100%;
-            border: none;
-            outline: none;
-            font-size: 13.5px;
-            color: #0F172A;
-            background: transparent;
-        }
-
-        .search-input-group input::placeholder {
-            color: #94A3B8;
-        }
-
-        .date-filter-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: #64748B;
-        }
-
-        .date-input {
-            border: 1px solid #CBD5E1;
-            border-radius: 8px;
-            padding: 6px 10px;
-            font-size: 12.5px;
-            color: #0F172A;
-            outline: none;
-            background: #FFFFFF;
-        }
-
-        .btn-filter {
-            background-color: #0066FF;
-            color: #FFFFFF;
-            border: none;
-            border-radius: 8px;
-            padding: 7px 16px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-filter:hover {
-            background-color: #0052CC;
-        }
-
-        .btn-reset {
-            background-color: #FFFFFF;
-            color: #475569;
-            border: 1px solid #CBD5E1;
-            border-radius: 8px;
-            padding: 7px 12px;
-            font-size: 13px;
-            font-weight: 500;
-            text-decoration: none;
-            transition: background 0.2s;
-        }
-
-        .btn-reset:hover {
-            background-color: #F1F5F9;
+            box-shadow: 0 2px 6px rgba(0, 102, 255, 0.2);
         }
 
         /* Trips Grid - Exactly 3 Columns Matching Image 1 */
@@ -439,10 +367,10 @@
             color: #B45309;
         }
 
-        /* Đã hoàn thành: Soft neutral gray pill */
+        /* Đã hoàn thành: Dark charcoal pill Matching Image 1 */
         .badge-completed {
-            background-color: #F1F5F9;
-            color: #334155;
+            background-color: #0F172A;
+            color: #FFFFFF;
         }
 
         .badge-draft {
@@ -450,15 +378,15 @@
             color: #64748B;
         }
 
-        /* Three dots options button */
+        /* Three dots options button Matching Image 1 */
         .menu-button {
             position: absolute;
             top: 14px;
             right: 14px;
-            width: 34px;
-            height: 34px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.95);
+            background: #FFFFFF;
             border: none;
             display: flex;
             align-items: center;
@@ -471,7 +399,7 @@
         }
 
         .menu-button:hover {
-            background: #FFFFFF;
+            background: #F8FAFC;
             color: #0F172A;
         }
 
@@ -581,23 +509,23 @@
         }
 
         .budget-amount {
-            font-size: 17px;
+            font-size: 16.5px;
             font-weight: 700;
-            color: #059669;
+            color: #10B981;
         }
 
         .action-buttons {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .btn-calendar-icon {
             width: 38px;
             height: 38px;
-            border: 1px solid #CBD5E1;
-            border-radius: 12px;
-            display: flex;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             background: #FFFFFF;
@@ -609,7 +537,7 @@
 
         .btn-calendar-icon:hover {
             background-color: #F8FAFC;
-            border-color: #94A3B8;
+            border-color: #CBD5E1;
             color: #0066FF;
         }
 
@@ -617,10 +545,9 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            padding: 9px 20px;
-            border-radius: 9999px;
-            font-size: 14px;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 13.5px;
             font-weight: 600;
             background-color: #0066FF;
             color: #FFFFFF;
@@ -911,49 +838,79 @@
 </head>
 <body>
 
-    <!-- Header Navigation -->
+    <!-- Header Navigation Đồng bộ với các trang khác -->
     <header class="navbar">
         <a href="{{ route('home') }}" class="navbar-brand">
             <div class="brand-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <circle cx="12" cy="12" r="10"></circle>
                     <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
                 </svg>
             </div>
-            <span>TRAVEL PLANNER</span>
+            TRAVEL PLANNER
         </a>
 
         <ul class="navbar-nav">
-            <li class="nav-item">
-                <a href="{{ route('home') }}">Trang chủ</a>
+            <li>
+                <a href="{{ route('home') }}" class="nav-link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                    Trang chủ
+                </a>
             </li>
-            <li class="nav-item active">
-                <a href="{{ route('trips.index') }}">Chuyến đi</a>
+            <li>
+                <a href="{{ route('destinations.index') }}" class="nav-link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    Địa điểm
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('trips.index') }}" class="nav-link active">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    Chuyến đi
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('favorites.index') }}" class="nav-link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                    Yêu thích
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('bookings.index') }}" class="nav-link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>
+                    Booking
+                </a>
             </li>
         </ul>
 
-        <div class="navbar-actions">
-            @if(Auth::check() && Auth::user()->role === 'admin')
-                <a href="{{ route('admin.dashboard') }}" class="btn-admin">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                    Admin
-                </a>
-            @endif
-
-            <div class="user-dropdown">
-                <a href="{{ route('profile.show') }}" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: inherit;" title="Hồ sơ cá nhân">
-                    <div class="user-avatar">
-                        {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}
-                    </div>
-                    <span class="user-name">{{ Auth::user()->name ?? 'Người dùng' }}</span>
+        <div class="nav-actions">
+            @auth
+                @if(Auth::user()->role === 'admin')
+                    <a href="{{ route('admin.dashboard') }}" class="btn-admin">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                        Admin
+                    </a>
+                @endif
+                <a href="{{ route('profile.show') }}" class="user-dropdown" title="Hồ sơ cá nhân">
+                    @if(Auth::user()->avatar)
+                        <img src="{{ Auth::user()->avatar }}" alt="Avatar" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                    @else
+                        <div class="user-avatar">
+                            {{ mb_strtoupper(mb_substr(Auth::user()->name, 0, 1)) }}
+                        </div>
+                    @endif
+                    <span>{{ Auth::user()->name }}</span>
+                    <span style="font-size: 11px; color: #64748B; margin-left: 2px;">▾</span>
                 </a>
                 <form action="{{ route('logout') }}" method="POST" style="display: inline; margin-left: 6px;">
                     @csrf
-                    <button type="submit" title="Đăng xuất" style="background: none; border: none; cursor: pointer; color: #94A3B8;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" x2="9" y1="12" y2="12"></line></svg>
+                    <button type="submit" title="Đăng xuất" style="background: none; border: none; cursor: pointer; color: #94A3B8; display: flex; align-items: center;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="21" x2="9" y1="12" y2="12"></line></svg>
                     </button>
                 </form>
-            </div>
+            @else
+                <a href="{{ route('login') }}" class="btn-login">Đăng nhập</a>
+            @endauth
         </div>
     </header>
 
@@ -986,54 +943,32 @@
             </button>
         </div>
 
-        <!-- Filter & Search Section Matching Image 1 -->
-        <div class="tabs-and-search-container">
-            <!-- Status Tabs Matching Image 1 -->
+        <!-- Status Filter Tabs Matching Image 1 -->
+        <div class="status-tabs-container">
             <div class="status-tabs">
-                <a href="{{ route('trips.index', array_merge(request()->query(), ['status' => 'all'])) }}"
+                <a href="{{ route('trips.index', ['status' => 'all']) }}"
                    class="status-pill {{ $currentStatus === 'all' || empty($currentStatus) ? 'active' : '' }}">
                     Tất cả ({{ $counts['all'] ?? 0 }})
                 </a>
-                <a href="{{ route('trips.index', array_merge(request()->query(), ['status' => 'draft'])) }}"
-                   class="status-pill {{ $currentStatus === 'draft' ? 'active' : '' }}">
-                    Bản nháp ({{ $counts['draft'] ?? 0 }})
-                </a>
-                <a href="{{ route('trips.index', array_merge(request()->query(), ['status' => 'planned'])) }}"
+                @if(($counts['draft'] ?? 0) > 0)
+                    <a href="{{ route('trips.index', ['status' => 'draft']) }}"
+                       class="status-pill {{ $currentStatus === 'draft' ? 'active' : '' }}">
+                        Bản nháp ({{ $counts['draft'] ?? 0 }})
+                    </a>
+                @endif
+                <a href="{{ route('trips.index', ['status' => 'planned']) }}"
                    class="status-pill {{ $currentStatus === 'planned' ? 'active' : '' }}">
                     Sắp tới ({{ $counts['planned'] ?? 0 }})
                 </a>
-                <a href="{{ route('trips.index', array_merge(request()->query(), ['status' => 'ongoing'])) }}"
+                <a href="{{ route('trips.index', ['status' => 'ongoing']) }}"
                    class="status-pill {{ $currentStatus === 'ongoing' ? 'active' : '' }}">
                     Đang diễn ra ({{ $counts['ongoing'] ?? 0 }})
                 </a>
-                <a href="{{ route('trips.index', array_merge(request()->query(), ['status' => 'completed'])) }}"
+                <a href="{{ route('trips.index', ['status' => 'completed']) }}"
                    class="status-pill {{ $currentStatus === 'completed' ? 'active' : '' }}">
                     Đã hoàn thành ({{ $counts['completed'] ?? 0 }})
                 </a>
             </div>
-
-            <!-- Integrated Search and Date Filter Bar -->
-            <form action="{{ route('trips.index') }}" method="GET" class="search-bar">
-                <input type="hidden" name="status" value="{{ $currentStatus }}">
-
-                <div class="search-input-group">
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input type="text" name="search" data-search-suggestions="trip" value="{{ $searchKeyword }}" placeholder="Tìm kiếm theo tên hoặc mô tả chuyến đi...">
-                </div>
-
-                <div class="date-filter-group">
-                    <span>Từ:</span>
-                    <input type="date" name="start_date" value="{{ $startDate }}" class="date-input">
-                    <span>Đến:</span>
-                    <input type="date" name="end_date" value="{{ $endDate }}" class="date-input">
-                </div>
-
-                <button type="submit" class="btn-filter">Tìm kiếm</button>
-
-                @if($searchKeyword || $startDate || $endDate || ($currentStatus && $currentStatus !== 'all'))
-                    <a href="{{ route('trips.index') }}" class="btn-reset">Đặt lại</a>
-                @endif
-            </form>
         </div>
 
         <!-- Trips Grid Matching Image 1 -->
@@ -1069,7 +1004,7 @@
                         $badgeText = 'Bản nháp';
                     }
 
-                    // Hình ảnh minh họa theo tên chuyến đi hoặc ảnh mẫu tương ứng
+                    // Hình ảnh minh họa chuẩn theo Ảnh 1 Mockup
                     $bannerImage = 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=800&q=80';
                     $lowerName = mb_strtolower($trip->name);
                     if (str_contains($lowerName, 'hạ long') || str_contains($lowerName, 'ha long')) {
@@ -1077,7 +1012,7 @@
                     } elseif (str_contains($lowerName, 'sa pa') || str_contains($lowerName, 'fansipan') || str_contains($lowerName, 'sapa')) {
                         $bannerImage = 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80';
                     } elseif (str_contains($lowerName, 'đà nẵng') || str_contains($lowerName, 'hội an') || str_contains($lowerName, 'da nang')) {
-                        $bannerImage = 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=800&q=80';
+                        $bannerImage = 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=800&q=80';
                     }
                 @endphp
 
@@ -1220,14 +1155,16 @@
                             </a>
 
                             <div class="action-buttons">
-                                <a href="{{ route('itinerary.index', $trip->id) }}" class="btn-primary-action" title="Xem lịch trình theo từng ngày">
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <a href="{{ route('itinerary.index', $trip->id) }}" class="btn-calendar-icon" title="Xem lịch trình theo ngày">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
                                         <line x1="16" x2="16" y1="2" y2="6"></line>
                                         <line x1="8" x2="8" y1="2" y2="6"></line>
                                         <line x1="3" x2="21" y1="10" y2="10"></line>
                                     </svg>
-                                    <span>Lịch trình</span>
+                                </a>
+                                <a href="{{ route('itinerary.index', $trip->id) }}" class="btn-primary-action" title="{{ $isCompleted ? 'Xem lại chuyến đi' : 'Xem lịch trình chi tiết' }}">
+                                    <span>{{ $isCompleted ? 'Xem lại' : 'Lịch trình' }}</span>
                                 </a>
                             </div>
                         </div>

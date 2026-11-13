@@ -11,4 +11,8 @@ services:
       - ./bootstrap:/var/www/html/bootstrap
       - ./config:/var/www/html/config
       - ./.env:/var/www/html/.env
+      - ./composer.json:/var/www/html/composer.json
+      - ./composer.lock:/var/www/html/composer.lock
+      - ./packages:/var/www/html/packages
+      - ./vendor/search:/var/www/html/vendor/search
 

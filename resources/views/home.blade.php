@@ -290,7 +290,7 @@
             margin: 0;
         }
 
-        .search-input-box select {
+        .search-input-box select:not(.search-engine-select) {
             appearance: none;
             -webkit-appearance: none;
             -moz-appearance: none;
@@ -301,6 +301,32 @@
             background-size: 14px 14px;
             padding-right: 28px;
             cursor: pointer;
+        }
+
+        .search-engine-select {
+            width: auto !important;
+            min-width: 78px;
+            height: 36px !important;
+            margin-right: 14px !important;
+            padding: 0 10px !important;
+            border: 1px solid #E2E8F0 !important;
+            border-radius: 8px;
+            background: #F1F5F9 !important;
+            color: #1E293B !important;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .search-engine-select:focus {
+            border-color: #3B82F6 !important;
+            background: #FFFFFF !important;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
         }
 
         #homeSearchKeyword {
@@ -779,7 +805,6 @@
 
         <!-- Floating Search Box Form -->
         <form action="{{ route('home') }}" method="GET" class="search-card-wrapper" id="homeSearchForm">
-            <input type="hidden" name="engine" id="homeSearchEngine" value="{{ request('engine', 'solr') }}">
             <div class="search-grid">
                 <div class="search-field" style="position: relative; z-index: 60;">
                     <label for="homeSearchKeyword">
@@ -789,6 +814,10 @@
                         <span>Điểm đến / Thành phố</span>
                     </label>
                     <div class="search-input-box">
+                        <select name="engine" id="homeSearchEngine" class="search-engine-select" title="Chọn công cụ tìm kiếm">
+                            <option value="solr" {{ request('engine', 'solr') === 'solr' ? 'selected' : '' }}>Solr</option>
+                            <option value="sql" {{ request('engine') === 'sql' ? 'selected' : '' }}>SQL</option>
+                        </select>
                         <input type="text"
                                name="keyword"
                                id="homeSearchKeyword"
@@ -857,7 +886,7 @@
             <section id="search-results-section" style="margin-bottom: 55px; scroll-margin-top: 80px;">
                 <div class="section-header-wrap">
                     <div>
-                        <span class="sub-tag-blue">KẾT QUẢ TÌM KIẾM NHANH</span>
+                        <span class="sub-tag-blue">KẾT QUẢ TÌM KIẾM NHANH ({{ strtoupper(request('engine', 'solr')) }})</span>
                         <h2 class="sec-title-main">
                             @if(request('keyword'))
                                 Kết quả cho "{{ request('keyword') }}"
