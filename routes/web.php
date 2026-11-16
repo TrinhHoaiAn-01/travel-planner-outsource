@@ -121,7 +121,9 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::patch('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'update'])->name('expenses.update');
     Route::delete('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'destroy'])->name('expenses.destroy');
 
-    // Quản lý Đặt phòng (Bookings - Nguyễn Văn Thắng - STT 5, 6, 7, 8)
+    // Quản lý Đặt phòng (Bookings - Nguyễn Văn Thắng - STT 5, 6, 7, 8 - Hình 27 Màn hình Đặt phòng)
+    Route::get('/destinations/{destination}/booking', [\App\Http\Controllers\BookingController::class, 'create'])->name('bookings.create');
+    Route::get('/bookings/create', [\App\Http\Controllers\BookingController::class, 'create'])->name('bookings.create.direct');
     Route::get('/bookings', [\App\Http\Controllers\BookingController::class, 'index'])->name('bookings.index');
     Route::post('/bookings', [\App\Http\Controllers\BookingController::class, 'store'])->name('bookings.store');
     Route::get('/bookings/{booking}', [\App\Http\Controllers\BookingController::class, 'show'])->name('bookings.show');

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreBookingRequest;
 use App\Models\Booking;
+use App\Models\Destination;
+use App\Models\Trip;
 use App\Services\Interfaces\BookingServiceInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,6 +21,47 @@ class BookingController extends Controller
     public function __construct(
         private BookingServiceInterface $bookingService
     ) {}
+
+    /**
+     * Hiển thị giao diện Đặt phòng lưu trú (Hình 27 trong Báo cáo).
+     */
+    public function create(Request $request, ?Destination $destination = null): View
+    {
+        if (! $destination || ! $destination->exists) {
+            $destId = $request->query('destination_id');
+            if ($destId) {
+                $destination = Destination::with(['city', 'roomTypes', 'images', 'primaryImage', 'approvedReviews'])->find($destId);
+            }
+        }
+
+        if (! $destination) {
+            $destination = Destination::whereHas('roomTypes')
+                ->with(['city', 'roomTypes', 'images', 'primaryImage', 'approvedReviews'])
+                ->firstOrFail();
+        } else {
+            $destination->loadMissing(['city', 'roomTypes', 'images', 'primaryImage', 'approvedReviews']);
+        }
+
+        $userTrips = Auth::check() 
+            ? Trip::where('user_id', Auth::id())->latest()->get() 
+            : collect();
+
+        $selectedRoomTypeId = (int) $request->query('room_type_id', $destination->roomTypes->first()?->id);
+        $selectedTripId = $request->query('trip_id');
+        $checkInDate = $request->query('check_in_date', date('Y-m-d'));
+        $checkOutDate = $request->query('check_out_date', date('Y-m-d', strtotime('+2 days')));
+        $roomCount = (int) $request->query('room_count', 1);
+
+        return view('bookings.create', [
+            'destination'        => $destination,
+            'userTrips'          => $userTrips,
+            'selectedRoomTypeId' => $selectedRoomTypeId,
+            'selectedTripId'     => $selectedTripId,
+            'checkInDate'        => $checkInDate,
+            'checkOutDate'       => $checkOutDate,
+            'roomCount'          => $roomCount,
+        ]);
+    }
 
     /**
      * Hiển thị danh sách các đơn đặt phòng của người dùng hiện tại (Hình 29 trong Báo cáo).
@@ -49,7 +92,7 @@ class BookingController extends Controller
     }
 
     /**
-     * Xử lý lưu đơn đặt phòng mới (Widget Hình 13).
+     * Xử lý lưu đơn đặt phòng mới (Màn hình Hình 27 và Widget Đặt phòng).
      */
     public function store(StoreBookingRequest $request): RedirectResponse
     {
@@ -57,6 +100,18 @@ class BookingController extends Controller
             $request->validated(),
             Auth::id()
         );
+
+        if ($request->input('payment_method') === 'online') {
+            return redirect()
+                ->route('payments.create', $booking->id)
+                ->with('success', "Đặt phòng thành công! Mã đơn đặt: {$booking->booking_code}. Vui lòng lựa chọn phương thức thanh toán.");
+        }
+
+        if ($request->input('payment_method') === 'cod') {
+            return redirect()
+                ->route('bookings.show', $booking->id)
+                ->with('success', "Đặt phòng thành công! Mã đơn đặt: {$booking->booking_code}. Bạn đã chọn thanh toán trực tiếp khi nhận phòng tại khách sạn.");
+        }
 
         if ($booking->trip_id) {
             return redirect()

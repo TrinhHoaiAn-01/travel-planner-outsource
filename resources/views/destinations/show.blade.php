@@ -1719,8 +1719,8 @@
                     Thêm vào Trip
                 </button>
 
-                <!-- Đặt phòng ngay (Cuộn tới Form đặt phòng) -->
-                <a href="#bookingWidgetBox" class="btn-action-book-primary">
+                <!-- Đặt phòng ngay (Mở trang Đặt phòng - Hình 27 Báo cáo) -->
+                <a href="{{ route('bookings.create', $destination->id) }}" class="btn-action-book-primary">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
                     Đặt phòng ngay
                 </a>
@@ -2209,8 +2209,12 @@
                             @if($destination->roomTypes->isNotEmpty())
                                 <button type="submit" class="btn-widget-primary" id="btnBookRoomNow">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
-                                    Đặt phòng lưu trú
+                                    Đặt phòng nhanh
                                 </button>
+                                <a href="{{ route('bookings.create', $destination->id) }}" class="btn-widget-outline" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;padding:11px;border:1.5px solid #0066FF;color:#0066FF;border-radius:10px;font-weight:700;text-decoration:none;font-size:14px;background:#f0f7ff;transition:all 0.2s;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                    Mở trang Đặt phòng chi tiết (Hình 27)
+                                </a>
                             @else
                                 <button type="button" class="btn-widget-primary" style="opacity: 0.6; cursor: not-allowed;" disabled>
                                     Chưa có phòng để đặt

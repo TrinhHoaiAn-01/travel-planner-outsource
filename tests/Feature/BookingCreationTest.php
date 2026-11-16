@@ -189,4 +189,70 @@ class BookingCreationTest extends TestCase
 
         $response->assertSessionHasErrors(['room_type_id', 'check_in_date', 'check_out_date', 'room_count']);
     }
+
+    /**
+     * Người dùng truy cập thành công Màn hình đặt phòng chuẩn Hình 27 Báo cáo.
+     */
+    public function test_authenticated_user_can_view_booking_creation_page_matching_hinh_27(): void
+    {
+        $destination = $this->roomType->destination;
+
+        $response = $this->actingAs($this->user)->get(route('bookings.create', $destination->id));
+
+        $response->assertOk();
+        $response->assertViewIs('bookings.create');
+        $response->assertSee('Thông Tin Đặt Phòng Lưu Trú');
+        $response->assertSee('Tóm Tắt Đơn Đặt Phòng');
+        $response->assertSee($destination->name);
+        $response->assertSee($this->roomType->name);
+        $response->assertSee('Hoàn tất Đặt phòng');
+    }
+
+    /**
+     * Người dùng đặt phòng chọn thanh toán Online được chuyển tới trang chọn cổng thanh toán.
+     */
+    public function test_authenticated_user_can_book_with_online_payment_redirect(): void
+    {
+        $checkIn = Carbon::now()->addDays(2)->toDateString();
+        $checkOut = Carbon::now()->addDays(4)->toDateString();
+
+        $response = $this->actingAs($this->user)->post(route('bookings.store'), [
+            'room_type_id'   => $this->roomType->id,
+            'check_in_date'  => $checkIn,
+            'check_out_date' => $checkOut,
+            'room_count'     => 1,
+            'guest_name'     => 'Nguyễn Bảo Ngọc',
+            'guest_phone'    => '0912345678',
+            'guest_email'    => 'ngoc@travelplanner.com',
+            'payment_method' => 'online',
+        ]);
+
+        $booking = Booking::latest('id')->first();
+        $this->assertNotNull($booking);
+        $response->assertRedirect(route('payments.create', $booking->id));
+    }
+
+    /**
+     * Người dùng đặt phòng chọn thanh toán COD (tại khách sạn) được chuyển tới chi tiết đơn đặt phòng.
+     */
+    public function test_authenticated_user_can_book_with_cod_payment_redirect(): void
+    {
+        $checkIn = Carbon::now()->addDays(2)->toDateString();
+        $checkOut = Carbon::now()->addDays(4)->toDateString();
+
+        $response = $this->actingAs($this->user)->post(route('bookings.store'), [
+            'room_type_id'   => $this->roomType->id,
+            'check_in_date'  => $checkIn,
+            'check_out_date' => $checkOut,
+            'room_count'     => 1,
+            'guest_name'     => 'Nguyễn Bảo Ngọc',
+            'guest_phone'    => '0912345678',
+            'guest_email'    => 'ngoc@travelplanner.com',
+            'payment_method' => 'cod',
+        ]);
+
+        $booking = Booking::latest('id')->first();
+        $this->assertNotNull($booking);
+        $response->assertRedirect(route('bookings.show', $booking->id));
+    }
 }

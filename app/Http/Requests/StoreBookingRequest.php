@@ -22,11 +22,17 @@ class StoreBookingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'room_type_id'   => ['required', 'exists:room_types,id'],
-            'trip_id'        => ['nullable', 'exists:trips,id'],
-            'check_in_date'  => ['required', 'date', 'after_or_equal:today'],
-            'check_out_date' => ['required', 'date', 'after:check_in_date'],
-            'room_count'     => ['required', 'integer', 'min:1', 'max:10'],
+            'room_type_id'     => ['required', 'exists:room_types,id'],
+            'trip_id'          => ['nullable', 'exists:trips,id'],
+            'check_in_date'    => ['required', 'date', 'after_or_equal:today'],
+            'check_out_date'   => ['required', 'date', 'after:check_in_date'],
+            'room_count'       => ['required', 'integer', 'min:1', 'max:10'],
+            'guest_name'       => ['nullable', 'string', 'max:255'],
+            'guest_phone'      => ['nullable', 'string', 'max:50'],
+            'guest_email'      => ['nullable', 'email', 'max:255'],
+            'guest_count'      => ['nullable', 'string', 'max:50'],
+            'special_requests' => ['nullable', 'string', 'max:1000'],
+            'payment_method'   => ['nullable', 'string', 'in:online,cod'],
         ];
     }
 
