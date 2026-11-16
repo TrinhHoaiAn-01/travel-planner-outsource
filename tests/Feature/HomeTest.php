@@ -101,7 +101,7 @@ class HomeTest extends TestCase
             'is_featured' => true,
         ]);
 
-        // $this->fakeWebsiteSearch(['destination' => [$dest1->id]]);
+        $this->fakeWebsiteSearch(['destination' => [$dest1->id]]);
         $response = $this->get(route('home', ['keyword' => 'Bà Nà']));
 
         $response->assertStatus(200);
