@@ -717,58 +717,7 @@
 <body>
 
     <!-- 1. Header Navigation (Khớp 100% Ảnh 2) -->
-    <header class="header-nav">
-        <div class="nav-container">
-            <a href="{{ route('home') }}" class="brand-logo">
-                <span class="brand-icon"><i class="bi bi-compass-fill"></i></span>
-                <span>TRAVEL PLANNER</span>
-            </a>
-
-            <ul class="main-menu">
-                <li><a href="{{ route('home') }}" class="menu-link"><i class="bi bi-house"></i> Trang chủ</a></li>
-                <li><a href="{{ route('home') }}#destinations" class="menu-link"><i class="bi bi-geo-alt"></i> Địa điểm</a></li>
-                <li><a href="{{ route('trips.index') }}" class="menu-link"><i class="bi bi-map"></i> Chuyến đi</a></li>
-                <li><a href="{{ route('favorites.index') }}" class="menu-link active"><i class="bi bi-suit-heart-fill"></i> Yêu thích</a></li>
-                <li><a href="{{ route('bookings.index') }}" class="menu-link"><i class="bi bi-calendar-event"></i> Booking</a></li>
-            </ul>
-
-            <div class="user-nav-actions">
-                @if(auth()->check() && auth()->user()->isAdmin())
-                    <a href="{{ route('admin.dashboard') }}" class="btn-admin-pill">
-                        <i class="bi bi-shield-check"></i> Admin
-                    </a>
-                @endif
-
-                @auth
-                    <div class="user-profile-dropdown">
-                        <button type="button" class="user-pill-btn" onclick="toggleUserDropdown(event)">
-                            <img src="{{ auth()->user()->avatar ?? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100' }}" 
-                                 alt="{{ auth()->user()->name }}" class="user-avatar-img">
-                            <span>{{ auth()->user()->name }}</span>
-                            <i class="bi bi-chevron-down" style="font-size: 11px;"></i>
-                        </button>
-                        <div class="dropdown-menu-custom" id="userDropdownMenu">
-                            <a href="{{ route('trips.index') }}" class="dropdown-item-custom">
-                                <i class="bi bi-briefcase"></i> Chuyến đi của tôi
-                            </a>
-                            <a href="{{ route('favorites.index') }}" class="dropdown-item-custom">
-                                <i class="bi bi-heart"></i> Danh sách yêu thích
-                            </a>
-                            <hr style="margin: 6px 0; border: none; border-top: 1px solid var(--border-color);">
-                            <form action="{{ route('logout') }}" method="POST">
-                                @csrf
-                                <button type="submit" class="dropdown-item-custom text-danger">
-                                    <i class="bi bi-box-arrow-right"></i> Đăng xuất
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                @else
-                    <a href="{{ route('login') }}" class="btn-admin-pill">Đăng nhập</a>
-                @endauth
-            </div>
-        </div>
-    </header>
+    @include('partials.site-header')
 
     <!-- 2. Main Container -->
     <main class="main-wrapper">

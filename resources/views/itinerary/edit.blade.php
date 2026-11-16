@@ -280,27 +280,7 @@
 </head>
 <body>
     <!-- Top Header -->
-    <header class="site-header">
-        <a href="{{ route('home') }}" class="header-logo">
-            <i class="bi bi-compass"></i>
-            <span>TRAVEL PLANNER</span>
-        </a>
-
-        <nav class="header-nav">
-            <a href="{{ route('home') }}" class="nav-link-custom">
-                <i class="bi bi-house"></i> Trang chủ
-            </a>
-            <a href="{{ route('destinations.index') }}" class="nav-link-custom">
-                <i class="bi bi-compass"></i> Địa điểm
-            </a>
-            <a href="{{ route('trips.index') }}" class="nav-link-custom active">
-                <i class="bi bi-geo-alt"></i> Chuyến đi
-            </a>
-            <a href="{{ route('favorites.index') }}" class="nav-link-custom">
-                <i class="bi bi-heart"></i> Yêu thích
-            </a>
-        </nav>
-    </header>
+    @include('partials.site-header')
 
     <!-- Breadcrumb -->
     <div class="breadcrumb-bar">

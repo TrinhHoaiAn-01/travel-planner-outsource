@@ -234,22 +234,11 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body>
 
-    <header>
-        <div class="header-container">
-            <a href="{{ route('home') }}" class="logo">
-                <div class="logo-icon">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
-                </div>
-                <span>TRAVEL PLANNER</span>
-            </a>
-            <div style="font-size: 14px; font-weight: 700;">
-                <a href="{{ route('bookings.index') }}" style="color: var(--primary); text-decoration: none;">&larr; Quản lý Booking</a>
-            </div>
-        </div>
-    </header>
+    @include('partials.site-header')
 
     <main class="main-container">
         <div class="receipt-card">

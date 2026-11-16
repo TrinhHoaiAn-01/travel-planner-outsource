@@ -15,73 +15,7 @@
 <body>
 
   <!-- Thanh điều hướng chính (Main Navigation Bar) -->
-  <nav class="navbar navbar-expand-lg navbar-travelplanner">
-    <div class="container">
-      <a class="navbar-brand navbar-brand-logo" href="{{ route('home') }}">
-        <div class="logo-icon"><i class="bi bi-compass"></i></div>
-        <span>TRAVEL PLANNER</span>
-      </a>
-      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-
-      <div class="collapse navbar-collapse" id="navbarContent">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3">
-          <li class="nav-item">
-            <a class="nav-link nav-link-travelplanner active" href="{{ route('home') }}"><i class="bi bi-house-door"></i> Trang chủ</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link nav-link-travelplanner" href="#"><i class="bi bi-geo-alt"></i> Địa điểm</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link nav-link-travelplanner" href="{{ route('trips.index') }}"><i class="bi bi-map"></i> Chuyến đi</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link nav-link-travelplanner" href="#"><i class="bi bi-heart"></i> Yêu thích</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link nav-link-travelplanner" href="#"><i class="bi bi-calendar-check"></i> Booking</a>
-          </li>
-        </ul>
-
-        <div class="d-flex align-items-center gap-2">
-          <!-- Phím tắt Admin nếu người dùng là Admin -->
-          @if(Auth::check() && Auth::user()->role === 'admin')
-            <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-dark btn-sm rounded-pill px-3">
-              <i class="bi bi-shield-lock me-1"></i> Admin
-            </a>
-          @endif
-
-          <!-- Khối người dùng hoặc đăng nhập -->
-          @auth
-            <div class="dropdown">
-              <button class="btn user-avatar-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <img src="{{ Auth::user()->avatar ?: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80' }}" alt="Avatar" class="user-avatar-img me-1">
-                <span class="fw-semibold text-dark small">{{ Auth::user()->name }}</span>
-              </button>
-              <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 mt-2">
-                <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Hồ sơ cá nhân</a></li>
-                <li><a class="dropdown-item" href="#"><i class="bi bi-heart me-2"></i>Địa điểm yêu thích</a></li>
-                <li><a class="dropdown-item" href="{{ route('trips.index') }}"><i class="bi bi-map me-2"></i>Chuyến đi của tôi</a></li>
-                <li><a class="dropdown-item" href="#"><i class="bi bi-bag-check me-2"></i>Lịch sử đặt phòng</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                  <form action="{{ route('logout') }}" method="POST" class="d-inline">
-                    @csrf
-                    <button type="submit" class="dropdown-item text-danger border-0 bg-transparent w-100 text-start">
-                      <i class="bi bi-box-arrow-right me-2"></i>Đăng xuất
-                    </button>
-                  </form>
-                </li>
-              </ul>
-            </div>
-          @else
-            <a href="{{ route('login') }}" class="btn btn-primary btn-sm rounded-pill px-3">Đăng nhập</a>
-          @endauth
-        </div>
-      </div>
-    </div>
-  </nav>
+  @include('partials.site-header')
 
   <main>
     <!-- Khối giới thiệu nổi bật (Hero Section) -->

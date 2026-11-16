@@ -607,45 +607,7 @@
 <body>
 
     <!-- 1. Header Navigation -->
-    <header>
-        <div class="header-container">
-            <a href="{{ route('home') }}" class="logo">
-                <div class="logo-icon">
-                    <i class="bi bi-compass"></i>
-                </div>
-                <span>TRAVEL PLANNER</span>
-            </a>
-
-            <ul class="nav-links">
-                <li><a href="{{ route('home') }}" class="nav-link"><i class="bi bi-house"></i> Trang chủ</a></li>
-                <li><a href="{{ route('destinations.index') }}" class="nav-link"><i class="bi bi-geo-alt"></i> Địa điểm</a></li>
-                <li><a href="{{ route('trips.index') }}" class="nav-link"><i class="bi bi-journal-bookmark"></i> Chuyến đi</a></li>
-                <li><a href="{{ route('favorites.index') }}" class="nav-link"><i class="bi bi-heart"></i> Yêu thích</a></li>
-                <li><a href="{{ route('bookings.index') }}" class="nav-link active"><i class="bi bi-calendar-check"></i> Booking</a></li>
-            </ul>
-
-            <div class="nav-actions">
-                @auth
-                    @if(Auth::user()->role === 'admin')
-                        <a href="{{ route('admin.dashboard') }}" class="btn-admin-pill">
-                            <i class="bi bi-shield-check"></i> Admin
-                        </a>
-                    @endif
-                    <a href="{{ route('profile.show') }}" class="user-dropdown">
-                        <div class="user-avatar">
-                            @if(Auth::user()->avatar)
-                                <img src="{{ Auth::user()->avatar }}" alt="{{ Auth::user()->name }}">
-                            @else
-                                {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}
-                            @endif
-                        </div>
-                        <span>{{ Auth::user()->name }}</span>
-                        <i class="bi bi-chevron-down" style="font-size: 12px; color: #94A3B8;"></i>
-                    </a>
-                @endauth
-            </div>
-        </div>
-    </header>
+    @include('partials.site-header')
 
     <!-- 2. Main Container -->
     <main class="main-container">

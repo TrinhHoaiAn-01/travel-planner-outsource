@@ -371,39 +371,12 @@
             font-size: 14px;
         }
     </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body>
 
     <!-- Header Navigation -->
-    <header class="navbar">
-        <a href="{{ route('home') }}" class="navbar-brand">
-            <div class="brand-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
-                </svg>
-            </div>
-            <span>TRAVEL PLANNER</span>
-        </a>
-
-        <ul class="navbar-nav">
-            <li class="nav-item">
-                <a href="{{ route('home') }}">Trang chủ</a>
-            </li>
-            <li class="nav-item active">
-                <a href="{{ route('trips.index') }}">Chuyến đi</a>
-            </li>
-        </ul>
-
-        <div class="navbar-actions">
-            <a href="{{ route('profile.show') }}" class="user-dropdown" style="text-decoration: none; color: inherit;" title="Hồ sơ cá nhân">
-                <div class="user-avatar">
-                    {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}
-                </div>
-                <span class="user-name">{{ Auth::user()->name ?? 'Người dùng' }}</span>
-            </a>
-        </div>
-    </header>
+    @include('partials.site-header')
 
     <!-- Main Container -->
     <main class="container">

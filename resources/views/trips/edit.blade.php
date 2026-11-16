@@ -130,19 +130,7 @@
 <body>
 
     <!-- Main Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-travelplanner">
-        <div class="container">
-            <a class="navbar-brand navbar-brand-logo" href="{{ route('home') }}">
-                <div class="logo-icon"><i class="bi bi-compass"></i></div>
-                <span>TRAVEL PLANNER</span>
-            </a>
-            <div class="ms-auto d-flex align-items-center gap-2">
-                <a href="{{ route('itinerary.index', $trip->id) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-                    <i class="bi bi-arrow-left me-1"></i> Quay lại chi tiết
-                </a>
-            </div>
-        </div>
-    </nav>
+    @include('partials.site-header')
 
     <!-- Main Form Content -->
     <main class="py-5">

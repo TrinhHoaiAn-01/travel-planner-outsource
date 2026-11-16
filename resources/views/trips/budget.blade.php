@@ -791,30 +791,12 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body>
 
     <!-- Header Navigation -->
-    <header class="header-navbar">
-        <a href="{{ route('home') }}" class="brand-logo">
-            <div class="brand-icon">
-                <!-- Compass icon -->
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
-                </svg>
-            </div>
-            <span>TRAVEL PLANNER</span>
-        </a>
-
-        <a href="{{ route('trips.index') }}" class="btn-back">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="19" y1="12" x2="5" y2="12"></line>
-                <polyline points="12 19 5 12 12 5"></polyline>
-            </svg>
-            <span>Quay lại Lịch trình Trip</span>
-        </a>
-    </header>
+    @include('partials.site-header')
 
     <!-- Main Container -->
     <main class="main-container">

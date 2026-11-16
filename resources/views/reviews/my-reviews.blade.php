@@ -838,71 +838,7 @@
 <body>
 
     <!-- 1. Thanh điều hướng Top Navbar đồng bộ giao diện Phần 4.3 -->
-    <header class="navbar-custom">
-        <a href="{{ route('home') }}" class="navbar-brand-custom">
-            <div class="brand-icon">
-                <i class="bi bi-compass"></i>
-            </div>
-            <span>Travel Planner</span>
-        </a>
-
-        <ul class="navbar-nav-custom d-none d-md-flex">
-            <li class="nav-item-custom">
-                <a href="{{ route('trips.index') }}">
-                    <i class="bi bi-briefcase"></i>
-                    <span>Chuyến đi</span>
-                </a>
-            </li>
-            <li class="nav-item-custom">
-                <a href="{{ route('favorites.index') }}">
-                    <i class="bi bi-heart"></i>
-                    <span>Yêu thích</span>
-                </a>
-            </li>
-            <li class="nav-item-custom active">
-                <a href="{{ route('reviews.my-reviews') }}">
-                    <i class="bi bi-star"></i>
-                    <span>Đánh giá của tôi</span>
-                </a>
-            </li>
-            <li class="nav-item-custom">
-                <a href="{{ route('bookings.index') }}">
-                    <i class="bi bi-calendar2-check"></i>
-                    <span>Đặt phòng</span>
-                </a>
-            </li>
-        </ul>
-
-        <div class="navbar-actions">
-            @if(auth()->user()?->isAdmin())
-                <a href="{{ route('admin.dashboard') }}" class="btn-admin">
-                    <i class="bi bi-shield-lock"></i>
-                    <span>Quản trị</span>
-                </a>
-            @endif
-
-            <div class="user-dropdown-custom dropdown">
-                <button class="btn p-0 border-0 d-flex align-items-center gap-2 dropdown-toggle text-dark" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <div class="user-avatar-custom">
-                        {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
-                    </div>
-                    <span class="fw-semibold d-none d-sm-inline" style="font-size: 14px;">{{ auth()->user()->name }}</span>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 mt-2">
-                    <li><a class="dropdown-item py-2" href="{{ route('profile.show') }}"><i class="bi bi-person me-2"></i> Hồ sơ cá nhân</a></li>
-                    <li><a class="dropdown-item py-2 text-primary fw-medium" href="{{ route('reviews.my-reviews') }}"><i class="bi bi-star me-2"></i> Đánh giá của tôi</a></li>
-                    <li><a class="dropdown-item py-2" href="{{ route('trips.index') }}"><i class="bi bi-briefcase me-2"></i> Chuyến đi của tôi</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <form action="{{ route('logout') }}" method="POST">
-                            @csrf
-                            <button type="submit" class="dropdown-item py-2 text-danger"><i class="bi bi-box-arrow-right me-2"></i> Đăng xuất</button>
-                        </form>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </header>
+    @include('partials.site-header')
 
     <!-- 2. Khung nội dung chính của trang Quản lý đánh giá của User -->
     <main class="container-custom">
