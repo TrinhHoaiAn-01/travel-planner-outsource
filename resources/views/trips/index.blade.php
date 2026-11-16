@@ -882,7 +882,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{{ route('reviews.my-reviews') }}">Đánh giá của tôi</a>
+                <a href="{{ Route::has('reviews.my-reviews') ? route('reviews.my-reviews') : url('/my-reviews') }}">Đánh giá của tôi</a>
             </li>
         </ul>
 
