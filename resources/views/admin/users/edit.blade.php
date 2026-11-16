@@ -237,6 +237,7 @@
         <form action="{{ route('admin.users.update', $user->id) }}" method="POST">
             @csrf
             @method('PUT')
+            <input type="hidden" name="edit_version" value="{{ \App\Support\FormInput::oldText('edit_version', $user->editVersion()) }}">
 
             <div class="form-grid-row">
                 <div class="form-group-item">
@@ -244,7 +245,7 @@
                     <input type="text"
                            id="name"
                            name="name"
-                           value="{{ old('name', $user->name) }}"
+                           value="{{ \App\Support\FormInput::oldText('name', $user->name) }}"
                            class="form-control-input"
                            required>
                     @error('name')
@@ -257,7 +258,7 @@
                     <input type="email"
                            id="email"
                            name="email"
-                           value="{{ old('email', $user->email) }}"
+                           value="{{ \App\Support\FormInput::oldText('email', $user->email) }}"
                            class="form-control-input"
                            required>
                     @error('email')
@@ -293,8 +294,8 @@
                 <div class="form-group-item">
                     <label for="role">Vai trò</label>
                     <select id="role" name="role" class="form-control-select">
-                        <option value="user" {{ old('role', $user->role) === 'user' ? 'selected' : '' }}>Thành viên (Member)</option>
-                        <option value="admin" {{ old('role', $user->role) === 'admin' ? 'selected' : '' }}>Quản trị viên (Administrator)</option>
+                        <option value="user" {{ \App\Support\FormInput::oldText('role', $user->role) === 'user' ? 'selected' : '' }}>Thành viên (Member)</option>
+                        <option value="admin" {{ \App\Support\FormInput::oldText('role', $user->role) === 'admin' ? 'selected' : '' }}>Quản trị viên (Administrator)</option>
                     </select>
                     @error('role')
                         <span class="field-error-text">{{ $message }}</span>
@@ -304,8 +305,8 @@
                 <div class="form-group-item">
                     <label for="is_active">Trạng thái tài khoản</label>
                     <select id="is_active" name="is_active" class="form-control-select">
-                        <option value="1" {{ (string) old('is_active', (int) $user->is_active) === '1' ? 'selected' : '' }}>Hoạt động (Active)</option>
-                        <option value="0" {{ (string) old('is_active', (int) $user->is_active) === '0' ? 'selected' : '' }}>Tạm khóa (Disabled)</option>
+                        <option value="1" {{ (string) \App\Support\FormInput::oldText('is_active', (int) $user->is_active) === '1' ? 'selected' : '' }}>Hoạt động (Active)</option>
+                        <option value="0" {{ (string) \App\Support\FormInput::oldText('is_active', (int) $user->is_active) === '0' ? 'selected' : '' }}>Tạm khóa (Disabled)</option>
                     </select>
                     @error('is_active')
                         <span class="field-error-text">{{ $message }}</span>
@@ -319,7 +320,7 @@
                     <input type="text"
                            id="phone"
                            name="phone"
-                           value="{{ old('phone', $user->phone) }}"
+                           value="{{ \App\Support\FormInput::oldText('phone', $user->phone) }}"
                            class="form-control-input"
                            placeholder="Ví dụ: 0912345678">
                     @error('phone')
@@ -332,7 +333,7 @@
                     <input type="text"
                            id="city"
                            name="city"
-                           value="{{ old('city', $user->city) }}"
+                           value="{{ \App\Support\FormInput::oldText('city', $user->city) }}"
                            class="form-control-input"
                            placeholder="Ví dụ: Đà Nẵng">
                     @error('city')
@@ -347,7 +348,7 @@
                     <textarea id="bio"
                               name="bio"
                               rows="3"
-                              class="form-control-textarea">{{ old('bio', $user->bio) }}</textarea>
+                              class="form-control-textarea">{{ \App\Support\FormInput::oldText('bio', $user->bio) }}</textarea>
                     @error('bio')
                         <span class="field-error-text">{{ $message }}</span>
                     @enderror

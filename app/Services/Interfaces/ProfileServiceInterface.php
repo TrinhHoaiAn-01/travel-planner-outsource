@@ -31,7 +31,7 @@ interface ProfileServiceInterface
      * @param UploadedFile|string|null $avatar
      * @return string|null
      */
-    public function updateAvatar(User $user, UploadedFile|string|null $avatar): ?string;
+    public function updateAvatar(User $user, UploadedFile|string|null $avatar, ?string $version = null): ?string;
 
     /**
      * Thay đổi mật khẩu của tài khoản người dùng đang đăng nhập.

@@ -175,7 +175,7 @@
 
             <!-- Token ẩn -->
             <input type="hidden" name="token" value="{{ $token }}">
-            <input type="hidden" name="email" value="{{ old('email', $email) }}">
+            <input type="hidden" name="email" value="{{ \App\Support\FormInput::oldText('email', $email) }}">
 
             @error('token')
                 <div class="alert-box alert-danger" role="alert">{{ $message }}</div>

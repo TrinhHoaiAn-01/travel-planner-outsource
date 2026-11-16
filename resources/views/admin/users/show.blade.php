@@ -304,7 +304,9 @@
             <div class="profile-hero-left">
                 <div class="profile-avatar-large">
                     @if($user->avatar)
-                        <img src="{{ $user->avatar }}" alt="{{ $user->name }}">
+                        <img src="{{ $user->avatar }}" alt="{{ $user->name }}"
+                            onerror="this.hidden = true; this.nextElementSibling.hidden = false">
+                        <span hidden>{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}</span>
                     @else
                         <span>{{ substr($user->name, 0, 1) }}</span>
                     @endif

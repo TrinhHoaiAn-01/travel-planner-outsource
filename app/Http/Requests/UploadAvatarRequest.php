@@ -23,6 +23,7 @@ class UploadAvatarRequest extends FormRequest
     {
         return [
             'avatar' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'edit_version' => ['sometimes', 'required', 'string', 'max:36'],
         ];
     }
 

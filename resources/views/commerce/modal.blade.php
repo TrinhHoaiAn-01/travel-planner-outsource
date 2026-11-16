@@ -1,11 +1,13 @@
 @php
     $merchant = $merchant ?? false;
+    $deferCommerce = $deferCommerce ?? false;
     $targetUrl = route($merchant ? 'commerce.merchant' : 'commerce.shopping');
     $title = $merchant ? 'Merchant Agent' : 'Travel Agent';
 @endphp
 
-<!-- Pre-fetch and pre-warm AI Assistant -->
-<link rel="prefetch" href="{{ $targetUrl }}">
+@unless($deferCommerce)
+    <link rel="prefetch" href="{{ $targetUrl }}">
+@endunless
 
 <!-- Resizable AI Assistant Split Screen Panel (Phong cách sang trọng, tông trắng tinh tế, font Times New Roman) -->
 <div id="commerceSidePanel" class="commerce-side-panel" role="complementary" aria-label="AI Travel Assistant Panel">
@@ -73,7 +75,7 @@
             <span>Đang tải trợ lý…</span>
         </div>
         <iframe id="commerceIframe"
-                src="{{ $targetUrl }}"
+                @unless($deferCommerce) src="{{ $targetUrl }}" @endunless
                 data-src="{{ $targetUrl }}"
                 title="{{ $title }}"
                 class="commerce-panel-iframe"
@@ -484,15 +486,14 @@
             applyDisplayMode(getDisplayMode());
             setupResizeListeners();
 
-            // Khởi tạo ngay lập tức iframe trợ lý AI trong nền
-            warmUpCommerceIframe();
-
-            // Preload on launcher button hover or touch
-            const launcher = document.getElementById('commerceFloatingLauncher');
-            if (launcher) {
-                launcher.addEventListener('mouseenter', warmUpCommerceIframe, { once: true });
-                launcher.addEventListener('touchstart', warmUpCommerceIframe, { once: true, passive: true });
-            }
+            @unless($deferCommerce)
+                warmUpCommerceIframe();
+                const launcher = document.getElementById('commerceFloatingLauncher');
+                if (launcher) {
+                    launcher.addEventListener('mouseenter', warmUpCommerceIframe, { once: true });
+                    launcher.addEventListener('touchstart', warmUpCommerceIframe, { once: true, passive: true });
+                }
+            @endunless
         });
 
         window.addEventListener('resize', function () {

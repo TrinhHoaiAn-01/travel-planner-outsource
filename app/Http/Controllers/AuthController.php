@@ -6,9 +6,11 @@ use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Services\Interfaces\AuthServiceInterface;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class AuthController extends Controller
@@ -35,7 +37,17 @@ class AuthController extends Controller
     public function register(RegisterRequest $request): RedirectResponse
     {
         // Gọi Service thực hiện nghiệp vụ đăng ký và tạo tài khoản
-        $user = $this->authService->registerUser($request->validated());
+        try {
+            $user = $this->authService->registerUser($request->validated());
+        } catch (UniqueConstraintViolationException $exception) {
+            if (! \App\Models\User::withTrashed()->where('email', $request->validated('email'))->exists()) {
+                throw $exception;
+            }
+
+            throw ValidationException::withMessages([
+                'email' => 'Email này đã được sử dụng. Vui lòng sử dụng email khác.',
+            ]);
+        }
 
         // Tự động đăng nhập cho người dùng vừa đăng ký
         Auth::login($user);

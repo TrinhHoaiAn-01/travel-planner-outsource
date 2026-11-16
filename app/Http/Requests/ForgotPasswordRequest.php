@@ -21,7 +21,7 @@ class ForgotPasswordRequest extends FormRequest
     {
         if ($this->has('email')) {
             $this->merge([
-                'email' => strtolower(trim((string) $this->input('email'))),
+                'email' => \App\Support\FormInput::email($this->input('email')),
             ]);
         }
     }

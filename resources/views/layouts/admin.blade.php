@@ -772,7 +772,10 @@
         });
     </script>
     @stack('scripts')
-    @include('commerce.launcher', ['merchant' => true])
+    @include('commerce.launcher', [
+        'merchant' => true,
+        'deferCommerce' => request()->routeIs('admin.users.*', 'admin.activity-logs.*'),
+    ])
     @include('partials.search-suggestions')
     @include('partials.popup-notification')
 </body>

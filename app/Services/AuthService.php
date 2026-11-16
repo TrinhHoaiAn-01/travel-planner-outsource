@@ -199,8 +199,8 @@ class AuthService implements AuthServiceInterface
             return false;
         }
 
-        // So sánh không phân biệt hoa thường
-        $isValid = strtoupper(trim($inputCaptcha)) === strtoupper((string) $storedCaptcha);
+        // CAPTCHA phân biệt chữ hoa và chữ thường.
+        $isValid = trim($inputCaptcha) === (string) $storedCaptcha;
 
         // Sau khi kiểm tra, tạo mã CAPTCHA mới để CAPTCHA cũ hết hiệu lực
         $this->refreshCaptcha();

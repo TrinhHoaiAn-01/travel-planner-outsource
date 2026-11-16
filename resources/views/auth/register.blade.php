@@ -374,7 +374,7 @@
                             name="name"
                             class="form-control @error('name') is-invalid @enderror"
                             placeholder="Nhập họ và tên"
-                            value="{{ old('name') }}"
+                            value="{{ \App\Support\FormInput::oldText('name') }}"
                             required
                             maxlength="40"
                             autocomplete="name"
@@ -396,7 +396,7 @@
                             name="email"
                             class="form-control @error('email') is-invalid @enderror"
                             placeholder="Nhập email"
-                            value="{{ old('email') }}"
+                            value="{{ \App\Support\FormInput::oldText('email') }}"
                             required
                             autocomplete="email"
                         >

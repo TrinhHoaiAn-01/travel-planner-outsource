@@ -63,7 +63,7 @@ class LoginRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
-            if ($this->filled('captcha')) {
+            if (is_string($this->captcha) && $this->filled('captcha')) {
                 /** @var AuthServiceInterface $authService */
                 $authService = app(AuthServiceInterface::class);
 

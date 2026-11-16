@@ -54,5 +54,20 @@ services:
       timeout: 5s
       retries: 10
 
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    container_name: travel-planner-local-phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${PHPMYADMIN_PORT:-8081}:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: root@admin
+    depends_on:
+      mysql:
+        condition: service_healthy
+
 volumes:
   mysql_local_data:

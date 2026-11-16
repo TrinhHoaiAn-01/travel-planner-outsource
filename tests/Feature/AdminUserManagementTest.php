@@ -158,6 +158,7 @@ class AdminUserManagementTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->admin)->put(route('admin.users.update', $targetUser->id), [
+            'edit_version' => $targetUser->editVersion(),
             'name' => 'Tên Đã Đổi',
             'email' => 'tencu@travelplanner.com',
             'role' => 'user',

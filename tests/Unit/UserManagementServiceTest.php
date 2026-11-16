@@ -97,6 +97,7 @@ class UserManagementServiceTest extends TestCase
         ]);
 
         $updated = $this->userService->updateUser($user->id, [
+            'edit_version' => $user->editVersion(),
             'name' => 'Lê Thu Hà (Đã đổi tên)',
             'is_active' => false,
         ]);

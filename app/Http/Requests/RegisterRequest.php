@@ -25,8 +25,8 @@ class RegisterRequest extends FormRequest
         $this->request->remove('email_verified_at');
 
         $this->merge([
-            'name' => is_string($this->name) ? \App\Support\SecuritySanitizer::clean($this->name) : $this->name,
-            'email' => is_string($this->email) ? strtolower(trim($this->email)) : $this->email,
+            'name' => \App\Support\SecuritySanitizer::formText($this->name, 40),
+            'email' => \App\Support\FormInput::email($this->email),
         ]);
     }
 
@@ -39,7 +39,7 @@ class RegisterRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:40'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'email' => ['required', 'string', 'email', 'max:100', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
             'password_confirmation' => ['required', 'same:password'],
         ];
@@ -58,7 +58,7 @@ class RegisterRequest extends FormRequest
             'name.max' => 'Họ và tên không được vượt quá 40 ký tự.',
             'email.required' => 'Vui lòng nhập email hợp lệ.',
             'email.email' => 'Vui lòng nhập email hợp lệ.',
-            'email.max' => 'Email không được vượt quá 255 ký tự.',
+            'email.max' => 'Email không được vượt quá 100 ký tự.',
             'email.unique' => 'Email này đã được sử dụng. Vui lòng sử dụng email khác.',
             'password.required' => 'Mật khẩu phải có ít nhất 8 ký tự.',
             'password.min' => 'Mật khẩu phải có ít nhất 8 ký tự.',

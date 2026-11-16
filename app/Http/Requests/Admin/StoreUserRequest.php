@@ -23,27 +23,27 @@ class StoreUserRequest extends FormRequest
     {
         if ($this->has('name')) {
             $this->merge([
-                'name' => \App\Support\SecuritySanitizer::clean((string) $this->input('name')),
+                'name' => \App\Support\SecuritySanitizer::formText($this->input('name'), 255),
             ]);
         }
         if ($this->has('email')) {
             $this->merge([
-                'email' => strtolower(trim((string) $this->input('email'))),
+                'email' => \App\Support\FormInput::email($this->input('email')),
             ]);
         }
         if ($this->has('phone')) {
             $this->merge([
-                'phone' => trim((string) $this->input('phone')),
+                'phone' => \App\Support\SecuritySanitizer::phone($this->input('phone')),
             ]);
         }
         if ($this->has('city')) {
             $this->merge([
-                'city' => \App\Support\SecuritySanitizer::clean((string) $this->input('city')),
+                'city' => \App\Support\SecuritySanitizer::formText($this->input('city'), 255),
             ]);
         }
         if ($this->has('bio')) {
             $this->merge([
-                'bio' => \App\Support\SecuritySanitizer::clean((string) $this->input('bio')),
+                'bio' => \App\Support\SecuritySanitizer::formText($this->input('bio'), 1000),
             ]);
         }
     }
@@ -59,13 +59,13 @@ class StoreUserRequest extends FormRequest
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'role' => ['required', 'string', 'in:admin,user'],
             'phone' => [
+                'bail',
                 'nullable',
                 'string',
                 'max:20',
                 function ($attribute, $value, $fail) {
                     if (! empty($value)) {
-                        $digits = preg_replace('/\D/', '', (string) $value);
-                        if (! preg_match('/^(0[3|5|7|8|9])[0-9]{8}$/', $digits)) {
+                        if (! \App\Support\SecuritySanitizer::vietnameseMobile($value)) {
                             $fail('Số điện thoại không đúng định dạng di động Việt Nam (gồm 10 chữ số, bắt đầu bằng 03, 05, 07, 08 hoặc 09).');
                         }
                     }

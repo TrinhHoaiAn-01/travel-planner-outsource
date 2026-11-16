@@ -16,6 +16,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookingController;
 
+Route::pattern('user', '[1-9][0-9]{0,17}');
+Route::pattern('activityLog', '[1-9][0-9]{0,17}');
+
 //Ngocai
 // Tuyến trang chủ công khai (Public Home)
 Route::get('/', [HomeController::class, 'index'])->name('home');

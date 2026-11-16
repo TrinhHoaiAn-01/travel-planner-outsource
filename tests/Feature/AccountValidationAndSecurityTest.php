@@ -41,7 +41,7 @@ class AccountValidationAndSecurityTest extends TestCase
     public function test_registration_strips_xss_tags_and_normalizes_email(): void
     {
         $response = $this->post(route('register'), [
-            'name' => '<script>alert("XSS")</script>Nguyễn An Ninh',
+            'name' => '<script>1</script>Nguyễn An Ninh',
             'email' => '  User.XSS@TravelPlanner.TEST  ',
             'password' => 'MatKhauBaoMat@123',
             'password_confirmation' => 'MatKhauBaoMat@123',
@@ -56,7 +56,7 @@ class AccountValidationAndSecurityTest extends TestCase
         ]);
 
         $this->assertDatabaseMissing('users', [
-            'name' => '<script>alert("XSS")</script>Nguyễn An Ninh',
+            'name' => '<script>1</script>Nguyễn An Ninh',
         ]);
     }
 
@@ -86,6 +86,7 @@ class AccountValidationAndSecurityTest extends TestCase
     public function test_profile_update_blocks_parameter_tampering(): void
     {
         $response = $this->actingAs($this->member)->put(route('profile.update'), [
+            'edit_version' => $this->member->refresh()->editVersion(),
             'name' => 'Tên Mới Sau Kiểm Tra',
             'email' => 'member.sec@travelplanner.test',
             'role' => 'admin',
@@ -110,6 +111,7 @@ class AccountValidationAndSecurityTest extends TestCase
         $validPhones = ['0912345678', '0387654321', '0765432198', '0855667788', '0987 654 321'];
         foreach ($validPhones as $phone) {
             $response = $this->actingAs($this->member)->put(route('profile.update'), [
+                'edit_version' => $this->member->refresh()->editVersion(),
                 'name' => 'Nguyễn Kiểm Thử',
                 'email' => 'member.sec@travelplanner.test',
                 'phone' => $phone,
@@ -122,6 +124,7 @@ class AccountValidationAndSecurityTest extends TestCase
         $invalidPhones = ['0123456789', '123456789', '091234567899', '09123abcde', 'abcdefghij'];
         foreach ($invalidPhones as $invalidPhone) {
             $response = $this->actingAs($this->member)->put(route('profile.update'), [
+                'edit_version' => $this->member->refresh()->editVersion(),
                 'name' => 'Nguyễn Kiểm Thử',
                 'email' => 'member.sec@travelplanner.test',
                 'phone' => $invalidPhone,
@@ -137,6 +140,7 @@ class AccountValidationAndSecurityTest extends TestCase
     public function test_profile_update_strips_xss_tags_from_text_fields(): void
     {
         $response = $this->actingAs($this->member)->put(route('profile.update'), [
+            'edit_version' => $this->member->refresh()->editVersion(),
             'name' => '<b onmouseover=alert(1)>Nguyễn An Toàn</b>',
             'email' => 'member.sec@travelplanner.test',
             'city' => '<script>window.location="evil.com"</script>Đà Nẵng',
@@ -272,6 +276,7 @@ class AccountValidationAndSecurityTest extends TestCase
 
         // 1. Trùng email với tài khoản khác
         $responseDuplicateEmail = $this->actingAs($this->admin)->patch(route('admin.users.update', $targetUser->id), [
+            'edit_version' => $targetUser->editVersion(),
             'name' => 'Target User Sửa',
             'email' => $this->member->email, // Email đã thuộc về member
             'role' => 'user',
@@ -280,6 +285,7 @@ class AccountValidationAndSecurityTest extends TestCase
 
         // 2. Cập nhật thành công với cùng email của chính nó và số điện thoại chuẩn VN
         $responseSuccess = $this->actingAs($this->admin)->patch(route('admin.users.update', $targetUser->id), [
+            'edit_version' => $targetUser->editVersion(),
             'name' => 'Target User Sau Cập Nhật',
             'email' => 'target.user@travelplanner.test',
             'role' => 'user',

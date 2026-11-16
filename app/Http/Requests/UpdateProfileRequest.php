@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\City;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -30,27 +31,27 @@ class UpdateProfileRequest extends FormRequest
 
         if ($this->has('name')) {
             $this->merge([
-                'name' => \App\Support\SecuritySanitizer::clean((string) $this->input('name')),
+                'name' => \App\Support\SecuritySanitizer::formText($this->input('name'), 255),
             ]);
         }
         if ($this->has('email')) {
             $this->merge([
-                'email' => strtolower(trim((string) $this->input('email'))),
+                'email' => \App\Support\FormInput::email($this->input('email')),
             ]);
         }
         if ($this->has('phone')) {
             $this->merge([
-                'phone' => trim((string) $this->input('phone')),
+                'phone' => \App\Support\SecuritySanitizer::phone($this->input('phone')),
             ]);
         }
         if ($this->has('city')) {
             $this->merge([
-                'city' => \App\Support\SecuritySanitizer::clean((string) $this->input('city')),
+                'city' => \App\Support\SecuritySanitizer::formText($this->input('city'), 100),
             ]);
         }
         if ($this->has('bio')) {
             $this->merge([
-                'bio' => \App\Support\SecuritySanitizer::clean((string) $this->input('bio')),
+                'bio' => \App\Support\SecuritySanitizer::formText($this->input('bio'), 1000),
             ]);
         }
     }
@@ -65,6 +66,7 @@ class UpdateProfileRequest extends FormRequest
         $userId = $this->user()?->id;
 
         return [
+            'edit_version' => ['required', 'string', 'max:36'],
             'name' => ['required', 'string', 'max:255'],
             'email' => [
                 'required',
@@ -74,20 +76,24 @@ class UpdateProfileRequest extends FormRequest
                 Rule::unique('users', 'email')->ignore($userId),
             ],
             'phone' => [
+                'bail',
                 'nullable',
                 'string',
                 'max:20',
                 function ($attribute, $value, $fail) {
                     if (! empty($value)) {
-                        $digits = preg_replace('/\D/', '', (string) $value);
-                        if (! preg_match('/^(0[3|5|7|8|9])[0-9]{8}$/', $digits)) {
+                        if (! \App\Support\SecuritySanitizer::vietnameseMobile($value)) {
                             $fail('Số điện thoại không đúng định dạng di động Việt Nam (gồm 10 chữ số, bắt đầu bằng 03, 05, 07, 08 hoặc 09).');
                         }
                     }
                 },
             ],
-            'city' => ['nullable', 'string', 'max:100'],
-            'avatar_url' => ['nullable', 'string', 'max:1000'],
+            'city' => ['bail', 'nullable', 'string', 'max:100', Rule::in(City::profileOptions($this->user()?->city))],
+            'avatar_url' => ['bail', 'nullable', 'string', 'max:1000', function ($attribute, $value, $fail) {
+                if ($value !== $this->user()?->avatar && ! validator(['url' => $value], ['url' => 'url:http,https'])->passes()) {
+                    $fail('Đường dẫn ảnh đại diện phải là URL HTTP hoặc HTTPS hợp lệ.');
+                }
+            }],
             'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
             'bio' => ['nullable', 'string', 'max:1000'],
         ];
@@ -102,12 +108,14 @@ class UpdateProfileRequest extends FormRequest
     {
         return [
             'name.required' => 'Họ và tên là trường bắt buộc.',
+            'edit_version.required' => 'Vui lòng tải lại trang trước khi cập nhật.',
             'name.max' => 'Họ và tên không được vượt quá 255 ký tự.',
             'email.required' => 'Địa chỉ email là trường bắt buộc.',
             'email.email' => 'Địa chỉ email không đúng định dạng hợp lệ.',
             'email.unique' => 'Địa chỉ email này đã được sử dụng bởi một tài khoản khác.',
             'phone.max' => 'Số điện thoại không được vượt quá 20 ký tự.',
             'city.max' => 'Tên thành phố không được vượt quá 100 ký tự.',
+            'city.in' => 'Vui lòng chọn một thành phố trong danh sách.',
             'avatar_url.max' => 'Đường dẫn ảnh đại diện không được vượt quá 1000 ký tự.',
             'avatar.image' => 'Tệp tải lên phải là hình ảnh hợp lệ.',
             'avatar.mimes' => 'Ảnh đại diện chỉ chấp nhận định dạng jpeg, png, jpg hoặc webp.',

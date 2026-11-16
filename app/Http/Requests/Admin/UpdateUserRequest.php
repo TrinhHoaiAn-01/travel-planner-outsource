@@ -25,27 +25,27 @@ class UpdateUserRequest extends FormRequest
     {
         if ($this->has('name')) {
             $this->merge([
-                'name' => \App\Support\SecuritySanitizer::clean((string) $this->input('name')),
+                'name' => \App\Support\SecuritySanitizer::formText($this->input('name'), 255),
             ]);
         }
         if ($this->has('email')) {
             $this->merge([
-                'email' => strtolower(trim((string) $this->input('email'))),
+                'email' => \App\Support\FormInput::email($this->input('email')),
             ]);
         }
         if ($this->has('phone')) {
             $this->merge([
-                'phone' => trim((string) $this->input('phone')),
+                'phone' => \App\Support\SecuritySanitizer::phone($this->input('phone')),
             ]);
         }
         if ($this->has('city')) {
             $this->merge([
-                'city' => \App\Support\SecuritySanitizer::clean((string) $this->input('city')),
+                'city' => \App\Support\SecuritySanitizer::formText($this->input('city'), 255),
             ]);
         }
         if ($this->has('bio')) {
             $this->merge([
-                'bio' => \App\Support\SecuritySanitizer::clean((string) $this->input('bio')),
+                'bio' => \App\Support\SecuritySanitizer::formText($this->input('bio'), 1000),
             ]);
         }
     }
@@ -57,8 +57,10 @@ class UpdateUserRequest extends FormRequest
     {
         $userParam = $this->route('user');
         $userId = $userParam instanceof User ? $userParam->id : (int) $userParam;
+        abort_unless(User::query()->whereKey($userId)->exists(), 404);
 
         return [
+            'edit_version' => ['required', 'string', 'max:36'],
             'name' => ['required', 'string', 'max:255'],
             'email' => [
                 'required',
@@ -70,13 +72,13 @@ class UpdateUserRequest extends FormRequest
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'role' => ['required', 'string', 'in:admin,user'],
             'phone' => [
+                'bail',
                 'nullable',
                 'string',
                 'max:20',
                 function ($attribute, $value, $fail) {
                     if (! empty($value)) {
-                        $digits = preg_replace('/\D/', '', (string) $value);
-                        if (! preg_match('/^(0[3|5|7|8|9])[0-9]{8}$/', $digits)) {
+                        if (! \App\Support\SecuritySanitizer::vietnameseMobile($value)) {
                             $fail('Số điện thoại không đúng định dạng di động Việt Nam (gồm 10 chữ số, bắt đầu bằng 03, 05, 07, 08 hoặc 09).');
                         }
                     }
@@ -95,6 +97,7 @@ class UpdateUserRequest extends FormRequest
     {
         return [
             'name.required' => 'Vui lòng nhập họ và tên người dùng.',
+            'edit_version.required' => 'Vui lòng tải lại trang trước khi cập nhật.',
             'name.string' => 'Họ và tên phải là chuỗi ký tự hợp lệ.',
             'name.max' => 'Họ và tên không được vượt quá 255 ký tự.',
             'email.required' => 'Vui lòng nhập địa chỉ email.',

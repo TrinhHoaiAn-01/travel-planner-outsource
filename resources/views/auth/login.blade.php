@@ -216,6 +216,10 @@
             font-weight: 500;
         }
 
+        #captchaRefreshError:empty {
+            margin-top: 0;
+        }
+
         /* Hàng ghi nhớ đăng nhập và quên mật khẩu */
         .options-row {
             display: flex;
@@ -274,67 +278,11 @@
             transform: scale(0.99);
         }
 
-        .divider {
-            display: flex;
-            align-items: center;
-            margin: 22px 0;
-            color: #9CA3AF;
-            font-size: 13px;
-        }
-
-        .divider::before,
-        .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background-color: #E5E7EB;
-        }
-
-        .divider span {
-            padding: 0 12px;
-        }
-
-        /* Các nút mạng xã hội */
-        .social-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 22px;
-        }
-
-        .btn-social {
-            width: 100%;
-            height: 44px;
-            background-color: #FFFFFF;
-            border: 1px solid #D1D5DB;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            font-size: 14px;
-            font-weight: 500;
-            color: #1F2937;
-            text-decoration: none;
-            cursor: pointer;
-            transition: background-color 0.15s ease, border-color 0.15s ease;
-        }
-
-        .btn-social:hover {
-            background-color: #F9FAFB;
-            border-color: #9CA3AF;
-        }
-
-        .btn-social svg {
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-        }
-
         .card-footer-text {
             text-align: center;
             font-size: 14px;
             color: #374151;
+            margin-top: 22px;
         }
 
         .card-footer-text a {
@@ -369,7 +317,7 @@
                         name="email"
                         class="form-control @error('email') is-invalid @enderror"
                         placeholder="Nhập email"
-                        value="{{ old('email') }}"
+                        value="{{ \App\Support\FormInput::oldText('email') }}"
                         required
                         autocomplete="email"
                         autofocus
@@ -450,12 +398,13 @@
                 @error('captcha')
                     <span class="field-error">{{ $message }}</span>
                 @enderror
+                <span class="field-error" id="captchaRefreshError" role="alert"></span>
             </div>
 
             <!-- Ghi nhớ đăng nhập & Quên mật khẩu -->
             <div class="options-row">
                 <label class="remember-checkbox" for="remember">
-                    <input type="checkbox" id="remember" name="remember" value="1" {{ old('remember') ? 'checked' : '' }}>
+                    <input type="checkbox" id="remember" name="remember" value="1" {{ \App\Support\FormInput::oldText('remember') ? 'checked' : '' }}>
                     <span>Ghi nhớ đăng nhập</span>
                 </label>
                 <a href="{{ route('password.request') }}" class="forgot-password-link">Quên mật khẩu?</a>
@@ -464,32 +413,6 @@
             <!-- Nút Đăng nhập -->
             <button type="submit" class="btn-submit" id="btnLogin">Đăng nhập</button>
         </form>
-
-        <div class="divider">
-            <span>Hoặc</span>
-        </div>
-
-        <!-- Đăng nhập mạng xã hội -->
-        <div class="social-buttons">
-            <button type="button" class="btn-social">
-                <!-- Icon Facebook -->
-                <svg viewBox="0 0 24 24">
-                    <path fill="#1877F2" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                </svg>
-                <span>Đăng nhập với Facebook</span>
-            </button>
-
-            <button type="button" class="btn-social">
-                <!-- Icon Google -->
-                <svg viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"/>
-                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"/>
-                    <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.16 0 9.98 0 12s.45 3.84 1.24 5.42l4.04-3.15z"/>
-                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-                </svg>
-                <span>Đăng nhập với Google</span>
-            </button>
-        </div>
 
         <div class="card-footer-text">
             Chưa có tài khoản? <a href="{{ route('register') }}">Đăng ký ngay</a>
@@ -522,10 +445,13 @@
         const refreshBtn = document.getElementById('btnRefreshCaptcha');
         const captchaBox = document.getElementById('captchaBox');
         const captchaInput = document.getElementById('captcha');
+        const captchaRefreshError = document.getElementById('captchaRefreshError');
 
-        if (refreshBtn && captchaBox) {
+        if (refreshBtn && captchaBox && captchaInput && captchaRefreshError) {
             refreshBtn.addEventListener('click', function () {
+                refreshBtn.disabled = true;
                 refreshBtn.classList.add('spinning');
+                captchaRefreshError.textContent = '';
 
                 fetch('{{ route("captcha.refresh") }}', {
                     method: 'POST',
@@ -534,24 +460,28 @@
                         'Accept': 'application/json'
                     }
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.captcha) {
-                        captchaBox.textContent = data.captcha;
-                        // Xóa mã cũ người dùng đã nhập theo yêu cầu của đặc tả
-                        if (captchaInput) {
-                            captchaInput.value = '';
-                            captchaInput.focus();
-                        }
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Không thể làm mới CAPTCHA.');
                     }
+
+                    return response.json();
                 })
-                .catch(error => {
-                    console.error('Lỗi làm mới CAPTCHA:', error);
+                .then(data => {
+                    if (typeof data?.captcha !== 'string' || !data.captcha) {
+                        throw new Error('Phản hồi CAPTCHA không hợp lệ.');
+                    }
+
+                    captchaBox.textContent = data.captcha;
+                    captchaInput.value = '';
+                    captchaInput.focus();
+                })
+                .catch(() => {
+                    captchaRefreshError.textContent = 'Không thể tạo mã CAPTCHA mới. Vui lòng thử lại.';
                 })
                 .finally(() => {
-                    setTimeout(() => {
-                        refreshBtn.classList.remove('spinning');
-                    }, 300);
+                    refreshBtn.disabled = false;
+                    refreshBtn.classList.remove('spinning');
                 });
             });
         }

@@ -33,31 +33,12 @@ class ProfileController extends Controller
         // Lấy thông tin hồ sơ và các số liệu thống kê qua Service
         $profileData = $this->profileService->getProfile($user);
 
-        // Lấy danh sách thành phố để hiển thị trong dropdown chọn thành phố sinh sống
-        $cities = City::orderBy('name')->pluck('name')->all();
-        if (empty($cities)) {
-            $cities = [
-                'Đà Nẵng',
-                'Hà Nội',
-                'TP. Hồ Chí Minh',
-                'Nha Trang',
-                'Huế',
-                'Đà Lạt',
-                'Hội An',
-                'Phú Quốc',
-                'Cần Thơ',
-                'Hải Phòng',
-                'Vũng Tàu',
-                'Sa Pa',
-            ];
-        }
-
         return view('profile.show', [
             'user' => $profileData['user'],
             'tripsCount' => $profileData['tripsCount'],
             'favoritesCount' => $profileData['favoritesCount'],
             'reviewsCount' => $profileData['reviewsCount'],
-            'cities' => $cities,
+            'cities' => City::profileOptions($user->city),
         ]);
     }
 
@@ -90,12 +71,13 @@ class ProfileController extends Controller
         Gate::authorize('update', $user);
 
         // Gọi Service lưu ảnh và cập nhật
-        $avatarUrl = $this->profileService->updateAvatar($user, $request->file('avatar'));
+        $avatarUrl = $this->profileService->updateAvatar($user, $request->file('avatar'), $request->validated('edit_version'));
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'avatar_url' => $avatarUrl,
+                'edit_version' => $user->editVersion(),
                 'message' => 'Cập nhật ảnh đại diện thành công.',
             ]);
         }

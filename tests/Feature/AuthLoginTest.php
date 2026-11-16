@@ -33,8 +33,8 @@ class AuthLoginTest extends TestCase
         // Các tùy chọn và nút
         $response->assertSee('Ghi nhớ đăng nhập');
         $response->assertSee('Quên mật khẩu?');
-        $response->assertSee('Đăng nhập với Facebook');
-        $response->assertSee('Đăng nhập với Google');
+        $response->assertDontSee('Đăng nhập với Facebook');
+        $response->assertDontSee('Đăng nhập với Google');
         $response->assertSee('Chưa có tài khoản?');
         $response->assertSee('Đăng ký ngay');
     }

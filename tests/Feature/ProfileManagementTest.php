@@ -90,6 +90,7 @@ class ProfileManagementTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)->put(route('profile.update'), [
+            'edit_version' => $user->editVersion(),
             'name' => 'Nguyễn Bảo Ngọc Cập Nhật',
             'email' => 'ban-dau@travelplanner.test',
             'phone' => '0987 654 321',

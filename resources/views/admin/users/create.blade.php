@@ -221,7 +221,7 @@
                     <input type="text"
                            id="name"
                            name="name"
-                           value="{{ old('name') }}"
+                           value="{{ \App\Support\FormInput::oldText('name') }}"
                            class="form-control-input"
                            placeholder="Ví dụ: Nguyễn Bảo Ngọc"
                            required>
@@ -235,7 +235,7 @@
                     <input type="email"
                            id="email"
                            name="email"
-                           value="{{ old('email') }}"
+                           value="{{ \App\Support\FormInput::oldText('email') }}"
                            class="form-control-input"
                            placeholder="ngoc.travel@travelplanner.com"
                            required>
@@ -274,8 +274,8 @@
                 <div class="form-group-item">
                     <label for="role">Vai trò</label>
                     <select id="role" name="role" class="form-control-select">
-                        <option value="user" {{ old('role') === 'user' || !old('role') ? 'selected' : '' }}>Thành viên (Member)</option>
-                        <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Quản trị viên (Administrator)</option>
+                        <option value="user" {{ \App\Support\FormInput::oldText('role') === 'user' || !\App\Support\FormInput::oldText('role') ? 'selected' : '' }}>Thành viên (Member)</option>
+                        <option value="admin" {{ \App\Support\FormInput::oldText('role') === 'admin' ? 'selected' : '' }}>Quản trị viên (Administrator)</option>
                     </select>
                     @error('role')
                         <span class="field-error-text">{{ $message }}</span>
@@ -285,8 +285,8 @@
                 <div class="form-group-item">
                     <label for="is_active">Trạng thái tài khoản</label>
                     <select id="is_active" name="is_active" class="form-control-select">
-                        <option value="1" {{ old('is_active', '1') === '1' ? 'selected' : '' }}>Hoạt động (Active)</option>
-                        <option value="0" {{ old('is_active') === '0' ? 'selected' : '' }}>Tạm khóa (Disabled)</option>
+                        <option value="1" {{ \App\Support\FormInput::oldText('is_active', '1') === '1' ? 'selected' : '' }}>Hoạt động (Active)</option>
+                        <option value="0" {{ \App\Support\FormInput::oldText('is_active') === '0' ? 'selected' : '' }}>Tạm khóa (Disabled)</option>
                     </select>
                 </div>
             </div>
@@ -297,7 +297,7 @@
                     <input type="text"
                            id="phone"
                            name="phone"
-                           value="{{ old('phone') }}"
+                           value="{{ \App\Support\FormInput::oldText('phone') }}"
                            class="form-control-input"
                            placeholder="Ví dụ: 0912345678">
                     @error('phone')
@@ -310,7 +310,7 @@
                     <input type="text"
                            id="city"
                            name="city"
-                           value="{{ old('city') }}"
+                           value="{{ \App\Support\FormInput::oldText('city') }}"
                            class="form-control-input"
                            placeholder="Ví dụ: Đà Nẵng, TP. Hồ Chí Minh">
                     @error('city')
@@ -326,7 +326,7 @@
                               name="bio"
                               rows="3"
                               class="form-control-textarea"
-                              placeholder="Thông tin ngắn về người dùng...">{{ old('bio') }}</textarea>
+                              placeholder="Thông tin ngắn về người dùng...">{{ \App\Support\FormInput::oldText('bio') }}</textarea>
                     @error('bio')
                         <span class="field-error-text">{{ $message }}</span>
                     @enderror

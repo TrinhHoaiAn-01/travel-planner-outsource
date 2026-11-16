@@ -724,9 +724,11 @@
                             <div class="user-profile-cell">
                                 <div class="user-avatar-wrap" style="cursor: pointer;" onclick="openViewUserModal({{ $user->id }})" title="Xem chi tiết {{ $user->name }}">
                                     @if($user->avatar)
-                                        <img src="{{ $user->avatar }}" alt="{{ $user->name }}" class="user-avatar-img">
+                                        <img src="{{ $user->avatar }}" alt="{{ $user->name }}" class="user-avatar-img"
+                                            onerror="this.hidden = true; this.nextElementSibling.hidden = false">
+                                        <span class="user-avatar-initials" hidden>{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}</span>
                                     @else
-                                        <span class="user-avatar-initials">{{ substr($user->name, 0, 1) }}</span>
+                                        <span class="user-avatar-initials">{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}</span>
                                     @endif
                                 </div>
                                 <div>
@@ -831,6 +833,7 @@
                                                 'name' => $user->name,
                                                 'email' => $user->email,
                                                 'role' => $user->role,
+                                                'edit_version' => $user->editVersion(),
                                                 'is_active' => (bool) $user->is_active,
                                                 'update_url' => route('admin.users.update', $user->id)
                                             ]) }})">
@@ -963,6 +966,7 @@
         <form id="editUserForm" method="POST">
             @csrf
             @method('PUT')
+            <input type="hidden" name="edit_version" id="edit_version">
             <div class="custom-modal-body">
                 <div class="form-group-item">
                     <label for="edit_name">Họ và tên <span style="color: #EF4444;">*</span></label>
@@ -1055,6 +1059,7 @@
         document.getElementById('edit_email').value = user.email;
         document.getElementById('edit_role').value = user.role;
         document.getElementById('edit_is_active').value = user.is_active ? '1' : '0';
+        document.getElementById('edit_version').value = user.edit_version;
         document.getElementById('edit_password').value = '';
         document.getElementById('edit_password_confirmation').value = '';
         document.getElementById('editUserForm').action = user.update_url;
@@ -1091,7 +1096,11 @@
         })
         .then(response => {
             if (response.status === 'success') {
-                const u = response.data;
+                const u = Object.fromEntries(Object.entries(response.data).map(([key, value]) => {
+                    if (typeof value !== 'string') return [key, value];
+                    const escapes = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'};
+                    return [key, value.replace(/[&<>"']/g, char => escapes[char])];
+                }));
                 const roleBadge = u.role === 'admin'
                     ? '<span class="badge-role-admin">Administrator</span>'
                     : '<span class="badge-role-member">Member</span>';
@@ -1155,6 +1164,12 @@
                         </div>
                     </div>
                 `;
+                const avatar = modalBody.querySelector('img');
+                if (avatar) {
+                    const fallback = () => avatar.replaceWith(document.createTextNode(response.data.name.charAt(0).toUpperCase()));
+                    avatar.addEventListener('error', fallback, {once: true});
+                    if (avatar.complete && !avatar.naturalWidth) fallback();
+                }
             }
         })
         .catch(err => {

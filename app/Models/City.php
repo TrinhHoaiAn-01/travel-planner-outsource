@@ -10,6 +10,23 @@ class City extends Model
 {
     use HasFactory;
 
+    public static function profileOptions(?string $current = null): array
+    {
+        $cities = static::orderBy('name')->distinct()->pluck('name')->all();
+        if ($cities === []) {
+            $cities = [
+                'Đà Nẵng', 'Hà Nội', 'TP. Hồ Chí Minh', 'Nha Trang', 'Huế', 'Đà Lạt',
+                'Hội An', 'Phú Quốc', 'Cần Thơ', 'Hải Phòng', 'Vũng Tàu', 'Sa Pa',
+            ];
+        }
+
+        if ($current !== null && $current !== '' && ! in_array($current, $cities, true)) {
+            $cities[] = $current;
+        }
+
+        return $cities;
+    }
+
     /**
      * Danh sách các trường được phép gán dữ liệu hàng loạt.
      *

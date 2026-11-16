@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\Interfaces\ActivityLogServiceInterface;
+use App\Support\ListPage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -23,8 +24,16 @@ class ActivityLogController extends Controller
      */
     public function index(Request $request): View
     {
+        $page = ListPage::from($request);
+        $request->validate([
+            'action' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'date_from' => ['sometimes', 'nullable', 'date_format:Y-m-d'],
+            'date_to' => ['sometimes', 'nullable', 'date_format:Y-m-d'],
+            'user_id' => ['sometimes', 'nullable', 'integer', 'min:1'],
+        ]);
         $filters = $request->only(['search', 'action', 'date_from', 'date_to', 'user_id']);
         $logs = $this->activityLogService->getActivityLogs($filters, 15);
+        abort_if($page > $logs->lastPage(), 404);
         $counts = $this->activityLogService->getActivityLogCounts();
 
         // Danh sách các hành động có sẵn để lọc

@@ -65,6 +65,13 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
+## Docker database tools
+
+The default and local Docker Compose configurations include phpMyAdmin. Start the
+stack with `docker compose up -d`, then open <http://localhost:8081>. phpMyAdmin
+connects to the `mysql` service; the default port can be changed with
+`PHPMYADMIN_PORT`. The web interface is bound to localhost.
+
 ## CI/CD Deployment Automation
 
 Releases publish from `main` after CI passes. GitHub Actions builds a production

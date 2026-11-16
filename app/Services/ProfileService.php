@@ -47,14 +47,9 @@ class ProfileService implements ProfileServiceInterface
      */
     public function updateProfile(User $user, array $data): User
     {
-        return DB::transaction(function () use ($user, $data) {
-            // Xử lý tệp ảnh tải lên nếu có
-            if (isset($data['avatar']) && $data['avatar'] instanceof UploadedFile) {
-                $this->updateAvatar($user, $data['avatar']);
-            } elseif (! empty($data['avatar_url'])) {
-                $user->avatar = trim((string) $data['avatar_url']);
-            }
+        $avatar = $data['avatar'] ?? $data['avatar_url'] ?? null;
 
+        return $this->saveProfile($user, $avatar, $data['edit_version'], function (User $user) use ($data): void {
             // Cập nhật họ tên
             if (isset($data['name'])) {
                 $user->name = trim((string) $data['name']);
@@ -85,9 +80,6 @@ class ProfileService implements ProfileServiceInterface
                 $user->bio = ! empty($data['bio']) ? trim((string) $data['bio']) : null;
             }
 
-            $user->save();
-
-            return $user;
         });
     }
 
@@ -98,38 +90,59 @@ class ProfileService implements ProfileServiceInterface
      * @param UploadedFile|string|null $avatar
      * @return string|null
      */
-    public function updateAvatar(User $user, UploadedFile|string|null $avatar): ?string
+    public function updateAvatar(User $user, UploadedFile|string|null $avatar, ?string $version = null): ?string
     {
-        if ($avatar instanceof UploadedFile) {
-            // Đặt tên tệp ngẫu nhiên an toàn, chống ghi đè và path traversal
-            $extension = $avatar->getClientOriginalExtension() ?: 'png';
-            $fileName = 'avatar_' . $user->id . '_' . time() . '_' . Str::random(8) . '.' . $extension;
+        if ($avatar === null || $avatar === '') {
+            return null;
+        }
 
-            // Xóa ảnh cũ nếu đã từng tải lên lưu trữ cục bộ
-            if ($user->avatar && str_starts_with($user->avatar, '/storage/avatars/')) {
-                $oldPath = str_replace('/storage/', '', $user->avatar);
-                if (Storage::disk('public')->exists($oldPath)) {
-                    Storage::disk('public')->delete($oldPath);
+        $updated = $this->saveProfile($user, $avatar, $version);
+        $user->setRawAttributes($updated->getAttributes(), true);
+
+        return $updated->avatar;
+    }
+
+    private function saveProfile(User $user, UploadedFile|string|null $avatar, ?string $version, ?\Closure $change = null): User
+    {
+        $newPath = null;
+        $disk = Storage::disk('public');
+
+        try {
+            return DB::transaction(function () use ($user, $avatar, $version, $change, $disk, &$newPath) {
+                $current = User::query()->lockForUpdate()->findOrFail($user->id);
+                if ($version !== null) {
+                    $current->requireEditVersion($version);
                 }
+
+                if ($avatar instanceof UploadedFile) {
+                    $fileName = 'avatar_' . $current->id . '_' . Str::uuid() . '.' . $avatar->extension();
+                    $newPath = $avatar->storeAs('avatars', $fileName, 'public');
+                    if (! $newPath) {
+                        throw ValidationException::withMessages(['avatar' => 'Không thể lưu ảnh đại diện. Vui lòng thử lại.']);
+                    }
+
+                    $previous = $current->avatar;
+                    $current->avatar = '/storage/' . $newPath;
+                    if ($previous && preg_match('#^/storage/(avatars/avatar_' . $current->id . '_[A-Za-z0-9_-]+\.[A-Za-z0-9]+)$#D', $previous, $matches)) {
+                        DB::afterCommit(fn () => rescue(fn () => $disk->delete($matches[1])));
+                    }
+                } elseif (is_string($avatar) && $avatar !== '') {
+                    $current->avatar = trim($avatar);
+                }
+
+                $change?->__invoke($current);
+                $current->renewEditVersion();
+                $current->save();
+
+                return $current;
+            });
+        } catch (\Throwable $exception) {
+            if ($newPath) {
+                $disk->delete($newPath);
             }
 
-            // Lưu tệp vào disk public
-            $avatar->storeAs('avatars', $fileName, 'public');
-
-            $user->avatar = '/storage/avatars/' . $fileName;
-            $user->save();
-
-            return $user->avatar;
+            throw $exception;
         }
-
-        if (is_string($avatar) && ! empty($avatar)) {
-            $user->avatar = trim($avatar);
-            $user->save();
-
-            return $user->avatar;
-        }
-
-        return null;
     }
 
     /**

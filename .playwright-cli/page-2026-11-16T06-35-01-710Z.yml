@@ -1,0 +1,39 @@
+- generic [ref=e2]:
+  - region "Giới thiệu ứng dụng Travel Planner" [ref=e3]:
+    - heading "Lên kế hoạch cho hành trình của bạn" [level=1] [ref=e4]:
+      - text: Lên kế hoạch
+      - generic [ref=e5]: cho hành trình của bạn
+    - paragraph [ref=e6]: Khám phá điểm đến, quản lý lịch trình và lưu lại những khoảnh khắc đáng nhớ.
+    - generic [ref=e7]:
+      - generic [ref=e8]: Tìm kiếm điểm đến dễ dàng
+      - generic [ref=e14]: Lập kế hoạch linh hoạt
+      - generic [ref=e19]: Lưu giữ trải nghiệm yêu thích
+  - main "Biểu mẫu đăng ký" [ref=e24]:
+    - heading "Đăng ký tài khoản" [level=2] [ref=e25]
+    - generic [ref=e26]:
+      - generic [ref=e27]:
+        - generic [ref=e28]: Họ và tên
+        - textbox "Họ và tên" [active] [ref=e30]:
+          - /placeholder: Nhập họ và tên
+      - generic [ref=e31]:
+        - generic [ref=e32]: Email
+        - textbox "Email" [ref=e34]:
+          - /placeholder: Nhập email
+      - generic [ref=e35]:
+        - generic [ref=e36]: Mật khẩu
+        - generic [ref=e37]:
+          - textbox "Mật khẩu" [ref=e38]:
+            - /placeholder: Nhập mật khẩu
+          - button "Hiển thị hoặc ẩn mật khẩu" [ref=e39] [cursor=pointer]
+      - generic [ref=e43]:
+        - generic [ref=e44]: Xác nhận mật khẩu
+        - generic [ref=e45]:
+          - textbox "Xác nhận mật khẩu" [ref=e46]:
+            - /placeholder: Nhập lại mật khẩu
+          - button "Hiển thị hoặc ẩn xác nhận mật khẩu" [ref=e47] [cursor=pointer]
+      - button "Đăng ký" [ref=e51] [cursor=pointer]
+    - generic [ref=e52]: hoặc
+    - generic [ref=e54]:
+      - text: Đã có tài khoản?
+      - link "Đăng nhập" [ref=e55] [cursor=pointer]:
+        - /url: http://127.0.0.1:8080/login

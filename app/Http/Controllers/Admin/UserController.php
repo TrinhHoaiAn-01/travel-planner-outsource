@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Services\Interfaces\UserManagementServiceInterface;
+use App\Support\ListPage;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -32,6 +34,11 @@ class UserController extends Controller
      */
     public function index(Request $request): View
     {
+        $page = ListPage::from($request);
+        $request->validate([
+            'role' => ['sometimes', 'nullable', 'in:all,admin,user'],
+            'status' => ['sometimes', 'nullable', 'in:all,active,disabled,trashed,deleted,0,1,true,false'],
+        ]);
         $filters = [
             'search' => trim((string) $request->query('search', '')),
             'role' => (string) $request->query('role', 'all'),
@@ -39,6 +46,7 @@ class UserController extends Controller
         ];
 
         $users = $this->userService->getUsers($filters, 10);
+        abort_if($page > $users->lastPage(), 404);
         $counts = $this->userService->getUserCounts();
 
         return view('admin.users.index', [
@@ -68,9 +76,7 @@ class UserController extends Controller
                 ], 404);
             }
 
-            return redirect()
-                ->route('admin.users.index')
-                ->with('error', 'Không tìm thấy thông tin chi tiết người dùng.');
+            abort(404);
         }
 
         if ($request->wantsJson() || $request->ajax()) {
@@ -123,7 +129,11 @@ class UserController extends Controller
      */
     public function store(StoreUserRequest $request): RedirectResponse
     {
-        $this->userService->createUser($request->validated());
+        try {
+            $this->userService->createUser($request->validated());
+        } catch (UniqueConstraintViolationException $exception) {
+            $this->handleDuplicateEmail($request, $exception);
+        }
 
         return redirect()
             ->route('admin.users.index')
@@ -141,11 +151,7 @@ class UserController extends Controller
         $userId = $user instanceof \App\Models\User ? $user->id : (int) $user;
         $userDetails = $this->userService->getUserDetails($userId);
 
-        if (! $userDetails) {
-            return redirect()
-                ->route('admin.users.index')
-                ->with('error', 'Không tìm thấy thông tin người dùng.');
-        }
+        abort_if(! $userDetails || $userDetails->trashed(), 404);
 
         return view('admin.users.edit', [
             'user' => $userDetails,
@@ -167,15 +173,8 @@ class UserController extends Controller
             return redirect()
                 ->route('admin.users.index')
                 ->with('success', 'Cập nhật thông tin người dùng thành công.');
-        } catch (ValidationException $e) {
-            $errorMessage = $e->validator->errors()->first('role')
-                ?? $e->validator->errors()->first('is_active')
-                ?? $e->validator->errors()->first()
-                ?? $e->getMessage();
-
-            return redirect()
-                ->route('admin.users.index')
-                ->with('error', $errorMessage);
+        } catch (UniqueConstraintViolationException $exception) {
+            $this->handleDuplicateEmail($request, $exception, $id);
         }
     }
 
@@ -212,7 +211,10 @@ class UserController extends Controller
     public function destroy(int $id): RedirectResponse
     {
         try {
-            $this->userService->deleteUser($id);
+            if (! $this->userService->deleteUser($id)) {
+                return redirect()->route('admin.users.index')
+                    ->with('error', 'Xóa không hợp lệ. Tài khoản không tồn tại hoặc đã được xóa.');
+            }
 
             return redirect()
                 ->route('admin.users.index')
@@ -240,10 +242,26 @@ class UserController extends Controller
             return redirect()
                 ->route('admin.users.index')
                 ->with('success', "Khôi phục tài khoản '{$user->name}' thành công.");
-        } catch (\Throwable $e) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return redirect()
                 ->route('admin.users.index')
                 ->with('error', 'Không thể khôi phục tài khoản người dùng.');
         }
+    }
+
+    private function handleDuplicateEmail(Request $request, UniqueConstraintViolationException $exception, ?int $id = null): never
+    {
+        $users = \App\Models\User::withTrashed()->where('email', $request->validated('email'));
+        if ($id !== null) {
+            $users->whereKeyNot($id);
+        }
+
+        if (! $users->exists()) {
+            throw $exception;
+        }
+
+        throw ValidationException::withMessages([
+            'email' => 'Địa chỉ email này đã tồn tại trên hệ thống.',
+        ]);
     }
 }

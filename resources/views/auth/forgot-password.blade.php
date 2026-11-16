@@ -187,7 +187,7 @@
                         name="email"
                         class="form-control @error('email') is-invalid @enderror"
                         placeholder="Email đã đăng ký"
-                        value="{{ old('email') }}"
+                        value="{{ \App\Support\FormInput::oldText('email') }}"
                         required
                         autocomplete="email"
                         autofocus

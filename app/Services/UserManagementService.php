@@ -101,7 +101,8 @@ class UserManagementService implements UserManagementServiceInterface
     public function updateUser(int $userId, array $data): User
     {
         return DB::transaction(function () use ($userId, $data) {
-            $user = User::findOrFail($userId);
+            $user = User::query()->lockForUpdate()->findOrFail($userId);
+            $user->requireEditVersion($data['edit_version']);
 
             $updateData = [];
 
@@ -188,7 +189,9 @@ class UserManagementService implements UserManagementServiceInterface
                 $updateData['is_active'] = $newIsActive;
             }
 
-            $user->update($updateData);
+            $user->fill($updateData);
+            $user->renewEditVersion();
+            $user->save();
 
             // Ghi nhật ký quản trị cập nhật tài khoản
             app(\App\Services\Interfaces\ActivityLogServiceInterface::class)->logActivity(
@@ -213,7 +216,7 @@ class UserManagementService implements UserManagementServiceInterface
     public function toggleUserStatus(int $userId): User
     {
         return DB::transaction(function () use ($userId) {
-            $user = User::findOrFail($userId);
+            $user = User::query()->lockForUpdate()->findOrFail($userId);
 
             // Bảo vệ an toàn: Tuyệt đối không cho phép khóa tài khoản Admin
             if ($user->role === 'admin') {
@@ -268,7 +271,10 @@ class UserManagementService implements UserManagementServiceInterface
     public function deleteUser(int $userId): bool
     {
         return DB::transaction(function () use ($userId) {
-            $user = User::findOrFail($userId);
+            $user = User::query()->lockForUpdate()->find($userId);
+            if (! $user) {
+                return false;
+            }
             $currentAuthId = auth()->id();
 
             // Chặn Admin tự xóa tài khoản của chính mình
@@ -318,7 +324,7 @@ class UserManagementService implements UserManagementServiceInterface
     public function restoreUser(int $userId): User
     {
         return DB::transaction(function () use ($userId) {
-            $user = User::onlyTrashed()->findOrFail($userId);
+            $user = User::onlyTrashed()->lockForUpdate()->findOrFail($userId);
             $user->restore();
 
             // Ghi nhật ký quản trị khôi phục tài khoản

@@ -190,6 +190,18 @@
             border: 3px solid #FFFFFF;
         }
 
+        .avatar-fallback {
+            display: grid;
+            place-items: center;
+            color: #374151;
+            font-size: 42px;
+            font-weight: 700;
+        }
+
+        .avatar-fallback[hidden] {
+            display: none;
+        }
+
         .avatar-upload-btn {
             position: absolute;
             bottom: 4px;
@@ -655,11 +667,14 @@
             <!-- Cột trái: Tóm tắt thông tin người dùng -->
             <aside class="profile-summary-card">
                 <div class="avatar-wrapper">
+                    <span class="avatar-img avatar-fallback" id="userAvatarFallback" @if($user->avatar) hidden @endif
+                        aria-label="Ảnh đại diện mặc định">{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}</span>
                     <img
-                        src="{{ $user->avatar ?: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop' }}"
+                        @if($user->avatar) src="{{ $user->avatar }}" @else hidden @endif
                         alt="{{ $user->name }}"
                         class="avatar-img"
                         id="userAvatarDisplay"
+                        onerror="this.hidden = true; document.getElementById('userAvatarFallback').hidden = false"
                     >
                     <!-- Nút camera tải ảnh đại diện -->
                     <label for="directAvatarUploadInput" class="avatar-upload-btn" title="Thay đổi ảnh đại diện">
@@ -673,8 +688,10 @@
                         id="directAvatarUploadInput"
                         accept="image/jpeg,image/png,image/jpg,image/webp"
                         style="display: none;"
+                        aria-describedby="avatarUploadError"
                     >
                 </div>
+                <p id="avatarUploadError" class="field-error" role="alert" hidden></p>
 
                 <h1 class="profile-name">{{ $user->name }}</h1>
 
@@ -772,6 +789,7 @@
                 >
                     @csrf
                     @method('PUT')
+                    <input type="hidden" name="edit_version" id="profileEditVersion" value="{{ \App\Support\FormInput::oldText('edit_version', $user->editVersion()) }}">
 
                     <!-- Hàng 1: Họ tên & Email -->
                     <div class="form-grid-2">
@@ -789,7 +807,7 @@
                                     id="name"
                                     name="name"
                                     class="form-control-custom @error('name') is-invalid @enderror"
-                                    value="{{ old('name', $user->name) }}"
+                                    value="{{ \App\Support\FormInput::oldText('name', $user->name) }}"
                                     required
                                 >
                             </div>
@@ -812,7 +830,7 @@
                                     id="email"
                                     name="email"
                                     class="form-control-custom @error('email') is-invalid @enderror"
-                                    value="{{ old('email', $user->email) }}"
+                                    value="{{ \App\Support\FormInput::oldText('email', $user->email) }}"
                                     required
                                 >
                             </div>
@@ -838,7 +856,7 @@
                                     name="phone"
                                     class="form-control-custom @error('phone') is-invalid @enderror"
                                     placeholder="0912 345 678"
-                                    value="{{ old('phone', $user->phone) }}"
+                                    value="{{ \App\Support\FormInput::oldText('phone', $user->phone) }}"
                                 >
                             </div>
                             @error('phone')
@@ -864,7 +882,7 @@
                                     @foreach($cities as $cityItem)
                                         <option
                                             value="{{ $cityItem }}"
-                                            {{ old('city', $user->city) === $cityItem ? 'selected' : '' }}
+                                            {{ \App\Support\FormInput::oldText('city', $user->city) === $cityItem ? 'selected' : '' }}
                                         >
                                             {{ $cityItem }}
                                         </option>
@@ -896,7 +914,7 @@
                                 name="avatar_url"
                                 class="form-control-custom @error('avatar_url') is-invalid @enderror"
                                 placeholder="https://images.unsplash.com/photo-..."
-                                value="{{ old('avatar_url', $user->avatar) }}"
+                                value="{{ \App\Support\FormInput::oldText('avatar_url', $user->avatar) }}"
                             >
                         </div>
                         @error('avatar_url')
@@ -914,7 +932,7 @@
                             name="bio"
                             class="textarea-custom @error('bio') is-invalid @enderror"
                             placeholder="Đam mê du lịch tự túc, nhiếp ảnh phong cảnh và khám phá ẩm thực đường phố các vùng miền."
-                        >{{ old('bio', $user->bio) }}</textarea>
+                        >{{ \App\Support\FormInput::oldText('bio', $user->bio) }}</textarea>
                         @error('bio')
                             <span class="field-error">{{ $message }}</span>
                         @enderror
@@ -1092,43 +1110,52 @@
         const userAvatarDisplay = document.getElementById('userAvatarDisplay');
         const topNavAvatar = document.getElementById('topNavAvatar');
         const avatarUrlInput = document.getElementById('avatar_url');
+        const avatarFallback = document.getElementById('userAvatarFallback');
+        const avatarUploadError = document.getElementById('avatarUploadError');
+        const profileEditVersion = document.getElementById('profileEditVersion');
 
         if (avatarUploadInput) {
-            avatarUploadInput.addEventListener('change', function () {
+            avatarUploadInput.addEventListener('change', async function () {
                 if (!this.files || !this.files[0]) return;
 
                 const file = this.files[0];
                 const formData = new FormData();
                 formData.append('avatar', file);
+                formData.append('edit_version', profileEditVersion.value);
+                avatarUploadError.hidden = true;
+                this.disabled = true;
 
-                // Hiển thị tạm ảnh xem trước
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    userAvatarDisplay.src = e.target.result;
-                    if (topNavAvatar) topNavAvatar.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-
-                // Gửi tệp lên server qua AJAX
-                fetch('{{ route("profile.avatar") }}', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                        'Accept': 'application/json'
-                    },
-                    body: formData
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success && data.avatar_url) {
-                        userAvatarDisplay.src = data.avatar_url;
-                        if (topNavAvatar) topNavAvatar.src = data.avatar_url;
-                        if (avatarUrlInput) avatarUrlInput.value = data.avatar_url;
+                try {
+                    const response = await fetch('{{ route("profile.avatar") }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    });
+                    const data = await response.json();
+                    if (!response.ok || !data.success || !data.avatar_url) {
+                        avatarUploadError.textContent = data.errors?.avatar?.[0]
+                            || data.errors?.edit_version?.[0]
+                            || 'Không thể tải ảnh đại diện. Vui lòng thử lại.';
+                        avatarUploadError.hidden = false;
+                        return;
                     }
-                })
-                .catch(err => {
-                    console.error('Lỗi tải ảnh:', err);
-                });
+
+                    avatarFallback.hidden = true;
+                    userAvatarDisplay.hidden = false;
+                    userAvatarDisplay.src = data.avatar_url;
+                    if (topNavAvatar) topNavAvatar.src = data.avatar_url;
+                    avatarUrlInput.defaultValue = avatarUrlInput.value = data.avatar_url;
+                    profileEditVersion.defaultValue = profileEditVersion.value = data.edit_version;
+                } catch {
+                    avatarUploadError.textContent = 'Không thể tải ảnh đại diện. Vui lòng thử lại.';
+                    avatarUploadError.hidden = false;
+                } finally {
+                    this.value = '';
+                    this.disabled = false;
+                }
             });
         }
     </script>

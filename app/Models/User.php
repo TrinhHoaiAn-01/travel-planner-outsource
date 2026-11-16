@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -40,7 +42,36 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $hidden = [
         'password',
+        'edit_version',
     ];
+
+    protected static function booted(): void
+    {
+        static::updating(function (User $user): void {
+            if (! $user->isDirty('edit_version')) {
+                $user->renewEditVersion();
+            }
+        });
+    }
+
+    public function editVersion(): string
+    {
+        return $this->edit_version ?? '0';
+    }
+
+    public function renewEditVersion(): void
+    {
+        $this->edit_version = (string) Str::uuid();
+    }
+
+    public function requireEditVersion(string $version): void
+    {
+        if ($version !== $this->editVersion()) {
+            throw ValidationException::withMessages([
+                'edit_version' => 'Dữ liệu đã thay đổi. Vui lòng tải lại trang trước khi cập nhật.',
+            ]);
+        }
+    }
 
     /**
      * Bỏ qua remember_token do bảng users trong ERD đồ án đã loại bỏ cột này.
