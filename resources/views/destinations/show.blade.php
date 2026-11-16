@@ -1918,9 +1918,9 @@
                             <div class="rating-display-large">
                                 <span class="star-rating-icon">⭐</span>
                                 @php
-                                    $hasApproved = $destination->approvedReviews->count() > 0 && $destination->rating > 0;
-                                    $scoreDisplay = $hasApproved ? number_format($destination->rating, 1) : '4.9';
-                                    $countDisplay = $hasApproved ? number_format($destination->approvedReviews->count(), 0, ',', '.') : '1.240';
+                                    $approvedCount = $destination->approvedReviews->count();
+                                    $scoreDisplay = $destination->rating > 0 ? number_format($destination->rating, 1) : '5.0';
+                                    $countDisplay = number_format($approvedCount, 0, ',', '.');
                                 @endphp
                                 <span class="rating-score-blue">{{ $scoreDisplay }}</span>
                                 <span class="rating-max-muted">/ 5.0</span>
@@ -2083,56 +2083,11 @@
                             </div>
                         @endforeach
 
-                        @if($displayReviews->count() === 0 || ($displayReviews->count() === 1 && auth()->check() && $userReview && $userReview->status !== \App\Models\Review::STATUS_APPROVED))
-                            <!-- Nếu cơ sở dữ liệu chưa có review đã duyệt nào, hiển thị đúng 2 Card Mẫu y hệt Hình 2 Báo Cáo -->
-                            <!-- Card Mẫu 1: Trần Hoàng Long -->
-                            <div class="review-feed-card">
-                                <div class="review-feed-card-header">
-                                    <div class="review-feed-author-box">
-                                        <div class="review-feed-avatar" style="background: #E2E8F0;">
-                                            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&h=120&q=80" alt="Trần Hoàng Long" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span style=\'color:#0066FF;font-weight:700;\'>T</span>'">
-                                        </div>
-                                        <div>
-                                            <div class="review-feed-author-name">Trần Hoàng Long</div>
-                                            <div class="review-feed-trip-meta">Đã đi vào Tháng 8, 2026 • Chuyến đi gia đình</div>
-                                        </div>
-                                    </div>
-                                    <div class="review-feed-stars">
-                                        <i class="bi bi-star-fill star-filled"></i>
-                                        <i class="bi bi-star-fill star-filled"></i>
-                                        <i class="bi bi-star-fill star-filled"></i>
-                                        <i class="bi bi-star-fill star-filled"></i>
-                                        <i class="bi bi-star-fill star-filled"></i>
-                                    </div>
-                                </div>
-                                <div class="review-feed-comment-text">
-                                    Cầu Vàng sáng sớm siêu đẹp và ít đông đúc. Cáp treo rất êm ái, quang cảnh núi rừng nhìn từ trên cao hùng vĩ tuyệt vời. Khách sạn Mercure trên đỉnh núi phục vụ chu đáo, đồ ăn buffet rất đa dạng.
-                                </div>
-                            </div>
-
-                            <!-- Card Mẫu 2: Lê Thu Hà -->
-                            <div class="review-feed-card">
-                                <div class="review-feed-card-header">
-                                    <div class="review-feed-author-box">
-                                        <div class="review-feed-avatar" style="background: #E2E8F0;">
-                                            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&h=120&q=80" alt="Lê Thu Hà" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span style=\'color:#0066FF;font-weight:700;\'>L</span>'">
-                                        </div>
-                                        <div>
-                                            <div class="review-feed-author-name">Lê Thu Hà</div>
-                                            <div class="review-feed-trip-meta">Đã đi vào Tháng 7, 2026 • Đi cùng bạn bè</div>
-                                        </div>
-                                    </div>
-                                    <div class="review-feed-stars">
-                                        <i class="bi bi-star-fill star-filled"></i>
-                                        <i class="bi bi-star-fill star-filled"></i>
-                                        <i class="bi bi-star-fill star-filled"></i>
-                                        <i class="bi bi-star-fill star-filled"></i>
-                                        <i class="bi bi-star-fill star-filled"></i>
-                                    </div>
-                                </div>
-                                <div class="review-feed-comment-text">
-                                    Trải nghiệm thời tiết 4 mùa trong một ngày thực sự ấn tượng. Khuyên mọi người nên mang theo áo khoác mỏng vì buổi tối trên núi khá se lạnh. Sẽ quay lại vào lần tới!
-                                </div>
+                        @if($displayReviews->isEmpty())
+                            <div class="text-center py-5 px-3 bg-light rounded-4 border border-light-subtle">
+                                <div class="text-muted mb-2" style="font-size: 32px;">💬</div>
+                                <h4 class="h6 fw-bold text-dark mb-1">Chưa có nhận xét nào được hiển thị</h4>
+                                <p class="text-muted small mb-0">Hãy là người đầu tiên chia sẻ cảm nhận và đánh giá trải nghiệm tại {{ $destination->name }}!</p>
                             </div>
                         @endif
                     </div>
