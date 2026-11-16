@@ -8,7 +8,7 @@ from commerce_common.presentation import PresentationExtension, EnrichmentContex
 
 
 class FavoriteAction(BaseModel):
-    destination_name: str = Field(description="Tên điểm đến cần lưu vào mục yêu thích, ví dụ: 'Vinpearl Resort & Spa Phú Quốc'")
+    destination_name: str | None = Field(default=None, description="Tên điểm đến cần lưu vào mục yêu thích, ví dụ: 'Vinpearl Resort & Spa Phú Quốc'. Nếu người dùng không nói rõ, để trống để hệ thống tự động chọn điểm nổi bật.")
     destination_id: str | None = Field(default=None, description="ID của điểm đến nếu có")
 
 
@@ -26,7 +26,7 @@ def build_favorite_extension() -> PresentationExtension:
     return PresentationExtension(
         name="add_favorite",
         component="favorite_action",
-        description="Thêm điểm đến hoặc khách sạn vào danh sách yêu thích của người dùng. Dùng ngay khi khách yêu cầu: 'thêm vào mục yêu thích', 'lưu vào yêu thích', 'thích điểm đến này', v.v.",
+        description="Thêm điểm đến hoặc khách sạn vào danh sách yêu thích của người dùng và hiển thị thẻ trực quan FavoriteActionCard (❤️). TỰ ĐỘNG THỰC HIỆN NGAY khi khách yêu cầu: 'thêm vào mục yêu thích', 'lưu vào yêu thích', 'thêm yêu thích', 'thích điểm đến này', 'lưu điểm này', v.v. Có thể để trống destination_name.",
         input_schema=FavoriteAction.model_json_schema(),
         payload_model=FavoriteAction,
         enrich=enrich_favorite,
@@ -34,7 +34,7 @@ def build_favorite_extension() -> PresentationExtension:
 
 
 class TripAction(BaseModel):
-    destination_name: str = Field(description="Tên điểm đến cần thêm vào chuyến đi, ví dụ: 'Vinpearl Resort & Spa Phú Quốc'")
+    destination_name: str | None = Field(default=None, description="Tên điểm đến cần thêm vào chuyến đi, ví dụ: 'Vinpearl Resort & Spa Phú Quốc'. Nếu để trống, hệ thống sẽ tự động chọn điểm nổi bật.")
     destination_id: str | None = Field(default=None, description="ID của điểm đến nếu có")
     trip_id: int | None = Field(default=None, description="ID của chuyến đi nếu khách đã chọn")
     day_number: int = Field(default=1, description="Ngày thứ mấy trong chuyến đi (mặc định là 1)")
@@ -58,7 +58,7 @@ def build_trip_extension() -> PresentationExtension:
     return PresentationExtension(
         name="add_destination_to_trip",
         component="trip_action",
-        description="Thêm điểm đến hoặc khách sạn vào lịch trình chuyến đi của người dùng. Dùng ngay khi khách yêu cầu: 'thêm vào trip', 'thêm vào chuyến đi', 'lên lịch đi điểm này', v.v.",
+        description="Thêm điểm đến hoặc khách sạn vào lịch trình chuyến đi của người dùng và hiển thị thẻ trực quan TripActionCard (✈️). TỰ ĐỘNG THỰC HIỆN NGAY khi khách yêu cầu: 'thêm vào trip', 'thêm vào chuyến đi', 'lên lịch đi điểm này', v.v. Có thể để trống destination_name.",
         input_schema=TripAction.model_json_schema(),
         payload_model=TripAction,
         enrich=enrich_trip,
@@ -92,7 +92,7 @@ def build_booking_extension() -> PresentationExtension:
     return PresentationExtension(
         name="book_hotel_room",
         component="booking_action",
-        description="Tạo đơn đặt phòng khách sạn/resort cho người dùng theo số ngày yêu cầu (ví dụ 3 ngày) và sinh mã booking kèm thông tin chuyển khoản ngân hàng. Dùng khi khách yêu cầu: 'đặt lịch phòng', 'đặt phòng', 'book phòng', v.v.",
+        description="Tự động tạo đơn đặt phòng khách sạn/resort cho người dùng và hiển thị thẻ đặt phòng trực quan BookingActionCard kèm mã booking và hướng dẫn thanh toán ngân hàng. TỰ ĐỘNG THỰC HIỆN NGAY khi khách yêu cầu: 'đặt phòng', 'đặt lịch phòng', 'book phòng', 'hãy đặt phòng 3 ngày', v.v.",
         input_schema=BookingAction.model_json_schema(),
         payload_model=BookingAction,
         enrich=enrich_booking,
@@ -133,7 +133,7 @@ def build_update_dates_extension() -> PresentationExtension:
 
 class ConfirmTransferAction(BaseModel):
     booking_id: int | None = Field(default=None, description="ID đơn đặt phòng")
-    booking_code: str | None = Field(default=None, description="Mã đơn đặt phòng (#BK-...)")
+    booking_code: str | None = Field(default=None, description="Mã đơn đặt phòng (#BK-...) nếu khách có cung cấp")
 
 
 async def enrich_confirm_transfer(payload: ConfirmTransferAction, context: EnrichmentContext) -> dict[str, Any]:
@@ -150,7 +150,7 @@ def build_confirm_transfer_extension() -> PresentationExtension:
     return PresentationExtension(
         name="confirm_bank_transfer",
         component="booking_action",
-        description="Xác nhận khách hàng đã chuyển khoản thành công cho đơn đặt phòng qua ngân hàng. Dùng khi khách thông báo 'đã chuyển khoản', 'đã thanh toán', 'xác nhận chuyển tiền', v.v.",
+        description="Hiển thị thẻ thanh toán trực quan BookingActionCard và xác nhận chuyển khoản ngân hàng. BẮT BUỘC TỰ ĐỘNG THỰC HIỆN NGAY khi khách yêu cầu: 'thanh toán', 'chuyển khoản', 'lấy mã QR', 'thanh toán đơn đặt phòng', 'cho tôi thanh toán', 'đã chuyển khoản', 'xác nhận chuyển tiền', v.v. Không cần hỏi lại mã đơn, hệ thống tự động tìm đơn gần nhất để hiển thị thẻ thanh toán trực quan.",
         input_schema=ConfirmTransferAction.model_json_schema(),
         payload_model=ConfirmTransferAction,
         enrich=enrich_confirm_transfer,

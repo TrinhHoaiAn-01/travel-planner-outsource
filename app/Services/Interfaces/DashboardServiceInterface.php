@@ -50,4 +50,8 @@ interface DashboardServiceInterface
      * @return string
      */
     public function exportReportData(int $year = 2026): string;
+    /**
+     * Làm sạch dữ liệu ô CSV chống formula injection.
+     */
+    public function sanitizeCsvCell(mixed $value): mixed;
 }

@@ -18,7 +18,8 @@ RUN apt-get update \
 WORKDIR /var/www/html
 COPY plugins/commerce-agents/travel_planner/requirements.lock.txt /tmp/commerce-requirements.txt
 RUN python3 -m venv /opt/commerce-venv \
-    && /opt/commerce-venv/bin/pip install --no-cache-dir -r /tmp/commerce-requirements.txt
+    && /opt/commerce-venv/bin/pip install --no-cache-dir -r /tmp/commerce-requirements.txt \
+    && ln -sf /opt/commerce-venv/bin/python /usr/bin/python
 ENV COMMERCE_AGENTS_PYTHON=/opt/commerce-venv/bin/python
 RUN printf 'max_execution_time=240\n' > /usr/local/etc/php/conf.d/commerce.ini
 COPY --from=composer:2.10.3 /usr/bin/composer /usr/bin/composer

@@ -175,19 +175,6 @@
             Nhập địa chỉ email và nhấn gửi để tiếp tục đặt lại mật khẩu mới.
         </div>
 
-        {{-- Thông báo phản hồi hệ thống nếu có --}}
-        @if(session('status'))
-            <div class="alert-box alert-success" role="alert">
-                {{ session('status') }}
-            </div>
-        @endif
-
-        @if(session('error'))
-            <div class="alert-box alert-danger" role="alert">
-                {{ session('error') }}
-            </div>
-        @endif
-
         <form action="{{ route('password.email') }}" method="POST" novalidate id="forgotPasswordForm">
             @csrf
 
@@ -223,5 +210,6 @@
             </a>
         </div>
     </main>
+    @include('partials.popup-notification')
 </body>
 </html>

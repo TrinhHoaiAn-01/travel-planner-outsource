@@ -266,4 +266,23 @@ class DashboardService implements DashboardServiceInterface
 
         return $csvContent;
     }
+
+    /**
+     * Làm sạch dữ liệu ô CSV chống formula injection.
+     */
+    public function sanitizeCsvCell(mixed $value): mixed
+    {
+        if (is_int($value) || is_float($value)) {
+            return $value;
+        }
+        $str = (string) $value;
+        if ($str === '') {
+            return '';
+        }
+        $dangerous = ['=', '+', '-', '@', "\t", "\r"];
+        if (in_array($str[0], $dangerous, true)) {
+            return "'" . $str;
+        }
+        return $value;
+    }
 }

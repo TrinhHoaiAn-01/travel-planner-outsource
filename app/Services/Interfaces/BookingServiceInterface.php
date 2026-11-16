@@ -15,7 +15,7 @@ interface BookingServiceInterface
     /**
      * Kiểm tra tình trạng phòng còn trống theo khoảng ngày.
      */
-    public function checkRoomAvailability(int $roomTypeId, string $checkIn, string $checkOut, int $roomCount): bool;
+    public function checkRoomAvailability(int $roomTypeId, string $checkIn, string $checkOut, int $roomCount, ?int $excludeBookingId = null): bool;
 
     /**
      * Tính toán tổng chi phí đặt phòng theo số đêm và số lượng phòng.

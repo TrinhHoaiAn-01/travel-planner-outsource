@@ -24,27 +24,49 @@ class SolrQueryBuilder
             return '*:*';
         }
 
-        // 1. Thoát các ký tự đặc biệt nguy hiểm của cú pháp truy vấn Lucene/Solr
-        $sanitizedKeyword = self::escapeSolrSpecialCharacters($keyword);
+        // 1. Rút gọn ký tự lặp quá 2 lần (ví dụ: mesiiiii -> mesii, danangggg -> danang)
+        $clean = preg_replace('/(.)\1{2,}/u', '$1$1', $keyword) ?: $keyword;
 
-        // 2. Tạo phiên bản không dấu để hỗ trợ người dùng gõ không dấu
+        // 2. Mở rộng địa danh ghép khi người dùng gõ liền không dấu (danang -> Đà Nẵng, hanoi -> Hà Nội)
+        $cityCompounds = [
+            '/\bha\s*noi\b/ui' => 'Hà Nội',
+            '/\bhanoi\b/ui' => 'Hà Nội',
+            '/\bda\s*nang\b/ui' => 'Đà Nẵng',
+            '/\bdanang\b/ui' => 'Đà Nẵng',
+            '/\bphu\s*quoc\b/ui' => 'Phú Quốc',
+            '/\bphuquoc\b/ui' => 'Phú Quốc',
+            '/\bha\s*long\b/ui' => 'Hạ Long',
+            '/\bhalong\b/ui' => 'Hạ Long',
+            '/\bnha\s*trang\b/ui' => 'Nha Trang',
+            '/\bnhatrang\b/ui' => 'Nha Trang',
+            '/\bsai\s*gon\b/ui' => 'Sài Gòn',
+            '/\bsaigon\b/ui' => 'Sài Gòn',
+            '/\bda\s*lat\b/ui' => 'Đà Lạt',
+            '/\bdalat\b/ui' => 'Đà Lạt',
+        ];
+        $expanded = preg_replace(array_keys($cityCompounds), array_values($cityCompounds), $clean) ?: $clean;
+
+        // 3. Thoát các ký tự đặc biệt nguy hiểm của cú pháp truy vấn Lucene/Solr
+        $sanitizedKeyword = self::escapeSolrSpecialCharacters($expanded);
+
+        // 4. Tạo phiên bản không dấu để hỗ trợ người dùng gõ không dấu
         $unaccentedKeyword = self::removeVietnameseAccents($sanitizedKeyword);
 
-        // 3. Tách từ khóa thành các từ đơn (tokens)
+        // 5. Tách từ khóa thành các từ đơn (tokens)
         $tokens = preg_split('/\s+/', $sanitizedKeyword, -1, PREG_SPLIT_NO_EMPTY) ?: [];
         $unaccentedTokens = preg_split('/\s+/', $unaccentedKeyword, -1, PREG_SPLIT_NO_EMPTY) ?: [];
 
         $queryClauses = [];
 
-        // 3.1. Ưu tiên cao nhất: Khớp chính xác toàn bộ cụm từ có dấu (boost ^10)
+        // 5.1. Ưu tiên cao nhất: Khớp chính xác toàn bộ cụm từ có dấu (boost ^10)
         $queryClauses[] = '"' . $sanitizedKeyword . '"^10';
 
-        // 3.2. Ưu tiên thứ hai: Khớp chính xác toàn bộ cụm từ không dấu (boost ^6)
+        // 5.2. Ưu tiên thứ hai: Khớp chính xác toàn bộ cụm từ không dấu (boost ^6)
         if ($unaccentedKeyword !== $sanitizedKeyword) {
             $queryClauses[] = '"' . $unaccentedKeyword . '"^6';
         }
 
-        // 3.3. Khớp các từ đơn có dấu và không dấu
+        // 5.3. Khớp các từ đơn có dấu và không dấu (kết hợp AND - hỗ trợ đảo từ)
         if (count($tokens) > 1) {
             $queryClauses[] = '(' . implode(' AND ', $tokens) . ')^5';
             if ($unaccentedKeyword !== $sanitizedKeyword) {
@@ -52,7 +74,7 @@ class SolrQueryBuilder
             }
         }
 
-        // 3.4. Khớp mở rộng tiền tố (Wildcard Prefix) để gợi ý gõ dở dang (ví dụ: 'Đà*' 'Nẵng*')
+        // 5.4. Khớp mở rộng tiền tố (Wildcard Prefix) để gợi ý gõ dở dang (ví dụ: 'Đà*' 'Nẵng*')
         $wildcardClauses = [];
         foreach ($tokens as $token) {
             if (mb_strlen($token) >= 2) {
@@ -63,10 +85,13 @@ class SolrQueryBuilder
             $queryClauses[] = '(' . implode(' AND ', $wildcardClauses) . ')^2';
         }
 
-        // 3.5. Khớp dung sai gõ sai chính tả (Fuzzy Matching ~1) cho các từ có từ 3 ký tự trở lên
+        // 5.5. Khớp dung sai gõ sai chính tả (Fuzzy Matching): ~2 cho từ dài >= 4, ~1 cho từ >= 3
         $fuzzyClauses = [];
         foreach ($tokens as $token) {
-            if (mb_strlen($token) >= 3) {
+            $len = mb_strlen($token);
+            if ($len >= 4) {
+                $fuzzyClauses[] = $token . '~2';
+            } elseif ($len >= 3) {
                 $fuzzyClauses[] = $token . '~1';
             }
         }

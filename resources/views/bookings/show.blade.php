@@ -490,9 +490,6 @@
 
             <div class="nav-actions">
                 @auth
-                    @if(Auth::user()->role === 'admin')
-                        <a href="{{ route('admin.dashboard') }}" class="nav-link" style="color: #7E22CE; background: #F3E8FF;">Admin</a>
-                    @endif
                     <a href="{{ route('profile.show') }}" class="user-dropdown">
                         <div class="user-avatar">
                             {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}
@@ -516,14 +513,6 @@
             <span style="color: var(--secondary); font-weight: 600;">Đơn đặt {{ $booking->booking_code }}</span>
         </div>
 
-        <!-- Flash Message -->
-        @if(session('success'))
-            <div class="alert-success">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span>{{ session('success') }}</span>
-            </div>
-        @endif
-
         @php
             $roomType = $booking->roomType;
             $destination = $roomType->destination ?? null;
@@ -535,7 +524,7 @@
             <div>
                 <div class="booking-code-large">
                     <span>Mã Đơn: {{ $booking->booking_code }}</span>
-                    <span class="status-badge {{ $booking->status }}">
+                    <span id="bookingStatusBadge" class="status-badge {{ $booking->status }}">
                         @if($booking->status === 'pending')
                             Chờ xác nhận
                         @elseif($booking->status === 'confirmed')
@@ -742,7 +731,7 @@
                         @endif
 
                         @if($booking->status !== 'cancelled' && $booking->check_in_date && \Carbon\Carbon::parse($booking->check_in_date)->isFuture())
-                            <form action="{{ route('bookings.cancel', $booking->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn đặt phòng {{ $booking->booking_code }} không?')">
+                            <form action="{{ route('bookings.cancel', $booking->id) }}" method="POST" onsubmit="return handleFormConfirm(this, event, 'Bạn có chắc chắn muốn hủy đơn đặt phòng {{ $booking->booking_code }} không?', 'Xác nhận hủy', true);">
                                 @csrf
                                 @method('PATCH')
                                 <button type="submit" class="btn-action-danger">
@@ -764,5 +753,32 @@
         <p>© 2026 Travel Planner - Đồ Án Chuyên Đề Phát Triển Web. Nhóm B (Nguyễn Văn Thắng - Booking & Payment Module).</p>
     </footer>
 
+    @if($booking->status === 'pending')
+    <script>
+        (function() {
+            const checkUrl = "{{ route('payments.status', $booking->id) }}";
+            let timer = setInterval(() => {
+                fetch(checkUrl, {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(res => res.ok ? res.json() : null)
+                .then(data => {
+                    if (data && (data.is_paid || data.status === 'confirmed' || data.status === 'completed')) {
+                        clearInterval(timer);
+                        const badge = document.getElementById('bookingStatusBadge');
+                        if (badge) {
+                            badge.className = 'status-badge confirmed';
+                            badge.innerText = 'Đã xác nhận';
+                        }
+                        setTimeout(() => { window.location.reload(); }, 1000);
+                    }
+                })
+                .catch(() => {});
+            }, 3000);
+        })();
+    </script>
+    @endif
+    @include('commerce.launcher', ['merchant' => false])
+    @include('partials.popup-notification')
 </body>
 </html>

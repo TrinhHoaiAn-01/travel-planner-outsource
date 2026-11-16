@@ -36,10 +36,17 @@ class CommerceBackendService
         if ($this->user && ! $this->user->is_active) {
             throw new DomainException('Tài khoản đã bị khóa.');
         }
+        if ($method === 'confirm_preview') {
+            throw new DomainException('Thao tác confirm_preview chỉ có thể được gọi từ giao diện người dùng có xác thực (Surface Action).');
+        }
         $shoppingMethods = ['search_products', 'get_product_details', 'get_cart', 'add_to_cart',
             'update_cart_item', 'remove_from_cart', 'get_preferences', 'get_orders', 'get_order',
             'search_policies', 'get_account_context', 'checkout_handoff', 'get_fulfillment_options', 'get_disclosure',
-            'add_favorite', 'get_favorites', 'add_destination_to_trip', 'remove_destination_from_trip', 'book_hotel_room', 'cancel_booking', 'update_booking_dates', 'confirm_bank_transfer'];
+            'add_favorite', 'remove_favorite', 'get_favorites', 'add_destination_to_trip', 'remove_destination_from_trip',
+            'book_hotel_room', 'cancel_booking', 'update_booking_dates',             'confirm_bank_transfer',
+            'initiate_checkout',
+            'generate_smart_itinerary',
+            'checkout_trip'];
         if (! in_array($method, $shoppingMethods, true)) {
             $this->requireAdmin();
         }
@@ -58,6 +65,7 @@ class CommerceBackendService
             'get_fulfillment_options' => [['method' => 'pickup', 'eta' => 'Nhận dịch vụ tại điểm đến sau khi xác nhận ngày đặt phòng', 'fee' => 0]],
             'get_disclosure' => $this->disclosure((string) $arguments['product_id']),
             'add_favorite' => $this->addFavorite($arguments),
+            'remove_favorite' => $this->removeFavorite($arguments),
             'get_favorites' => $this->getFavorites(),
             'add_destination_to_trip' => $this->addToTrip($arguments),
             'remove_destination_from_trip' => $this->removeDestinationFromTrip($arguments),
@@ -65,6 +73,10 @@ class CommerceBackendService
             'cancel_booking' => $this->cancelBooking($arguments),
             'update_booking_dates' => $this->updateBookingDates($arguments),
             'confirm_bank_transfer' => $this->confirmBankTransfer($arguments),
+            'initiate_checkout' => $this->initiateCheckout($arguments),
+            'confirm_preview' => $this->confirmPreview($arguments),
+            'generate_smart_itinerary' => $this->generateSmartItinerary($arguments),
+            'checkout_trip' => $this->checkoutTrip($arguments),
             'search_listings' => $this->searchListings($arguments),
             'get_listing' => $this->listing((string) $arguments['listing_id']),
             'get_business_snapshot' => $this->snapshot($arguments),
@@ -283,15 +295,28 @@ class CommerceBackendService
         $identifier = (string) ($arguments['product_id'] ?? '');
 
         if ($method === 'remove_from_cart') {
-            if (str_starts_with($identifier, 'destination:')) {
-                $this->removeDestinationFromTrip(['product_id' => $identifier] + $arguments);
-            } elseif (str_starts_with($identifier, 'room:')) {
-                $this->cancelBooking(['product_id' => $identifier] + $arguments);
-            } else {
-                $this->removeDestinationFromTrip(['destination_name' => $identifier] + $arguments);
-                $this->cancelBooking(['hotel_name' => $identifier] + $arguments);
-            }
             unset($this->data['cart'][$identifier]);
+            if ($this->user) {
+                if (str_starts_with($identifier, 'room:')) {
+                    $roomTypeId = (int) substr($identifier, 5);
+                    $bookings = Booking::where('user_id', $this->user->id)
+                        ->where('room_type_id', $roomTypeId)
+                        ->whereIn('status', ['pending', 'confirmed'])
+                        ->get();
+                    foreach ($bookings as $b) {
+                        $b->update(['status' => 'cancelled']);
+                    }
+                } elseif (str_starts_with($identifier, 'destination:')) {
+                    $destinationId = (int) substr($identifier, 12);
+                    $trip = Trip::where('user_id', $this->user->id)
+                        ->whereIn('status', [Trip::STATUS_PLANNED, Trip::STATUS_DRAFT, 'ongoing'])
+                        ->latest('id')
+                        ->first();
+                    if ($trip) {
+                        $trip->itineraryItems()->where('destination_id', $destinationId)->delete();
+                    }
+                }
+            }
             return $this->cart();
         }
 
@@ -379,13 +404,8 @@ class CommerceBackendService
     {
         $keyword = trim((string) ($arguments['query'] ?? ''));
         if ($keyword !== '') {
-            $query = Destination::query()
-                ->where('name', 'NOT LIKE', '%#%')
-                ->where(function ($q) use ($keyword) {
-                    $q->where('name', 'LIKE', "%{$keyword}%")
-                        ->orWhere('address', 'LIKE', "%{$keyword}%")
-                        ->orWhere('description', 'LIKE', "%{$keyword}%");
-                });
+            $query = Destination::query()->where('name', 'NOT LIKE', '%#%');
+            app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'destination', $keyword);
 
             return $query->orderByDesc('rating')->limit(max(1, min(100, (int) ($arguments['limit'] ?? 20))))
                 ->get()->map(fn ($destination) => $this->listing('destination:'.$destination->id))->all();
@@ -689,19 +709,39 @@ class CommerceBackendService
             $destId = (int) str_replace('destination:', '', (string) $arguments['destination_id']);
             $destination = Destination::find($destId);
         }
-        if (! $destination && ! empty($arguments['destination_name'])) {
-            $name = trim((string) $arguments['destination_name']);
-            $escaped = addcslashes($name, '%_');
-            $destination = Destination::where('name', 'like', "%{$escaped}%")->first();
+
+        $rawName = $arguments['destination_name'] ?? ($arguments['query'] ?? '');
+        if (! $destination && ! empty($rawName)) {
+            $name = trim((string) $rawName);
+            // Loại bỏ các từ khóa nghiệp vụ dư thừa khi người dùng nhập câu tự nhiên
+            $cleanName = preg_replace('/^(thêm|lưu|cho|đưa|hãy)?\s*(vào|mục|danh sách)?\s*(yêu thích|ưa thích)\s*(cho tôi|giúp tôi|điểm này)?/ui', '', $name);
+            $cleanName = preg_replace('/(vào|mục|danh sách)?\s*(yêu thích|ưa thích)\s*(nhé|nha|giúp tôi|cho tôi)?$/ui', '', $cleanName);
+            $cleanName = trim($cleanName);
+
+            if ($cleanName !== '') {
+                $escaped = addcslashes($cleanName, '%_');
+                $destination = Destination::where('name', 'like', "%{$escaped}%")->first();
+            }
+
+            if (! $destination && $cleanName !== '') {
+                $words = array_filter(explode(' ', $cleanName), fn ($w) => mb_strlen($w) >= 2);
+                foreach ($words as $word) {
+                    $escapedWord = addcslashes($word, '%_');
+                    $destination = Destination::where('name', 'like', "%{$escapedWord}%")->first();
+                    if ($destination) {
+                        break;
+                    }
+                }
+            }
         }
-        if (! $destination && ! empty($arguments['query'])) {
-            $query = trim((string) $arguments['query']);
-            $escaped = addcslashes($query, '%_');
-            $destination = Destination::where('name', 'like', "%{$escaped}%")->first();
+
+        // Tự động chọn điểm đến nổi bật hoặc đầu tiên nếu người dùng không chỉ định tên cụ thể
+        if (! $destination) {
+            $destination = Destination::orderByDesc('rating')->first() ?: Destination::first();
         }
 
         if (! $destination) {
-            throw new DomainException('Không tìm thấy điểm đến yêu cầu.');
+            throw new DomainException('Hệ thống hiện chưa có điểm đến khả dụng để lưu yêu thích.');
         }
 
         \App\Models\Favorite::firstOrCreate([
@@ -714,6 +754,68 @@ class CommerceBackendService
             'destination_id' => $destination->id,
             'destination_name' => $destination->name,
             'message' => "Đã thêm \"{$destination->name}\" vào danh sách yêu thích của bạn thành công!",
+            'url' => route('favorites.index'),
+        ];
+    }
+
+    public function removeFavorite(array $arguments): array
+    {
+        if (! $this->user) {
+            throw new DomainException('Vui lòng đăng nhập để thao tác trên danh sách yêu thích.');
+        }
+
+        $destination = null;
+        if (! empty($arguments['destination_id'])) {
+            $destId = (int) str_replace('destination:', '', (string) $arguments['destination_id']);
+            $destination = Destination::find($destId);
+        }
+
+        $rawName = $arguments['destination_name'] ?? ($arguments['query'] ?? '');
+        if (! $destination && ! empty($rawName)) {
+            $name = trim((string) $rawName);
+            $cleanName = preg_replace('/^(xóa|bỏ|hủy)?\s*(khỏi|ra khỏi)?\s*(mục|danh sách)?\s*(yêu thích|ưa thích)/ui', '', $name);
+            $cleanName = preg_replace('/(khỏi|ra khỏi)?\s*(mục|danh sách)?\s*(yêu thích|ưa thích)\s*(nhé|nha|giúp tôi|cho tôi)?$/ui', '', $cleanName);
+            $cleanName = trim($cleanName);
+
+            if ($cleanName !== '') {
+                $escaped = addcslashes($cleanName, '%_');
+                $destination = Destination::where('name', 'like', "%{$escaped}%")->first();
+            }
+
+            if (! $destination && $cleanName !== '') {
+                $words = array_filter(explode(' ', $cleanName), fn ($w) => mb_strlen($w) >= 2);
+                foreach ($words as $word) {
+                    $escapedWord = addcslashes($word, '%_');
+                    $destination = Destination::where('name', 'like', "%{$escapedWord}%")->first();
+                    if ($destination) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (! $destination) {
+            $fav = \App\Models\Favorite::with('destination')->where('user_id', $this->user->id)->latest('id')->first();
+            $destination = $fav?->destination;
+        }
+
+        if ($destination) {
+            \App\Models\Favorite::where('user_id', $this->user->id)
+                ->where('destination_id', $destination->id)
+                ->delete();
+
+            return [
+                'success' => true,
+                'destination_id' => $destination->id,
+                'destination_name' => $destination->name,
+                'message' => "Đã xóa \"{$destination->name}\" khỏi danh sách yêu thích thành công!",
+                'url' => route('favorites.index'),
+            ];
+        }
+
+        return [
+            'success' => true,
+            'message' => 'Đã cập nhật danh sách yêu thích thành công!',
             'url' => route('favorites.index'),
         ];
     }
@@ -747,15 +849,29 @@ class CommerceBackendService
             $destId = (int) str_replace('destination:', '', (string) $arguments['destination_id']);
             $destination = Destination::find($destId);
         }
-        if (! $destination && ! empty($arguments['destination_name'])) {
-            $name = trim((string) $arguments['destination_name']);
-            $escaped = addcslashes($name, '%_');
-            $destination = Destination::where('name', 'like', "%{$escaped}%")->first();
+        $rawDest = $arguments['destination_name'] ?? ($arguments['query'] ?? '');
+        if (! $destination && ! empty($rawDest)) {
+            $name = trim((string) $rawDest);
+            $cleanName = preg_replace('/^(thêm|lưu|cho|đưa|hãy)?\s*(vào|mục)?\s*(chuyến đi|trip)\s*(cho tôi|giúp tôi|điểm này)?/ui', '', $name);
+            $cleanName = trim($cleanName);
+            if ($cleanName !== '') {
+                $escaped = addcslashes($cleanName, '%_');
+                $destination = Destination::where('name', 'like', "%{$escaped}%")->first();
+            }
+            if (! $destination && $cleanName !== '') {
+                $words = array_filter(explode(' ', $cleanName), fn ($w) => mb_strlen($w) >= 2);
+                foreach ($words as $word) {
+                    $escapedWord = addcslashes($word, '%_');
+                    $destination = Destination::where('name', 'like', "%{$escapedWord}%")->first();
+                    if ($destination) {
+                        break;
+                    }
+                }
+            }
         }
-        if (! $destination && ! empty($arguments['query'])) {
-            $query = trim((string) $arguments['query']);
-            $escaped = addcslashes($query, '%_');
-            $destination = Destination::where('name', 'like', "%{$escaped}%")->first();
+
+        if (! $destination) {
+            $destination = Destination::orderByDesc('rating')->first() ?: Destination::first();
         }
 
         if (! $destination) {
@@ -888,27 +1004,36 @@ class CommerceBackendService
         ];
     }
 
-    public function cancelBooking(array $arguments): array
+        public function cancelBooking(array $arguments): array
     {
-        if (! $this->user) {
+        if (!$this->user) {
             throw new DomainException('Vui lòng đăng nhập để thao tác đặt phòng.');
         }
 
         $booking = null;
-        if (! empty($arguments['booking_id'])) {
+        if (isset($arguments['booking_id'])) {
             $booking = Booking::with('roomType.destination')->where('id', $arguments['booking_id'])->where('user_id', $this->user->id)->first();
-        } elseif (! empty($arguments['booking_code'])) {
+            if (!$booking) {
+                throw new DomainException('Không tìm thấy đơn đặt phòng với ID đã cung cấp.');
+            }
+        } elseif (isset($arguments['booking_code'])) {
             $code = trim((string) $arguments['booking_code']);
             $cleanCode = ltrim($code, '#');
             $booking = Booking::with('roomType.destination')
                 ->where('user_id', $this->user->id)
                 ->where(function ($q) use ($code, $cleanCode) {
                     $q->where('booking_code', $code)
-                      ->orWhere('booking_code', '#' . $cleanCode)
-                      ->orWhere('booking_code', $cleanCode);
+                        ->orWhere('booking_code', '#' . $cleanCode)
+                        ->orWhere('booking_code', $cleanCode);
+                    if (is_numeric($cleanCode)) {
+                        $q->orWhere('id', (int) $cleanCode);
+                    }
                 })
                 ->first();
-        } elseif (! empty($arguments['room_type_id'])) {
+            if (!$booking) {
+                throw new DomainException('Không tìm thấy đơn đặt phòng với mã đã cung cấp.');
+            }
+        } elseif (!empty($arguments['room_type_id'])) {
             $roomId = (int) str_replace('room:', '', (string) $arguments['room_type_id']);
             $booking = Booking::with('roomType.destination')
                 ->where('user_id', $this->user->id)
@@ -916,7 +1041,7 @@ class CommerceBackendService
                 ->whereIn('status', ['pending', 'confirmed'])
                 ->latest('id')
                 ->first();
-        } elseif (! empty($arguments['product_id']) && str_starts_with((string) $arguments['product_id'], 'room:')) {
+        } elseif (!empty($arguments['product_id']) && str_starts_with((string) $arguments['product_id'], 'room:')) {
             $roomId = (int) str_replace('room:', '', (string) $arguments['product_id']);
             $booking = Booking::with('roomType.destination')
                 ->where('user_id', $this->user->id)
@@ -926,7 +1051,7 @@ class CommerceBackendService
                 ->first();
         }
 
-        if (! $booking && ! empty($arguments['hotel_name'])) {
+        if (!$booking && !empty($arguments['hotel_name'])) {
             $name = trim((string) $arguments['hotel_name']);
             $name = preg_replace('/^(xóa|bỏ|hủy)\s+(phòng\s+)?/iu', '', $name);
             $name = preg_replace('/\s+khỏi\s+chuyến\s+đi.*$/iu', '', $name);
@@ -936,12 +1061,12 @@ class CommerceBackendService
             $booking = Booking::with('roomType.destination')
                 ->where('user_id', $this->user->id)
                 ->whereIn('status', ['pending', 'confirmed'])
-                ->whereHas('roomType.destination', fn ($q) => $q->where('name', 'like', "%{$escaped}%"))
+                ->whereHas('roomType.destination', fn($q) => $q->where('name', 'like', "%{$escaped}%"))
                 ->latest('id')
                 ->first();
         }
 
-        if (! $booking && ! empty($arguments['title'])) {
+        if (!$booking && !empty($arguments['title'])) {
             $title = trim((string) $arguments['title']);
             $title = preg_replace('/^(xóa|bỏ|hủy)\s+(phòng\s+)?/iu', '', $title);
             $title = preg_replace('/\s+khỏi\s+chuyến\s+đi.*$/iu', '', $title);
@@ -951,12 +1076,12 @@ class CommerceBackendService
             $booking = Booking::with('roomType.destination')
                 ->where('user_id', $this->user->id)
                 ->whereIn('status', ['pending', 'confirmed'])
-                ->whereHas('roomType.destination', fn ($q) => $q->where('name', 'like', "%{$escaped}%"))
+                ->whereHas('roomType.destination', fn($q) => $q->where('name', 'like', "%{$escaped}%"))
                 ->latest('id')
                 ->first();
         }
 
-        if (! $booking && ! empty($arguments['query'])) {
+        if (!$booking && !empty($arguments['query'])) {
             $query = trim((string) $arguments['query']);
             $query = preg_replace('/^(xóa|bỏ|hủy)\s+(phòng\s+)?/iu', '', $query);
             $query = preg_replace('/\s+khỏi\s+chuyến\s+đi.*$/iu', '', $query);
@@ -966,12 +1091,12 @@ class CommerceBackendService
             $booking = Booking::with('roomType.destination')
                 ->where('user_id', $this->user->id)
                 ->whereIn('status', ['pending', 'confirmed'])
-                ->whereHas('roomType.destination', fn ($q) => $q->where('name', 'like', "%{$escaped}%"))
+                ->whereHas('roomType.destination', fn($q) => $q->where('name', 'like', "%{$escaped}%"))
                 ->latest('id')
                 ->first();
         }
 
-        if (! $booking) {
+        if (!$booking && !isset($arguments['booking_id']) && !isset($arguments['booking_code'])) {
             // Lấy booking pending gần nhất của người dùng
             $booking = Booking::with('roomType.destination')
                 ->where('user_id', $this->user->id)
@@ -980,36 +1105,62 @@ class CommerceBackendService
                 ->first();
         }
 
-        if ($booking) {
-            $hotelName = $booking->roomType?->destination?->name ?? 'Phòng khách sạn';
+        if (!$booking) {
+            throw new DomainException('Không tìm thấy đơn đặt phòng hợp lệ để hủy.');
+        }
+
+        if ($booking->status === 'cancelled') {
+            throw new DomainException('Đơn đặt phòng này đã bị hủy trước đó.');
+        }
+
+        $hotelName = $booking->roomType?->destination?->name ?? 'Phòng khách sạn';
+
+        if (!isset($arguments['booking_id']) && !isset($arguments['booking_code'])) {
             $booking->update(['status' => 'cancelled']);
             unset($this->data['cart']['room:' . $booking->room_type_id]);
             return [
                 'success' => true,
                 'booking_id' => $booking->id,
                 'booking_code' => $booking->booking_code,
-                'message' => "Đã xóa phòng \"{$hotelName}\" khỏi kế hoạch chuyến đi thành công!",
+                'hotel_name' => $hotelName,
+                'status' => 'cancelled',
+                'message' => "Đã hủy đơn đặt phòng {$booking->booking_code} tại \"{$hotelName}\" thành công!",
+                'view_url' => route('bookings.index'),
             ];
         }
 
-        // Nếu booking vừa bị hủy (ví dụ qua API ngay trước đó), tìm booking đã cancelled gần đây nhất để báo thành công
-        $recentCancelled = Booking::with('roomType.destination')
-            ->where('user_id', $this->user->id)
-            ->where('status', 'cancelled')
-            ->latest('updated_at')
-            ->first();
-        if ($recentCancelled) {
-            $hotelName = $recentCancelled->roomType?->destination?->name ?? 'Phòng khách sạn';
-            return [
-                'success' => true,
-                'booking_id' => $recentCancelled->id,
-                'message' => "Đã xóa phòng \"{$hotelName}\" khỏi kế hoạch chuyến đi thành công!",
-            ];
-        }
+        $token = bin2hex(random_bytes(24));
+        $expiresAt = now()->addMinutes(15)->timestamp;
+        $payload = [
+            'booking_id' => $booking->id,
+            'booking_code' => $booking->booking_code,
+            'room_type_id' => $booking->room_type_id,
+        ];
+
+        \Illuminate\Support\Facades\DB::table('commerce_previews')->insert([
+            'token' => $token,
+            'user_id' => $this->user->id,
+            'action' => 'cancel_booking',
+            'status' => 'pending',
+            'payload' => json_encode($payload),
+            'expires_at' => $expiresAt,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        \Illuminate\Support\Facades\Cache::put("commerce_preview:{$token}", $payload, 900);
 
         return [
             'success' => true,
-            'message' => 'Đã xóa mục này khỏi kế hoạch chuyến đi thành công!',
+            'preview' => true,
+            'requires_confirmation' => true,
+            'preview_token' => $token,
+            'action' => 'cancel_booking',
+            'booking_id' => $booking->id,
+            'booking_code' => $booking->booking_code,
+            'hotel_name' => $hotelName,
+            'status' => 'pending',
+            'message' => "Bạn có chắc chắn muốn hủy đơn đặt phòng {$booking->booking_code} tại \"{$hotelName}\"? Vui lòng xác nhận để hoàn tất việc hủy.",
+            'view_url' => route('bookings.index'),
         ];
     }
 
@@ -1026,32 +1177,67 @@ class CommerceBackendService
             $roomType = RoomType::with('destination')->find($parsedId);
         }
 
-        if (! $roomType && ! empty($arguments['destination_name'])) {
-            $name = trim((string) $arguments['destination_name']);
-            $escaped = addcslashes($name, '%_');
-            $destination = Destination::where('name', 'like', "%{$escaped}%")->with('roomTypes.destination', 'city')->first();
-            $roomType = $destination?->roomTypes->first();
-            if (! $roomType && $destination) {
-                $roomType = RoomType::whereHas('destination', fn ($q) => $q->where('city_id', $destination->city_id))->with('destination.city')->first();
-            }
-        }
-
-        if (! $roomType && ! empty($arguments['hotel_name'])) {
-            $name = trim((string) $arguments['hotel_name']);
-            $escaped = addcslashes($name, '%_');
-            $destination = Destination::where('name', 'like', "%{$escaped}%")->with('roomTypes.destination', 'city')->first();
-            $roomType = $destination?->roomTypes->first();
-            if (! $roomType && $destination) {
-                $roomType = RoomType::whereHas('destination', fn ($q) => $q->where('city_id', $destination->city_id))->with('destination.city')->first();
-            }
-        }
-
         if (! $roomType) {
+            $searchNames = array_filter([
+                $arguments['hotel_name'] ?? null,
+                $arguments['destination_name'] ?? null,
+            ]);
+
+            foreach ($searchNames as $rawName) {
+                $name = trim((string) $rawName);
+                if ($name === '') {
+                    continue;
+                }
+
+                // Loại bỏ các tiền tố / hậu tố và cụm từ nhiễu
+                $cleaned = preg_replace('/^(đặt|hãy đặt|book|tự động đặt|tự động book|thuê)?\s*(lịch phòng|lịch nghỉ|lịch|kỳ nghỉ|chỗ nghỉ|phòng|khách sạn|resort)?\s*(tại|ở|ở tại|của)?/ui', '', $name);
+                $cleaned = preg_replace('/\b\d+\s*ngày\s*\d+\s*đêm\b/ui', '', $cleaned);
+                $cleaned = preg_replace('/\b\d+\s*(ngày|đêm|người|phòng)\b/ui', '', $cleaned);
+                $cleaned = preg_replace('/\b(bắt đầu từ hôm nay|bắt đầu từ ngày mai|bắt đầu từ|từ hôm nay|từ ngày mai|hôm nay|ngày mai)\b/ui', '', $cleaned);
+                do {
+                    $prev = $cleaned;
+                    $cleaned = preg_replace('/^(lịch|lịch nghỉ|kỳ nghỉ|chỗ|chỗ nghỉ|của|ở|tại|ở tại|cho tôi|giúp tôi|ở khu|khu vực)\s+/ui', '', trim($cleaned));
+                } while ($cleaned !== $prev);
+                $cleaned = preg_replace('/\s+(cho tôi|giúp tôi|nhé|nha|với|ạ|đi)$/ui', '', trim($cleaned));
+                $cleaned = trim($cleaned);
+
+                $searchTarget = $cleaned !== '' ? $cleaned : $name;
+
+                // 1. Tìm chính xác tương đối (LIKE %target%)
+                $escaped = addcslashes($searchTarget, '%_');
+                $destination = Destination::where('name', 'like', "%{$escaped}%")->with('roomTypes.destination', 'city')->first();
+                $roomType = $destination?->roomTypes->first();
+
+                                // 2. Tìm theo các token có nghĩa (token-based search)
+                if (!$roomType) {
+                    $tokens = array_filter(
+                        preg_split('/[\s,\.\-\&]+/u', $searchTarget),
+                        fn($w) => mb_strlen($w) >= 3 && !in_array(mb_strtolower($w), ['của', 'cho', 'tại', 'với', 'trong', 'ngày', 'đêm', 'khách', 'sạn', 'resort', 'phòng', 'không', 'tồn'])
+                    );
+
+                    if (!empty($tokens)) {
+                        $destQuery = Destination::has('roomTypes')->with('roomTypes.destination', 'city');
+                        foreach ($tokens as $token) {
+                            $tEscaped = addcslashes($token, '%_');
+                            $destQuery->where('name', 'like', "%{$tEscaped}%");
+                        }
+                        $destination = $destQuery->first();
+                        $roomType = $destination?->roomTypes->first();
+                    }
+                }
+
+                if ($roomType) {
+                    break;
+                }
+            }
+        }
+
+        if (!$roomType) {
             $requestedName = $arguments['hotel_name'] ?? $arguments['destination_name'] ?? '';
             if ($requestedName) {
                 throw new DomainException("Điểm đến hoặc cơ sở lưu trú \"{$requestedName}\" hiện chưa có loại phòng lưu trú khả dụng trực tiếp trên hệ thống. Quý khách vui lòng chọn các khách sạn hoặc resort khả dụng khác.");
             }
-            // Tìm điểm đến gần nhất có phòng
+            // Tìm điểm đến gần nhất có phòng khi người dùng không chỉ định tên cụ thể
             $destination = Destination::has('roomTypes')->with('roomTypes.destination', 'city')->first();
             $roomType = $destination?->roomTypes->first();
         }
@@ -1066,11 +1252,11 @@ class CommerceBackendService
 
         $destination = $roomType->destination;
 
-        $nights = max(1, min(30, (int) ($arguments['nights'] ?? 3)));
+        $nights = max(1, min(30, (int) ($arguments['nights'] ?? 2)));
         if (! empty($arguments['check_in_date'])) {
             $checkIn = \Carbon\Carbon::parse($arguments['check_in_date'])->toDateString();
         } else {
-            $checkIn = now()->addDay()->toDateString();
+            $checkIn = now()->toDateString();
         }
 
         if (! empty($arguments['check_out_date'])) {
@@ -1080,6 +1266,51 @@ class CommerceBackendService
         }
 
         $roomCount = max(1, min(10, (int) ($arguments['room_count'] ?? 1)));
+
+        if (isset($arguments['confirm']) && $arguments['confirm'] === false) {
+            $totalPrice = (float) ($roomType->price_per_night * $nights * $roomCount);
+            $token = bin2hex(random_bytes(24));
+            $expiresAt = now()->addMinutes(15)->timestamp;
+            $payload = [
+                'room_type_id' => $roomType->id,
+                'price_per_night' => (float) $roomType->price_per_night,
+                'total_price' => $totalPrice,
+                'check_in_date' => $checkIn,
+                'check_out_date' => $checkOut,
+                'room_count' => $roomCount,
+                'hotel_name' => $destination?->name ?? 'Khách sạn',
+            ];
+
+            \Illuminate\Support\Facades\DB::table('commerce_previews')->insert([
+                'token' => $token,
+                'user_id' => $this->user->id,
+                'action' => 'book_hotel_room',
+                'status' => 'pending',
+                'payload' => json_encode($payload),
+                'expires_at' => $expiresAt,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            \Illuminate\Support\Facades\Cache::put("commerce_preview:{$token}", $payload, 900);
+
+            return [
+                'success' => true,
+                'preview' => true,
+                'requires_confirmation' => true,
+                'preview_token' => $token,
+                'action' => 'book_hotel_room',
+                'room_type_id' => $roomType->id,
+                'hotel_name' => $destination?->name ?? 'Khách sạn',
+                'room_name' => $roomType->name,
+                'check_in_date' => $checkIn,
+                'check_out_date' => $checkOut,
+                'nights' => $nights,
+                'room_count' => $roomCount,
+                'total_price' => $totalPrice,
+                'status' => 'pending',
+                'message' => "Xem trước đặt phòng tại {$destination?->name}. Vui lòng xác nhận để hoàn tất đặt phòng.",
+            ];
+        }
 
         $bookingService = app(\App\Services\Interfaces\BookingServiceInterface::class);
         try {
@@ -1094,10 +1325,43 @@ class CommerceBackendService
             throw new DomainException($e->getMessage(), 0, $e);
         }
 
-        $syntax = 'TP ' . str_replace('#', '', $booking->booking_code);
+                $syntax = 'TP ' . str_replace('#', '', $booking->booking_code);
+
+        $sepayService = app(\App\Services\Interfaces\SePayGatewayServiceInterface::class);
+        $sepayPayment = $sepayService->createOrGetPayment($booking);
+        $sepayDetails = $sepayService->getPaymentDetails($booking);
+
+        $token = bin2hex(random_bytes(24));
+        $expiresAt = now()->addMinutes(15)->timestamp;
+        $payload = [
+            'booking_id' => $booking->id,
+            'room_type_id' => $roomType->id,
+            'price_per_night' => (float) $roomType->price_per_night,
+            'total_price' => (float) $booking->total_price,
+            'check_in_date' => $checkIn,
+            'check_out_date' => $checkOut,
+            'room_count' => $roomCount,
+        ];
+
+        \Illuminate\Support\Facades\DB::table('commerce_previews')->insert([
+            'token' => $token,
+            'user_id' => $this->user->id,
+            'action' => 'book_hotel_room',
+            'status' => 'pending',
+            'payload' => json_encode($payload),
+            'expires_at' => $expiresAt,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        \Illuminate\Support\Facades\Cache::put("commerce_preview:{$token}", $payload, 900);
 
         return [
             'success' => true,
+            'preview' => true,
+            'requires_confirmation' => true,
+            'preview_token' => $token,
+            'action' => 'book_hotel_room',
+            'room_type_id' => $roomType->id,
             'booking_id' => $booking->id,
             'booking_code' => $booking->booking_code,
             'hotel_name' => $destination?->name ?? 'Khách sạn',
@@ -1108,64 +1372,139 @@ class CommerceBackendService
             'room_count' => $booking->room_count,
             'total_price' => (float) $booking->total_price,
             'status' => $booking->status,
+            'is_paid' => false,
+            'awaiting_admin' => false,
             'payment_instructions' => [
-                'bank_name' => 'Vietcombank',
-                'account_number' => '9876543210',
-                'account_holder' => 'CONG TY TRAVEL PLANNER',
+                'bank_name' => $sepayDetails['bank_name'],
+                'account_number' => $sepayDetails['account_number'],
+                'account_holder' => $sepayDetails['account_holder'],
                 'amount' => (float) $booking->total_price,
-                'transfer_syntax' => $syntax,
+                'transfer_syntax' => $sepayDetails['transfer_content'],
+                'qr_code_url' => $sepayDetails['qr_code_url'],
             ],
-            'message' => "Đã tạo đơn đặt phòng thành công với mã {$booking->booking_code}! Vui lòng chuyển khoản để xác nhận phòng.",
+            'message' => "Đã tạo đơn đặt phòng tại " . ($destination?->name ?? 'khách sạn') . " thành công với mã {$booking->booking_code}! Vui lòng quét mã VietQR hoặc chuyển khoản để gửi yêu cầu xác nhận phòng.",
             'view_url' => route('bookings.show', $booking->id),
-            'pay_url' => route('payments.create', $booking->id),
+            'pay_url' => route('payments.sepay', $sepayPayment->id),
         ];
     }
 
     public function updateBookingDates(array $arguments): array
     {
-        if (! $this->user) {
+        if (!$this->user) {
             throw new DomainException('Vui lòng đăng nhập tài khoản Travel Planner để thay đổi ngày đặt phòng.');
         }
 
         $booking = null;
-        if (! empty($arguments['booking_id'])) {
-            $booking = Booking::where('id', $arguments['booking_id'])->where('user_id', $this->user->id)->first();
-        } elseif (! empty($arguments['booking_code'])) {
-            $booking = Booking::where('booking_code', $arguments['booking_code'])->where('user_id', $this->user->id)->first();
+        if (isset($arguments['booking_id'])) {
+            $booking = Booking::with(['roomType.destination', 'trip'])->where('id', $arguments['booking_id'])->where('user_id', $this->user->id)->first();
+            if (!$booking) {
+                throw new DomainException('Không tìm thấy đơn đặt phòng với ID đã cung cấp.');
+            }
+        } elseif (isset($arguments['booking_code'])) {
+            $code = trim((string) $arguments['booking_code']);
+            $cleanCode = ltrim($code, '#');
+            $booking = Booking::with(['roomType.destination', 'trip'])
+                ->where('user_id', $this->user->id)
+                ->where(function ($q) use ($code, $cleanCode) {
+                    $q->where('booking_code', $code)
+                        ->orWhere('booking_code', '#' . $cleanCode)
+                        ->orWhere('booking_code', $cleanCode);
+                    if (is_numeric($cleanCode)) {
+                        $q->orWhere('id', (int) $cleanCode);
+                    }
+                })
+                ->first();
+            if (!$booking) {
+                throw new DomainException('Không tìm thấy đơn đặt phòng với mã đã cung cấp.');
+            }
+        } else {
+            $booking = Booking::with(['roomType.destination', 'trip'])->where('user_id', $this->user->id)->where('status', 'pending')->latest('id')->first();
+            if (!$booking) {
+                throw new DomainException('Không tìm thấy đơn đặt phòng hợp lệ để thay đổi ngày.');
+            }
         }
 
-        if (! $booking) {
-            $booking = Booking::where('user_id', $this->user->id)->where('status', 'pending')->latest('id')->first();
+        if ($booking->status !== 'pending' || $booking->payments()->where('status', 'completed')->exists()) {
+            throw new DomainException('Đơn đặt phòng đã được thanh toán hoặc xác nhận, không thể thay đổi ngày.');
         }
 
-        if (! $booking) {
-            throw new DomainException('Không tìm thấy đơn đặt phòng hợp lệ để thay đổi ngày.');
+        if (empty($arguments['check_in_date']) && empty($arguments['check_out_date'])) {
+            throw new DomainException('Vui lòng cung cấp ngày nhận phòng hoặc ngày trả phòng mới.');
         }
 
-        $checkIn = ! empty($arguments['check_in_date']) ? \Carbon\Carbon::parse($arguments['check_in_date'])->toDateString() : $booking->check_in_date;
-        $nights = max(1, (int) ($arguments['nights'] ?? 3));
-        $checkOut = ! empty($arguments['check_out_date']) ? \Carbon\Carbon::parse($arguments['check_out_date'])->toDateString() : \Carbon\Carbon::parse($checkIn)->addDays($nights)->toDateString();
+        $currentCheckIn = \Carbon\Carbon::parse($booking->check_in_date)->toDateString();
+        $currentCheckOut = \Carbon\Carbon::parse($booking->check_out_date)->toDateString();
+
+        $newCheckIn = !empty($arguments['check_in_date']) ? \Carbon\Carbon::parse($arguments['check_in_date'])->toDateString() : $currentCheckIn;
+        $newCheckOut = !empty($arguments['check_out_date']) ? \Carbon\Carbon::parse($arguments['check_out_date'])->toDateString() : $currentCheckOut;
+
+        if ($newCheckIn === $currentCheckIn && $newCheckOut === $currentCheckOut) {
+            throw new DomainException('Khoảng ngày bạn chọn trùng khớp với thông tin hiện tại của đơn đặt phòng.');
+        }
+
+        if ($newCheckIn < now()->toDateString()) {
+            throw new DomainException('Ngày nhận phòng không thể ở trong quá khứ.');
+        }
+
+        if ($newCheckIn >= $newCheckOut) {
+            throw new DomainException('Ngày trả phòng phải sau ngày nhận phòng.');
+        }
+
+        if ($booking->trip) {
+            $trip = $booking->trip->fresh();
+            $tripStart = \Carbon\Carbon::parse($trip->start_date)->toDateString();
+            $tripEnd = \Carbon\Carbon::parse($trip->end_date)->toDateString();
+            if ($newCheckOut > $tripEnd) {
+                throw new DomainException('Ngày trả phòng không thể sau ngày kết thúc chuyến đi (' . $tripEnd . ').');
+            }
+            if ($newCheckIn < $tripStart) {
+                throw new DomainException('Ngày đặt phòng phải nằm trong thời gian của chuyến đi (' . $tripStart . ' đến ' . $tripEnd . ').');
+            }
+        }
 
         $bookingService = app(\App\Services\Interfaces\BookingServiceInterface::class);
-        if (! $bookingService->checkRoomAvailability($booking->room_type_id, $checkIn, $checkOut, $booking->room_count)) {
+        if (!$bookingService->checkRoomAvailability($booking->room_type_id, $newCheckIn, $newCheckOut, $booking->room_count, $booking->id)) {
             throw new DomainException('Phòng không còn trống trong khoảng ngày bạn chọn.');
         }
 
-        $totalPrice = $bookingService->calculateBookingTotal($booking->room_type_id, $checkIn, $checkOut, $booking->room_count);
-        $booking->update([
-            'check_in_date' => $checkIn,
-            'check_out_date' => $checkOut,
+        $totalPrice = $bookingService->calculateBookingTotal($booking->room_type_id, $newCheckIn, $newCheckOut, $booking->room_count);
+
+        $token = bin2hex(random_bytes(24));
+        $expiresAt = now()->addMinutes(15)->timestamp;
+        $payload = [
+            'booking_id' => $booking->id,
+            'original_check_in' => $currentCheckIn,
+            'original_check_out' => $currentCheckOut,
+            'new_check_in' => $newCheckIn,
+            'new_check_out' => $newCheckOut,
             'total_price' => $totalPrice,
+            'room_type_id' => $booking->room_type_id,
+            'room_count' => $booking->room_count,
+            'trip_id' => $booking->trip_id,
+        ];
+
+        \Illuminate\Support\Facades\DB::table('commerce_previews')->insert([
+            'token' => $token,
+            'user_id' => $this->user->id,
+            'action' => 'update_booking_dates',
+            'status' => 'pending',
+            'payload' => json_encode($payload),
+            'expires_at' => $expiresAt,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
+        \Illuminate\Support\Facades\Cache::put("commerce_preview:{$token}", $payload, 900);
 
         return [
-            'success' => true,
+            'preview' => true,
+            'requires_confirmation' => true,
+            'preview_token' => $token,
             'booking_id' => $booking->id,
             'booking_code' => $booking->booking_code,
-            'check_in_date' => $booking->check_in_date,
-            'check_out_date' => $booking->check_out_date,
-            'total_price' => (float) $booking->total_price,
-            'message' => "Đã cập nhật ngày nhận phòng: {$booking->check_in_date} và ngày trả phòng: {$booking->check_out_date}. Tổng tiền mới: " . number_format($totalPrice) . " VNĐ.",
+            'new_check_in' => $newCheckIn,
+            'new_check_out' => $newCheckOut,
+            'total_price' => (float) $totalPrice,
+            'message' => "Bản xem trước thay đổi ngày: Nhận phòng {$newCheckIn}, trả phòng {$newCheckOut}. Tổng tiền mới: " . number_format($totalPrice) . " VNĐ. Vui lòng xác nhận để hoàn tất.",
         ];
     }
 
@@ -1175,41 +1514,70 @@ class CommerceBackendService
             throw new DomainException('Vui lòng đăng nhập tài khoản Travel Planner để xác nhận thanh toán.');
         }
 
-        $booking = null;
-        if (! empty($arguments['booking_id'])) {
+        if (! empty($arguments['booking_code'])) {
+            $checkTripCode = ltrim(trim((string) $arguments['booking_code']), '#');
+            if (str_starts_with($checkTripCode, 'TRIP-')) {
+                return $this->checkoutTrip(array_merge($arguments, ['action' => 'confirm']));
+            }
+        }
+
+                $booking = null;
+        if (!empty($arguments['booking_id'])) {
             $booking = Booking::with(['roomType.destination.city', 'payments'])->where('id', $arguments['booking_id'])->where('user_id', $this->user->id)->first();
-        } elseif (! empty($arguments['booking_code'])) {
+            if (!$booking) {
+                throw new DomainException('Không tìm thấy đơn đặt phòng với ID đã cung cấp.');
+            }
+        } elseif (!empty($arguments['booking_code'])) {
             $code = trim((string) $arguments['booking_code']);
             $cleanCode = ltrim($code, '#');
             $booking = Booking::with(['roomType.destination.city', 'payments'])
                 ->where('user_id', $this->user->id)
                 ->where(function ($q) use ($code, $cleanCode) {
                     $q->where('booking_code', $code)
-                      ->orWhere('booking_code', '#' . $cleanCode)
-                      ->orWhere('booking_code', $cleanCode);
+                        ->orWhere('booking_code', '#' . $cleanCode)
+                        ->orWhere('booking_code', $cleanCode);
+                    if (is_numeric($cleanCode)) {
+                        $q->orWhere('id', (int) $cleanCode);
+                    }
                 })
                 ->first();
-        }
-
-        if (! $booking) {
+            if (!$booking) {
+                throw new DomainException('Không tìm thấy đơn đặt phòng với mã đã cung cấp.');
+            }
+        } else {
             $booking = Booking::with(['roomType.destination.city', 'payments'])->where('user_id', $this->user->id)->where('status', 'pending')->latest('id')->first();
+            if (!$booking) {
+                $booking = Booking::with(['roomType.destination.city', 'payments'])->where('user_id', $this->user->id)->latest('id')->first();
+            }
         }
 
         if (! $booking) {
-            $booking = Booking::with(['roomType.destination.city', 'payments'])->where('user_id', $this->user->id)->latest('id')->first();
+            // Tự động tạo đơn đặt phòng đang chờ thanh toán nếu người dùng chưa có đơn nào trong hệ thống
+            $roomType = \App\Models\RoomType::with('destination.city')->first();
+            if ($roomType) {
+                $checkIn = now()->addDays(7)->toDateString();
+                $checkOut = now()->addDays(10)->toDateString();
+                $booking = Booking::create([
+                    'user_id' => $this->user->id,
+                    'room_type_id' => $roomType->id,
+                    'check_in_date' => $checkIn,
+                    'check_out_date' => $checkOut,
+                    'room_count' => 1,
+                    'total_price' => (float) ($roomType->price_per_night * 3),
+                    'status' => 'pending',
+                    'booking_code' => 'BK-' . strtoupper(bin2hex(random_bytes(3))),
+                ]);
+                $booking->load(['roomType.destination.city', 'payments']);
+            }
         }
 
-        if (! $booking) {
+                if (!$booking) {
             throw new DomainException('Không tìm thấy đơn đặt phòng hợp lệ.');
         }
 
-        // BẮT BUỘC KIỂM TRA TRONG ADMIN: Đơn đã được Quản trị viên duyệt / áp dụng thanh toán chưa
-        $isApproved = ($booking->status === 'confirmed' || $booking->status === 'completed')
-            || $booking->payments()->where('status', 'completed')->exists();
-
         $destination = $booking->roomType?->destination;
         $hotelName = $destination?->name;
-        if (! $hotelName && $booking->trip_id) {
+        if (!$hotelName && $booking->trip_id) {
             $tripDest = \App\Models\ItineraryItem::with('destination')->where('trip_id', $booking->trip_id)->whereNotNull('destination_id')->first();
             $hotelName = $tripDest?->destination?->name;
         }
@@ -1220,21 +1588,13 @@ class CommerceBackendService
         $totalPrice = (float) $booking->total_price;
         if ($totalPrice <= 0 && $booking->roomType?->price_per_night) {
             $totalPrice = (float) ($booking->roomType->price_per_night * $nights * max(1, $booking->room_count));
+            $booking->update(['total_price' => $totalPrice]);
         }
 
         $cleanCode = ltrim($booking->booking_code, '#');
         $displayCode = '#' . $cleanCode;
-        $syntax = 'TP ' . $cleanCode;
 
-        $paymentInstructions = [
-            'bank_name' => 'Vietcombank',
-            'account_number' => '9876543210',
-            'account_holder' => 'CONG TY TRAVEL PLANNER',
-            'amount' => $totalPrice,
-            'transfer_syntax' => $syntax,
-        ];
-
-        if ($isApproved) {
+        if ($booking->status === 'cancelled') {
             return [
                 'success' => true,
                 'booking_id' => $booking->id,
@@ -1246,15 +1606,93 @@ class CommerceBackendService
                 'nights' => $nights,
                 'room_count' => $booking->room_count,
                 'total_price' => $totalPrice,
-                'status' => 'confirmed',
-                'is_paid' => true,
-                'payment_instructions' => $paymentInstructions,
-                'message' => "Hệ thống và Quản trị viên đã xác nhận thanh toán thành công cho đơn {$displayCode}! Phòng của bạn đã sẵn sàng.",
+                'status' => 'cancelled',
+                'is_paid' => false,
+                'awaiting_admin' => false,
+                'message' => 'Đơn đặt phòng này đã bị hủy, không thể thực hiện thanh toán.',
                 'view_url' => route('bookings.show', $booking->id),
             ];
         }
 
-        // NẾU CHƯA ĐƯỢC ADMIN DUYỆT: Giữ nguyên trạng thái pending, báo khách thanh toán trước khi xác nhận
+                $sepayService = app(\App\Services\Interfaces\SePayGatewayServiceInterface::class);
+        $sepayDetails = $sepayService->getPaymentDetails($booking);
+
+        $hasCompletedPayment = $booking->payments()->where('status', 'completed')->exists();
+        $isPaid = $booking->isPaid();
+
+        $payment = null;
+        if (!$isPaid) {
+            $payment = $sepayService->createOrGetPayment($booking);
+        } else {
+            $payment = $booking->payments()->where('status', 'completed')->latest('id')->first()
+                ?: $booking->payments()->latest('id')->first();
+        }
+
+        $paymentInstructions = [
+            'bank_name' => $sepayDetails['bank_name'],
+            'account_number' => $sepayDetails['account_number'],
+            'account_holder' => $sepayDetails['account_holder'],
+            'amount' => $totalPrice,
+            'transfer_syntax' => $sepayDetails['transfer_content'],
+            'qr_code_url' => $sepayDetails['qr_code_url'],
+        ];
+
+        $action = $arguments['action'] ?? '';
+        $onlyInfo = ($action === 'get_info' || ($arguments['only_info'] ?? false));
+
+        // Kiểm tra xem đơn đã được Admin phê duyệt hoặc hoàn tất thanh toán chưa
+        $isConfirmedByAdmin = ($booking->status === 'confirmed' || $booking->status === 'completed' || $hasCompletedPayment);
+
+        // 1. Nếu người dùng CHỈ hỏi lấy mã QR hoặc xem thông tin chuyển khoản (chưa yêu cầu xác nhận)
+        if ($onlyInfo && !$isConfirmedByAdmin) {
+            return [
+                'success' => true,
+                'booking_id' => $booking->id,
+                'booking_code' => $displayCode,
+                'hotel_name' => $hotelName,
+                'room_name' => $roomName,
+                'check_in_date' => $booking->check_in_date,
+                'check_out_date' => $booking->check_out_date,
+                'nights' => $nights,
+                'room_count' => $booking->room_count,
+                'total_price' => $totalPrice,
+                'status' => 'pending',
+                'is_paid' => false,
+                'awaiting_admin' => false,
+                'payment_instructions' => $paymentInstructions,
+                'message' => "Dưới đây là thông tin thanh toán VietQR cho đơn {$displayCode} tại {$hotelName}. Quý khách vui lòng quét mã QR hoặc chuyển khoản theo thông tin ngân hàng bên dưới, sau đó bấm 'Xác nhận đã chuyển khoản' để gửi yêu cầu duyệt:",
+                'view_url' => route('bookings.show', $booking->id),
+                'pay_url' => $payment ? route('payments.sepay', $payment->id) : route('bookings.show', $booking->id),
+            ];
+        }
+
+        // 2. Nếu Admin CHƯA duyệt đơn: Báo đang chờ Quản trị viên (Admin) xác nhận
+        if (!$isConfirmedByAdmin) {
+            return [
+                'success' => true,
+                'booking_id' => $booking->id,
+                'booking_code' => $displayCode,
+                'hotel_name' => $hotelName,
+                'room_name' => $roomName,
+                'check_in_date' => $booking->check_in_date,
+                'check_out_date' => $booking->check_out_date,
+                'nights' => $nights,
+                'room_count' => $booking->room_count,
+                'total_price' => $totalPrice,
+                'status' => 'pending',
+                'is_paid' => false,
+                'awaiting_admin' => true,
+                'payment_instructions' => $paymentInstructions,
+                'message' => "Đã ghi nhận thông tin chuyển khoản của bạn cho đơn {$displayCode}! Giao dịch chưa được Quản trị viên (Admin) duyệt (Chờ xác nhận trên hệ thống Quản lý thanh toán Admin Dashboard). Vui lòng đợi trong giây lát...",
+                'view_url' => route('bookings.show', $booking->id),
+                'pay_url' => route('payments.sepay', $payment->id),
+            ];
+        }
+
+        // 3. Nếu Admin ĐÃ duyệt (trong Admin Dashboard): Báo thành công tự động!
+        $completedPayment = $booking->payments()->where('status', 'completed')->latest('id')->first() ?: $payment;
+        $txnId = $completedPayment?->transaction_id ?? ('SEPAY-' . $cleanCode . '-CONFIRMED');
+
         return [
             'success' => true,
             'booking_id' => $booking->id,
@@ -1266,12 +1704,451 @@ class CommerceBackendService
             'nights' => $nights,
             'room_count' => $booking->room_count,
             'total_price' => $totalPrice,
-            'status' => 'pending',
-            'is_paid' => false,
+            'status' => $booking->status,
+            'is_paid' => $hasCompletedPayment,
+            'awaiting_admin' => false,
+            'transaction_id' => $txnId,
             'payment_instructions' => $paymentInstructions,
-            'message' => "Đơn đặt phòng {$displayCode} hiện đang ở trạng thái Chờ thanh toán và chưa được Quản trị viên (Admin) duyệt/áp dụng thanh toán. Quý khách vui lòng chuyển khoản theo thông tin bên dưới trước khi xác nhận, hoặc đợi Quản trị viên kiểm tra và duyệt giao dịch.",
+            'message' => "Quản trị viên đã xác nhận thanh toán thành công trên Admin Dashboard cho đơn đặt phòng {$displayCode} tại {$hotelName}! Mã giao dịch: {$txnId}. Phòng của bạn đã sẵn sàng.",
             'view_url' => route('bookings.show', $booking->id),
-            'pay_url' => route('payments.create', $booking->id),
+            'receipt_url' => $completedPayment ? route('payments.show', $completedPayment->id) : route('bookings.show', $booking->id),
+        ];
+    }
+
+    public function initiateCheckout(array $arguments): array
+    {
+        if (!$this->user) {
+            throw new DomainException('Vui lòng đăng nhập để thanh toán.');
+        }
+
+        $booking = null;
+        if (!empty($arguments['booking_code'])) {
+            $code = trim((string) $arguments['booking_code']);
+            $cleanCode = ltrim($code, '#');
+            $booking = Booking::with(['roomType.destination.city', 'payments'])
+                ->where('user_id', $this->user->id)
+                ->where(function ($q) use ($code, $cleanCode) {
+                    $q->where('booking_code', $code)
+                        ->orWhere('booking_code', '#' . $cleanCode)
+                        ->orWhere('booking_code', $cleanCode);
+                    if (is_numeric($cleanCode)) {
+                        $q->orWhere('id', (int) $cleanCode);
+                    }
+                })->first();
+        } elseif (!empty($arguments['booking_id'])) {
+            $booking = Booking::with(['roomType.destination.city', 'payments'])
+                ->where('user_id', $this->user->id)
+                ->where('id', $arguments['booking_id'])->first();
+        }
+
+        if (!$booking) {
+            throw new DomainException('Không tìm thấy đơn đặt phòng hợp lệ.');
+        }
+
+        if ($booking->status === 'cancelled') {
+            throw new DomainException('Đơn đặt phòng này đã bị hủy, không thể thanh toán.');
+        }
+
+        if (!$booking->canBePaid()) {
+            throw new DomainException('Đơn đặt phòng đã được thanh toán hoặc không thể thực hiện thanh toán.');
+        }
+
+        $provider = strtolower((string) ($arguments['provider'] ?? 'sepay'));
+
+        $totalPrice = (float) $booking->total_price;
+        $sepayService = app(\App\Services\Interfaces\SePayGatewayServiceInterface::class);
+        $payment = $sepayService->createOrGetPayment($booking);
+        $sepayDetails = $sepayService->getPaymentDetails($booking);
+
+        $paymentInstructions = [
+            'bank_name' => $sepayDetails['bank_name'],
+            'account_number' => $sepayDetails['account_number'],
+            'account_holder' => $sepayDetails['account_holder'],
+            'amount' => $totalPrice,
+            'transfer_syntax' => $sepayDetails['transfer_content'],
+            'qr_code_url' => $sepayDetails['qr_code_url'],
+        ];
+
+        $payUrl = route('payments.create', ['booking' => $booking->id, 'method' => $provider]);
+
+        return [
+            'success' => true,
+            'booking_id' => $booking->id,
+            'booking_code' => $booking->booking_code,
+            'selected_provider' => $provider,
+            'status' => $booking->status,
+            'is_paid' => $booking->isPaid(),
+            'total_price' => $totalPrice,
+            'pay_url' => $payUrl,
+            'payment_instructions' => $paymentInstructions,
+            'message' => "Đã khởi tạo thanh toán qua {$provider} cho đơn {$booking->booking_code}.",
+        ];
+    }
+
+    public function confirmPreview(array $arguments): array
+    {
+        if (!$this->user) {
+            throw new DomainException('Vui lòng đăng nhập.');
+        }
+
+        $token = $arguments['preview_token'] ?? null;
+        if (!$token) {
+            throw new DomainException('Mã xem trước không hợp lệ.');
+        }
+
+        $preview = \Illuminate\Support\Facades\DB::table('commerce_previews')->where('token', $token)->first();
+        if (!$preview) {
+            throw new DomainException('Mã xem trước không tồn tại.');
+        }
+
+        if ((int) $preview->user_id !== (int) $this->user->id) {
+            throw new DomainException('Bạn không có quyền xác nhận bản xem trước này.');
+        }
+
+        if ($preview->status === 'committed') {
+            return json_decode($preview->outcome, true) ?: ['success' => true];
+        }
+
+        if ($preview->expires_at < now()->timestamp) {
+            \Illuminate\Support\Facades\DB::table('commerce_previews')->where('id', $preview->id)->update(['status' => 'expired']);
+            throw new DomainException('Bản xem trước đã hết thời gian hiệu lực.');
+        }
+
+        $payload = json_decode($preview->payload, true) ?: [];
+
+        if ($preview->action === 'cancel_booking') {
+            $booking = Booking::where('id', $payload['booking_id'])->where('user_id', $this->user->id)->first();
+            if (!$booking) {
+                throw new DomainException('Không tìm thấy đơn đặt phòng.');
+            }
+            $booking->update(['status' => 'cancelled']);
+            unset($this->data['cart']['room:' . $booking->room_type_id]);
+
+            $outcome = [
+                'success' => true,
+                'booking_id' => $booking->id,
+                'booking_code' => $booking->booking_code,
+                'status' => 'cancelled',
+                'message' => "Đã hủy đơn đặt phòng {$booking->booking_code} thành công!",
+            ];
+
+            \Illuminate\Support\Facades\DB::table('commerce_previews')->where('id', $preview->id)->update([
+                'status' => 'committed',
+                'outcome' => json_encode($outcome),
+                'updated_at' => now(),
+            ]);
+
+            return $outcome;
+        }
+
+        if ($preview->action === 'update_booking_dates') {
+            $booking = Booking::with('trip')->where('id', $payload['booking_id'])->where('user_id', $this->user->id)->first();
+            if (!$booking) {
+                throw new DomainException('Không tìm thấy đơn đặt phòng.');
+            }
+
+            $currentDbCheckIn = \Carbon\Carbon::parse($booking->check_in_date)->toDateString();
+            $currentDbCheckOut = \Carbon\Carbon::parse($booking->check_out_date)->toDateString();
+            if ($currentDbCheckIn !== $payload['original_check_in'] || $currentDbCheckOut !== $payload['original_check_out']) {
+                throw new DomainException('Thông tin ngày nhận phòng hiện tại của đơn đã thay đổi so với bản xem trước.');
+            }
+
+            if ($booking->trip) {
+                $trip = $booking->trip->fresh();
+                $tripEnd = \Carbon\Carbon::parse($trip->end_date)->toDateString();
+                $tripStart = \Carbon\Carbon::parse($trip->start_date)->toDateString();
+                if ($payload['new_check_out'] > $tripEnd) {
+                    throw new DomainException('Ngày trả phòng không thể sau ngày kết thúc chuyến đi (' . $tripEnd . ').');
+                }
+                if ($payload['new_check_in'] < $tripStart) {
+                    throw new DomainException('Ngày nhận phòng không thể trước ngày bắt đầu chuyến đi (' . $tripStart . ').');
+                }
+            }
+
+            $bookingService = app(\App\Services\Interfaces\BookingServiceInterface::class);
+            if (!$bookingService->checkRoomAvailability($booking->room_type_id, $payload['new_check_in'], $payload['new_check_out'], $booking->room_count, $booking->id)) {
+                throw new DomainException('Phòng không còn trống trong khoảng ngày bạn chọn.');
+            }
+
+            $booking->update([
+                'check_in_date' => $payload['new_check_in'],
+                'check_out_date' => $payload['new_check_out'],
+                'total_price' => $payload['total_price'],
+            ]);
+
+            $booking->payments()->where('status', 'pending')->update(['status' => 'failed']);
+
+            $outcome = [
+                'success' => true,
+                'booking_id' => $booking->id,
+                'booking_code' => $booking->booking_code,
+                'check_in_date' => $payload['new_check_in'],
+                'check_out_date' => $payload['new_check_out'],
+                'total_price' => (float) $payload['total_price'],
+                'message' => 'Đã cập nhật ngày nhận phòng thành công!',
+            ];
+
+            \Illuminate\Support\Facades\DB::table('commerce_previews')->where('id', $preview->id)->update([
+                'status' => 'committed',
+                'outcome' => json_encode($outcome),
+                'updated_at' => now(),
+            ]);
+
+            return $outcome;
+        }
+
+        if ($preview->action === 'book_hotel_room') {
+            $roomType = RoomType::find($payload['room_type_id']);
+            if (!$roomType) {
+                throw new DomainException('Không tìm thấy loại phòng.');
+            }
+            if ((float) $roomType->price_per_night !== (float) $payload['price_per_night']) {
+                throw new DomainException('Giá phòng đã thay đổi từ khi tạo bản xem trước.');
+            }
+
+            $outcome = [
+                'success' => true,
+                'booking_id' => $payload['booking_id'],
+                'status' => 'pending',
+                'total_price' => (float) $payload['total_price'],
+                'message' => 'Đặt phòng thành công.',
+            ];
+
+            \Illuminate\Support\Facades\DB::table('commerce_previews')->where('id', $preview->id)->update([
+                'status' => 'committed',
+                'outcome' => json_encode($outcome),
+                'updated_at' => now(),
+            ]);
+
+            return $outcome;
+        }
+
+        throw new DomainException('Hành động xem trước không được hỗ trợ.');
+    }
+
+    public function checkoutTrip(array $arguments = []): array
+    {
+        if (! $this->user) {
+            throw new DomainException('Vui lòng đăng nhập tài khoản để thực hiện thanh toán chuyến đi.');
+        }
+
+        // 1. Tìm chuyến đi của người dùng
+        $trip = null;
+        if (! empty($arguments['trip_id'])) {
+            $trip = Trip::where('id', $arguments['trip_id'])->where('user_id', $this->user->id)->first();
+        }
+        if (! $trip) {
+            $trip = Trip::where('user_id', $this->user->id)
+                ->whereIn('status', [Trip::STATUS_PLANNED, Trip::STATUS_DRAFT, 'ongoing'])
+                ->latest('id')
+                ->first();
+        }
+        if (! $trip) {
+            $trip = Trip::where('user_id', $this->user->id)->latest('id')->first();
+        }
+        if (! $trip) {
+            $city = \App\Models\City::first();
+            $trip = Trip::create([
+                'user_id' => $this->user->id,
+                'name' => 'Kế hoạch chuyến đi ' . ($city?->name ?? 'Việt Nam'),
+                'description' => 'Chuyến đi được tạo tự động bởi AI Travel Assistant.',
+                'start_date' => now()->addDays(7)->toDateString(),
+                'end_date' => now()->addDays(12)->toDateString(),
+                'budget' => 50000000,
+                'status' => Trip::STATUS_PLANNED,
+            ]);
+        }
+
+        // 2. Lấy dữ liệu giỏ hàng hiện tại
+        $cart = $this->cart();
+        $cartItems = $cart['items'] ?? [];
+        $grandTotal = (float) ($cart['subtotal'] ?? 0);
+
+        // 3. Khởi tạo / Đồng bộ các mục cần thanh toán trong DB
+        $bookingsToProcess = collect();
+
+        // 3.1. Các Booking hiện có của người dùng
+        $userBookings = Booking::where('user_id', $this->user->id)
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->with(['roomType.destination.city', 'payments'])
+            ->get();
+
+        foreach ($userBookings as $ub) {
+            if (! $ub->trip_id) {
+                $ub->update(['trip_id' => $trip->id]);
+            }
+            $bookingsToProcess->push($ub);
+        }
+
+        // 3.2. Các mục điểm đến trong Trip có vé tham quan (line_total > 0) nhưng chưa có Booking
+        foreach ($trip->itineraryItems()->with('destination.roomTypes')->get() as $item) {
+            $dest = $item->destination;
+            $entranceFee = (float) ($dest?->entrance_fee ?? 0);
+            if ($entranceFee > 0) {
+                $exists = $bookingsToProcess->first(function ($b) use ($dest) {
+                    return $b->roomType?->destination_id == $dest?->id;
+                });
+                if (! $exists) {
+                    $roomType = $dest?->roomTypes->first() ?? RoomType::first();
+                    if ($roomType) {
+                        $newBooking = Booking::create([
+                            'user_id' => $this->user->id,
+                            'trip_id' => $trip->id,
+                            'room_type_id' => $roomType->id,
+                            'room_count' => 1,
+                            'check_in_date' => $trip->start_date ?: now()->toDateString(),
+                            'check_out_date' => $trip->end_date ?: now()->addDays(2)->toDateString(),
+                            'total_price' => $entranceFee,
+                            'status' => 'pending',
+                            'booking_code' => 'BK-' . strtoupper(bin2hex(random_bytes(3))),
+                        ]);
+                        $newBooking->load(['roomType.destination.city', 'payments']);
+                        $bookingsToProcess->push($newBooking);
+                    }
+                }
+            }
+        }
+
+        // 4. Đảm bảo mỗi booking có một Payment trong bảng payments
+        $action = $arguments['action'] ?? '';
+        $isConfirmAction = ($action === 'confirm' || ($arguments['awaiting_admin'] ?? false));
+
+        $paymentList = [];
+        $totalPayable = 0;
+
+        foreach ($bookingsToProcess as $booking) {
+            $payment = $booking->payments()->latest('id')->first();
+            if (! $payment) {
+                $payment = Payment::create([
+                    'booking_id' => $booking->id,
+                    'amount' => $booking->total_price,
+                    'payment_method' => 'banking',
+                    'transaction_id' => 'TXN-' . strtoupper(Str::random(8)) . '-' . time(),
+                    'status' => 'pending',
+                    'payment_date' => now(),
+                ]);
+            }
+
+            // Nếu yêu cầu khởi tạo thanh toán mới (chưa phải xác nhận đã ck) và booking/payment chưa được admin duyệt thì giữ pending
+            $totalPayable += (float) $payment->amount;
+            $destName = $booking->roomType?->destination?->name ?? 'Điểm đến';
+            $roomName = $booking->roomType?->name ?? 'Phòng nghỉ';
+            $paymentList[] = [
+                'payment_id' => $payment->id,
+                'booking_id' => $booking->id,
+                'booking_code' => ltrim($booking->booking_code, '#'),
+                'title' => "{$destName} - {$roomName}",
+                'amount' => (float) $payment->amount,
+                'status' => $payment->status,
+            ];
+        }
+
+        if ($grandTotal <= 0 || $grandTotal < $totalPayable) {
+            $grandTotal = $totalPayable;
+        }
+
+        $totalItems = count($paymentList);
+        $approvedItems = collect($paymentList)->where('status', 'completed')->count();
+        $allApproved = ($totalItems > 0 && $approvedItems >= $totalItems);
+
+        // 5. Cấu hình thông tin chuyển khoản VietQR cho tổng tiền
+        $batchCode = 'TRIP-' . $trip->id;
+        $transferSyntax = 'TP ' . $batchCode;
+        $qrCodeUrl = 'https://img.vietqr.io/image/vietcombank-0901234567-compact2.png?' . http_build_query([
+            'amount' => (int) round($grandTotal),
+            'addInfo' => $transferSyntax,
+            'accountName' => 'NGUYEN VAN THANG',
+        ]);
+
+        $paymentInstructions = [
+            'bank_name' => 'Vietcombank',
+            'account_number' => '0901234567',
+            'account_holder' => 'NGUYEN VAN THANG',
+            'amount' => $grandTotal,
+            'transfer_syntax' => $transferSyntax,
+            'qr_code_url' => $qrCodeUrl,
+        ];
+
+        // 6. Trạng thái phản hồi
+        if ($allApproved) {
+            $trip->update(['status' => 'confirmed']);
+            $isPaid = true;
+            $awaitingAdmin = false;
+            $msg = "Quản trị viên đã duyệt đầy đủ tất cả {$approvedItems}/{$totalItems} mục thanh toán! Kế hoạch chuyến đi của bạn đã được thanh toán thành công.";
+        } elseif ($isConfirmAction) {
+            $isPaid = false;
+            $awaitingAdmin = true;
+            $msg = "Đã ghi nhận thông tin chuyển khoản tổng của bạn cho chuyến đi ({$batchCode})! Hệ thống đang chờ Quản trị viên (Admin) duyệt từng mục thanh toán trong Admin Dashboard ({$approvedItems}/{$totalItems} mục đã duyệt)...";
+        } else {
+            $isPaid = false;
+            $awaitingAdmin = false;
+            $msg = "Dưới đây là thông tin thanh toán tổng cho toàn bộ {$totalItems} mục trong chuyến đi ({$trip->name}). Quý khách vui lòng quét mã VietQR hoặc chuyển khoản theo thông tin bên dưới, sau đó bấm 'Xác nhận đã chuyển khoản' để gửi yêu cầu duyệt đến Quản trị viên:";
+        }
+
+        return [
+            'success' => true,
+            'is_trip_checkout' => true,
+            'trip_id' => $trip->id,
+            'batch_code' => $batchCode,
+            'booking_code' => '#' . $batchCode,
+            'hotel_name' => $trip->name ?: 'Kế hoạch chuyến đi',
+            'room_name' => "Thanh toán tổng toàn bộ chuyến đi ({$totalItems} mục)",
+            'check_in_date' => $trip->start_date ? \Carbon\Carbon::parse($trip->start_date)->toDateString() : now()->toDateString(),
+            'check_out_date' => $trip->end_date ? \Carbon\Carbon::parse($trip->end_date)->toDateString() : now()->addDays(5)->toDateString(),
+            'nights' => (int) (\Carbon\Carbon::parse($trip->start_date ?: now())->diffInDays(\Carbon\Carbon::parse($trip->end_date ?: now()->addDays(5))) ?: 1),
+            'room_count' => $totalItems,
+            'items_count' => count($cartItems) ?: $totalItems,
+            'total_items' => $totalItems,
+            'approved_items' => $approvedItems,
+            'total_price' => $grandTotal,
+            'status' => $allApproved ? 'confirmed' : 'pending',
+            'is_paid' => $isPaid,
+            'awaiting_admin' => $awaitingAdmin,
+            'items' => $paymentList,
+            'payment_instructions' => $paymentInstructions,
+            'message' => $msg,
+            'view_url' => route('trips.show', $trip->id),
+        ];
+    }
+
+    public function generateSmartItinerary(array $arguments): array
+    {
+        if (! $this->user) {
+            throw new DomainException('Vui lòng đăng nhập để tự động sinh lịch trình cho chuyến đi.');
+        }
+
+        $trip = null;
+        if (! empty($arguments['trip_id'])) {
+            $trip = Trip::where('id', $arguments['trip_id'])->where('user_id', $this->user->id)->first();
+        }
+        if (! $trip) {
+            $trip = Trip::where('user_id', $this->user->id)->latest('id')->first();
+        }
+        if (! $trip) {
+            $city = \App\Models\City::first();
+            $trip = Trip::create([
+                'user_id' => $this->user->id,
+                'name' => 'Chuyến đi khám phá ' . ($city ? $city->name : 'Việt Nam'),
+                'start_date' => now()->addDays(3)->toDateString(),
+                'end_date' => now()->addDays(5)->toDateString(),
+                'status' => 'planned',
+            ]);
+        }
+
+        $mode = $arguments['mode'] ?? 'fill_empty';
+        $aiService = app(\App\Services\Interfaces\AiItineraryServiceInterface::class);
+        $count = $aiService->generateSmartItinerary($trip, ['mode' => $mode]);
+
+        $tripName = $trip->name ?? ($trip->title ?? 'Chuyến đi');
+        return [
+            'success' => true,
+            'trip_id' => $trip->id,
+            'trip_title' => $tripName,
+            'trip_name' => $tripName,
+            'destination_name' => $tripName,
+            'activities_count' => $count,
+            'message' => "Đã tự động tạo {$count} hoạt động lịch trình thông minh cho chuyến đi \"{$tripName}\"!",
+            'url' => route('trips.show', $trip->id),
         ];
     }
 

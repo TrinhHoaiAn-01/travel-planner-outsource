@@ -31,55 +31,77 @@
         flex-wrap: wrap;
     }
 
+    .welcome-title-group {
+        min-width: 0;
+    }
+
     .welcome-title-group h1 {
-        font-size: 20px;
+        font-size: 19px;
         font-weight: 700;
         color: var(--text-dark);
         letter-spacing: -0.01em;
-        margin-bottom: 4px;
+        margin-bottom: 3px;
+        white-space: nowrap;
     }
 
     .welcome-subtitle {
-        font-size: 13px;
+        font-size: 12.5px;
         color: var(--text-muted);
+        white-space: nowrap;
     }
 
     .welcome-actions-group {
         display: flex;
         align-items: center;
-        gap: 12px;
-        flex-wrap: wrap;
+        gap: 10px;
+        flex-shrink: 0;
     }
 
     .date-filter-pill {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        gap: 7px;
         background-color: #FFFFFF;
         border: 1px solid var(--border);
-        padding: 7px 14px;
+        padding: 6px 12px;
         border-radius: 8px;
-        font-size: 13px;
+        font-size: 12.5px;
         font-weight: 500;
         color: var(--text-dark);
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .date-filter-pill svg {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
     }
 
     .btn-export-report {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        gap: 7px;
         background-color: #16A34A;
         color: #FFFFFF;
         border: none;
-        padding: 7px 16px;
+        padding: 6px 14px;
         border-radius: 8px;
-        font-size: 13px;
+        font-size: 12.5px;
         font-weight: 600;
         cursor: pointer;
         transition: background-color 0.2s ease, transform 0.15s ease;
         text-decoration: none;
         box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .btn-export-report svg {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
     }
 
     .btn-export-report:hover {
@@ -90,52 +112,70 @@
     /* Grid 4 Thẻ KPI Thống Kê Đầu Trang */
     .stats-grid-4 {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
         margin-bottom: 24px;
     }
 
-    @media (max-width: 1200px) {
+    @media (max-width: 1280px) {
         .stats-grid-4 {
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
         }
     }
 
     @media (max-width: 640px) {
         .stats-grid-4 {
             grid-template-columns: 1fr;
+            gap: 12px;
         }
     }
 
     .stat-card-inner {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         justify-content: space-between;
+        gap: 12px;
+    }
+
+    .stat-content-block {
+        min-width: 0;
+        flex: 1;
+        overflow: hidden;
     }
 
     .stat-label-text {
-        font-size: 11.5px;
+        font-size: 11px;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.04em;
         color: var(--text-muted);
-        margin-bottom: 8px;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .stat-value-text {
-        font-size: 26px;
+        font-size: 21px;
         font-weight: 700;
         color: var(--text-dark);
-        line-height: 1.2;
-        margin-bottom: 6px;
+        line-height: 1.25;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .stat-subtext {
-        font-size: 12px;
+        font-size: 11.5px;
         font-weight: 500;
         display: flex;
         align-items: center;
         gap: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .stat-subtext.positive {
@@ -151,14 +191,20 @@
     }
 
     .stat-icon-box {
-        width: 44px;
-        height: 44px;
+        width: 40px;
+        height: 40px;
         border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
         transition: transform 0.2s ease;
+    }
+
+    .stat-icon-box svg {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
     }
 
     .dashboard-card:hover .stat-icon-box {
@@ -207,15 +253,21 @@
     }
 
     .card-title-lg {
-        font-size: 15.5px;
+        font-size: 15px;
         font-weight: 700;
         color: var(--text-dark);
-        margin-bottom: 4px;
+        margin-bottom: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .card-subtitle-sm {
-        font-size: 12.5px;
+        font-size: 12px;
         color: var(--text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .filter-dropdown-select {
@@ -229,6 +281,8 @@
         cursor: pointer;
         outline: none;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     /* Biểu Đồ Cột Bar Chart */
@@ -422,9 +476,10 @@
     }
 
     .table-title {
-        font-size: 16px;
+        font-size: 15.5px;
         font-weight: 700;
         color: var(--text-dark);
+        white-space: nowrap;
     }
 
     .table-view-all-link {
@@ -432,6 +487,7 @@
         color: #2563EB;
         text-decoration: none;
         font-weight: 500;
+        white-space: nowrap;
     }
 
     .table-view-all-link:hover {
@@ -451,13 +507,15 @@
         font-weight: 600;
         color: var(--text-muted);
         border-bottom: 1px solid #F1F5F9;
+        white-space: nowrap;
     }
 
     .modern-data-table td {
-        padding: 16px 14px;
+        padding: 14px 14px;
         border-bottom: 1px solid #F8FAFC;
         vertical-align: middle;
         color: var(--text-dark);
+        white-space: nowrap;
     }
 
     .modern-data-table tbody tr {
@@ -489,12 +547,15 @@
 
     /* Huy hiệu trạng thái giao dịch */
     .status-badge-pill {
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         padding: 4px 10px;
         border-radius: 9999px;
         font-size: 11.5px;
         font-weight: 600;
-        line-height: 1.2;
+        line-height: 1.25;
+        white-space: nowrap;
     }
 
     .badge-status-confirmed {
@@ -547,7 +608,7 @@
     <!-- Card 1: Tổng người dùng -->
     <div class="dashboard-card">
         <div class="stat-card-inner">
-            <div>
+            <div class="stat-content-block">
                 <div class="stat-label-text">TỔNG SỐ NGƯỜI DÙNG</div>
                 <div class="stat-value-text">{{ $summary['total_users'] }}</div>
                 <div class="stat-subtext positive">
@@ -555,7 +616,7 @@
                 </div>
             </div>
             <div class="stat-icon-box users">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
                     <circle cx="9" cy="7" r="4"/>
                     <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
@@ -568,7 +629,7 @@
     <!-- Card 2: Tổng số điểm đến -->
     <div class="dashboard-card">
         <div class="stat-card-inner">
-            <div>
+            <div class="stat-content-block">
                 <div class="stat-label-text">TỔNG SỐ ĐIỂM ĐẾN</div>
                 <div class="stat-value-text">{{ $summary['total_destinations'] }}</div>
                 <div class="stat-subtext info">
@@ -576,7 +637,7 @@
                 </div>
             </div>
             <div class="stat-icon-box destinations">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
                     <circle cx="12" cy="10" r="3"/>
                 </svg>
@@ -587,7 +648,7 @@
     <!-- Card 3: Tổng đặt phòng -->
     <div class="dashboard-card">
         <div class="stat-card-inner">
-            <div>
+            <div class="stat-content-block">
                 <div class="stat-label-text">TỔNG ĐẶT PHÒNG</div>
                 <div class="stat-value-text">{{ $summary['total_bookings'] ?? '860' }}</div>
                 <div class="stat-subtext positive">
@@ -595,7 +656,7 @@
                 </div>
             </div>
             <div class="stat-icon-box bookings">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                     <line x1="16" y1="2" x2="16" y2="6"/>
                     <line x1="8" y1="2" x2="8" y2="6"/>
@@ -608,7 +669,7 @@
     <!-- Card 4: Tổng doanh thu -->
     <div class="dashboard-card">
         <div class="stat-card-inner">
-            <div>
+            <div class="stat-content-block">
                 <div class="stat-label-text">TỔNG DOANH THU</div>
                 <div class="stat-value-text">{{ $summary['total_revenue'] ?? '128.500.000 đ' }}</div>
                 <div class="stat-subtext warning">
@@ -616,7 +677,7 @@
                 </div>
             </div>
             <div class="stat-icon-box revenue">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"/>
                     <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
                     <path d="M12 18V6"/>

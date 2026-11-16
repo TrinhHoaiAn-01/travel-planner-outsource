@@ -881,14 +881,9 @@
                     Booking
                 </a>
             </li>
-            @if(Route::has('reviews.my-reviews'))
-            <li>
-                <a href="{{ route('reviews.my-reviews') }}" class="nav-link">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                    Đánh giá của tôi
-                </a>
+            <li class="nav-item">
+                <a href="{{ route('reviews.my-reviews') }}">Đánh giá của tôi</a>
             </li>
-            @endif
         </ul>
 
         <div class="nav-actions">
@@ -930,14 +925,6 @@
             <span>/</span>
             <span>Chuyến đi của tôi</span>
         </nav>
-
-        <!-- Flash message -->
-        @if(session('success'))
-            <div class="flash-alert flash-success">
-                <span>{{ session('success') }}</span>
-                <button type="button" onclick="this.parentElement.style.display='none'" style="background: none; border: none; cursor: pointer; color: #065F46; font-size: 16px;">&times;</button>
-            </div>
-        @endif
 
         <!-- Page Header Matching Image 1 -->
         <div class="page-header">
@@ -1488,5 +1475,6 @@
     </script>
     @include('commerce.launcher', ['merchant' => false])
     @include('partials.search-suggestions')
+    @include('partials.popup-notification')
 </body>
 </html>

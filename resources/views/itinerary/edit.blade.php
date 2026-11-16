@@ -426,5 +426,6 @@
             input.addEventListener('change', clearError);
         });
     </script>
+    @include('partials.popup-notification')
 </body>
 </html>

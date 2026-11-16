@@ -830,37 +830,6 @@
             <span>Quản lý Ngân sách</span>
         </nav>
 
-        <!-- Flash Messages -->
-        @if(session('success'))
-            <div class="toast-notification">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-                <span>{{ session('success') }}</span>
-            </div>
-        @endif
-
-        @if(isset($errors) && $errors->any())
-            <div class="over-budget-banner" style="background-color: #FEF2F2; border-color: #F87171; margin-bottom: 20px;">
-                <div class="warning-icon-box">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="8" x2="12" y2="12"></line>
-                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                    </svg>
-                </div>
-                <div>
-                    <div class="warning-text-title" style="color: #991B1B;">Đã xảy ra lỗi dữ liệu:</div>
-                    <ul style="margin-left: 20px; font-size: 13.5px; color: #B91C1C;">
-                        @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            </div>
-        @endif
-
         <!-- Trip Name Badge & Main Title Row -->
         <span class="trip-badge">{{ $trip->name }}</span>
         <div class="title-actions-row">
@@ -877,27 +846,6 @@
                 </button>
             </div>
         </div>
-
-        @if(session('success'))
-            <div class="toast-notification">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-                <span>{{ session('success') }}</span>
-            </div>
-        @endif
-
-        @if(isset($errors) && $errors->any())
-            <div style="background-color: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; padding: 14px 18px; border-radius: 12px; margin-bottom: 20px; font-size: 14px;">
-                <div style="font-weight: 700; margin-bottom: 6px;">Đã xảy ra lỗi, vui lòng kiểm tra lại:</div>
-                <ul style="margin: 0; padding-left: 20px;">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
 
         <!-- Over Budget Alert Banner (Hình 22) -->
         <div id="overBudgetBanner" class="over-budget-banner" style="display: {{ $summary['is_over_budget'] ? 'flex' : 'none' }};">
@@ -1119,7 +1067,7 @@
                                         </button>
 
                                         <!-- Delete button -->
-                                        <form method="POST" action="{{ route('expenses.destroy', $item) }}" onsubmit="return confirm('Bạn có chắc chắn muốn xóa khoản chi này?');" style="display: inline;">
+                                        <form method="POST" action="{{ route('expenses.destroy', $item) }}" onsubmit="return handleFormConfirm(this, event, 'Bạn có chắc chắn muốn xóa khoản chi này?', 'Xóa khoản chi', true);" style="display: inline;">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn-action-icon btn-action-delete" title="Xóa khoản chi">
@@ -1364,5 +1312,6 @@
             });
         });
     </script>
+    @include('partials.popup-notification')
 </body>
 </html>

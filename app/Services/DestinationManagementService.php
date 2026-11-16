@@ -29,14 +29,10 @@ class DestinationManagementService implements DestinationManagementServiceInterf
     {
         $query = Destination::with(['city', 'category', 'primaryImage', 'images', 'roomTypes']);
 
-        // Bộ lọc 1: Tìm kiếm theo tên, địa chỉ hoặc mô tả
+        // Bộ lọc 1: Tìm kiếm bằng Apache Solr thông qua SearchServiceInterface
         if (! empty($filters['search'])) {
-            $searchTerm = trim($filters['search']);
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('name', 'LIKE', "%{$searchTerm}%")
-                    ->orWhere('address', 'LIKE', "%{$searchTerm}%")
-                    ->orWhere('description', 'LIKE', "%{$searchTerm}%");
-            });
+            $searchTerm = trim((string) $filters['search']);
+            app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'destination', $searchTerm);
         }
 
         // Bộ lọc 2: Lọc theo Tỉnh / Thành phố

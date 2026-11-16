@@ -40,7 +40,7 @@ class HomeSearchCriteria
      */
     public static function fromArray(array $filters, string $engine = 'solr'): self
     {
-        $keyword = trim((string) ($filters['keyword'] ?? ''));
+        $keyword = trim((string) ($filters['keyword'] ?? ($filters['search'] ?? '')));
         $cityId = !empty($filters['city_id']) ? (int) $filters['city_id'] : null;
         $categoryId = !empty($filters['category_id']) ? (int) $filters['category_id'] : null;
         $budget = !empty($filters['budget']) ? (int) $filters['budget'] : null;

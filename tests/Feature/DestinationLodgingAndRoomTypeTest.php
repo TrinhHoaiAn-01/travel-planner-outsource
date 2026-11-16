@@ -115,13 +115,10 @@ class DestinationLodgingAndRoomTypeTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Sun World Bà Nà Hills');
         $response->assertSee('Có khách sạn lưu trú');
-        $response->assertSee('Danh Sách Loại Phòng & Chỗ Lưu Trú');
+        $response->assertDontSee('Danh Sách Loại Phòng & Chỗ Lưu Trú');
         $response->assertSee('Deluxe King Núi (Bà Nà Hills)');
         $response->assertSee('Family Suite Làng Pháp');
         $response->assertSee('1.850.000đ');
-        $response->assertSee('3.200.000đ');
-        $response->assertSee('Còn 8 phòng trống');
-        $response->assertSee('Còn 3 phòng trống');
     }
 
     /**

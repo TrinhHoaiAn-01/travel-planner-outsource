@@ -74,15 +74,10 @@ class ActivityLogService implements ActivityLogServiceInterface
     {
         $query = ActivityLog::with('user')->orderBy('id', 'desc');
 
-        // Tìm kiếm theo từ khóa (hành động, địa chỉ IP hoặc tên/email người dùng)
+        // 1. Tìm kiếm bằng Apache Solr thông qua SearchServiceInterface
         if (! empty($filters['search'])) {
             $search = trim((string) $filters['search']);
-            $query->where(function ($q) use ($search) {
-                $q->where('action', 'LIKE', "%{$search}%")
-                    ->orWhere('ip_address', 'LIKE', "%{$search}%")
-                    ->orWhere('description', 'LIKE', "%{$search}%")
-                    ->orWhereHas('user', fn ($uq) => $uq->where('name', 'LIKE', "%{$search}%")->orWhere('email', 'LIKE', "%{$search}%"));
-            });
+            app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'activity_log', $search);
         }
 
         // Lọc theo loại hành động cụ thể

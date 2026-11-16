@@ -62,6 +62,7 @@
         background: #F8FAFC;
         border: 1px solid #E2E8F0;
         transition: all 0.2s;
+        white-space: nowrap;
     }
 
     .status-tab-btn:hover {
@@ -104,23 +105,25 @@
 
     .data-table {
         width: 100%;
+        min-width: 980px;
         border-collapse: collapse;
         text-align: left;
     }
 
     .data-table th {
         background: #F8FAFC;
-        padding: 12px 20px;
+        padding: 12px 18px;
         font-size: 12px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         color: #64748B;
         border-bottom: 1px solid #E2E8F0;
+        white-space: nowrap;
     }
 
     .data-table td {
-        padding: 16px 20px;
+        padding: 14px 18px;
         border-bottom: 1px solid #F1F5F9;
         font-size: 13.5px;
         color: #1E293B;
@@ -131,14 +134,50 @@
         background-color: #FAFAFA;
     }
 
+    .col-code {
+        white-space: nowrap;
+        font-family: monospace;
+        font-weight: 700;
+        color: #2563EB;
+    }
+
+    .col-date {
+        white-space: nowrap;
+    }
+
+    .col-price {
+        white-space: nowrap;
+        font-weight: 700;
+        color: #0F172A;
+    }
+
+    .col-status {
+        white-space: nowrap;
+        min-width: 135px;
+    }
+
+    .col-payment {
+        white-space: nowrap;
+        min-width: 135px;
+    }
+
+    .col-actions {
+        white-space: nowrap;
+        text-align: right;
+    }
+
     .badge-status {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        padding: 4px 10px;
+        justify-content: center;
+        gap: 5px;
+        padding: 5px 12px;
         border-radius: 9999px;
         font-size: 12px;
         font-weight: 600;
+        line-height: 1.25;
+        white-space: nowrap;
+        text-align: center;
     }
 
     .badge-pending { background: #FEF3C7; color: #B45309; }
@@ -146,10 +185,34 @@
     .badge-completed { background: #DCFCE7; color: #15803D; }
     .badge-cancelled { background: #FEE2E2; color: #B91C1C; }
 
+    .badge-payment {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        padding: 5px 12px;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.25;
+        white-space: nowrap;
+        text-align: center;
+    }
+
+    .badge-payment-paid {
+        background-color: #DCFCE7;
+        color: #15803D;
+    }
+
+    .badge-payment-unpaid {
+        background-color: #F1F5F9;
+        color: #64748B;
+    }
+
     .btn-action-view {
         background: #EFF6FF;
         color: #2563EB;
-        padding: 6px 12px;
+        padding: 5px 12px;
         border-radius: 6px;
         font-weight: 600;
         font-size: 12.5px;
@@ -157,6 +220,7 @@
         display: inline-flex;
         align-items: center;
         gap: 4px;
+        white-space: nowrap;
         transition: all 0.2s;
     }
 
@@ -181,12 +245,6 @@
         <p class="page-subtitle">Theo dõi, kiểm tra tình trạng lưu trú và quản lý trạng thái các đơn đặt phòng hệ thống.</p>
     </div>
 </div>
-
-@if(session('success'))
-    <div style="background: #ECFDF5; border: 1px solid #A7F3D0; color: #065F46; padding: 12px 18px; border-radius: 8px; margin-bottom: 20px; font-weight: 600; font-size: 14px;">
-        {{ session('success') }}
-    </div>
-@endif
 
 <div class="table-container-card">
     <!-- Bộ Lọc Trạng Thái & Tìm Kiếm -->
@@ -223,20 +281,20 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Mã Đơn</th>
+                    <th class="col-code">Mã Đơn</th>
                     <th>Khách Hàng</th>
                     <th>Cơ Sở Lưu Trú & Phòng</th>
-                    <th>Thời Gian Lưu Trú</th>
-                    <th>Tổng Tiền</th>
-                    <th>Trạng Thái</th>
-                    <th>Thanh Toán</th>
-                    <th style="text-align: right;">Hành Động</th>
+                    <th class="col-date">Thời Gian Lưu Trú</th>
+                    <th class="col-price">Tổng Tiền</th>
+                    <th class="col-status">Trạng Thái</th>
+                    <th class="col-payment">Thanh Toán</th>
+                    <th class="col-actions">Hành Động</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($bookings as $booking)
                     <tr>
-                        <td style="font-family: monospace; font-weight: 700; color: #2563EB;">
+                        <td class="col-code">
                             #{{ $booking->booking_code }}
                         </td>
                         <td>
@@ -247,17 +305,17 @@
                             <div style="font-weight: 600; color: #0F172A;">{{ $booking->roomType->destination->name ?? 'Điểm đến' }}</div>
                             <div style="font-size: 12.5px; color: #64748B;">{{ $booking->roomType->name ?? 'Phòng' }} &bull; {{ $booking->room_count }} phòng</div>
                         </td>
-                        <td>
+                        <td class="col-date">
                             <div>{{ \Carbon\Carbon::parse($booking->check_in_date)->format('d/m/Y') }} &rarr; {{ \Carbon\Carbon::parse($booking->check_out_date)->format('d/m/Y') }}</div>
                             @php
                                 $nights = max(1, \Carbon\Carbon::parse($booking->check_in_date)->diffInDays(\Carbon\Carbon::parse($booking->check_out_date)));
                             @endphp
                             <div style="font-size: 12px; color: #64748B;">{{ $nights }} đêm</div>
                         </td>
-                        <td style="font-weight: 700; color: #0F172A;">
+                        <td class="col-price">
                             {{ number_format($booking->total_price, 0, ',', '.') }}đ
                         </td>
-                        <td>
+                        <td class="col-status">
                             @switch($booking->status)
                                 @case('pending')
                                     <span class="badge-status badge-pending">Chờ xác nhận</span>
@@ -275,21 +333,21 @@
                                     <span class="badge-status">{{ ucfirst($booking->status) }}</span>
                             @endswitch
                         </td>
-                        <td>
+                        <td class="col-payment">
                             @php
                                 $completedPayment = $booking->payments->firstWhere('status', 'completed');
                             @endphp
                             @if($completedPayment)
-                                <span style="display: inline-block; background: #DCFCE7; color: #15803D; padding: 2px 8px; border-radius: 9999px; font-size: 11.5px; font-weight: 700;">
+                                <span class="badge-payment badge-payment-paid">
                                     Đã thanh toán
                                 </span>
                             @else
-                                <span style="display: inline-block; background: #F1F5F9; color: #64748B; padding: 2px 8px; border-radius: 9999px; font-size: 11.5px; font-weight: 600;">
+                                <span class="badge-payment badge-payment-unpaid">
                                     Chưa thanh toán
                                 </span>
                             @endif
                         </td>
-                        <td style="text-align: right;">
+                        <td class="col-actions">
                             <a href="{{ route('admin.bookings.show', $booking->id) }}" class="btn-action-view">
                                 Chi tiết &rarr;
                             </a>

@@ -26,14 +26,10 @@ class ReviewModerationService implements ReviewModerationServiceInterface
             $query->where('status', $status);
         }
 
-        // Tìm kiếm theo từ khóa nếu có (tên người dùng, email, tên địa điểm hoặc nội dung nhận xét)
+        // 1. Tìm kiếm bằng Apache Solr thông qua SearchServiceInterface
         if (! empty($filters['search'])) {
             $searchTerm = trim((string) $filters['search']);
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('comment', 'LIKE', "%{$searchTerm}%")
-                    ->orWhereHas('user', fn ($uq) => $uq->where('name', 'LIKE', "%{$searchTerm}%")->orWhere('email', 'LIKE', "%{$searchTerm}%"))
-                    ->orWhereHas('destination', fn ($dq) => $dq->where('name', 'LIKE', "%{$searchTerm}%"));
-            });
+            app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'review', $searchTerm);
         }
 
         // Sắp xếp các đánh giá mới nhất lên đầu danh sách

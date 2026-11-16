@@ -303,34 +303,69 @@
             cursor: pointer;
         }
 
-        .search-engine-select {
-            width: auto !important;
-            min-width: 78px;
-            height: 36px !important;
-            margin-right: 14px !important;
-            padding: 0 10px !important;
-            border: 1px solid #E2E8F0 !important;
-            border-radius: 8px;
-            background: #F1F5F9 !important;
-            color: #1E293B !important;
-            font-weight: 700;
-            font-size: 13px;
-            cursor: pointer;
-            outline: none;
-            transition: all 0.2s ease;
-            display: inline-flex;
+        .home-search-box {
+            background: #FFFFFF;
+            border-radius: 8px !important;
+            height: 48px;
+            padding: 0 !important;
+            display: flex;
             align-items: center;
-            flex-shrink: 0;
+            box-sizing: border-box;
+            border: 1px solid #CBD5E1 !important;
+            overflow: hidden;
+            transition: box-shadow 0.2s, border-color 0.2s;
         }
 
-        .search-engine-select:focus {
-            border-color: #3B82F6 !important;
-            background: #FFFFFF !important;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+        .home-search-box:focus-within {
+            box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.12) !important;
+            border-color: #0066FF !important;
+        }
+
+        .search-engine-select {
+            width: auto !important;
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 22px 0 12px !important;
+            border: none !important;
+            border-right: 1px solid #CBD5E1 !important;
+            border-radius: 0 !important;
+            background-color: transparent !important;
+            background-image: url("data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 8px center !important;
+            background-size: 10px 10px !important;
+            color: #0F172A !important;
+            font-weight: 700 !important;
+            font-size: 14px !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px;
+            cursor: pointer !important;
+            outline: none !important;
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            flex-shrink: 0 !important;
+        }
+
+        .search-engine-select:hover {
+            background-color: #F8FAFC !important;
         }
 
         #homeSearchKeyword {
-            padding-left: 4px;
+            flex: 1;
+            height: 100%;
+            border: none !important;
+            outline: none !important;
+            padding: 0 14px !important;
+            font-size: 14px !important;
+            color: #0F172A !important;
+            background: transparent !important;
+        }
+
+        #homeSearchKeyword::placeholder {
+            color: #94A3B8;
         }
 
         .btn-search-hero {
@@ -610,22 +645,7 @@
         .tag-gold-light { background: #FEF3C7; color: #B45309; }
         .tag-red-light { background: #FEE2E2; color: #DC2626; }
 
-        .btn-heart-fav {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 32px;
-            height: 32px;
-            background: #FFFFFF;
-            border: none;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            font-size: 15px;
-        }
+        /* Đã gộp và đồng bộ hóa .btn-heart-fav ở phần style bên dưới */
 
         .dest-body-content {
             padding: 16px;
@@ -782,15 +802,6 @@
         </div>
     </header>
 
-    @if(session('success'))
-        <div style="max-width: 1200px; margin: 20px auto 0; padding: 0 20px;">
-            <div style="background: #ECFDF5; border: 1px solid #10B981; color: #065F46; padding: 14px 20px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-weight: 600; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span>{{ session('success') }}</span>
-            </div>
-        </div>
-    @endif
-
     <!-- 2. Hero Banner -->
     <section class="hero-section">
         <div class="badge-pill-hero">
@@ -808,21 +819,20 @@
             <div class="search-grid">
                 <div class="search-field" style="position: relative; z-index: 60;">
                     <label for="homeSearchKeyword">
-                        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor">
-                            <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
-                        </svg>
-                        <span>Điểm đến / Thành phố</span>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <span>Tìm kiếm</span>
                     </label>
-                    <div class="search-input-box">
-                        <select name="engine" id="homeSearchEngine" class="search-engine-select" title="Chọn công cụ tìm kiếm">
-                            <option value="solr" {{ request('engine', 'solr') === 'solr' ? 'selected' : '' }}>Solr</option>
+                    <div class="search-input-box home-search-box">
+                        <select name="engine" id="homeSearchEngine" class="search-engine-select" title="Chọn công cụ tìm kiếm: Apache Solr hoặc MySQL SQL"
+                                onchange="if(document.getElementById('homeSearchKeyword').value.trim() !== '') { document.getElementById('homeSearchForm').submit(); }">
+                            <option value="solr" {{ request('engine', 'solr') === 'solr' ? 'selected' : '' }}>SOLR</option>
                             <option value="sql" {{ request('engine') === 'sql' ? 'selected' : '' }}>SQL</option>
                         </select>
                         <input type="text"
                                name="keyword"
                                id="homeSearchKeyword"
                                value="{{ request('keyword') }}"
-                               placeholder="Ví dụ: Đà Nẵng, Phú Quốc..."
+                               placeholder="Tên địa điểm..."
                                autocomplete="off">
                     </div>
                     <div id="homeQuickSearchDropdown" class="quick-search-dropdown" style="display: none;"></div>
@@ -916,10 +926,21 @@
                                     <span class="tag-dest-badge tag-blue-light">
                                         {{ $destination->category->name ?? 'Du lịch' }}
                                     </span>
-                                    <form action="{{ route('favorites.toggle', $destination->id) }}" method="POST" style="position: absolute; top: 12px; right: 12px; z-index: 5;">
-                                        @csrf
-                                        <button type="submit" class="btn-heart-fav" title="Lưu yêu thích">🤍</button>
-                                    </form>
+                                    @php
+                                        $isFavorited = in_array($destination->id, $userFavoriteIds ?? []);
+                                    @endphp
+                                    <button type="button" 
+                                            class="btn-heart-fav {{ $isFavorited ? 'is-favorited' : '' }}" 
+                                            data-id="{{ $destination->id }}"
+                                            onclick="toggleFavoriteHeart(this, {{ $destination->id }})" 
+                                            title="{{ $isFavorited ? 'Bỏ yêu thích' : 'Lưu yêu thích' }}">
+                                        <svg class="heart-icon-svg" viewBox="0 0 24 24" width="20" height="20" 
+                                             fill="{{ $isFavorited ? '#EF4444' : 'none' }}" 
+                                             stroke="{{ $isFavorited ? '#EF4444' : '#0F172A' }}" 
+                                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                                        </svg>
+                                    </button>
                                 </div>
                                 <div class="dest-body-content">
                                     <div class="dest-meta-row">
@@ -1085,9 +1106,6 @@
 
     </div>
 
-    <!-- Toast container cho thông báo yêu thích -->
-    <div id="homeToastContainer" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
-
     <style>
         .btn-heart-fav {
             position: absolute;
@@ -1102,9 +1120,16 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 0;
+            line-height: 0;
+            outline: none;
             cursor: pointer;
             z-index: 5;
             transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s;
+        }
+        .btn-heart-fav .heart-icon-svg {
+            display: block;
+            pointer-events: none;
         }
         .btn-heart-fav:hover {
             transform: scale(1.12);
@@ -1169,7 +1194,7 @@
 
                     debounceTimer = setTimeout(() => {
                         const engine = engineSelect ? engineSelect.value : 'solr';
-                        fetch(`{{ route('destinations.quick-search') }}?keyword=${encodeURIComponent(query)}&engine=${encodeURIComponent(engine)}`, {
+                        fetch(`/quick-search?keyword=${encodeURIComponent(query)}&engine=${encodeURIComponent(engine)}`, {
                             headers: { Accept: 'application/json' },
                         })
                             .then(res => {
@@ -1274,19 +1299,11 @@
             }
         });
 
-        // Hàm thông báo Toast Trang chủ
+        // Hàm thông báo Toast Trang chủ (Chuyển sang Popup giữa màn hình)
         function showHomeToast(msg, type = 'success') {
-            const container = document.getElementById('homeToastContainer');
-            const toast = document.createElement('div');
-            const borderCol = type === 'success' ? '#10B981' : (type === 'error' ? '#EF4444' : '#0066FF');
-            toast.style.cssText = `background:#FFFFFF; color:#0F172A; padding:12px 18px; border-radius:12px; font-weight:600; font-size:14px; box-shadow:0 10px 25px rgba(0,0,0,0.12); border-left:4px solid ${borderCol}; transition:all 0.3s ease; display:flex; align-items:center; gap:8px;`;
-            toast.innerHTML = `<span>${msg}</span>`;
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(100%)';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
+            if (window.showAppPopup) {
+                window.showAppPopup({ type: type === 'danger' ? 'error' : type, message: msg });
+            }
         }
 
         // Thao tác Thả tim AJAX không load lại trang
@@ -1299,57 +1316,73 @@
                 return;
             @endguest
 
-            // Nếu đang là yêu thích (tim đỏ), hỏi xác nhận trước khi xóa
+            const doToggle = () => {
+                fetch(`/favorites/toggle/${destId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => {
+                    if (res.status === 401) {
+                        window.location.href = "{{ route('login') }}";
+                        return;
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    if (data && data.success) {
+                        const svg = btn.querySelector('.heart-icon-svg');
+                        btn.classList.add('heart-pop');
+                        if (data.is_favorited) {
+                            btn.classList.add('is-favorited');
+                            btn.setAttribute('title', 'Bỏ yêu thích');
+                            svg.setAttribute('fill', '#EF4444');
+                            svg.setAttribute('stroke', '#EF4444');
+                            showHomeToast(data.message || 'Đã thêm vào danh sách yêu thích!', 'success');
+                        } else {
+                            btn.classList.remove('is-favorited');
+                            btn.setAttribute('title', 'Lưu yêu thích');
+                            svg.setAttribute('fill', 'none');
+                            svg.setAttribute('stroke', '#0F172A');
+                            showHomeToast(data.message || 'Đã gỡ khỏi danh sách yêu thích.', 'info');
+                        }
+                        setTimeout(() => btn.classList.remove('heart-pop'), 350);
+                    } else {
+                        showHomeToast(data.message || 'Không thể cập nhật yêu thích.', 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showHomeToast('Lỗi kết nối máy chủ.', 'error');
+                });
+            };
+
+            // Nếu đang là yêu thích (tim đỏ), hiển thị popup modal ở giữa màn hình hỏi xác nhận
             if (btn.classList.contains('is-favorited')) {
-                if (!confirm('Bạn có chắc chắn muốn xóa địa điểm này khỏi danh sách yêu thích không?')) {
-                    return;
+                if (window.showAppConfirm) {
+                    window.showAppConfirm({
+                        title: 'Xác nhận xóa yêu thích',
+                        message: 'Bạn có chắc chắn muốn xóa địa điểm này khỏi danh sách yêu thích không?',
+                        confirmText: 'Xóa khỏi yêu thích',
+                        cancelText: 'Hủy bỏ',
+                        danger: true,
+                        type: 'warning',
+                        onConfirm: doToggle
+                    });
+                } else {
+                    doToggle();
                 }
+                return;
             }
 
-            fetch(`/favorites/toggle/${destId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(res => {
-                if (res.status === 401) {
-                    window.location.href = "{{ route('login') }}";
-                    return;
-                }
-                return res.json();
-            })
-            .then(data => {
-                if (data && data.success) {
-                    const svg = btn.querySelector('.heart-icon-svg');
-                    btn.classList.add('heart-pop');
-                    if (data.is_favorited) {
-                        btn.classList.add('is-favorited');
-                        btn.setAttribute('title', 'Bỏ yêu thích');
-                        svg.setAttribute('fill', '#EF4444');
-                        svg.setAttribute('stroke', '#EF4444');
-                        showHomeToast(data.message || 'Đã thêm vào danh sách yêu thích!', 'success');
-                    } else {
-                        btn.classList.remove('is-favorited');
-                        btn.setAttribute('title', 'Lưu yêu thích');
-                        svg.setAttribute('fill', 'none');
-                        svg.setAttribute('stroke', '#0F172A');
-                        showHomeToast(data.message || 'Đã gỡ khỏi danh sách yêu thích.', 'info');
-                    }
-                    setTimeout(() => btn.classList.remove('heart-pop'), 350);
-                } else {
-                    showHomeToast(data.message || 'Không thể cập nhật yêu thích.', 'error');
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                showHomeToast('Lỗi kết nối máy chủ.', 'error');
-            });
+            doToggle();
         }
     </script>
     @include('commerce.launcher', ['merchant' => false])
+    @include('partials.popup-notification')
 </body>
 </html>

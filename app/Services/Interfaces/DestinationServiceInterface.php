@@ -69,13 +69,14 @@ interface DestinationServiceInterface
     public function quickSearch(string $keyword, int $limit = 6, string $engine = 'solr'): array;
 
     /**
-     * Lấy danh sách địa điểm du lịch có phân trang, hỗ trợ bộ lọc và lọc theo nơi lưu trú.
+     * Lấy danh sách địa điểm du lịch có phân trang, hỗ trợ bộ lọc và công cụ tìm kiếm (Solr hoặc SQL).
      *
      * @param array<string, mixed> $filters
      * @param int $perPage
+     * @param string $engine 'solr' (mặc định) hoặc 'sql'
      * @return LengthAwarePaginator
      */
-    public function getDestinations(array $filters = [], int $perPage = 6): LengthAwarePaginator;
+    public function getDestinations(array $filters = [], int $perPage = 6, string $engine = 'solr'): LengthAwarePaginator;
 
     /**
      * Lấy chi tiết địa điểm du lịch kèm thư viện ảnh, phòng khách sạn (Room Types) và đánh giá.
