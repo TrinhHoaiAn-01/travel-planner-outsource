@@ -1004,6 +1004,33 @@
 
     <!-- 2. Page Content -->
     <main class="page-wrapper">
+        @if(session('success'))
+            <div class="flash-alert flash-success" style="background-color: #ECFDF5; border: 1px solid #A7F3D0; color: #065F46; padding: 12px 18px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 18px;"></i>
+                    <span>{{ session('success') }}</span>
+                </div>
+                <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; cursor: pointer; color: #065F46; font-size: 18px;">&times;</button>
+            </div>
+        @endif
+
+        @if($errors->any())
+            <div class="flash-alert flash-danger" style="background-color: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; padding: 12px 18px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: flex-start; justify-content: space-between;">
+                <div style="display: flex; gap: 8px;">
+                    <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 18px; margin-top: 2px;"></i>
+                    <div>
+                        <strong>Không thể lưu hoạt động:</strong>
+                        <ul style="margin: 4px 0 0 16px; padding: 0;">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+                <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; cursor: pointer; color: #991B1B; font-size: 18px;">&times;</button>
+            </div>
+        @endif
+
         <!-- Breadcrumb -->
         <div class="breadcrumb-box">
             <a href="{{ route('home') }}" class="breadcrumb-link">Trang chủ</a>
@@ -1739,14 +1766,7 @@
             }
 
             if (conflict) {
-                hintElem.innerHTML = '';
-                const alertDiv = document.createElement('div');
-                alertDiv.style.color = '#DC2626';
-                alertDiv.style.fontWeight = '600';
-                alertDiv.innerHTML = '<i class="bi bi-exclamation-octagon-fill me-1"></i><strong>Cảnh báo trùng giờ:</strong> Bị chồng chéo với "';
-                alertDiv.appendChild(document.createTextNode(conflict.title || ''));
-                alertDiv.appendChild(document.createTextNode(`" (${conflict.start} - ${conflict.end})`));
-                hintElem.appendChild(alertDiv);
+                hintElem.innerHTML = `<div style="color: #DC2626; font-weight: 600;"><i class="bi bi-exclamation-octagon-fill me-1"></i><strong>Cảnh báo trùng giờ:</strong> Bị chồng chéo với "${conflict.title}" (${conflict.start} - ${conflict.end})</div>`;
                 hintElem.style.display = 'block';
             } else {
                 hintElem.innerHTML = `<span style="color: #0066FF;"><i class="bi bi-clock-history me-1"></i>Thời lượng dự kiến: ${durText}</span> <span style="color: #10B981; margin-left: 8px; font-weight: 500;"><i class="bi bi-check-circle me-1"></i>(Khung giờ hợp lệ)</span>`;
@@ -1802,20 +1822,12 @@
                 if (data.success) {
                     window.location.reload();
                 } else {
-                    if (window.showErrorPopup) {
-                        window.showErrorPopup(data.message || 'Không thể cập nhật thứ tự hoạt động.');
-                    } else {
-                        alert(data.message || 'Không thể cập nhật thứ tự hoạt động.');
-                    }
+                    alert(data.message || 'Không thể cập nhật thứ tự hoạt động.');
                 }
             })
             .catch(err => {
                 console.error(err);
-                if (window.showErrorPopup) {
-                    window.showErrorPopup('Có lỗi xảy ra khi kết nối máy chủ. Vui lòng thử lại!');
-                } else {
-                    alert('Có lỗi xảy ra khi kết nối máy chủ. Vui lòng thử lại!');
-                }
+                alert('Có lỗi xảy ra khi kết nối máy chủ. Vui lòng thử lại!');
             });
         }
 
@@ -2000,6 +2012,5 @@
             });
         });
     </script>
-    @include('partials.popup-notification')
 </body>
 </html>

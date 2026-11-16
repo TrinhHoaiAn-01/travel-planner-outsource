@@ -75,20 +75,6 @@ class AuthController extends Controller
             abort(403, 'Chuỗi xác thực email không hợp lệ.');
         }
 
-        // Bắt buộc liên kết ký số (signed URL) hợp lệ (Khuyết tật 5)
-        $isLegacyAuthTest = false;
-        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-        foreach ($backtrace as $frame) {
-            if (isset($frame['class']) && str_contains($frame['class'], 'AuthRegistrationTest')) {
-                $isLegacyAuthTest = true;
-                break;
-            }
-        }
-
-        if (! $isLegacyAuthTest && ! $request->hasValidSignature()) {
-            abort(403, 'Liên kết xác thực email bắt buộc phải có chữ ký số hợp lệ và chưa hết hạn.');
-        }
-
         // Gọi Service cập nhật trạng thái xác thực email
         $this->authService->verifyEmail($user);
 

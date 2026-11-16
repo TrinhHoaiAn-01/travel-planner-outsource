@@ -111,38 +111,20 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 8.5px 12px;
+            padding: 10px 14px;
             color: var(--sidebar-text);
             text-decoration: none;
-            font-size: 13px;
+            font-size: 13.5px;
             font-weight: 500;
             border-radius: 8px;
-            margin-bottom: 3px;
+            margin-bottom: 4px;
             transition: all 0.2s ease;
-            white-space: nowrap;
         }
 
         .nav-item-content {
             display: flex;
             align-items: center;
-            gap: 10px;
-            min-width: 0;
-            flex: 1;
-            white-space: nowrap;
-        }
-
-        .nav-item-content svg {
-            width: 17px;
-            height: 17px;
-            flex-shrink: 0;
-        }
-
-        .nav-item-content span {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-size: 13px;
-            line-height: 1.2;
+            gap: 12px;
         }
 
         .nav-item:hover {
@@ -160,12 +142,11 @@
         .nav-badge-pill {
             background-color: #F59E0B;
             color: #0F172A;
-            font-size: 10.5px;
+            font-size: 11px;
             font-weight: 700;
-            padding: 2px 6px;
+            padding: 2px 7px;
             border-radius: 9999px;
             line-height: 1.2;
-            flex-shrink: 0;
         }
 
         /* Sidebar User Profile */
@@ -277,21 +258,20 @@
         .admin-header-bar {
             background-color: var(--surface);
             border-bottom: 1px solid var(--border);
-            padding: 13px 24px;
+            padding: 16px 28px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             position: sticky;
             top: 0;
             z-index: 30;
-            gap: 12px;
+            gap: 16px;
         }
 
         .header-left-group {
             display: flex;
             align-items: center;
-            gap: 10px;
-            min-width: 0;
+            gap: 12px;
         }
 
         .sidebar-toggle-btn {
@@ -305,7 +285,6 @@
             color: var(--text-dark);
             cursor: pointer;
             transition: all 0.2s ease;
-            flex-shrink: 0;
         }
 
         .sidebar-toggle-btn:hover {
@@ -314,45 +293,40 @@
         }
 
         .header-title-text {
-            font-size: 17.5px;
+            font-size: 19px;
             font-weight: 700;
             color: var(--text-dark);
             letter-spacing: -0.01em;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
         .header-right-actions {
             display: flex;
             align-items: center;
-            gap: 10px;
-            flex-shrink: 0;
+            gap: 16px;
+            flex-wrap: wrap;
         }
 
         .system-status-pill {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             background-color: var(--success-light);
             color: var(--success);
-            padding: 5px 12px;
+            padding: 6px 14px;
             border-radius: 9999px;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 500;
-            white-space: nowrap;
-            flex-shrink: 0;
             transition: all 0.2s ease;
         }
 
         .status-dot-pulse {
-            width: 7px;
-            height: 7px;
+            width: 8px;
+            height: 8px;
             background-color: var(--success);
             border-radius: 50%;
             display: inline-block;
             position: relative;
-            flex-shrink: 0;
         }
 
         .status-dot-pulse::after {
@@ -373,24 +347,16 @@
         .btn-view-public {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 5px 12px;
+            gap: 8px;
+            padding: 7px 16px;
             border-radius: 8px;
             border: 1px solid var(--border);
             background-color: #FFFFFF;
             color: var(--text-dark);
             text-decoration: none;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 500;
-            white-space: nowrap;
-            flex-shrink: 0;
             transition: all 0.2s ease;
-        }
-
-        .btn-view-public svg {
-            width: 14px;
-            height: 14px;
-            flex-shrink: 0;
         }
 
         .btn-view-public:hover {
@@ -586,15 +552,6 @@
 
             <!-- LƯU TRÚ & THANH TOÁN -->
             <div class="nav-group-title">LƯU TRÚ & THANH TOÁN</div>
-            <a href="{{ route('admin.room-types.index') }}" class="nav-item {{ request()->routeIs('admin.room-types.*') ? 'active' : '' }}">
-                <div class="nav-item-content">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M2 4v16M2 8h18a2 2 0 0 1 2 2v10M2 17h20M6 8v9"/>
-                    </svg>
-                    <span>Loại phòng (Room Types)</span>
-                </div>
-            </a>
-
             <a href="{{ route('admin.bookings.index') }}" class="nav-item {{ request()->routeIs('admin.bookings.*') ? 'active' : '' }}">
                 <div class="nav-item-content">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -774,6 +731,5 @@
     @stack('scripts')
     @include('commerce.launcher', ['merchant' => true])
     @include('partials.search-suggestions')
-    @include('partials.popup-notification')
 </body>
 </html>

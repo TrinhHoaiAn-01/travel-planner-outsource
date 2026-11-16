@@ -170,6 +170,12 @@
             <h1 class="card-title">Đặt lại mật khẩu mới</h1>
         </div>
 
+        @if(session('error'))
+            <div class="alert-box alert-danger" role="alert">
+                {{ session('error') }}
+            </div>
+        @endif
+
         <form action="{{ route('password.update') }}" method="POST" novalidate id="resetPasswordForm">
             @csrf
 
@@ -280,6 +286,5 @@
             });
         });
     </script>
-    @include('partials.popup-notification')
 </body>
 </html>

@@ -22,10 +22,14 @@ class UserManagementService implements UserManagementServiceInterface
     {
         $query = User::query();
 
-        // 1. Tìm kiếm bằng Apache Solr thông qua SearchServiceInterface
+        // Lọc theo từ khóa tìm kiếm (tên, email hoặc số điện thoại)
         if (! empty($filters['search'])) {
             $search = trim((string) $filters['search']);
-            app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'user', $search);
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                    ->orWhere('email', 'LIKE', "%{$search}%")
+                    ->orWhere('phone', 'LIKE', "%{$search}%");
+            });
         }
 
         // Lọc theo vai trò (admin hoặc user)

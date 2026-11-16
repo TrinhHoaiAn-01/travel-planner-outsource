@@ -6,7 +6,7 @@ use RuntimeException;
 
 /**
  * Lớp điều khiển giao tiếp cURL HTTP tới máy chủ Apache Solr 9.
- * Chịu trách nhiệm gửi các câu truy vấn tìm kiếm sang Solr core 'home_destination_search' và nhận kết quả JSON.
+ * Chịu trách nhiệm gửi các câu truy vấn tìm kiếm sang Solr core 'home_search' và nhận kết quả JSON.
  */
 class SolrClient
 {
@@ -16,15 +16,12 @@ class SolrClient
     /**
      * Khởi tạo Solr Client với cấu hình URL và thời gian timeout kết nối.
      *
-     * @param string|null $baseUrl Địa chỉ máy chủ Solr (mặc định đọc từ biến môi trường SOLR_URL hoặc http://solr:8983/solr/home_destination_search)
+     * @param string|null $baseUrl Địa chỉ máy chủ Solr (mặc định đọc từ biến môi trường SOLR_URL hoặc http://solr:8983/solr/home_search)
      * @param int $timeoutSeconds Thời gian chờ tối đa cho mỗi yêu cầu HTTP (tính bằng giây)
      */
     public function __construct(?string $baseUrl = null, int $timeoutSeconds = 3)
     {
-        $defaultHost = (file_exists('/.dockerenv') || getenv('DOCKER_CONTAINER'))
-            ? 'http://solr:8983/solr/home_destination_search'
-            : 'http://127.0.0.1:8983/solr/home_destination_search';
-        $this->baseUrl = rtrim($baseUrl ?: (getenv('SOLR_URL') ?: $defaultHost), '/');
+        $this->baseUrl = rtrim($baseUrl ?: (getenv('SOLR_URL') ?: 'http://solr:8983/solr/home_search'), '/');
         $this->timeoutSeconds = $timeoutSeconds;
     }
 

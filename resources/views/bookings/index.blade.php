@@ -445,12 +445,6 @@
             color: var(--primary);
         }
 
-        .badge-confirmed {
-            background-color: #ECFDF5;
-            color: #059669;
-            border: 1px solid #A7F3D0;
-        }
-
         .badge-completed {
             background-color: var(--success-light);
             color: var(--success);
@@ -465,31 +459,22 @@
         .action-buttons-group {
             display: inline-flex;
             align-items: center;
-            justify-content: flex-end;
             gap: 8px;
-            white-space: nowrap;
-            flex-wrap: nowrap;
         }
 
         .btn-pill-action {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 7px 18px;
+            padding: 6px 18px;
             border-radius: var(--radius-pill);
-            font-size: 13.5px;
+            font-size: 13px;
             font-weight: 600;
             text-decoration: none;
             background: #FFFFFF;
             cursor: pointer;
             transition: all 0.15s ease;
             border: 1px solid transparent;
-            white-space: nowrap;
-            word-break: keep-all;
-            line-height: 1.3;
-            min-width: max-content;
-            flex-shrink: 0;
-            box-sizing: border-box;
         }
 
         .btn-outline-blue {
@@ -668,6 +653,25 @@
             </a>
         </div>
 
+        <!-- Thông báo Flash Messages -->
+        @if(session('success'))
+            <div class="alert-banner alert-banner-success" role="alert">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>{{ session('success') }}</span>
+            </div>
+        @endif
+
+        @if($errors->any())
+            <div class="alert-banner alert-banner-danger" role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <div>
+                    @foreach($errors->all() as $error)
+                        <div>{{ $error }}</div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         @php
             $totalCount = Auth::user()->bookings()->count();
         @endphp
@@ -706,7 +710,7 @@
                                 <th>Số phòng</th>
                                 <th>Tổng tiền</th>
                                 <th>Trạng thái</th>
-                                <th style="text-align: right; min-width: 120px; white-space: nowrap;">Thao tác</th>
+                                <th style="text-align: right;">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -768,14 +772,10 @@
                                     </td>
 
                                     <!-- Cột 7: Trạng thái -->
-                                    <td id="status-cell-{{ $booking->id }}">
+                                    <td>
                                         @if($booking->status === 'completed')
                                             <span class="badge-status badge-completed">
                                                 <i class="bi bi-check-circle"></i> Completed
-                                            </span>
-                                        @elseif($booking->status === 'confirmed')
-                                            <span class="badge-status badge-confirmed">
-                                                <i class="bi bi-check-circle-fill"></i> Đã xác nhận
                                             </span>
                                         @elseif($booking->status === 'cancelled')
                                             <span class="badge-status badge-cancelled">
@@ -783,20 +783,20 @@
                                             </span>
                                         @else
                                             <span class="badge-status badge-upcoming">
-                                                <i class="bi bi-clock"></i> Chờ duyệt
+                                                <i class="bi bi-clock"></i> Upcoming
                                             </span>
                                         @endif
                                     </td>
 
                                     <!-- Cột 8: Thao tác -->
-                                    <td style="text-align: right; white-space: nowrap; width: 1%; min-width: 120px;">
+                                    <td style="text-align: right;">
                                         <div class="action-buttons-group">
                                             @if($isUpcoming)
                                                 <a href="{{ route('bookings.show', $booking->id) }}" class="btn-pill-action btn-outline-blue">
                                                     Chi tiết
                                                 </a>
                                                 @if($booking->status !== 'cancelled' && $isFuture)
-                                                    <form action="{{ route('bookings.cancel', $booking->id) }}" method="POST" onsubmit="return handleFormConfirm(this, event, 'Bạn có chắc chắn muốn hủy đơn đặt phòng {{ $booking->booking_code }} không?', 'Xác nhận hủy', true);" style="display:inline;">
+                                                    <form action="{{ route('bookings.cancel', $booking->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn đặt phòng {{ $booking->booking_code }} không?')" style="display:inline;">
                                                         @csrf
                                                         @method('PATCH')
                                                         <button type="submit" class="btn-pill-action btn-outline-red">
@@ -848,40 +848,5 @@
         <p>&copy; {{ date('Y') }} Travel Planner Travel Platform. All rights reserved.</p>
     </footer>
 
-    <!-- Script Realtime Polling cập nhật trạng thái đơn đặt phòng tự động từ Admin Dashboard -->
-    <script>
-        (function() {
-            const statusUrl = "{{ route('bookings.user-realtime-status') }}";
-            let pollTimer = setInterval(syncBookingStatuses, 3000);
-
-            function syncBookingStatuses() {
-                fetch(statusUrl, {
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(res => res.ok ? res.json() : null)
-                .then(data => {
-                    if (!data || !data.bookings) return;
-                    data.bookings.forEach(item => {
-                        const cell = document.getElementById('status-cell-' + item.id);
-                        if (cell) {
-                            const currentText = cell.innerText.trim();
-                            if (!currentText.includes(item.status_label)) {
-                                cell.innerHTML = item.badge_html;
-                                cell.style.transition = 'background-color 0.5s ease';
-                                cell.style.backgroundColor = '#ECFDF5';
-                                setTimeout(() => { cell.style.backgroundColor = ''; }, 2000);
-                            }
-                        }
-                    });
-                })
-                .catch(() => {});
-            }
-        })();
-    </script>
-    @include('commerce.launcher', ['merchant' => false])
-    @include('partials.popup-notification')
 </body>
 </html>

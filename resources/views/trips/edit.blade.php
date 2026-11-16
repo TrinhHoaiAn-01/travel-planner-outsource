@@ -163,6 +163,28 @@
                     <p class="text-muted small mb-0">Cập nhật thông tin chi tiết, thời gian, ngân sách và ghi chú mục tiêu cho chuyến đi của bạn</p>
                 </div>
 
+                <!-- Thông báo lỗi xác thực từ máy chủ (Server-side validation) kèm nút OK -->
+                @if($errors->any())
+                    <div class="alert alert-danger alert-dismissible fade show rounded-4 mb-4 shadow-sm border border-danger-subtle" role="alert" id="serverValidationAlert">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-exclamation-triangle-fill fs-5 text-danger"></i>
+                            <strong class="fw-bold text-danger">Thông tin nhập không hợp lệ, vui lòng kiểm tra lại:</strong>
+                        </div>
+                        <ul class="mb-3 ps-3 small text-danger-emphasis">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                        <!-- Nút OK nằm ngay trong thông báo để người dùng xác nhận và đóng thông báo -->
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-danger btn-sm px-4 fw-semibold rounded-pill shadow-sm" data-bs-dismiss="alert">
+                                OK
+                            </button>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+
                 <!-- Thông báo lỗi kiểm tra phía người dùng (Client-side validation) kèm nút OK (Chỉ hiển thị khi có trường nhập không hợp lệ) -->
                 <div class="alert alert-danger alert-dismissible fade show rounded-4 mb-4 shadow-sm border border-danger-subtle d-none" role="alert" id="clientValidationErrorAlert">
                     <div class="d-flex align-items-center gap-2 mb-2">
@@ -179,25 +201,6 @@
                         </button>
                     </div>
                 </div>
-
-                @if($errors->any())
-                    <div class="alert alert-danger alert-dismissible fade show rounded-4 mb-4 shadow-sm border border-danger-subtle" role="alert" id="serverValidationAlert">
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <i class="bi bi-exclamation-octagon-fill fs-5 text-danger"></i>
-                            <strong class="fw-bold text-danger">Đã có lỗi xảy ra, vui lòng kiểm tra lại:</strong>
-                        </div>
-                        <ul class="mb-3 ps-3 small text-danger-emphasis">
-                            @foreach($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                        <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-danger btn-sm px-4 fw-semibold rounded-pill shadow-sm" onclick="document.getElementById('serverValidationAlert').remove()">
-                                OK
-                            </button>
-                        </div>
-                    </div>
-                @endif
 
                 <!-- Form Chỉnh sửa chuyến đi (Method PUT / PATCH) -->
                 <form action="{{ route('trips.update', $trip->id) }}" method="POST" id="tripEditForm" novalidate>
@@ -691,6 +694,5 @@
             }
         });
     </script>
-    @include('partials.popup-notification')
 </body>
 </html>

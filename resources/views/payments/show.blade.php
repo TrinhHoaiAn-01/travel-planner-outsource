@@ -368,6 +368,5 @@
         © 2026 Travel Planner - Nhóm B (Nguyễn Văn Thắng - Booking & Payment Module).
     </footer>
 
-    @include('partials.popup-notification')
 </body>
 </html>

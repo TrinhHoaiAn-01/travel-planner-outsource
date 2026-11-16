@@ -76,21 +76,15 @@ class DestinationService implements DestinationServiceInterface
         $query = Destination::query()
             ->with(['city', 'category', 'primaryImage', 'roomTypes']);
 
-        // 1. Tìm kiếm bằng Apache Solr hoặc SQL theo engine
-        $engine = strtolower((string) ($filters['engine'] ?? 'solr'));
+        // 1. Lọc theo từ khóa tìm kiếm (tên địa điểm hoặc tên thành phố hoặc địa chỉ hoặc mô tả)
         if (!empty($filters['keyword'])) {
             $keyword = trim((string) $filters['keyword']);
-            if ($engine === 'sql') {
-                $query->where(function ($q) use ($keyword) {
-                    $q->where('name', 'LIKE', "%{$keyword}%")
-                      ->orWhere('description', 'LIKE', "%{$keyword}%")
-                      ->orWhere('address', 'LIKE', "%{$keyword}%")
-                      ->orWhereHas('city', fn ($cq) => $cq->where('name', 'LIKE', "%{$keyword}%"))
-                      ->orWhereHas('category', fn ($catq) => $catq->where('name', 'LIKE', "%{$keyword}%"));
-                });
-            } else {
-                app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'destination', $keyword);
-            }
+            $query->where(function ($q) use ($keyword) {
+                $q->where('name', 'LIKE', "%{$keyword}%")
+                    ->orWhere('address', 'LIKE', "%{$keyword}%")
+                    ->orWhere('description', 'LIKE', "%{$keyword}%")
+                    ->orWhereHas('city', fn ($cq) => $cq->where('name', 'LIKE', "%{$keyword}%"));
+            });
         }
 
         // 2. Lọc theo ID thành phố
@@ -136,8 +130,72 @@ class DestinationService implements DestinationServiceInterface
      */
     public function searchHomeDestinations(array $filters = [], string $engine = 'solr'): Collection
     {
-        $filters['engine'] = $engine;
-        return $this->searchDestinations($filters);
+        $homeSearchManager = new \Search\HomeSearch\HomeSearchManager();
+        $searchResult = $homeSearchManager->search($filters, $engine);
+        $ids = $searchResult['ids'] ?? [];
+
+        $keyword = trim((string) ($filters['keyword'] ?? ''));
+        $cityId = !empty($filters['city_id']) ? (int) $filters['city_id'] : null;
+        $categoryId = !empty($filters['category_id']) ? (int) $filters['category_id'] : null;
+        $budget = !empty($filters['budget']) ? (int) $filters['budget'] : null;
+
+        // Nếu có từ khóa tìm kiếm nhưng Solr không tìm thấy bất kỳ ID nào thì trả về rỗng ngay
+        if (empty($ids) && $keyword !== '' && ($searchResult['engine_used'] ?? '') === 'solr') {
+            return new Collection();
+        }
+
+        $query = Destination::query()
+            ->with(['city', 'category', 'primaryImage', 'roomTypes']);
+
+        // Nếu có danh sách ID từ search engine (Solr hoặc SQL)
+        if (!empty($ids)) {
+            $query->whereIn('id', $ids);
+            if (($searchResult['engine_used'] ?? '') === 'solr') {
+                if ($query->getConnection()->getDriverName() === 'sqlite') {
+                    $orderCases = [];
+                    foreach ($ids as $index => $id) {
+                        $orderCases[] = "WHEN {$id} THEN {$index}";
+                    }
+                    $query->orderByRaw('CASE id ' . implode(' ', $orderCases) . ' END');
+                } else {
+                    $query->orderByRaw('FIELD(id, ' . implode(',', $ids) . ')');
+                }
+            }
+        } elseif ($keyword !== '') {
+            // Trường hợp fallback SQL tìm theo LIKE
+            $query->where(function ($q) use ($keyword) {
+                $q->where('name', 'LIKE', "%{$keyword}%")
+                    ->orWhere('address', 'LIKE', "%{$keyword}%")
+                    ->orWhere('description', 'LIKE', "%{$keyword}%")
+                    ->orWhereHas('city', fn ($cq) => $cq->where('name', 'LIKE', "%{$keyword}%"));
+            });
+        }
+
+        if ($cityId !== null) {
+            $query->where('city_id', $cityId);
+        }
+
+        if ($categoryId !== null) {
+            $query->where('category_id', $categoryId);
+        }
+
+        if ($budget === 1) {
+            $query->where('entrance_fee', '<', 500000);
+        } elseif ($budget === 2) {
+            $query->whereBetween('entrance_fee', [500000, 1500000]);
+        } elseif ($budget === 3) {
+            $query->where('entrance_fee', '>', 1500000);
+        }
+
+        if (!empty($filters['is_lodging'])) {
+            $query->whereHas('roomTypes');
+        }
+
+        if (empty($ids) || ($searchResult['engine_used'] ?? '') !== 'solr') {
+            $query->orderByDesc('rating')->orderBy('name');
+        }
+
+        return $query->get();
     }
 
     /**
@@ -159,70 +217,6 @@ class DestinationService implements DestinationServiceInterface
         }
 
         $engine = strtolower($engine);
-
-        if ($engine === 'sql') {
-            $citiesQuery = City::query()->withCount('destinations')
-                ->where(function ($q) use ($keyword) {
-                    $q->where('name', 'LIKE', "%{$keyword}%")
-                      ->orWhere('region', 'LIKE', "%{$keyword}%");
-                });
-            $destinationsQuery = Destination::query()->with(['city', 'category', 'roomTypes'])
-                ->where(function ($q) use ($keyword) {
-                    $q->where('name', 'LIKE', "%{$keyword}%")
-                      ->orWhere('description', 'LIKE', "%{$keyword}%")
-                      ->orWhere('address', 'LIKE', "%{$keyword}%")
-                      ->orWhereHas('city', fn ($cq) => $cq->where('name', 'LIKE', "%{$keyword}%"))
-                      ->orWhereHas('category', fn ($catq) => $catq->where('name', 'LIKE', "%{$keyword}%"));
-                });
-        } else {
-            $search = app(\App\Services\Interfaces\SearchServiceInterface::class);
-            $citiesQuery = City::query()->withCount('destinations');
-            $search->apply($citiesQuery, 'city', $keyword);
-
-            $destinationsQuery = Destination::query()->with(['city', 'category', 'roomTypes']);
-            $search->apply($destinationsQuery, 'destination', $keyword);
-        }
-
-        $cities = $citiesQuery
-            ->limit(4)
-            ->get()
-            ->map(function ($city) {
-                return [
-                    'id' => $city->id,
-                    'name' => $city->name,
-                    'destinations_count' => $city->destinations_count,
-                    'url' => route('home', ['keyword' => $city->name]),
-                ];
-            });
-        $destinations = $destinationsQuery
-            ->orderByDesc('rating')
-            ->limit($limit)
-            ->get()
-            ->map(function ($destination) {
-                return [
-                    'id' => $destination->id,
-                    'name' => $destination->name,
-                    'city_name' => $destination->city->name ?? '',
-                    'category_name' => $destination->category->name ?? '',
-                    'rating' => (float) $destination->rating,
-                    'entrance_fee' => (float) $destination->entrance_fee,
-                    'has_hotel' => $destination->has_hotel,
-                    'formatted_price' => $destination->entrance_fee > 0
-                        ? number_format($destination->entrance_fee, 0, ',', '.') . 'đ'
-                        : 'Miễn phí',
-                    'url' => route('destinations.show', $destination->slug ?? $destination->id),
-                ];
-            });
-
-        return [
-            'keyword' => $keyword,
-            'cities' => $cities->values()->all(),
-            'destinations' => $destinations->values()->all(),
-        ];
-    }
-
-    private function _legacyQuickSearch(string $keyword, int $limit, string $engine): array
-    {
         $isTesting = defined('PHPUNIT_COMPOSER_INSTALL')
             || class_exists(\PHPUnit\Framework\TestCase::class, false)
             || (function_exists('app') && (app()->environment('testing') || app()->runningUnitTests()));
@@ -276,7 +270,7 @@ class DestinationService implements DestinationServiceInterface
                                 'formatted_price' => $destination->entrance_fee > 0
                                     ? number_format($destination->entrance_fee, 0, ',', '.') . 'đ'
                                     : 'Miễn phí',
-                                'url' => route('home', ['keyword' => $destination->name, 'engine' => 'solr']),
+                                'url' => route('home', ['keyword' => $destination->name]),
                             ];
                         });
                 }
@@ -317,89 +311,52 @@ class DestinationService implements DestinationServiceInterface
                         'id' => $city->id,
                         'name' => $city->name,
                         'destinations_count' => $city->destinations_count,
-                        'url' => route('home', ['keyword' => $city->name, 'engine' => 'solr']),
+                        'url' => route('home', ['keyword' => $city->name]),
                     ];
                 });
 
-                // Solr hoạt động bình thường thì luôn trả về kết quả kèm engine=solr
-                return [
-                    'engine' => 'solr',
-                    'keyword' => $keyword,
-                    'destinations' => $destinations->values()->all(),
-                    'cities' => $cities->values()->all(),
-                ];
+                // Nếu Solr có kết quả điểm đến HOẶC có thành phố khớp thì trả về kết quả
+                // Đặt 'destinations' trước 'cities' để khi kiểm tra Postman hoặc giao diện, điểm đến (như Messi) luôn hiện lên đầu
+                if (! empty($docs) || $cities->isNotEmpty()) {
+                    return [
+                        'engine' => 'solr',
+                        'keyword' => $keyword,
+                        'destinations' => $destinations->values()->all(),
+                        'cities' => $cities->values()->all(),
+                    ];
+                }
             } catch (\Throwable $e) {
                 if (function_exists('logger')) {
-                    logger()->warning('Lỗi quickSearch Solr, chuyển sang SQL dự phòng: ' . $e->getMessage());
+                    logger()->warning('Lỗi quickSearch Solr, chuyển sang SQL: ' . $e->getMessage());
                 }
             }
         }
 
-        // 2. SQL Search (khi người dùng chọn engine=sql hoặc Solr gặp sự cố gián đoạn)
-        $cityCompounds = [
-            '/\bha\s*noi\b/ui' => 'Hà Nội',
-            '/\bhanoi\b/ui' => 'Hà Nội',
-            '/\bda\s*nang\b/ui' => 'Đà Nẵng',
-            '/\bdanang\b/ui' => 'Đà Nẵng',
-            '/\bphu\s*quoc\b/ui' => 'Phú Quốc',
-            '/\bphuquoc\b/ui' => 'Phú Quốc',
-            '/\bha\s*long\b/ui' => 'Hạ Long',
-            '/\bhalong\b/ui' => 'Hạ Long',
-            '/\bnha\s*trang\b/ui' => 'Nha Trang',
-            '/\bnhatrang\b/ui' => 'Nha Trang',
-            '/\bsai\s*gon\b/ui' => 'Sài Gòn',
-            '/\bsaigon\b/ui' => 'Sài Gòn',
-            '/\bda\s*lat\b/ui' => 'Đà Lạt',
-            '/\bdalat\b/ui' => 'Đà Lạt',
-        ];
-        $expandedKeyword = preg_replace(array_keys($cityCompounds), array_values($cityCompounds), $keyword) ?: $keyword;
-        $tokens = preg_split('/\s+/', $expandedKeyword, -1, PREG_SPLIT_NO_EMPTY) ?: [];
-
+        // 2. Fallback SQL Index (hoặc khi người dùng chọn engine=sql)
         $cities = City::query()->withCount('destinations')
-            ->where(function ($q) use ($keyword, $expandedKeyword) {
-                $q->where('name', 'LIKE', "%{$keyword}%")
-                    ->orWhere('name', 'LIKE', "%{$expandedKeyword}%");
-            })
+            ->where('name', 'LIKE', "%{$keyword}%")
             ->limit(4)
             ->get()
-            ->map(function ($city) use ($engine) {
+            ->map(function ($city) {
                 return [
                     'id' => $city->id,
                     'name' => $city->name,
                     'destinations_count' => $city->destinations_count,
-                    'url' => route('home', ['keyword' => $city->name, 'engine' => $engine]),
+                    'url' => route('home', ['keyword' => $city->name]),
                 ];
             });
 
         $destinations = Destination::query()->with(['city', 'category', 'roomTypes'])
-            ->where(function ($q) use ($keyword, $expandedKeyword, $tokens) {
-                $q->where(function ($exactQ) use ($keyword, $expandedKeyword) {
-                    $exactQ->where('name', 'LIKE', "%{$keyword}%")
-                        ->orWhere('name', 'LIKE', "%{$expandedKeyword}%")
-                        ->orWhere('address', 'LIKE', "%{$keyword}%")
-                        ->orWhere('address', 'LIKE', "%{$expandedKeyword}%")
-                        ->orWhere('description', 'LIKE', "%{$keyword}%")
-                        ->orWhere('description', 'LIKE', "%{$expandedKeyword}%")
-                        ->orWhereHas('city', fn ($cq) => $cq->where('name', 'LIKE', "%{$keyword}%")->orWhere('name', 'LIKE', "%{$expandedKeyword}%"));
-                });
-
-                if (count($tokens) > 1) {
-                    $q->orWhere(function ($allTokensQ) use ($tokens) {
-                        foreach ($tokens as $token) {
-                            $allTokensQ->where(function ($singleQ) use ($token) {
-                                $singleQ->where('name', 'LIKE', "%{$token}%")
-                                    ->orWhere('address', 'LIKE', "%{$token}%")
-                                    ->orWhere('description', 'LIKE', "%{$token}%")
-                                    ->orWhereHas('city', fn ($cq) => $cq->where('name', 'LIKE', "%{$token}%"));
-                            });
-                        }
-                    });
-                }
+            ->where(function ($q) use ($keyword) {
+                $q->where('name', 'LIKE', "%{$keyword}%")
+                    ->orWhere('address', 'LIKE', "%{$keyword}%")
+                    ->orWhere('description', 'LIKE', "%{$keyword}%")
+                    ->orWhereHas('city', fn ($cq) => $cq->where('name', 'LIKE', "%{$keyword}%"));
             })
             ->orderByDesc('rating')
             ->limit($limit)
             ->get()
-            ->map(function ($destination) use ($engine) {
+            ->map(function ($destination) {
                 return [
                     'id' => $destination->id,
                     'name' => $destination->name,
@@ -411,12 +368,12 @@ class DestinationService implements DestinationServiceInterface
                     'formatted_price' => $destination->entrance_fee > 0
                         ? number_format($destination->entrance_fee, 0, ',', '.') . 'đ'
                         : 'Miễn phí',
-                    'url' => route('home', ['keyword' => $destination->name, 'engine' => $engine]),
+                    'url' => route('home', ['keyword' => $destination->name]),
                 ];
             });
 
         return [
-            'engine' => ($engine === 'solr') ? 'sql_fallback' : 'sql',
+            'engine' => 'sql',
             'keyword' => $keyword,
             'destinations' => $destinations->values()->all(),
             'cities' => $cities->values()->all(),
@@ -424,51 +381,26 @@ class DestinationService implements DestinationServiceInterface
     }
 
     /**
-     * Lấy danh sách địa điểm du lịch có phân trang, hỗ trợ bộ lọc và công cụ tìm kiếm (Solr hoặc SQL).
+     * Lấy danh sách địa điểm du lịch có phân trang, hỗ trợ bộ lọc và lọc theo nơi lưu trú.
      *
      * @param array<string, mixed> $filters
      * @param int $perPage
-     * @param string $engine 'solr' (mặc định) hoặc 'sql'
      * @return LengthAwarePaginator
      */
-    public function getDestinations(array $filters = [], int $perPage = 6, string $engine = 'solr'): LengthAwarePaginator
+    public function getDestinations(array $filters = [], int $perPage = 6): LengthAwarePaginator
     {
-        $engine = strtolower((string) ($filters['engine'] ?? $engine));
-        if (! in_array($engine, ['solr', 'sql'], true)) {
-            $engine = 'solr';
-        }
-
-        // Đảm bảo package Search được nạp an toàn trong mọi môi trường
-        if (! class_exists(\Search\HomeSearch\HomeSearchManager::class)) {
-            spl_autoload_register(function ($class) {
-                $prefix = 'Search\\HomeSearch\\';
-                if (str_starts_with($class, $prefix)) {
-                    $relativeClass = substr($class, strlen($prefix));
-                    $file = base_path('packages/search/src/' . str_replace('\\', '/', $relativeClass) . '.php');
-                    if (file_exists($file)) {
-                        require_once $file;
-                    }
-                }
-            });
-        }
-
         $query = Destination::query()
             ->with(['city', 'category', 'primaryImage', 'images', 'roomTypes']);
 
-        // 1. Tìm kiếm bằng Apache Solr hoặc SQL theo engine
-        $search = trim((string) ($filters['search'] ?? ($filters['keyword'] ?? '')));
+        // 1. Tìm kiếm theo từ khóa (tên địa điểm, mô tả, địa chỉ hoặc thành phố)
+        $search = trim((string) ($filters['search'] ?? $filters['keyword'] ?? ''));
         if ($search !== '') {
-            if ($engine === 'sql') {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'LIKE', "%{$search}%")
-                      ->orWhere('description', 'LIKE', "%{$search}%")
-                      ->orWhere('address', 'LIKE', "%{$search}%")
-                      ->orWhereHas('city', fn ($cq) => $cq->where('name', 'LIKE', "%{$search}%"))
-                      ->orWhereHas('category', fn ($catq) => $catq->where('name', 'LIKE', "%{$search}%"));
-                });
-            } else {
-                app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'destination', $search);
-            }
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                    ->orWhere('address', 'LIKE', "%{$search}%")
+                    ->orWhere('description', 'LIKE', "%{$search}%")
+                    ->orWhereHas('city', fn ($cq) => $cq->where('name', 'LIKE', "%{$search}%"));
+            });
         }
 
         // 2. Lọc theo Thành phố
@@ -509,21 +441,8 @@ class DestinationService implements DestinationServiceInterface
         } elseif ($sort === 'name_asc') {
             $query->orderBy('name', 'asc');
         } else {
-            // Mặc định: Nếu có danh sách ID từ Solr/SQL, giữ đúng thứ tự điểm số liên quan
-            if (!empty($ids)) {
-                if ($query->getConnection()->getDriverName() === 'sqlite') {
-                    $orderCases = [];
-                    foreach ($ids as $index => $id) {
-                        $orderCases[] = "WHEN {$id} THEN {$index}";
-                    }
-                    $query->orderByRaw('CASE id ' . implode(' ', $orderCases) . ' END');
-                } else {
-                    $query->orderByRaw('FIELD(id, ' . implode(',', $ids) . ')');
-                }
-            } else {
-                // Độ phổ biến / đánh giá cao nhất
-                $query->orderByDesc('rating')->orderByDesc('id');
-            }
+            // Mặc định: Độ phổ biến / đánh giá cao nhất
+            $query->orderByDesc('rating')->orderByDesc('id');
         }
 
         return $query->paginate($perPage)->withQueryString();

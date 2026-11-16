@@ -188,7 +188,6 @@
 
     .logs-table {
         width: 100%;
-        min-width: 960px;
         border-collapse: collapse;
         font-size: 13px;
         text-align: left;
@@ -203,7 +202,6 @@
         text-transform: uppercase;
         font-size: 11px;
         letter-spacing: 0.05em;
-        white-space: nowrap;
     }
 
     .logs-table td {
@@ -272,7 +270,7 @@
     }
 
     .btn-view-meta {
-        padding: 5px 12px;
+        padding: 5px 10px;
         background-color: #F8FAFC;
         border: 1px solid #CBD5E1;
         border-radius: 6px;
@@ -282,22 +280,8 @@
         cursor: pointer;
         display: inline-flex;
         align-items: center;
-        justify-content: center;
-        gap: 6px;
-        white-space: nowrap;
-        line-height: 1.25;
-        flex-shrink: 0;
+        gap: 4px;
         transition: all 0.2s ease;
-    }
-
-    .btn-view-meta svg {
-        width: 14px;
-        height: 14px;
-        flex-shrink: 0;
-    }
-
-    .btn-view-meta span {
-        white-space: nowrap;
     }
 
     .btn-view-meta:hover {
@@ -504,7 +488,7 @@
                 <th>Hành động</th>
                 <th>Đối tượng</th>
                 <th style="width: 130px;">Địa chỉ IP</th>
-                <th style="width: 130px; text-align: center; white-space: nowrap;">Chi tiết</th>
+                <th style="width: 110px; text-align: center;">Chi tiết</th>
             </tr>
         </thead>
         <tbody>
@@ -562,7 +546,7 @@
                     <td>
                         <span class="ip-address-code">{{ $log->ip_address ?: '127.0.0.1' }}</span>
                     </td>
-                    <td style="text-align: center; white-space: nowrap;">
+                    <td style="text-align: center;">
                         <button type="button" class="btn-view-meta" onclick="viewLogMetadata({{ $log->id }})">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="12" cy="12" r="3"/>

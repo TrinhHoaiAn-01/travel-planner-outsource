@@ -3307,11 +3307,11 @@
             "time": "2026-06-18T03:57:49+00:00"
         },
         {
-            "name": "search/search",
+            "name": "search/home-search",
             "version": "dev-main",
             "dist": {
                 "type": "path",
-                "url": "packages/search",
+                "url": "packages/search/home-search",
                 "reference": "bbfd4d8f1644313f0a0b7d53b383b620b30501a8"
             },
             "require": {
@@ -8429,7 +8429,7 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
-        "search/search": 20
+        "search/home-search": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,

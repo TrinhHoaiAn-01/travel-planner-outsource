@@ -313,102 +313,54 @@
             transform: translateY(-1px);
         }
 
-        /* 3. Gallery Grid (Hỗ trợ linh hoạt từ 1 ảnh đến 5+ ảnh thực tế từ Database) & Controls */
+        /* 3. Gallery Grid (1 Lớn + 4 Nhỏ) & Controls */
         .gallery-container {
             position: relative;
             display: grid;
-            gap: 8px;
-            border-radius: 16px;
+            grid-template-columns: 1.15fr 1fr;
+            gap: 12px;
+            border-radius: 20px;
             overflow: hidden;
             margin: 24px 0 28px;
-            height: 440px;
-            background: #F1F5F9;
-        }
-
-        /* 1 ảnh duy nhất (Hero Full) */
-        .gallery-container.gallery-single {
-            grid-template-columns: 1fr;
-        }
-
-        /* 2 ảnh (50% - 50%) */
-        .gallery-container.gallery-two {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        /* 3 ảnh (1 lớn trái + 2 xếp chồng phải) */
-        .gallery-container.gallery-three {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-        .gallery-sub-grid-two {
-            grid-template-columns: 1fr !important;
-            grid-template-rows: repeat(2, minmax(0, 1fr)) !important;
-        }
-
-        /* 4 ảnh (1 lớn trái + 1 trên, 2 dưới phải) */
-        .gallery-container.gallery-four {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-        .gallery-sub-grid-three {
-            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-            grid-template-rows: repeat(2, minmax(0, 1fr)) !important;
-        }
-        .gallery-sub-span-2 {
-            grid-column: span 2;
-        }
-
-        /* 5 ảnh trở lên (1 lớn trái + 4 lưới 2x2 phải) */
-        .gallery-container.gallery-five-plus {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            height: 420px;
+            background: #0F172A;
         }
 
         .gallery-main-wrap {
             position: relative;
             overflow: hidden;
-            width: 100%;
             height: 100%;
-            min-width: 0;
-            min-height: 0;
             cursor: pointer;
         }
 
         .gallery-main-img {
             width: 100%;
             height: 100%;
-            display: block;
             object-fit: cover;
-            object-position: center;
             cursor: pointer;
-            transition: transform 0.35s ease;
+            transition: transform 0.3s ease;
         }
 
         .gallery-sub-grid {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            grid-template-rows: repeat(2, minmax(0, 1fr));
-            gap: 8px;
-            width: 100%;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 12px;
             height: 100%;
-            min-width: 0;
-            min-height: 0;
         }
 
         .gallery-sub-item {
             position: relative;
             overflow: hidden;
-            width: 100%;
             height: 100%;
-            min-width: 0;
-            min-height: 0;
             cursor: pointer;
         }
 
         .gallery-sub-img {
             width: 100%;
             height: 100%;
-            display: block;
             object-fit: cover;
-            object-position: center;
-            transition: transform 0.35s ease;
+            transition: transform 0.3s ease;
         }
 
         .gallery-main-img:hover, .gallery-sub-img:hover {
@@ -427,7 +379,6 @@
             font-size: 15px;
             font-weight: 700;
             transition: background 0.2s;
-            pointer-events: none;
         }
 
         .gallery-sub-item:hover .gallery-more-overlay {
@@ -441,15 +392,15 @@
             background: rgba(255, 255, 255, 0.96);
             color: #0F172A;
             border: 1px solid rgba(226, 232, 240, 0.8);
-            border-radius: 8px;
-            padding: 8px 16px;
+            border-radius: 24px;
+            padding: 8px 18px;
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 700;
             display: inline-flex;
             align-items: center;
             gap: 8px;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
             transition: all 0.2s;
             z-index: 10;
         }
@@ -457,7 +408,7 @@
         .btn-open-all-photos:hover {
             background: #FFFFFF;
             transform: translateY(-1px);
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
             color: #0066FF;
         }
 
@@ -520,23 +471,19 @@
         }
 
         .lightbox-stage {
-            position: relative;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
+            gap: 20px;
             flex: 1;
             padding: 16px 0;
             overflow: hidden;
             user-select: none;
-            width: 100%;
         }
 
         .lightbox-nav-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.18);
-            border: 1px solid rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             color: #FFFFFF;
             width: 50px;
             height: 50px;
@@ -546,22 +493,14 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.2s ease;
-            z-index: 15;
-        }
-
-        .lightbox-nav-btn.btn-prev {
-            left: 20px;
-        }
-
-        .lightbox-nav-btn.btn-next {
-            right: 20px;
+            transition: all 0.2s;
+            flex-shrink: 0;
         }
 
         .lightbox-nav-btn:hover {
             background: #0066FF;
             border-color: #0066FF;
-            transform: translateY(-50%) scale(1.08);
+            transform: scale(1.08);
         }
 
         .lightbox-image-container {
@@ -569,25 +508,21 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            max-width: 86vw;
-            max-height: 75vh;
-            margin: 0 auto;
-            text-align: center;
+            max-width: 82vw;
+            height: 64vh;
         }
 
         .lightbox-image-container img {
             max-width: 100%;
-            max-height: 68vh;
+            max-height: 58vh;
             border-radius: 12px;
             object-fit: contain;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
             transition: opacity 0.2s ease;
-            margin: 0 auto;
-            display: block;
         }
 
         .lightbox-caption {
-            margin-top: 14px;
+            margin-top: 10px;
             font-size: 14px;
             color: #CBD5E1;
             text-align: center;
@@ -745,8 +680,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0;
-            line-height: 0;
+            font-size: 15px;
             cursor: pointer;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
             transition: all 0.2s;
@@ -1305,14 +1239,12 @@
             .gallery-container {
                 grid-template-columns: 1fr;
                 height: auto;
-                gap: 8px;
             }
             .gallery-main-img {
-                height: 320px;
+                height: 280px;
             }
             .gallery-sub-grid {
-                height: 240px;
-                gap: 8px;
+                height: 200px;
             }
             .highlight-pills-bar {
                 grid-template-columns: 1fr 1fr;
@@ -1453,6 +1385,34 @@
             <span style="color: #0F172A; font-weight: 600;">{{ $destination->name }}</span>
         </div>
 
+        @if(session('success'))
+            <div style="background: #ECFDF5; border: 1px solid #10B981; color: #065F46; padding: 14px 20px; border-radius: 12px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; font-weight: 600; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>{{ session('success') }}</span>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div style="background: #FEF2F2; border: 1px solid #EF4444; color: #991B1B; padding: 14px 20px; border-radius: 12px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; font-weight: 600; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <span>{{ session('error') }}</span>
+            </div>
+        @endif
+
+        @if($errors->any())
+            <div style="background: #FEF2F2; border: 1px solid #EF4444; color: #991B1B; padding: 14px 20px; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);">
+                <div style="font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <span>Đã có lỗi xảy ra, vui lòng kiểm tra lại:</span>
+                </div>
+                <ul style="margin-left: 28px; font-size: 14px; line-height: 1.6;">
+                    @foreach($errors->all() as $err)
+                        <li>{{ $err }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <!-- Top Header: Huy hiệu & Nút thao tác -->
         <div class="detail-top-row">
             <div>
@@ -1491,128 +1451,57 @@
                     Thêm vào Trip
                 </button>
 
-                <!-- Đặt phòng ngay (Cuộn tới Form đặt phòng) -->
-                <a href="#bookingWidgetBox" class="btn-action-book-primary">
+                <!-- Đặt phòng ngay (Cuộn tới danh sách Room Types) -->
+                <a href="#room-types-section" class="btn-action-book-primary">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
                     Đặt phòng ngay
                 </a>
             </div>
         </div>
 
-        <!-- 3. Thư viện hình ảnh Gallery (Hiển thị chính xác theo số lượng ảnh thực tế của địa điểm) -->
+        <!-- 3. Thư viện hình ảnh Gallery (1 Lớn + 4 Nhỏ y hệt Hình 13 + Nút Xem tất cả ảnh & Lightbox - FR12) -->
         @php
-            $dbImages = $destination->images->isNotEmpty() ? $destination->images->pluck('image_path')->all() : [];
-            $primaryImg = $destination->primaryImage?->image_path;
-
-            $galleryImages = [];
-            if ($primaryImg) {
-                $galleryImages[] = $primaryImg;
-            }
-            foreach ($dbImages as $img) {
-                if (!in_array($img, $galleryImages)) {
-                    $galleryImages[] = $img;
-                }
-            }
-
-            // Nếu địa điểm chưa có ảnh nào trong cơ sở dữ liệu, dùng 1 ảnh mặc định duy nhất
-            if (empty($galleryImages)) {
-                $galleryImages = ['https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1000'];
+            $galleryImages = $destination->images->isNotEmpty() ? $destination->images->pluck('image_path')->all() : [];
+            $primaryImg = $destination->primaryImage?->image_path ?? ($galleryImages[0] ?? 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1000');
+            
+            // Đảm bảo đủ tối thiểu 5 ảnh minh họa đẹp mắt
+            $defaultSampleImages = [
+                'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=600',
+                'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600',
+                'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600',
+                'https://images.unsplash.com/photo-1528127269322-539801943592?w=600',
+            ];
+            $subImages = array_slice($galleryImages, 1, 4);
+            while (count($subImages) < 4) {
+                $subImages[] = $defaultSampleImages[count($subImages)];
             }
 
-            $totalPhotos = count($galleryImages);
-            $lightboxPhotos = $galleryImages;
+            // Danh sách toàn bộ ảnh phục vụ Lightbox
+            $lightboxPhotos = !empty($galleryImages) ? $galleryImages : array_merge([$primaryImg], $subImages);
         @endphp
-
-        @if($totalPhotos === 1)
-            <div class="gallery-container gallery-single">
-                <div class="gallery-main-wrap" onclick="openGalleryLightbox(0)" title="Xem ảnh lớn">
-                    <img src="{{ $galleryImages[0] }}" alt="{{ $destination->name }}" class="gallery-main-img" id="mainGalleryImg">
-                </div>
-
-                <button type="button" class="btn-open-all-photos" onclick="openGalleryLightbox(0)" id="btnOpenGallery">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                    <span>Xem hình ảnh</span>
-                </button>
+        <div class="gallery-container">
+            <div class="gallery-main-wrap" onclick="openGalleryLightbox(0)" title="Xem ảnh lớn">
+                <img src="{{ $primaryImg }}" alt="{{ $destination->name }}" class="gallery-main-img" id="mainGalleryImg">
             </div>
-        @elseif($totalPhotos === 2)
-            <div class="gallery-container gallery-two">
-                <div class="gallery-main-wrap" onclick="openGalleryLightbox(0)" title="Xem ảnh">
-                    <img src="{{ $galleryImages[0] }}" alt="{{ $destination->name }}" class="gallery-main-img" id="mainGalleryImg">
-                </div>
-                <div class="gallery-main-wrap" onclick="openGalleryLightbox(1)" title="Xem ảnh">
-                    <img src="{{ $galleryImages[1] }}" alt="{{ $destination->name }}" class="gallery-main-img">
-                </div>
-
-                <button type="button" class="btn-open-all-photos" onclick="openGalleryLightbox(0)" id="btnOpenGallery">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                    <span>Xem tất cả 2 hình ảnh</span>
-                </button>
+            <div class="gallery-sub-grid">
+                @foreach($subImages as $index => $sImg)
+                    <div class="gallery-sub-item" onclick="openGalleryLightbox({{ $index + 1 }})" title="Xem hình ảnh">
+                        <img src="{{ $sImg }}" alt="{{ $destination->name }}" class="gallery-sub-img">
+                        @if($loop->last && count($galleryImages) > 5)
+                            <div class="gallery-more-overlay">
+                                <span>+{{ count($galleryImages) - 4 }} ảnh khác</span>
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
             </div>
-        @elseif($totalPhotos === 3)
-            <div class="gallery-container gallery-three">
-                <div class="gallery-main-wrap" onclick="openGalleryLightbox(0)" title="Xem ảnh lớn">
-                    <img src="{{ $galleryImages[0] }}" alt="{{ $destination->name }}" class="gallery-main-img" id="mainGalleryImg">
-                </div>
-                <div class="gallery-sub-grid gallery-sub-grid-two">
-                    <div class="gallery-sub-item" onclick="openGalleryLightbox(1)" title="Xem hình ảnh">
-                        <img src="{{ $galleryImages[1] }}" alt="{{ $destination->name }}" class="gallery-sub-img">
-                    </div>
-                    <div class="gallery-sub-item" onclick="openGalleryLightbox(2)" title="Xem hình ảnh">
-                        <img src="{{ $galleryImages[2] }}" alt="{{ $destination->name }}" class="gallery-sub-img">
-                    </div>
-                </div>
 
-                <button type="button" class="btn-open-all-photos" onclick="openGalleryLightbox(0)" id="btnOpenGallery">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                    <span>Xem tất cả 3 hình ảnh</span>
-                </button>
-            </div>
-        @elseif($totalPhotos === 4)
-            <div class="gallery-container gallery-four">
-                <div class="gallery-main-wrap" onclick="openGalleryLightbox(0)" title="Xem ảnh lớn">
-                    <img src="{{ $galleryImages[0] }}" alt="{{ $destination->name }}" class="gallery-main-img" id="mainGalleryImg">
-                </div>
-                <div class="gallery-sub-grid gallery-sub-grid-three">
-                    <div class="gallery-sub-item gallery-sub-span-2" onclick="openGalleryLightbox(1)" title="Xem hình ảnh">
-                        <img src="{{ $galleryImages[1] }}" alt="{{ $destination->name }}" class="gallery-sub-img">
-                    </div>
-                    <div class="gallery-sub-item" onclick="openGalleryLightbox(2)" title="Xem hình ảnh">
-                        <img src="{{ $galleryImages[2] }}" alt="{{ $destination->name }}" class="gallery-sub-img">
-                    </div>
-                    <div class="gallery-sub-item" onclick="openGalleryLightbox(3)" title="Xem hình ảnh">
-                        <img src="{{ $galleryImages[3] }}" alt="{{ $destination->name }}" class="gallery-sub-img">
-                    </div>
-                </div>
-
-                <button type="button" class="btn-open-all-photos" onclick="openGalleryLightbox(0)" id="btnOpenGallery">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                    <span>Xem tất cả 4 hình ảnh</span>
-                </button>
-            </div>
-        @else
-            <div class="gallery-container gallery-five-plus">
-                <div class="gallery-main-wrap" onclick="openGalleryLightbox(0)" title="Xem ảnh lớn">
-                    <img src="{{ $galleryImages[0] }}" alt="{{ $destination->name }}" class="gallery-main-img" id="mainGalleryImg">
-                </div>
-                <div class="gallery-sub-grid">
-                    @foreach(array_slice($galleryImages, 1, 4) as $index => $sImg)
-                        <div class="gallery-sub-item" onclick="openGalleryLightbox({{ $index + 1 }})" title="Xem hình ảnh">
-                            <img src="{{ $sImg }}" alt="{{ $destination->name }}" class="gallery-sub-img">
-                            @if($loop->last && $totalPhotos > 5)
-                                <div class="gallery-more-overlay">
-                                    <span>+{{ $totalPhotos - 5 }} ảnh khác</span>
-                                </div>
-                            @endif
-                        </div>
-                    @endforeach
-                </div>
-
-                <button type="button" class="btn-open-all-photos" onclick="openGalleryLightbox(0)" id="btnOpenGallery">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                    <span>Xem tất cả {{ $totalPhotos }} hình ảnh</span>
-                </button>
-            </div>
-        @endif
+            <!-- Nút Mở toàn bộ Gallery Hình ảnh (FR12) -->
+            <button type="button" class="btn-open-all-photos" onclick="openGalleryLightbox(0)" id="btnOpenGallery">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                <span>Xem tất cả {{ count($galleryImages) > 0 ? count($galleryImages) : 5 }} hình ảnh</span>
+            </button>
+        </div>
 
         <!-- 4. Thanh Highlight Pills (Đánh giá, Giờ mở cửa, Giá vé, Khách sạn) -->
         <div class="highlight-pills-bar">
@@ -1705,11 +1594,92 @@
                     </div>
                 </div>
 
+                <!-- Khối Hiển Thị Nơi Lưu Trú & Danh Sách Room Type -->
+                <div class="content-card-box" id="room-types-section">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                        <div>
+                            <h2 class="section-headline" style="margin-bottom: 4px;">
+                                🏨 Danh Sách Loại Phòng &amp; Chỗ Lưu Trú
+                            </h2>
+                            <p style="font-size: 14px; color: #64748B;">
+                                Khám phá các hạng phòng nghỉ dưỡng tiêu chuẩn cao cấp tại {{ $destination->name }}
+                            </p>
+                        </div>
+                        <span class="badge-hotel-pill">
+                            {{ $destination->roomTypes->count() }} hạng phòng có sẵn
+                        </span>
+                    </div>
 
+                    @if($destination->roomTypes->isNotEmpty())
+                        @foreach($destination->roomTypes as $room)
+                            <div class="room-type-card" id="roomCard-{{ $room->id }}">
+                                <div class="room-header-row">
+                                    <h4 class="room-title-name">{{ $room->name }}</h4>
+                                    <div class="room-price-val">
+                                        {{ number_format($room->price_per_night, 0, ',', '.') }}đ 
+                                        <span style="font-size: 13px; color: #64748B; font-weight: 500;">/ đêm</span>
+                                    </div>
+                                </div>
+
+                                <div class="room-info-tags">
+                                    <span class="room-tag">
+                                        👥 Sức chứa: {{ $room->capacity }} người lớn
+                                    </span>
+                                    <span class="room-tag room-tag-green">
+                                        ✔ Còn {{ $room->quantity }} phòng trống
+                                    </span>
+                                    <span class="room-tag">
+                                        🛏 Giường King / Twin cao cấp
+                                    </span>
+                                </div>
+
+                                <p class="room-desc-text">
+                                    {{ $room->description ?? 'Không gian nghỉ dưỡng thanh bình, trang bị đầy đủ điều hòa, tivi màn hình phẳng, mini-bar, ban công thoáng đãng và phòng tắm riêng hiện đại.' }}
+                                </p>
+
+                                <div class="room-actions-bar">
+                                    <button type="button" class="btn-view-room-modal" onclick="openRoomTypeModal({{ $room->id }})">
+                                        🔍 Xem chi tiết loại phòng & tiện ích
+                                    </button>
+                                    <button type="button" class="btn-select-room" 
+                                            onclick="selectRoomType('{{ $room->id }}', '{{ addslashes($room->name) }}', '{{ number_format($room->price_per_night, 0, ',', '.') }}đ')">
+                                        ✔ Chọn phòng này
+                                    </button>
+                                </div>
+                            </div>
+                        @endforeach
+                    @else
+                        <!-- Nếu địa điểm chưa có Room Types cụ thể trong database, hiển thị trạng thái và phòng gợi ý -->
+                        <div style="background: #F1F5F9; border-radius: 12px; padding: 24px; text-align: center;">
+                            <p style="color: #475569; font-size: 14px; margin-bottom: 8px;">
+                                Địa điểm này hiện đang liên kết với các đối tác khách sạn trong khu vực.
+                            </p>
+                            <span style="font-size: 13px; color: #0066FF; font-weight: 600;">
+                                Liên hệ Hotline để nhận báo giá phòng nghỉ ưu đãi nhất.
+                            </span>
+                        </div>
+                    @endif
+                </div>
 
                 <!-- ================= Khối Nhận Xét & Đánh Giá Địa Điểm (Hình 24, 25, 26 Báo cáo - Chuẩn Bootstrap 5) ================= -->
                 <div class="content-card-box mt-4" id="destination-reviews-section">
                     
+                    <!-- Flash Messages Thông Báo Thành Công / Thất Bại (Bootstrap 5 Alert) -->
+                    @if(session('success'))
+                        <div class="alert alert-success alert-dismissible fade show rounded-4 border-0 shadow-sm d-flex align-items-center gap-2 mb-4" role="alert">
+                            <i class="bi bi-check-circle-fill fs-5 flex-shrink-0 text-success"></i>
+                            <div class="fw-medium">{{ session('success') }}</div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+                    @if(session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show rounded-4 border-0 shadow-sm d-flex align-items-center gap-2 mb-4" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0 text-danger"></i>
+                            <div class="fw-medium">{{ session('error') }}</div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
                     <!-- Header Tiêu đề & Tổng điểm đánh giá -->
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4 pb-3 border-bottom border-light-subtle">
                         <div>
@@ -1793,9 +1763,11 @@
                                             </span>
                                         @endif
 
-                                        <a href="{{ route('reviews.my-reviews') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-semibold shadow-xs" title="Xem tất cả bài đánh giá của bạn">
-                                            <i class="bi bi-star me-1"></i>Đánh giá của tôi
-                                        </a>
+                                        @if(Route::has('reviews.my-reviews'))
+                                            <a href="{{ route('reviews.my-reviews') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-semibold shadow-xs" title="Xem tất cả bài đánh giá của bạn">
+                                                <i class="bi bi-star me-1"></i>Đánh giá của tôi
+                                            </a>
+                                        @endif
                                     </div>
                                 </div>
                                 <p class="text-secondary small mb-3">
@@ -2067,7 +2039,7 @@
 
             <!-- Cột Phải: Widget Đặt Phòng Lưu Trú & Thêm vào Trip (Sticky) -->
             <div>
-                <div class="booking-widget-card" id="bookingWidgetBox">
+                <div class="booking-widget-card">
                     <!-- Giá lưu trú từ & Badge Còn phòng -->
                     <div class="booking-price-header">
                         <div>
@@ -2216,11 +2188,7 @@
                                 <!-- Nút Lưu yêu thích nhanh -->
                                 <form action="{{ route('favorites.toggle', $rel->id) }}" method="POST" class="fav-form-corner">
                                     @csrf
-                                    <button type="submit" class="btn-fav-small" title="Lưu yêu thích">
-                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#0F172A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block; pointer-events: none;">
-                                            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
-                                        </svg>
-                                    </button>
+                                    <button type="submit" class="btn-fav-small" title="Lưu yêu thích">🤍</button>
                                 </form>
                             </div>
 
@@ -2391,32 +2359,26 @@
             <button type="button" class="lightbox-close-btn" onclick="closeGalleryLightbox()" title="Đóng (Esc)">&times;</button>
         </div>
         <div class="lightbox-stage">
-            @if(count($lightboxPhotos) > 1)
-                <button type="button" class="lightbox-nav-btn btn-prev" onclick="changeLightboxImage(-1)" title="Ảnh trước (←)">
-                    &lsaquo;
-                </button>
-            @endif
+            <button type="button" class="lightbox-nav-btn btn-prev" onclick="changeLightboxImage(-1)" title="Ảnh trước (←)">
+                &lsaquo;
+            </button>
             <div class="lightbox-image-container">
                 <img src="{{ $lightboxPhotos[0] }}" id="lightboxActiveImg" alt="{{ $destination->name }}">
                 <p class="lightbox-caption" id="lightboxCaption">
                     {{ $destination->name }} - Khám phá vẻ đẹp ấn tượng
                 </p>
             </div>
-            @if(count($lightboxPhotos) > 1)
-                <button type="button" class="lightbox-nav-btn btn-next" onclick="changeLightboxImage(1)" title="Ảnh tiếp theo (→)">
-                    &rsaquo;
-                </button>
-            @endif
+            <button type="button" class="lightbox-nav-btn btn-next" onclick="changeLightboxImage(1)" title="Ảnh tiếp theo (→)">
+                &rsaquo;
+            </button>
         </div>
-        @if(count($lightboxPhotos) > 1)
-            <div class="lightbox-thumbnails-strip" id="lightboxThumbnailsStrip">
-                @foreach($lightboxPhotos as $idx => $pUrl)
-                    <img src="{{ $pUrl }}" alt="Thumb {{ $idx + 1 }}" 
-                         class="lightbox-thumb {{ $idx === 0 ? 'active' : '' }}" 
-                         onclick="setLightboxImage({{ $idx }})">
-                @endforeach
-            </div>
-        @endif
+        <div class="lightbox-thumbnails-strip" id="lightboxThumbnailsStrip">
+            @foreach($lightboxPhotos as $idx => $pUrl)
+                <img src="{{ $pUrl }}" alt="Thumb {{ $idx + 1 }}" 
+                     class="lightbox-thumb {{ $idx === 0 ? 'active' : '' }}" 
+                     onclick="setLightboxImage({{ $idx }})">
+            @endforeach
+        </div>
     </div>
 
     <!-- Modal Xác Nhận Xóa Đánh Giá (Review Delete Modal - Chuẩn Bootstrap 5) -->
@@ -2713,7 +2675,6 @@
     <!-- Bootstrap 5 JS Bundle cho Modal Đánh giá -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     @include('commerce.launcher', ['merchant' => false])
-    @include('partials.popup-notification')
 </body>
 </html>
 

@@ -15,28 +15,14 @@ class CommerceExperienceService
     {
         $backend = new CommerceBackendService($user, $conversation['backend'] ?? []);
         if ($action === 'POST:session') {
-            return [
-                'conversation' => $conversation,
-                'data' => [
-                    'session_id' => hash('sha256', $conversation['identity']),
-                    'name' => $user?->name ?? 'Khách',
-                    'operator' => $role === 'merchant' ? $user->name : null
-                ]
-            ];
+            return ['conversation' => $conversation, 'data' => ['session_id' => hash('sha256', $conversation['identity']),
+                'name' => $user?->name ?? 'Khách', 'operator' => $role === 'merchant' ? $user->name : null]];
         }
 
         if ($action === 'GET:history') {
             $items = [];
             if ($user) {
-                $conv = AiConversation::where('user_id', $user->id)
-                    ->where(function ($q) use ($role) {
-                        $q->where('role', $role);
-                        if ($role === 'shopping') {
-                            $q->orWhereNull('role');
-                        }
-                    })
-                    ->latest('id')
-                    ->first();
+                $conv = AiConversation::where('user_id', $user->id)->latest('id')->first();
                 if ($conv) {
                     $turn = 1;
                     $dbMsgs = $conv->messages()->orderBy('id', 'asc')->get();
@@ -61,13 +47,12 @@ class CommerceExperienceService
                 }
             }
             if (empty($items)) {
-                $sessHistory = session("commerce_chat_history_{$role}", session('commerce_chat_history', []));
-                if (!empty($sessHistory)) {
+                $sessHistory = session('commerce_chat_history', []);
+                if (! empty($sessHistory)) {
                     $items = $sessHistory;
                 } else {
-                    $cached = \Illuminate\Support\Facades\Cache::get("chat_history:{$role}:" . ($user ? "user_{$user->id}" : 'session_' . session()->getId()))
-                        ?: \Illuminate\Support\Facades\Cache::get('chat_history:' . ($user ? "user_{$user->id}" : 'session_' . session()->getId()), []);
-                    if (!empty($cached)) {
+                    $cached = \Illuminate\Support\Facades\Cache::get('chat_history:'.($user ? "user_{$user->id}" : 'session_'.session()->getId()), []);
+                    if (! empty($cached)) {
                         $items = $cached;
                     }
                 }
@@ -75,44 +60,33 @@ class CommerceExperienceService
             $data = ['items' => $items];
         } elseif ($action === 'DELETE:history') {
             if ($user) {
-                $convs = \App\Models\AiConversation::where('user_id', $user->id)
-                    ->where(function ($q) use ($role) {
-                        $q->where('role', $role);
-                        if ($role === 'shopping') {
-                            $q->orWhereNull('role');
-                        }
-                    })
-                    ->get();
+                $convs = \App\Models\AiConversation::where('user_id', $user->id)->get();
                 foreach ($convs as $conv) {
                     $conv->messages()->delete();
                     $conv->delete();
                 }
             }
-            session()->forget("commerce_chat_history_{$role}");
             session()->forget('commerce_chat_history');
-            session()->forget("commerce_{$role}");
-            \Illuminate\Support\Facades\Cache::forget("chat_history:{$role}:" . ($user ? "user_{$user->id}" : 'session_' . session()->getId()));
-            \Illuminate\Support\Facades\Cache::forget('chat_history:' . ($user ? "user_{$user->id}" : 'session_' . session()->getId()));
-            $conversation = ['identity' => $role . ':' . ($user?->id ?? 'guest')];
+            session()->forget('commerce_shopping');
+            \Illuminate\Support\Facades\Cache::forget('chat_history:'.($user ? "user_{$user->id}" : 'session_'.session()->getId()));
+            $conversation = ['identity' => $role.':'.($user?->id ?? 'guest')];
             $data = ['ok' => true, 'items' => []];
         } elseif ($action === 'GET:memory') {
             $facts = $conversation['memory'] ?? [];
             if ($user) {
-                $cached = \Illuminate\Support\Facades\Cache::get("user_memory:{$role}:{$user->id}")
-                    ?: \Illuminate\Support\Facades\Cache::get("user_memory:{$user->id}", []);
+                $cached = \Illuminate\Support\Facades\Cache::get("user_memory:{$user->id}", []);
                 $heldKeys = array_column($facts, 'key');
                 foreach ($cached as $item) {
-                    if (!in_array($item['key'] ?? '', $heldKeys, true)) {
+                    if (! in_array($item['key'] ?? '', $heldKeys, true)) {
                         $facts[] = $item;
                     }
                 }
             } else {
-                $sid = session()->getId();
-                $cached = \Illuminate\Support\Facades\Cache::get("guest_memory:{$role}:{$sid}")
-                    ?: \Illuminate\Support\Facades\Cache::get("guest_memory:{$sid}", session("commerce_memory_{$role}", session('commerce_memory', [])));
+                $guestKey = 'guest_memory:'.($parameters['session_id'] ?? session()->getId());
+                $cached = \Illuminate\Support\Facades\Cache::get($guestKey, session('commerce_memory', []));
                 $heldKeys = array_column($facts, 'key');
                 foreach ($cached as $item) {
-                    if (!in_array($item['key'] ?? '', $heldKeys, true)) {
+                    if (! in_array($item['key'] ?? '', $heldKeys, true)) {
                         $facts[] = $item;
                     }
                 }
@@ -123,12 +97,10 @@ class CommerceExperienceService
             $facts = $conversation['memory'] ?? [];
             if (empty($facts)) {
                 if ($user) {
-                    $facts = \Illuminate\Support\Facades\Cache::get("user_memory:{$role}:{$user->id}")
-                        ?: \Illuminate\Support\Facades\Cache::get("user_memory:{$user->id}", []);
+                    $facts = \Illuminate\Support\Facades\Cache::get("user_memory:{$user->id}", []);
                 } else {
-                    $sid = session()->getId();
-                    $facts = \Illuminate\Support\Facades\Cache::get("guest_memory:{$role}:{$sid}")
-                        ?: \Illuminate\Support\Facades\Cache::get("guest_memory:{$sid}", session("commerce_memory_{$role}", session('commerce_memory', [])));
+                    $guestKey = 'guest_memory:'.($parameters['session_id'] ?? session()->getId());
+                    $facts = \Illuminate\Support\Facades\Cache::get($guestKey, session('commerce_memory', []));
                 }
             }
             $index = array_search($key, array_column($facts, 'key'), true);
@@ -149,13 +121,10 @@ class CommerceExperienceService
             }
             $conversation['memory'] = array_values($facts);
             if ($user) {
-                \Illuminate\Support\Facades\Cache::forever("user_memory:{$role}:{$user->id}", $conversation['memory']);
                 \Illuminate\Support\Facades\Cache::forever("user_memory:{$user->id}", $conversation['memory']);
             } else {
-                $sid = session()->getId();
-                \Illuminate\Support\Facades\Cache::forever("guest_memory:{$role}:{$sid}", $conversation['memory']);
-                \Illuminate\Support\Facades\Cache::forever("guest_memory:{$sid}", $conversation['memory']);
-                session(["commerce_memory_{$role}" => $conversation['memory']]);
+                $guestKey = 'guest_memory:'.($parameters['session_id'] ?? session()->getId());
+                \Illuminate\Support\Facades\Cache::forever($guestKey, $conversation['memory']);
                 session(['commerce_memory' => $conversation['memory']]);
             }
         } elseif (preg_match('~^POST:changes/([^/]+)/(apply|discard)$~', $action, $match)) {
@@ -177,16 +146,11 @@ class CommerceExperienceService
     private function shopping(string $action, array $parameters, CommerceBackendService $backend): array
     {
         return match ($action) {
-            'GET:products' => [
-                'products' => array_merge(
-                    $backend->execute('search_products', ['query' => '', 'limit' => 20]),
-                    RoomType::limit(50)->get()->map(fn($room) => $backend->execute('get_product_details', ['product_id' => 'room:' . $room->id]))->all()
-                )
-            ],
+            'GET:products' => ['products' => array_merge($backend->execute('search_products', ['query' => '', 'limit' => 20]),
+                RoomType::limit(50)->get()->map(fn ($room) => $backend->execute('get_product_details', ['product_id' => 'room:'.$room->id]))->all())],
             'GET:cart' => $this->cart($backend),
             'DELETE:cart' => $this->removeCartItem($parameters, $backend),
             'GET:orders' => ['orders' => $backend->execute('get_orders', ['limit' => 20])],
-            'POST:confirm-preview' => $backend->confirmPreview($parameters),
             default => abort(404),
         };
     }
@@ -203,7 +167,7 @@ class CommerceExperienceService
     private function cart(CommerceBackendService $backend): array
     {
         $cart = $backend->execute('get_cart', []);
-        $cart['items'] = array_map(fn($item) => array_merge($item, ['line_total' => $item['price'] * $item['quantity']]), $cart['items']);
+        $cart['items'] = array_map(fn ($item) => array_merge($item, ['line_total' => $item['price'] * $item['quantity']]), $cart['items']);
         $cart['subtotal'] = array_sum(array_column($cart['items'], 'line_total'));
         $cart['item_count'] = array_sum(array_column($cart['items'], 'quantity'));
         return $cart;
@@ -214,17 +178,11 @@ class CommerceExperienceService
         if ($action === 'GET:overview') {
             return [
                 'snapshot' => $backend->execute('get_business_snapshot', []),
-                'needs_attention' => [
-                    'inventory' => $backend->execute('get_inventory_alerts', []),
-                    'order_issues' => $backend->execute('get_order_issues', []),
-                    'pending_changes' => $backend->pendingChanges()
-                ],
-                'recent_orders' => Booking::latest()->limit(15)->get()->map(fn($booking) => [
-                    'order_id' => $booking->booking_code,
-                    'status' => $booking->status,
-                    'placed_at' => $booking->created_at->toIso8601String(),
-                    'total' => (float) $booking->total_price,
-                    'items' => $booking->room_count,
+                'needs_attention' => ['inventory' => $backend->execute('get_inventory_alerts', []),
+                    'order_issues' => $backend->execute('get_order_issues', []), 'pending_changes' => $backend->pendingChanges()],
+                'recent_orders' => Booking::latest()->limit(15)->get()->map(fn ($booking) => [
+                    'order_id' => $booking->booking_code, 'status' => $booking->status, 'placed_at' => $booking->created_at->toIso8601String(),
+                    'total' => (float) $booking->total_price, 'items' => $booking->room_count,
                 ])->all(),
                 'recent_changes' => array_values(array_reverse($backend->state()['changes'] ?? [])),
                 'today' => $this->today(),
@@ -254,11 +212,8 @@ class CommerceExperienceService
         $result = [];
         foreach (['arrivals' => 'check_in_date', 'departures' => 'check_out_date', 'new_bookings' => 'created_at'] as $name => $column) {
             $query = Booking::whereDate($column, today())->where('status', '!=', 'cancelled');
-            $result[$name] = [
-                'count' => (clone $query)->count(),
-                'properties' => $query->with('roomType.destination')->limit(10)->get()
-                    ->map(fn($booking) => $booking->roomType?->destination?->name ?? '')->filter()->unique()->values()->all()
-            ];
+            $result[$name] = ['count' => (clone $query)->count(), 'properties' => $query->with('roomType.destination')->limit(10)->get()
+                ->map(fn ($booking) => $booking->roomType?->destination?->name ?? '')->filter()->unique()->values()->all()];
         }
         return $result;
     }
@@ -279,20 +234,11 @@ class CommerceExperienceService
                     $end = $booking->check_out_date->min($start->copy()->addWeek());
                     $nights += max(0, $begin->diffInDays($end, false)) * $booking->room_count;
                 }
-                $weeks[] = [
-                    'week_start' => $start->toDateString(),
-                    'nightly_rate' => (float) $room->price_per_night,
-                    'occupancy_pct' => $room->quantity > 0 ? min(100, round($nights / ($room->quantity * 7) * 100, 1)) : null
-                ];
+                $weeks[] = ['week_start' => $start->toDateString(), 'nightly_rate' => (float) $room->price_per_night,
+                    'occupancy_pct' => $room->quantity > 0 ? min(100, round($nights / ($room->quantity * 7) * 100, 1)) : null];
             }
-            return [
-                'listing_id' => 'room:' . $room->id,
-                'title' => $room->destination->name . ' · ' . $room->name,
-                'rooms' => $room->quantity,
-                'base_nightly_rate' => (float) $room->price_per_night,
-                'currency' => 'VND',
-                'weeks' => $weeks
-            ];
+            return ['listing_id' => 'room:'.$room->id, 'title' => $room->destination->name.' · '.$room->name,
+                'rooms' => $room->quantity, 'base_nightly_rate' => (float) $room->price_per_night, 'currency' => 'VND', 'weeks' => $weeks];
         })->all();
         return ['window' => ['from' => $from->toDateString(), 'to' => $to->toDateString()], 'properties' => $properties, 'staged_windows' => []];
     }

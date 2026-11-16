@@ -26,11 +26,7 @@ class SearchIndexObserver implements ShouldHandleEventsAfterCommit
 
     private function synchronize(Model $model, bool $deleted = false): void
     {
-        $isTesting = defined('PHPUNIT_COMPOSER_INSTALL')
-            || class_exists(\PHPUnit\Framework\TestCase::class, false)
-            || (function_exists('app') && (app()->runningUnitTests() || app()->environment('testing')));
-
-        if (! config('search.sync') || ($isTesting && ! config('search.sync_in_tests'))) {
+        if (! config('search.sync') || (app()->runningUnitTests() && ! config('search.sync_in_tests'))) {
             return;
         }
         try {

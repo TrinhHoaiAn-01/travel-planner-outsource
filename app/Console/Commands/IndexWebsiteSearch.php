@@ -20,7 +20,7 @@ class IndexWebsiteSearch extends Command
             return self::SUCCESS;
         } catch (\Throwable $exception) {
             report($exception);
-            $this->error('Không thể đồng bộ Solr. Kiểm tra core admin_system_search rồi chạy lại search:index.');
+            $this->error('Không thể đồng bộ Solr. Kiểm tra core website_search rồi chạy lại search:index.');
 
             return self::FAILURE;
         }

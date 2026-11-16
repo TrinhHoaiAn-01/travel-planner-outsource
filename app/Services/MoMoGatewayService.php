@@ -184,19 +184,6 @@ class MoMoGatewayService implements MoMoGatewayServiceInterface
         // resultCode = 0 là giao dịch thanh toán thành công
         $status = ($resultCode === 0) ? 'completed' : 'failed';
 
-        // Kiểm tra xem có pending attempt tương ứng với orderId không hoặc orderId không rõ nguồn gốc
-        $attempt = Payment::where('booking_id', $bookingId)
-            ->where('payment_method', 'momo')
-            ->where('transaction_id', $orderId)
-            ->where('status', 'pending')
-            ->first();
-
-        $isUnknownAttempt = (! $attempt && (! $orderId || str_contains($orderId, 'UNKNOWN') || str_contains($orderId, 'STALE') || ! str_contains($orderId, (string) $booking->booking_code)));
-
-        if ($isUnknownAttempt && $status === 'completed') {
-            $status = 'reconciliation';
-        }
-
         return DB::transaction(function () use ($bookingId, $amount, $transId, $status) {
             $lockedBooking = Booking::where('id', $bookingId)->lockForUpdate()->firstOrFail();
 

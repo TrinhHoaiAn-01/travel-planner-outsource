@@ -1,10 +1,6 @@
 services:
   app:
     pull_policy: never
-    environment:
-      SEARCH_SOLR_URL: http://solr:8983/solr/admin_system_search
-      COMMERCE_SOLR_URL: http://solr:8983/solr/hotel_commerce_search
-      SOLR_URL: http://solr:8983/solr/home_destination_search
     volumes:
       - ./app:/var/www/html/app
       - ./resources:/var/www/html/resources
@@ -19,25 +15,4 @@ services:
       - ./composer.lock:/var/www/html/composer.lock
       - ./packages:/var/www/html/packages
       - ./vendor/search:/var/www/html/vendor/search
-      - ./plugins:/var/www/html/plugins
-      - ./run.php:/var/www/html/run.php
-      - ./phpunit.xml:/var/www/html/phpunit.xml
 
-  solr:
-    image: solr:9
-    container_name: travel-planner-solr
-    command:
-      - bash
-      - -c
-      - precreate-core admin_system_search /opt/website-solr && precreate-core hotel_commerce_search /opt/commerce-solr && precreate-core home_destination_search /opt/home-solr && precreate-core ai_assistant_search /opt/commerce-solr && exec solr-foreground
-    ports:
-      - "8983:8983"
-    volumes:
-      - solr_data:/var/solr
-      - ./deploy/solr:/opt/commerce-solr:ro
-      - ./deploy/solr-search:/opt/website-solr:ro
-      - ./deploy/solr-home:/opt/home-solr:ro
-      - ./deploy/solr/web.xml:/opt/solr/server/solr-webapp/webapp/WEB-INF/web.xml:ro
-
-volumes:
-  solr_data:

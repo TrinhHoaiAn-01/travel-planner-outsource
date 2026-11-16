@@ -280,29 +280,23 @@
 
     /* Cột 5: Huy hiệu trạng thái */
     .badge-status-active {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
+        display: inline-block;
         padding: 4px 12px;
         border-radius: 9999px;
         font-size: 12px;
         font-weight: 600;
-        line-height: 1.25;
-        white-space: nowrap;
+        line-height: 1.2;
         background-color: #ECFDF5;
         color: #10B981;
     }
 
     .badge-status-disabled {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
+        display: inline-block;
         padding: 4px 12px;
         border-radius: 9999px;
         font-size: 12px;
         font-weight: 600;
-        line-height: 1.25;
-        white-space: nowrap;
+        line-height: 1.2;
         background-color: #FEF2F2;
         color: #EF4444;
     }
@@ -325,15 +319,11 @@
     .btn-status-toggle {
         display: inline-flex;
         align-items: center;
-        justify-content: center;
         gap: 5px;
         padding: 5px 12px;
         border-radius: 9999px;
         font-size: 12.5px;
         font-weight: 600;
-        line-height: 1.25;
-        white-space: nowrap;
-        flex-shrink: 0;
         background-color: #FFFFFF;
         cursor: pointer;
         transition: all 0.2s ease;
@@ -639,6 +629,33 @@
 @section('content')
 <div class="user-management-container">
 
+    {{-- Thông báo phản hồi --}}
+    @if(session('success'))
+        <div class="flash-alert-banner flash-alert-success">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <span>{{ session('success') }}</span>
+            </div>
+            <button type="button" onclick="this.parentElement.style.display='none'" style="background:none; border:none; color:inherit; cursor:pointer;">&times;</button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="flash-alert-banner flash-alert-error">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <span>{{ session('error') }}</span>
+            </div>
+            <button type="button" onclick="this.parentElement.style.display='none'" style="background:none; border:none; color:inherit; cursor:pointer;">&times;</button>
+        </div>
+    @endif
+
     {{-- Tiêu đề trang & Nút thêm người dùng --}}
     <div class="user-header-row">
         <h1 class="user-page-title">Quản Lý Người Dùng</h1>
@@ -840,7 +857,7 @@
                                     </button>
 
                                     {{-- Nút xóa mềm (Soft Delete) --}}
-                                    <form method="POST" action="{{ route('admin.users.destroy', $user->id) }}" style="display: inline;" onsubmit="return handleFormConfirm(this, event, 'Bạn có chắc chắn muốn xóa mềm người dùng này không? Dữ liệu liên quan vẫn được bảo lưu an toàn.', 'Xóa người dùng', true);">
+                                    <form method="POST" action="{{ route('admin.users.destroy', $user->id) }}" style="display: inline;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa mềm người dùng này không? Dữ liệu liên quan vẫn được bảo lưu an toàn.')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn-circle-delete" title="Xóa mềm người dùng">

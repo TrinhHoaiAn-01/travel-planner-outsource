@@ -134,6 +134,12 @@
     </div>
 </div>
 
+@if(session('success'))
+    <div style="background: #ECFDF5; border: 1px solid #A7F3D0; color: #065F46; padding: 12px 18px; border-radius: 8px; margin-bottom: 20px; font-weight: 600; font-size: 14px;">
+        {{ session('success') }}
+    </div>
+@endif
+
 <div class="grid-layout">
     <!-- Cột chính bên trái: Thông tin đơn đặt phòng & Giao dịch -->
     <div>

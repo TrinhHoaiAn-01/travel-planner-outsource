@@ -30,7 +30,7 @@ class PaymentController extends Controller
     /**
      * Hiển thị giao diện chọn phương thức thanh toán cho đơn đặt phòng (STT 9).
      */
-    public function create(Request $request, Booking $booking)
+    public function create(Booking $booking)
     {
         // 1. Kiểm tra quyền thanh toán đơn (BR-11, BookingPolicy)
         Gate::authorize('pay', $booking);
@@ -38,11 +38,8 @@ class PaymentController extends Controller
         // 2. Nạp dữ liệu quan hệ cần thiết
         $booking->load(['roomType.destination', 'trip', 'user', 'payments']);
 
-        $selectedMethod = $request->query('method', 'bank_transfer');
-
         return view('payments.create', [
             'booking' => $booking,
-            'selectedMethod' => $selectedMethod,
         ]);
     }
 
@@ -335,112 +332,23 @@ class PaymentController extends Controller
      */
     public function checkStatus(Booking $booking)
     {
+        Gate::authorize('view', $booking);
+
         $freshBooking = $booking->fresh();
         $latestPayment = Payment::where('booking_id', $freshBooking->id)
             ->where('status', 'completed')
             ->latest('id')
             ->first();
 
-        if (! $latestPayment) {
-            $latestPayment = Payment::where('booking_id', $freshBooking->id)
-                ->latest('id')
-                ->first();
-        }
-
-        $isPaid = ($freshBooking->status === 'confirmed' || $freshBooking->status === 'completed')
-            || ($latestPayment && $latestPayment->status === 'completed');
-
-        // Nếu booking đã được admin duyệt sang confirmed, đồng bộ trạng thái payment sang completed
-        if ($isPaid && $latestPayment && $latestPayment->status !== 'completed') {
-            $latestPayment->update([
-                'status' => 'completed',
-                'payment_date' => $latestPayment->payment_date ?? now(),
-            ]);
-        }
-
-        $cleanCode = ltrim($freshBooking->booking_code, '#');
+        $isPaid = ($freshBooking->status === 'confirmed' || $freshBooking->status === 'completed') && $latestPayment !== null;
 
         return response()->json([
             'is_paid' => $isPaid,
-            'status' => $isPaid ? 'confirmed' : $freshBooking->status,
+            'status' => $freshBooking->status,
             'redirect_url' => $latestPayment ? route('payments.show', $latestPayment->id) : null,
             'message' => $isPaid 
-                ? 'Đã nhận được thanh toán thành công cho đơn #' . $cleanCode
-                : 'Đơn đang chờ Quản trị viên (Admin) xác nhận thanh toán cho đơn #' . $cleanCode,
-        ]);
-    }
-
-    /**
-     * Kiểm tra trạng thái thanh toán theo mã đơn đặt phòng (Realtime Polling).
-     */
-    public function checkStatusByCode(string $code)
-    {
-        $cleanCode = ltrim(trim($code), '#');
-
-        if (str_starts_with($cleanCode, 'TRIP-')) {
-            $tripId = (int) str_replace('TRIP-', '', $cleanCode);
-            return $this->checkTripCheckoutStatus($tripId);
-        }
-
-        $booking = Booking::where('booking_code', $code)
-            ->orWhere('booking_code', '#' . $cleanCode)
-            ->orWhere('booking_code', $cleanCode)
-            ->first();
-
-        if (! $booking) {
-            return response()->json(['is_paid' => false, 'status' => 'pending', 'error' => 'Không tìm thấy đơn đặt phòng.'], 404);
-        }
-
-        return $this->checkStatus($booking);
-    }
-
-    /**
-     * Kiểm tra trạng thái thanh toán của toàn bộ chuyến đi (Realtime Polling từng mục).
-     */
-    public function checkTripCheckoutStatus(int $tripId)
-    {
-        $trip = \App\Models\Trip::with(['bookings.payments', 'bookings.roomType.destination'])->find($tripId);
-        if (! $trip) {
-            return response()->json(['is_paid' => false, 'status' => 'pending', 'error' => 'Chuyến đi không tồn tại.'], 404);
-        }
-
-        $allPayments = collect();
-        $itemsData = [];
-
-        foreach ($trip->bookings as $booking) {
-            foreach ($booking->payments as $p) {
-                $allPayments->push($p);
-                $destName = $booking->roomType?->destination?->name ?? 'Điểm đến';
-                $roomName = $booking->roomType?->name ?? 'Dịch vụ';
-                $itemsData[] = [
-                    'payment_id' => $p->id,
-                    'booking_id' => $p->booking_id,
-                    'booking_code' => ltrim($booking->booking_code, '#'),
-                    'title' => "{$destName} - {$roomName}",
-                    'amount' => (float) $p->amount,
-                    'status' => $p->status,
-                ];
-            }
-        }
-
-        $totalCount = $allPayments->count();
-        $completedCount = $allPayments->where('status', 'completed')->count();
-        $isPaid = ($totalCount > 0 && $completedCount >= $totalCount);
-
-        if ($isPaid && $trip->status !== 'confirmed') {
-            $trip->update(['status' => 'confirmed']);
-        }
-
-        return response()->json([
-            'is_paid' => $isPaid,
-            'status' => $isPaid ? 'confirmed' : 'pending',
-            'total_items' => $totalCount,
-            'approved_items' => $completedCount,
-            'pending_items' => max(0, $totalCount - $completedCount),
-            'items' => $itemsData,
-            'message' => $isPaid
-                ? "Tất cả {$totalCount}/{$totalCount} mục thanh toán đã được Admin phê duyệt thành công!"
-                : "Đang chờ Admin duyệt từng mục ({$completedCount}/{$totalCount} mục đã duyệt)...",
+                ? 'Đã nhận được thanh toán thành công cho đơn #' . $freshBooking->booking_code
+                : 'Chưa ghi nhận biến động số dư cho đơn #' . $freshBooking->booking_code,
         ]);
     }
 
@@ -449,9 +357,6 @@ class PaymentController extends Controller
      */
     public function simulateReceive(Request $request, Booking $booking)
     {
-        if (config('app.allow_payment_simulator', true) === false || config('app.env') === 'production') {
-            abort(404);
-        }
         Gate::authorize('pay', $booking);
 
         $paymentMethod = $request->input('payment_method', 'bank_transfer');

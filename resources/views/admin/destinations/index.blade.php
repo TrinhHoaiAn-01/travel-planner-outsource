@@ -657,6 +657,28 @@
     <span class="current">Địa điểm (Destinations)</span>
 </div>
 
+<!-- Thông báo Flash Toast -->
+@if(session('success'))
+<div class="dest-toast dest-toast-success" id="flashToast">
+    <span>{{ session('success') }}</span>
+    <button type="button" class="toast-close-btn" onclick="document.getElementById('flashToast').remove()">&times;</button>
+</div>
+@endif
+
+@if(session('error'))
+<div class="dest-toast dest-toast-error" id="flashToast">
+    <span>{{ session('error') }}</span>
+    <button type="button" class="toast-close-btn" onclick="document.getElementById('flashToast').remove()">&times;</button>
+</div>
+@endif
+
+@if($errors->any())
+<div class="dest-toast dest-toast-error" id="flashToast">
+    <span>{{ $errors->first() }}</span>
+    <button type="button" class="toast-close-btn" onclick="document.getElementById('flashToast').remove()">&times;</button>
+</div>
+@endif
+
 <!-- Bảng Danh Sách và Bộ Lọc -->
 <div class="dest-table-card">
     <!-- Bộ lọc (Tìm kiếm, Thành phố, Danh mục) -->
@@ -1157,11 +1179,7 @@
         })
         .catch(err => {
             console.error(err);
-            if (window.showErrorPopup) {
-                window.showErrorPopup('Không thể tải thông tin địa điểm.');
-            } else {
-                alert('Không thể tải thông tin địa điểm.');
-            }
+            alert('Không thể tải thông tin địa điểm.');
         });
     }
 

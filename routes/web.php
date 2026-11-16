@@ -26,12 +26,6 @@ Route::post('/commerce-api/{role}/chat', [\App\Http\Controllers\CommerceAgentCon
     ->where('role', 'shopping|merchant')->middleware('throttle:20,1');
 Route::match(['get', 'post', 'patch', 'delete'], '/commerce-api/{role}/{action?}', [\App\Http\Controllers\CommerceAgentController::class, 'surface'])
     ->where('role', 'shopping|merchant')->where('action', '.*')->middleware('throttle:120,1')->block(240, 240);
-
-// Kiểm tra trạng thái thanh toán thời gian thực cho Khách hàng & AI Agent (Realtime Polling)
-Route::get('/bookings/{booking}/payment-status', [\App\Http\Controllers\PaymentController::class, 'checkStatus'])->name('payments.status');
-Route::get('/bookings/status-by-code/{code}', [\App\Http\Controllers\PaymentController::class, 'checkStatusByCode'])->name('payments.status-by-code');
-Route::get('/bookings/user-realtime-status', [\App\Http\Controllers\BookingController::class, 'userRealtimeStatus'])->name('bookings.user-realtime-status');
-Route::get('/trips/{trip}/checkout-status', [\App\Http\Controllers\PaymentController::class, 'checkTripCheckoutStatus'])->name('trips.checkout-status');
 // Tuyến API tìm kiếm nhanh gợi ý địa điểm & thành phố từ Trang chủ (Trần Văn Trọng)
 Route::get('/quick-search', [HomeController::class, 'quickSearch'])->name('destinations.quick-search');
 Route::get('/search/suggestions/{type}', \App\Http\Controllers\SearchSuggestionController::class)
@@ -90,9 +84,6 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::patch('/trips/{trip}/status', [TripController::class, 'updateStatus'])->name('trips.update-status');
     Route::patch('/trips/{trip}/notes', [TripController::class, 'updateNotes'])->name('trips.update-notes');
     Route::delete('/trips/{trip}', [TripController::class, 'destroy'])->name('trips.destroy');
-
-    // Tự động sinh lịch trình bằng AI cho chuyến đi (Trần Văn Trọng - Mục 11)
-    Route::post('/trips/{trip}/ai-itinerary/generate', [\App\Http\Controllers\TripAiItineraryController::class, 'generate'])->name('trips.ai-itinerary.generate');
     Route::post('/trips/{trip}/clone', [TripController::class, 'clone'])->name('trips.clone');
     Route::post('/trips/{trip}/reopen', [TripController::class, 'reopen'])->name('trips.reopen');
 
@@ -137,7 +128,8 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/payments/{payment}/sepay', [\App\Http\Controllers\PaymentController::class, 'showSePayTransfer'])->name('payments.sepay');
     Route::get('/payments/{payment}', [\App\Http\Controllers\PaymentController::class, 'show'])->name('payments.show');
 
-    // Giả lập nhận tiền (Webhook Simulator cho Dev & Demo)
+    // Kiểm tra trạng thái thanh toán thời gian thực & giả lập nhận tiền (Realtime Polling & Simulator)
+    Route::get('/bookings/{booking}/payment-status', [\App\Http\Controllers\PaymentController::class, 'checkStatus'])->name('payments.status');
     Route::post('/bookings/{booking}/simulate-receive', [\App\Http\Controllers\PaymentController::class, 'simulateReceive'])->name('payments.simulate-receive');
 
     // Quản lý Đánh giá & Nhận xét địa điểm (Destination Reviews - Nguyễn Trần Thành)
@@ -165,36 +157,36 @@ Route::get('/payments/sepay/webhook', [\App\Http\Controllers\PaymentController::
 
 // Tuyến đăng nhập nhanh người dùng thường (Demo / Test)
 Route::get('/dev/login-as-user', function () {
-    if (! config('app.allow_dev_login', false) || config('app.env') === 'production') {
-        abort(404);
+    $user = User::where('email', 'user@travelplanner.test')->first() ?? User::where('role', 'user')->first();
+    if (! $user) {
+        $user = User::firstOrCreate(
+            ['email' => 'user@travelplanner.test'],
+            [
+                'name' => 'Ngọc Nguyễn',
+                'password' => bcrypt('password'),
+                'role' => 'user',
+                'is_active' => true,
+            ]
+        );
     }
-    $user = User::firstOrCreate(
-        ['email' => 'demo-user@travelplanner.test'],
-        [
-            'name' => 'Demo User',
-            'password' => bcrypt('password'),
-            'role' => 'user',
-            'is_active' => true,
-        ]
-    );
     Auth::login($user);
     return redirect()->route('trips.index');
 })->name('dev.login.user');
 
 // Tuyến đăng nhập nhanh cho môi trường phát triển / demo
 Route::get('/dev/login-as-admin', function () {
-    if (! config('app.allow_dev_login', false) || config('app.env') === 'production') {
-        abort(404);
+    $admin = User::where('role', 'admin')->first();
+    if (!$admin) {
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@travelplanner.test'],
+            [
+                'name' => 'Administrator',
+                'password' => bcrypt('password'),
+                'role' => 'admin',
+                'is_active' => true,
+            ]
+        );
     }
-    $admin = User::firstOrCreate(
-        ['email' => 'demo-admin@travelplanner.test'],
-        [
-            'name' => 'Demo Administrator',
-            'password' => bcrypt('password'),
-            'role' => 'admin',
-            'is_active' => true,
-        ]
-    );
     Auth::login($admin);
     return redirect()->route('admin.dashboard');
 })->name('dev.login.admin');
@@ -247,12 +239,6 @@ Route::prefix('admin')
         Route::post('/destination-images/{image}/set-primary', [DestinationImageController::class, 'setPrimary'])->name('destination-images.set-primary');
         Route::delete('/destination-images/{image}', [DestinationImageController::class, 'destroy'])->name('destination-images.destroy');
 
-        // Quản lý Loại phòng lưu trú (Admin Room Types - Trần Văn Trọng - Mục 10)
-        Route::get('/room-types', [\App\Http\Controllers\Admin\RoomTypeController::class, 'index'])->name('room-types.index');
-        Route::post('/room-types', [\App\Http\Controllers\Admin\RoomTypeController::class, 'store'])->name('room-types.store');
-        Route::put('/room-types/{roomType}', [\App\Http\Controllers\Admin\RoomTypeController::class, 'update'])->name('room-types.update');
-        Route::delete('/room-types/{roomType}', [\App\Http\Controllers\Admin\RoomTypeController::class, 'destroy'])->name('room-types.destroy');
-
         // Kiểm duyệt Đánh giá Khách hàng (Admin Reviews - Trần Văn Trọng)
         Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews.index');
         Route::get('/reviews/{review}', [ReviewController::class, 'show'])->name('reviews.show');
@@ -271,7 +257,6 @@ Route::prefix('admin')
         Route::get('/payments', [\App\Http\Controllers\Admin\PaymentController::class, 'index'])->name('payments.index');
         Route::get('/payments/{payment}', [\App\Http\Controllers\Admin\PaymentController::class, 'show'])->name('payments.show');
         Route::patch('/payments/{payment}/status', [\App\Http\Controllers\Admin\PaymentController::class, 'updateStatus'])->name('payments.update-status');
-        Route::delete('/payments/{payment}', [\App\Http\Controllers\Admin\PaymentController::class, 'destroy'])->name('payments.destroy');
 
         // Quản lý Nhật ký hoạt động hệ thống (Activity Logs - Trịnh Hoài An)
         Route::get('/activity-logs', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('activity-logs.index');

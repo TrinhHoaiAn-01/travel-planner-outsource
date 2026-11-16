@@ -58,47 +58,23 @@ class BookingService implements BookingServiceInterface
     /**
      * Kiểm tra số lượng phòng còn trống trong khoảng ngày.
      */
-    public function checkRoomAvailability(int $roomTypeId, string $checkIn, string $checkOut, int $roomCount, ?int $excludeBookingId = null): bool
+    public function checkRoomAvailability(int $roomTypeId, string $checkIn, string $checkOut, int $roomCount): bool
     {
         $roomType = RoomType::findOrFail($roomTypeId);
 
+        // Đếm tổng số phòng đã được đặt và chưa hủy trong khoảng ngày này
         if ($roomType->commerce_paused || $roomType->destination?->commerce_paused) {
             return false;
         }
-
-        $query = Booking::where('room_type_id', $roomTypeId)
+        $bookedRooms = Booking::where('room_type_id', $roomTypeId)
             ->where('status', '!=', 'cancelled')
             ->where(function ($query) use ($checkIn, $checkOut) {
                 $query->where('check_in_date', '<', $checkOut)
                       ->where('check_out_date', '>', $checkIn);
-            });
+            })
+            ->sum('room_count');
 
-        if ($excludeBookingId !== null) {
-            $query->where('id', '!=', $excludeBookingId);
-        }
-
-        $bookings = $query->get(['id', 'check_in_date', 'check_out_date', 'room_count']);
-
-        $start = Carbon::parse($checkIn);
-        $end = Carbon::parse($checkOut);
-        $nights = max(1, $start->diffInDays($end));
-
-        for ($i = 0; $i < $nights; $i++) {
-            $currentNight = $start->copy()->addDays($i)->format('Y-m-d');
-            $nightBooked = 0;
-            foreach ($bookings as $b) {
-                $bIn = Carbon::parse($b->check_in_date)->format('Y-m-d');
-                $bOut = Carbon::parse($b->check_out_date)->format('Y-m-d');
-                if ($bIn <= $currentNight && $bOut > $currentNight) {
-                    $nightBooked += (int) $b->room_count;
-                }
-            }
-            if (($nightBooked + $roomCount) > $roomType->quantity) {
-                return false;
-            }
-        }
-
-        return true;
+        return ($bookedRooms + $roomCount) <= $roomType->quantity;
     }
 
     /**
@@ -227,13 +203,6 @@ class BookingService implements BookingServiceInterface
                 'status' => $status,
             ]);
 
-            if ($status === 'confirmed' || $status === 'completed') {
-                $booking->payments()->where('status', '!=', 'completed')->update([
-                    'status' => 'completed',
-                    'payment_date' => now(),
-                ]);
-            }
-
             return $booking;
         });
     }
@@ -251,7 +220,10 @@ class BookingService implements BookingServiceInterface
         }
 
         if (!empty($search)) {
-            app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'booking', trim((string) $search));
+            $query->where(function ($q) use ($search) {
+                $q->where('code', 'LIKE', "%{$search}%")
+                    ->orWhereHas('user', fn ($uq) => $uq->where('name', 'LIKE', "%{$search}%")->orWhere('email', 'LIKE', "%{$search}%"));
+            });
         }
 
         return $query->paginate($perPage);

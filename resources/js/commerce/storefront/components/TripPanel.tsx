@@ -156,7 +156,7 @@ export default function TripPanel({
       footer={
         <>
           <TotalRow label="Tổng tạm tính" value={formatPrice(cart?.subtotal ?? 0)} note={count ? "Đã bao gồm thuế phí; chưa trừ tiền cho đến khi bạn xác nhận đặt." : undefined} />
-          <CheckoutButton staged={checkoutStaged} disabled={count === 0} prompt="Tiến hành thanh toán toàn bộ kế hoạch chuyến đi của tôi." />
+          <CheckoutButton staged={checkoutStaged} disabled={count === 0} prompt="Tiến hành đặt chuyến đi của tôi." />
           {count ? (
             <div className="mt-2.5 flex justify-center">
               <AskLink label="Hỏi về chuyến đi này" prompt="Xem lại chuyến đi của tôi: có điểm nào còn thiếu hoặc nên thay đổi không?" />

@@ -30,11 +30,6 @@ class ItineraryItem extends Model
         ];
     }
 
-    public function getNotesAttribute(): ?string
-    {
-        return $this->note;
-    }
-
     public function trip(): BelongsTo
     {
         return $this->belongsTo(Trip::class);

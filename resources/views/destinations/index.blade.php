@@ -315,76 +315,6 @@
             box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.12);
         }
 
-        /* Hộp tìm kiếm kết hợp Engine Solr / SQL */
-        .filter-search-box {
-            display: flex;
-            align-items: center;
-            height: 42px;
-            width: 100%;
-            border: 1px solid #CBD5E1;
-            border-radius: 8px;
-            background: #FFFFFF;
-            overflow: hidden;
-            transition: all 0.2s;
-            box-sizing: border-box;
-        }
-
-        .filter-search-box:focus-within {
-            border-color: #0066FF;
-            box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.12);
-        }
-
-        .filter-engine-select {
-            height: 100%;
-            padding: 0 22px 0 10px;
-            border: none;
-            border-right: 1px solid #CBD5E1;
-            background-color: #F8FAFC;
-            color: #0F172A;
-            font-size: 13px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            outline: none;
-            cursor: pointer;
-            flex-shrink: 0;
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 7px center;
-            background-size: 10px 10px;
-            transition: background 0.15s ease;
-        }
-
-        .filter-engine-select:hover {
-            background-color: #F1F5F9;
-        }
-
-        .filter-input-with-engine {
-            flex: 1;
-            min-width: 0;
-            height: 100%;
-            border: none;
-            padding: 0 12px;
-            font-size: 14px;
-            color: #0F172A;
-            background: transparent;
-            outline: none;
-            box-sizing: border-box;
-        }
-
-        .filter-input-with-engine::placeholder {
-            color: #94A3B8;
-        }
-
-        .btn-clear-search-pill:hover {
-            background: #F1F5F9 !important;
-            color: #0F172A !important;
-            border-color: #94A3B8 !important;
-        }
-
         .btn-reset-filter {
             height: 42px;
             padding: 0 20px;
@@ -609,10 +539,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0;
-            line-height: 0;
             cursor: pointer;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            font-size: 16px;
             transition: transform 0.2s;
             z-index: 5;
         }
@@ -903,57 +832,28 @@
             <span class="breadcrumb-current">Địa điểm</span>
         </div>
 
-        @php
-            $currentSearchTerm = request('search') ?? request('keyword');
-            $activeEngine = strtoupper($engine ?? request('engine', 'solr'));
-        @endphp
-
-        <!-- Tiêu đề trang & Badge kết quả Matching Image 1 & 2 -->
+        <!-- Tiêu đề trang & Badge kết quả Matching Image 1 -->
         <div class="page-header-row">
-            <div>
-                @if($currentSearchTerm)
-                    <span class="sub-tag-blue" style="font-size: 12.5px; font-weight: 700; color: #0066FF; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; display: inline-block;">
-                        KẾT QUẢ TÌM KIẾM ({{ $activeEngine }})
-                    </span>
-                    <h1 class="page-title" style="margin-bottom: 0;">Kết quả cho "{{ $currentSearchTerm }}"</h1>
-                @else
-                    <h1 class="page-title">Khám Phá Địa Điểm Du Lịch</h1>
-                @endif
-            </div>
-            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                @if($currentSearchTerm)
-                    <a href="{{ route('destinations.index') }}" class="btn-clear-search-pill" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border: 1px solid #CBD5E1; border-radius: 9999px; font-size: 13px; font-weight: 600; color: #64748B; text-decoration: none; background: #FFFFFF; transition: all 0.2s;">
-                        ✕ Xóa tìm kiếm
-                    </a>
-                @endif
-                <div class="badge-results-count" id="resultsCountBadge">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="#EF4444"><circle cx="12" cy="7" r="4"></circle><path d="M5.5 21a6.5 6.5 0 0 1 13 0"></path></svg>
-                    <span>{{ $destinations->total() }} điểm đến phù hợp ({{ $activeEngine }})</span>
-                </div>
+            <h1 class="page-title">Khám Phá Địa Điểm Du Lịch</h1>
+            <div class="badge-results-count" id="resultsCountBadge">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="#EF4444"><circle cx="12" cy="7" r="4"></circle><path d="M5.5 21a6.5 6.5 0 0 1 13 0"></path></svg>
+                <span>{{ $destinations->total() }} điểm đến phù hợp</span>
             </div>
         </div>
 
-        <!-- Khối Bộ Lọc (Filter Form) Matching Image 1 & 2 -->
+        <!-- Khối Bộ Lọc (Filter Form) Matching Image 1 -->
         <div class="filter-card">
             <form action="{{ route('destinations.index') }}" method="GET" id="destinationsFilterForm">
                 <input type="hidden" name="per_page" value="{{ request('per_page', $perPage ?? 6) }}">
                 <div class="filter-form-grid">
-                    <!-- 1. Tìm kiếm theo tên & Chọn Engine Solr / SQL -->
+                    <!-- 1. Tìm kiếm theo tên -->
                     <div class="filter-field">
                         <label for="filterSearch">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                             <span>Tìm kiếm</span>
                         </label>
-                        <div class="filter-search-box">
-                            <select name="engine" id="filterEngine" class="filter-engine-select" title="Chọn công cụ tìm kiếm: Apache Solr hoặc MySQL SQL"
-                                    onchange="if(document.getElementById('filterSearch').value.trim() !== '') { document.getElementById('destinationsFilterForm').submit(); }">
-                                <option value="solr" {{ ($engine ?? request('engine', 'solr')) === 'solr' ? 'selected' : '' }}>Solr</option>
-                                <option value="sql" {{ ($engine ?? request('engine')) === 'sql' ? 'selected' : '' }}>SQL</option>
-                            </select>
-                            <input type="text" name="search" id="filterSearch" class="filter-input-with-engine"
-                                   placeholder="Tên địa điểm..." value="{{ request('search') ?? request('keyword') }}"
-                                   autocomplete="off" data-search-suggestions="destination">
-                        </div>
+                        <input type="text" name="search" data-search-suggestions="destination" id="filterSearch" class="filter-input"
+                               placeholder="Tên địa điểm..." value="{{ request('search') ?? request('keyword') }}">
                     </div>
 
                     <!-- 2. Thành phố -->
@@ -1104,11 +1004,7 @@
                         <!-- Nút lưu yêu thích -->
                         <form action="{{ route('favorites.toggle', $dest->id) }}" method="POST" style="position: absolute; top: 12px; right: 12px; z-index: 5;">
                             @csrf
-                            <button type="submit" class="btn-fav-card" title="Lưu yêu thích">
-                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#0F172A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block; pointer-events: none;">
-                                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
-                                </svg>
-                            </button>
+                            <button type="submit" class="btn-fav-card" title="Lưu yêu thích">🤍</button>
                         </form>
                     </div>
 
@@ -1221,6 +1117,5 @@
     </script>
     @include('commerce.launcher', ['merchant' => false])
     @include('partials.search-suggestions')
-    @include('partials.popup-notification')
 </body>
 </html>

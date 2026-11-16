@@ -16,28 +16,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Tự động nạp PSR-4 cho package Search nếu môi trường chưa dump-autoload
-        if (! class_exists(\Search\HomeSearch\HomeSearchManager::class)) {
-            spl_autoload_register(function ($class) {
-                $prefix = 'Search\\HomeSearch\\';
-                if (str_starts_with($class, $prefix)) {
-                    $relativeClass = substr($class, strlen($prefix));
-                    $file = base_path('packages/search/src/' . str_replace('\\', '/', $relativeClass) . '.php');
-                    if (file_exists($file)) {
-                        require_once $file;
-                    }
-                }
-                $prefixGeneral = 'Search\\';
-                if (str_starts_with($class, $prefixGeneral)) {
-                    $relativeClass = substr($class, strlen($prefixGeneral));
-                    $file = base_path('packages/search/src/' . str_replace('\\', '/', $relativeClass) . '.php');
-                    if (file_exists($file)) {
-                        require_once $file;
-                    }
-                }
-            });
-        }
-
         // Đăng ký agent và các dịch vụ hiện có mà luồng website sử dụng.
         $this->app->bind(\App\Services\Interfaces\AiTravelAssistantInterface::class, \App\Services\AiTravelAssistantService::class);
         $this->app->bind(\App\Services\Interfaces\ActivityLogServiceInterface::class, \App\Services\ActivityLogService::class);
@@ -119,18 +97,6 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\DestinationImageService::class
         );
 
-        // Ràng buộc RoomTypeManagementServiceInterface với RoomTypeManagementService (Trần Văn Trọng - Mục 10)
-        $this->app->bind(
-            \App\Services\Interfaces\RoomTypeManagementServiceInterface::class,
-            \App\Services\RoomTypeManagementService::class
-        );
-
-        // Ràng buộc AiItineraryServiceInterface với AiItineraryService (Trần Văn Trọng - Mục 11)
-        $this->app->bind(
-            \App\Services\Interfaces\AiItineraryServiceInterface::class,
-            \App\Services\AiItineraryService::class
-        );
-
         // Ràng buộc ActivityLogServiceInterface với triển khai cụ thể ActivityLogService
         $this->app->bind(
             \App\Services\Interfaces\ActivityLogServiceInterface::class,
@@ -202,18 +168,6 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\Interfaces\ReviewModerationServiceInterface::class,
             \App\Services\ReviewModerationService::class
         );
-
-        // Ràng buộc WebsiteSearchEngineInterface với triển khai WebsiteSearchManager trong Vendor Package
-        $this->app->bind(
-            \Search\HomeSearch\Contracts\WebsiteSearchEngineInterface::class,
-            \Search\HomeSearch\WebsiteSearchManager::class
-        );
-
-        // Ràng buộc SearchServiceInterface với triển khai cụ thể SolrSearchService (Apache Solr)
-        $this->app->bind(
-            \App\Services\Interfaces\SearchServiceInterface::class,
-            \App\Services\SolrSearchService::class
-        );
     }
 
     /**
@@ -222,12 +176,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         @umask(0000);
-        foreach ([\App\Models\Destination::class, \App\Models\City::class, \App\Models\Category::class,
-            \App\Models\Trip::class, \App\Models\User::class, \App\Models\Booking::class,
-            \App\Models\Payment::class, \App\Models\ActivityLog::class, \App\Models\Review::class,
-            \App\Models\RoomType::class] as $searchModel) {
-            $searchModel::observe(\App\Observers\SearchIndexObserver::class);
-        }
         \App\Models\Destination::observe(\App\Observers\CommerceCatalogObserver::class);
         \App\Models\City::observe(\App\Observers\CommerceCatalogObserver::class);
         \App\Models\Category::observe(\App\Observers\CommerceCatalogObserver::class);

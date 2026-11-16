@@ -214,19 +214,6 @@
             transform: translateY(-1px);
         }
 
-        .btn-ai-gradient {
-            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #2563EB 100%);
-            color: #FFFFFF !important;
-            border: none;
-            transition: all 0.25s ease;
-        }
-        .btn-ai-gradient:hover {
-            background: linear-gradient(135deg, #4338CA 0%, #6D28D9 50%, #1D4ED8 100%);
-            color: #FFFFFF !important;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35) !important;
-        }
-
         .timeline-dot {
             position: absolute;
             left: -2.2rem;
@@ -351,6 +338,36 @@
                     <li class="breadcrumb-item active fw-medium text-dark" aria-current="page">Chi tiết lịch trình</li>
                 </ol>
             </nav>
+
+            <!-- Success Message Notification -->
+            @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show rounded-3 mb-4 shadow-sm d-flex align-items-center" role="alert">
+                    <i class="bi bi-check-circle-fill fs-5 me-2"></i>
+                    <div>{{ session('success') }}</div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
+            <!-- Thông báo lỗi xác thực từ máy chủ kèm nút OK (Chỉ hiển thị khi có lỗi) -->
+            @if($errors->any())
+                <div class="alert alert-danger alert-dismissible fade show rounded-4 mb-4 shadow-sm border border-danger-subtle" role="alert" id="serverValidationAlert">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-exclamation-triangle-fill fs-5 text-danger"></i>
+                        <strong class="fw-bold text-danger">Thông tin nhập không hợp lệ, vui lòng kiểm tra lại:</strong>
+                    </div>
+                    <ul class="mb-3 ps-3 small text-danger-emphasis">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-danger btn-sm px-4 fw-semibold rounded-pill shadow-sm" data-bs-dismiss="alert">
+                            OK
+                        </button>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
 
             @php
                 // Xác định ảnh bìa theo vùng miền hoặc ảnh mặc định
@@ -620,11 +637,7 @@
                     @endforeach
                 </ul>
 
-                <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <button type="button" class="btn btn-ai-gradient rounded-pill px-3 shadow-sm d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#aiGenerateItineraryModal">
-                        <i class="bi bi-stars text-warning fs-6"></i>
-                        <span class="fw-bold">Tự động sinh lịch trình bằng AI</span>
-                    </button>
+                <div class="d-flex align-items-center gap-2">
                     <a href="{{ route('itinerary.index', $trip->id) }}" class="btn btn-outline-primary rounded-pill px-3 shadow-sm d-inline-flex align-items-center">
                         <i class="bi bi-calendar-check me-1"></i> Xem giao diện lịch trình theo ngày
                     </a>
@@ -889,91 +902,6 @@
         </div>
     </div>
 
-    <!-- Modal Tự Động Sinh Lịch Trình Bằng AI (Mục 11 - Trần Văn Trọng) -->
-    <div class="modal fade" id="aiGenerateItineraryModal" tabindex="-1" aria-labelledby="aiGenerateItineraryModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-                <form action="{{ route('trips.ai-itinerary.generate', $trip->id) }}" method="POST">
-                    @csrf
-                    <div class="modal-header text-white px-4 py-3" style="background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);">
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="bi bi-stars fs-4 text-warning"></i>
-                            <div>
-                                <h5 class="modal-title fw-bold mb-0 text-white" id="aiGenerateItineraryModalLabel">Sinh Lịch Trình Tự Động Bằng AI</h5>
-                                <span class="small opacity-75">Tối ưu hoá hoạt động theo từng ngày với AI</span>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-
-                    <div class="modal-body p-4">
-                        <!-- Thông tin chuyến đi -->
-                        <div class="p-3 rounded-3 mb-3" style="background: #F8FAFC; border: 1px solid #E2E8F0;">
-                            <div class="d-flex align-items-center justify-content-between mb-1">
-                                <span class="fw-bold text-dark fs-6">{{ $trip->name }}</span>
-                                <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 fw-bold">{{ max(1, $daysCount) }} ngày</span>
-                            </div>
-                            <div class="text-secondary small">
-                                📅 {{ $trip->start_date ? $trip->start_date->format('d/m/Y') : 'Chưa định ngày' }} — {{ $trip->end_date ? $trip->end_date->format('d/m/Y') : 'Chưa định ngày' }}
-                            </div>
-                        </div>
-
-                        <!-- Chọn phong cách du lịch -->
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-dark small mb-2 d-flex align-items-center gap-1">
-                                <i class="bi bi-compass text-primary"></i> Phong cách du lịch mong muốn:
-                            </label>
-                            <select name="style" class="form-select rounded-3 py-2" style="font-size: 14px;">
-                                <option value="balanced" selected>🎯 Cân bằng & Toàn diện (3 hoạt động / ngày)</option>
-                                <option value="relaxed">🏖 Nghỉ dưỡng & Thư thái (2 hoạt động / ngày)</option>
-                                <option value="culture">🏛 Văn hóa & Di tích lịch sử (3 hoạt động / ngày)</option>
-                                <option value="foodie">🍜 Ẩm thực đặc sản & Check-in (3 hoạt động / ngày)</option>
-                                <option value="active">⚡ Khám phá dày đặc & Trải nghiệm (4 hoạt động / ngày)</option>
-                            </select>
-                        </div>
-
-                        <!-- Chế độ sinh lịch trình -->
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-dark small mb-2 d-flex align-items-center gap-1">
-                                <i class="bi bi-gear text-primary"></i> Chế độ phân bổ lịch trình:
-                            </label>
-                            <div class="d-flex flex-column gap-2">
-                                <label class="border rounded-3 p-3 d-flex align-items-start gap-2 cursor-pointer bg-white" style="cursor: pointer;">
-                                    <input type="radio" name="mode" value="replace" checked class="form-check-input mt-1">
-                                    <div>
-                                        <div class="fw-bold text-dark small">Tạo mới hoàn toàn (Khuyên dùng)</div>
-                                        <div class="text-muted" style="font-size: 12.5px;">Xóa lịch trình cũ và tạo mới một lịch trình hoàn hảo được AI tối ưu.</div>
-                                    </div>
-                                </label>
-                                <label class="border rounded-3 p-3 d-flex align-items-start gap-2 cursor-pointer bg-white" style="cursor: pointer;">
-                                    <input type="radio" name="mode" value="fill_empty" class="form-check-input mt-1">
-                                    <div>
-                                        <div class="fw-bold text-dark small">Chỉ điền vào các ngày còn trống</div>
-                                        <div class="text-muted" style="font-size: 12.5px;">Giữ nguyên các hoạt động bạn đã lên lịch và chỉ thêm vào ngày chưa có gì.</div>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Lời nhắc thân thiện -->
-                        <div class="alert alert-light border small text-secondary rounded-3 py-2 px-3 mb-0 d-flex align-items-center gap-2">
-                            <i class="bi bi-lightbulb text-warning fs-5"></i>
-                            <span>AI sẽ tự động sắp xếp các địa điểm phù hợp trong cơ sở dữ liệu, phân bổ khung giờ hợp lý và đính kèm mẹo du lịch cho từng hoạt động.</span>
-                        </div>
-                    </div>
-
-                    <div class="modal-footer bg-light px-4 py-3 border-0">
-                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy bỏ</button>
-                        <button type="submit" class="btn btn-ai-gradient rounded-pill px-4 fw-bold shadow-sm d-inline-flex align-items-center gap-2">
-                            <i class="bi bi-magic"></i>
-                            <span>Bắt đầu tạo lịch trình</span>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
     <!-- Footer Khớp 100% Hình 18 -->
     <footer class="py-4 mt-5 text-center text-white-50 small" style="background-color: #0F172A;">
         <div class="container">
@@ -1003,21 +931,7 @@
 
         function clearTripNotes() {
             const textarea = document.getElementById('tripNotesTextarea');
-            if (!textarea) return;
-            if (window.showAppConfirm) {
-                window.showAppConfirm({
-                    title: 'Xóa ghi chú',
-                    message: 'Bạn có chắc chắn muốn xóa sạch nội dung ghi chú này?',
-                    confirmText: 'Xóa sạch',
-                    cancelText: 'Hủy bỏ',
-                    danger: true,
-                    type: 'warning',
-                    onConfirm: function() {
-                        textarea.value = '';
-                        updateNotesCharCount();
-                    }
-                });
-            } else {
+            if (textarea && confirm('Bạn có chắc chắn muốn xóa sạch nội dung ghi chú này?')) {
                 textarea.value = '';
                 updateNotesCharCount();
             }
@@ -1073,6 +987,5 @@
             }
         });
     </script>
-    @include('partials.popup-notification')
 </body>
 </html>

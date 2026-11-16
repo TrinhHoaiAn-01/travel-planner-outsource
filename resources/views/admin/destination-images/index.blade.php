@@ -568,6 +568,28 @@
     <span class="current">Thư viện ảnh</span>
 </div>
 
+<!-- Flash Toast thông báo -->
+@if(session('success'))
+<div class="gallery-toast gallery-toast-success" id="flashToast">
+    <span>{{ session('success') }}</span>
+    <button type="button" class="toast-close-btn" onclick="document.getElementById('flashToast').remove()">&times;</button>
+</div>
+@endif
+
+@if(session('error'))
+<div class="gallery-toast gallery-toast-error" id="flashToast">
+    <span>{{ session('error') }}</span>
+    <button type="button" class="toast-close-btn" onclick="document.getElementById('flashToast').remove()">&times;</button>
+</div>
+@endif
+
+@if($errors->any())
+<div class="gallery-toast gallery-toast-error" id="flashToast">
+    <span>{{ $errors->first() }}</span>
+    <button type="button" class="toast-close-btn" onclick="document.getElementById('flashToast').remove()">&times;</button>
+</div>
+@endif
+
 <!-- Card Chính chứa Bộ Lọc và Lưới Ảnh -->
 <div class="gallery-card">
     <!-- Thanh bộ lọc theo Địa điểm du lịch và Huy hiệu số lượng ảnh -->
@@ -675,7 +697,7 @@
                     <span>Xem lớn</span>
                 </button>
 
-                <form action="{{ route('admin.destination-images.destroy', $image->id) }}" method="POST" onsubmit="return handleFormConfirm(this, event, 'Bạn có chắc chắn muốn xóa hình ảnh này khỏi thư viện?', 'Xác nhận xóa', true);" style="margin: 0;">
+                <form action="{{ route('admin.destination-images.destroy', $image->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa hình ảnh này khỏi thư viện?')" style="margin: 0;">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn-photo-action btn-photo-delete" title="Xóa ảnh">

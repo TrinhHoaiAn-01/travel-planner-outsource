@@ -451,6 +451,17 @@
             <span class="breadcrumb-current">Thêm hoạt động mới</span>
         </div>
 
+        @if($errors->any())
+            <div class="alert-error-box">
+                <div style="font-weight: 700; margin-bottom: 4px;"><i class="bi bi-exclamation-triangle-fill me-1"></i> Không thể lưu hoạt động:</div>
+                <ul style="padding-left: 20px; margin: 0;">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <!-- Card Form Màn hình Thêm Hoạt Động Mới (Hình 19) -->
         <div class="activity-form-card">
             <div class="form-card-header">
@@ -595,6 +606,5 @@
             }
         });
     </script>
-    @include('partials.popup-notification')
 </body>
 </html>

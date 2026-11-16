@@ -204,6 +204,18 @@
             <p class="card-subtitle">Cập nhật mật khẩu định kỳ để bảo vệ tài khoản của bạn</p>
         </div>
 
+        @if(session('error'))
+            <div class="alert-box alert-danger" role="alert">
+                {{ session('error') }}
+            </div>
+        @endif
+
+        @if(session('success'))
+            <div class="alert-box alert-success" role="alert">
+                {{ session('success') }}
+            </div>
+        @endif
+
         <form action="{{ route('profile.password.update') }}" method="POST" novalidate id="changePasswordForm">
             @csrf
 
@@ -340,6 +352,5 @@
             });
         });
     </script>
-    @include('partials.popup-notification')
 </body>
 </html>

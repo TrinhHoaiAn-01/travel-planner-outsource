@@ -67,7 +67,7 @@ class PaymentService implements PaymentServiceInterface
         // 4. Xác định trạng thái thanh toán ban đầu theo phương thức
         // Ví dụ: Phương thức thanh toán tiền mặt tại chỗ sẽ ở trạng thái pending, các cổng trực tuyến là completed
         $paymentMethod = $paymentData['payment_method'];
-        $status = in_array($paymentMethod, ['cash', 'momo', 'zalopay'], true) ? 'pending' : 'completed';
+        $status = ($paymentMethod === 'cash') ? 'pending' : 'completed';
 
         return DB::transaction(function () use ($booking, $amount, $paymentMethod, $transactionId, $status) {
             // 1. Khóa dòng Booking với lockForUpdate() để tránh Race Condition và Deadlock 1213 trên InnoDB
@@ -153,15 +153,9 @@ class PaymentService implements PaymentServiceInterface
                     'status' => 'confirmed',
                 ]);
             } elseif ($status === 'refunded') {
-                $hasOtherCompleted = Payment::where('booking_id', $payment->booking_id)
-                    ->where('id', '!=', $payment->id)
-                    ->where('status', 'completed')
-                    ->exists();
-                if (!$hasOtherCompleted) {
-                    $lockedBooking->update([
-                        'status' => 'cancelled',
-                    ]);
-                }
+                $lockedBooking->update([
+                    'status' => 'cancelled',
+                ]);
             }
 
             return $payment;
@@ -181,7 +175,11 @@ class PaymentService implements PaymentServiceInterface
         }
 
         if (!empty($search)) {
-            app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'payment', trim((string) $search));
+            $query->where(function ($q) use ($search) {
+                $q->where('transaction_id', 'LIKE', "%{$search}%")
+                    ->orWhere('payment_method', 'LIKE', "%{$search}%")
+                    ->orWhereHas('booking', fn ($bq) => $bq->where('code', 'LIKE', "%{$search}%"));
+            });
         }
 
         return $query->paginate($perPage);

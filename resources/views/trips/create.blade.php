@@ -423,6 +423,12 @@
                 <p class="card-subtitle">Điền thông tin cơ bản để bắt đầu sắp xếp lịch trình chi tiết và quản lý ngân sách</p>
             </div>
 
+            @if ($errors->any())
+                <div class="alert-error">
+                    <strong>Đã có lỗi xảy ra!</strong> Vui lòng kiểm tra lại thông tin bên dưới.
+                </div>
+            @endif
+
             <form action="{{ route('trips.store') }}" method="POST">
                 @csrf
 
@@ -768,6 +774,5 @@
             }
         });
     </script>
-    @include('partials.popup-notification')
 </body>
 </html>

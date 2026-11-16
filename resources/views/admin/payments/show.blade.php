@@ -134,6 +134,12 @@
     </div>
 </div>
 
+@if(session('success'))
+    <div style="background: #ECFDF5; border: 1px solid #A7F3D0; color: #065F46; padding: 12px 18px; border-radius: 8px; margin-bottom: 20px; font-weight: 600; font-size: 14px;">
+        {{ session('success') }}
+    </div>
+@endif
+
 <div class="grid-layout">
     <!-- Cột trái: Thông tin giao dịch & Đơn đặt phòng -->
     <div>
@@ -161,7 +167,7 @@
                     <td class="label-col">Mã đơn đặt phòng liên quan:</td>
                     <td class="value-col">
                         <a href="{{ route('admin.bookings.show', $payment->booking->id) }}" style="color: #2563EB; text-decoration: none;">
-                            #{{ ltrim($payment->booking->booking_code, '#') }}
+                            #{{ $payment->booking->booking_code }}
                         </a>
                     </td>
                 </tr>

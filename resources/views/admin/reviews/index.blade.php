@@ -14,6 +14,18 @@
 @section('content')
 <div class="review-moderation-container">
 
+    {{-- Thông báo phản hồi --}}
+    @if(session('success'))
+        <div class="alert-success-banner">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <span>{{ session('success') }}</span>
+            <button type="button" class="btn-close-alert" onclick="this.parentElement.remove()">✕</button>
+        </div>
+    @endif
+
     {{-- Nhóm Tabs Lọc Theo Trạng Thái Khớp 100% Ảnh Mockup --}}
     <div class="tabs-filter-bar">
         <a href="{{ route('admin.reviews.index', ['status' => 'all']) }}" 
@@ -23,16 +35,19 @@
 
         <a href="{{ route('admin.reviews.index', ['status' => 'pending']) }}" 
            class="tab-pill-btn {{ $currentStatus === 'pending' ? 'active' : '' }}">
+            <span class="tab-icon">⏳</span>
             <span>Chờ duyệt (Pending)</span>
         </a>
 
         <a href="{{ route('admin.reviews.index', ['status' => 'approved']) }}" 
            class="tab-pill-btn {{ $currentStatus === 'approved' ? 'active' : '' }}">
+            <span class="tab-icon tab-icon-approved">✔</span>
             <span>Đã duyệt (Approved)</span>
         </a>
 
         <a href="{{ route('admin.reviews.index', ['status' => 'hidden']) }}" 
            class="tab-pill-btn {{ $currentStatus === 'hidden' ? 'active' : '' }}">
+            <span class="tab-icon tab-icon-hidden">👁</span>
             <span>Đã ẩn (Hidden)</span>
         </a>
     </div>
@@ -91,11 +106,20 @@
                             {{-- Trạng thái đánh giá --}}
                             <td>
                                 @if($review->status === \App\Models\Review::STATUS_PENDING)
-                                    <span class="status-badge badge-pending">Pending</span>
+                                    <span class="status-badge badge-pending">
+                                        <span class="badge-icon">⏳</span>
+                                        <span>Pending</span>
+                                    </span>
                                 @elseif($review->status === \App\Models\Review::STATUS_APPROVED)
-                                    <span class="status-badge badge-approved">Approved</span>
+                                    <span class="status-badge badge-approved">
+                                        <span class="badge-icon">✔</span>
+                                        <span>Approved</span>
+                                    </span>
                                 @elseif($review->status === \App\Models\Review::STATUS_HIDDEN)
-                                    <span class="status-badge badge-hidden">Hidden</span>
+                                    <span class="status-badge badge-hidden">
+                                        <span class="badge-icon">👁</span>
+                                        <span>Hidden</span>
+                                    </span>
                                 @else
                                     <span class="status-badge badge-default">{{ ucfirst($review->status) }}</span>
                                 @endif
@@ -470,14 +494,12 @@
 .status-badge {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    padding: 4.5px 12px;
+    gap: 6px;
+    padding: 4px 12px;
     border-radius: 9999px;
     font-size: 12px;
     font-weight: 600;
-    line-height: 1.25;
     white-space: nowrap;
-    text-align: center;
 }
 
 .badge-pending {
@@ -496,6 +518,12 @@
     background-color: #F3F4F6;
     border: 1px solid #E5E7EB;
     color: #6B7280;
+}
+
+.badge-icon {
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
 }
 
 /* Circular Action Buttons */
@@ -835,11 +863,11 @@ function openReviewDetailModal(reviewId) {
             // Render status badge
             const statusBadgeEl = document.getElementById('detail-status-badge');
             if (data.status === 'pending') {
-                statusBadgeEl.innerHTML = '<span class="status-badge badge-pending">Pending</span>';
+                statusBadgeEl.innerHTML = '<span class="status-badge badge-pending"><span class="badge-icon">⏳</span> Pending</span>';
             } else if (data.status === 'approved') {
-                statusBadgeEl.innerHTML = '<span class="status-badge badge-approved">Approved</span>';
+                statusBadgeEl.innerHTML = '<span class="status-badge badge-approved"><span class="badge-icon">✔</span> Approved</span>';
             } else {
-                statusBadgeEl.innerHTML = '<span class="status-badge badge-hidden">Hidden</span>';
+                statusBadgeEl.innerHTML = '<span class="status-badge badge-hidden"><span class="badge-icon">👁</span> Hidden</span>';
             }
 
             // Render action buttons

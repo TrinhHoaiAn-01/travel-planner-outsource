@@ -25,9 +25,8 @@ class PaymentController extends Controller
     {
         $status = $request->query('status');
         $search = $request->query('search');
-        $perPage = (int) $request->query('per_page', 25);
 
-        $payments = $this->paymentService->getAllPayments($status, $search, $perPage);
+        $payments = $this->paymentService->getAllPayments($status, $search, 10);
 
         return view('admin.payments.index', [
             'payments' => $payments,
@@ -58,18 +57,5 @@ class PaymentController extends Controller
         return redirect()
             ->back()
             ->with('success', "Cập nhật trạng thái giao dịch {$payment->transaction_id} thành công.");
-    }
-
-    /**
-     * Xóa giao dịch thanh toán (STT 11).
-     */
-    public function destroy(Payment $payment)
-    {
-        $transactionId = $payment->transaction_id;
-        $payment->delete();
-
-        return redirect()
-            ->route('admin.payments.index')
-            ->with('success', "Giao dịch {$transactionId} đã được xóa thành công.");
     }
 }

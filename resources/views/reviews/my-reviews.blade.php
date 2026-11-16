@@ -913,6 +913,23 @@
             <span class="text-secondary">Đánh giá của tôi</span>
         </nav>
 
+        <!-- Thông báo Flash Alert (Thành công / Lỗi) -->
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-4 mb-4" role="alert">
+                <i class="bi bi-check-circle-fill me-2 fs-5 align-middle"></i>
+                <span class="fw-medium">{{ session('success') }}</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-4 mb-4" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2 fs-5 align-middle"></i>
+                <span class="fw-medium">{{ session('error') }}</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
         <!-- Tiêu đề Header & Nút Thêm mới -->
         <div class="page-header-custom">
             <div>
@@ -1444,6 +1461,5 @@
             modal.show();
         }
     </script>
-    @include('partials.popup-notification')
 </body>
 </html>

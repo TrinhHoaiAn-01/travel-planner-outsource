@@ -34,22 +34,11 @@ class CommerceAgentController extends Controller
         abort_if($role === 'merchant' && (! $request->user() || $request->user()->role !== 'admin' || ! $request->user()->is_active), 403);
         abort_if($request->user() && ! $request->user()->is_active, 403);
 
-        $user = $request->user();
-        $lockKey = 'commerce-session:' . ($user ? 'user_' . $user->id : 'session_' . $request->session()->getId());
-        $lock = Cache::lock($lockKey, 10);
-        if (! $lock->get()) {
-            return response()->json(['message' => 'Một thao tác khác đang chạy. Vui lòng đợi.'], 409);
-        }
-
         $key = 'commerce_'.$role;
         try {
             $result = $this->assistant->surface($role, $request->method().':'.$action, $request->all(), $request->session()->get($key, []), $request->user());
         } catch (\DomainException $exception) {
             return response()->json(['message' => $exception->getMessage()], 409);
-        } finally {
-            try {
-                $lock?->release();
-            } catch (\Throwable) {}
         }
         $request->session()->put($key, $result['conversation']);
         return response()->json($result['data']);
@@ -115,10 +104,7 @@ class CommerceAgentController extends Controller
                 // Lưu lịch sử hội thoại vào Database cho người dùng đăng nhập và Session/Cache
                 try {
                     if ($user) {
-                        $conv = AiConversation::firstOrCreate([
-                            'user_id' => $user->id,
-                            'role' => $role,
-                        ]);
+                        $conv = AiConversation::firstOrCreate(['user_id' => $user->id]);
                         AiMessage::create([
                             'conversation_id' => $conv->id,
                             'role' => 'user',
