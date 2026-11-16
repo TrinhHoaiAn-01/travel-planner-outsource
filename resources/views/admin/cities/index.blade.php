@@ -209,12 +209,15 @@
 
     /* Cột 5: Trạng thái */
     .badge-status {
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         padding: 3px 10px;
         border-radius: 9999px;
         font-size: 11.5px;
         font-weight: 500;
-        line-height: 1.3;
+        line-height: 1.25;
+        white-space: nowrap;
     }
 
     .badge-active {
@@ -504,35 +507,6 @@
     <span class="sep">/</span>
     <span class="current">Thành phố</span>
 </div>
-
-<!-- Thông báo Flash Messages -->
-@if(session('success'))
-<div class="alert-toast alert-toast-success">
-    <span>{{ session('success') }}</span>
-    <button type="button" class="toast-close-btn" onclick="this.parentElement.remove()">✕</button>
-</div>
-@endif
-
-@if(session('error'))
-<div class="alert-toast alert-toast-danger">
-    <span>{{ session('error') }}</span>
-    <button type="button" class="toast-close-btn" onclick="this.parentElement.remove()">✕</button>
-</div>
-@endif
-
-@if($errors->any())
-<div class="alert-toast alert-toast-danger">
-    <div>
-        <strong>Đã có lỗi xảy ra:</strong>
-        <ul style="margin: 4px 0 0 18px;">
-            @foreach($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-    <button type="button" class="toast-close-btn" onclick="this.parentElement.remove()">✕</button>
-</div>
-@endif
 
 <!-- Bảng Danh sách Tỉnh / Thành phố -->
 <div class="city-table-card">

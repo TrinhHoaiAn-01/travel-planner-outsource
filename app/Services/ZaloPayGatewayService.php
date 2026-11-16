@@ -173,7 +173,7 @@ class ZaloPayGatewayService implements ZaloPayGatewayServiceInterface
     {
         $appTransId = $payload['app_trans_id'] ?? ($payload['apptransid'] ?? null);
         $amount = (float) ($payload['amount'] ?? 0);
-        $zpTransId = $payload['zp_trans_id'] ?? ($payload['apptransid'] ?? ('ZALOPAY_' . time()));
+        $zpTransId = $payload['zp_trans_id'] ?? ($payload['zptransid'] ?? ($payload['apptransid'] ?? ('ZALOPAY_' . time())));
         $statusParam = $payload['status'] ?? 1;
 
         // Tìm đơn đặt phòng tương ứng
@@ -230,6 +230,23 @@ class ZaloPayGatewayService implements ZaloPayGatewayServiceInterface
                 $lockedBooking->update([
                     'status' => 'confirmed',
                 ]);
+            }
+
+            // Cập nhật bản ghi pending attempt trước đó nếu có
+            $pendingPayment = Payment::where('booking_id', $lockedBooking->id)
+                ->where('payment_method', 'zalopay')
+                ->where('status', 'pending')
+                ->latest('id')
+                ->first();
+
+            if ($pendingPayment) {
+                $pendingPayment->update([
+                    'status' => $status,
+                    'transaction_id' => (string) $zpTransId,
+                    'payment_date' => now(),
+                    'amount' => $amount > 0 ? $amount : $lockedBooking->total_price,
+                ]);
+                return $pendingPayment;
             }
 
             // Ghi nhận bản ghi thanh toán ZaloPay

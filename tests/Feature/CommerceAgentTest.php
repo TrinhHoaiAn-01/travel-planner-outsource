@@ -414,4 +414,74 @@ class CommerceAgentTest extends TestCase
         $this->assertTrue($confirmResult['success']);
         $this->assertArrayHasKey('payment_instructions', $confirmResult);
     }
+
+    public function test_chat_automatically_performs_and_renders_visual_favorite_action(): void
+    {
+        $user = User::factory()->create(['role' => 'user', 'is_active' => true]);
+        $city = City::factory()->create(['name' => 'Đà Nẵng']);
+        $destination = Destination::factory()->create([
+            'city_id' => $city->id,
+            'name' => 'Bà Nà Hills',
+            'rating' => 4.9,
+        ]);
+
+        $service = app(\App\Services\Interfaces\AiTravelAssistantInterface::class);
+        $res = $service->reply('thêm vào yêu thích', [], $user, 'session_fav_test', 'shopping');
+
+        $this->assertStringContainsString('yêu thích', $res['answer']);
+        $this->assertNotEmpty($res['presentations']);
+        $this->assertSame('favorite_action', $res['presentations'][0]['component']);
+        $this->assertSame($destination->name, $res['presentations'][0]['payload']['destination_name']);
+
+        $this->assertDatabaseHas('favorites', [
+            'user_id' => $user->id,
+            'destination_id' => $destination->id,
+        ]);
+    }
+
+    public function test_chat_automatically_performs_and_renders_visual_payment_action(): void
+    {
+        $user = User::factory()->create(['role' => 'user', 'is_active' => true]);
+        $city = City::factory()->create(['name' => 'Đà Nẵng']);
+        $destination = Destination::factory()->create(['city_id' => $city->id, 'name' => 'Novotel Danang']);
+        $room = RoomType::factory()->create([
+            'destination_id' => $destination->id,
+            'name' => 'Deluxe Suite',
+            'price_per_night' => 1200000,
+        ]);
+
+        $service = app(\App\Services\Interfaces\AiTravelAssistantInterface::class);
+        $res = $service->reply('thanh toán', [], $user, 'session_pay_test', 'shopping');
+
+        $this->assertStringContainsString('thanh toán', $res['answer']);
+        $this->assertNotEmpty($res['presentations']);
+        $this->assertSame('booking_action', $res['presentations'][0]['component']);
+        $this->assertArrayHasKey('payment_instructions', $res['presentations'][0]['payload']);
+        $this->assertSame(config('sepay.bank_name', 'Vietcombank'), $res['presentations'][0]['payload']['payment_instructions']['bank_name']);
+        $this->assertSame(config('sepay.account_number', '9876543210'), $res['presentations'][0]['payload']['payment_instructions']['account_number']);
+    }
+
+    public function test_chat_automatically_performs_and_renders_visual_booking_action(): void
+    {
+        $user = User::factory()->create(['role' => 'user', 'is_active' => true]);
+        $city = City::factory()->create(['name' => 'Đà Nẵng']);
+        $destination = Destination::factory()->create(['city_id' => $city->id, 'name' => 'Vinpearl Resort Đà Nẵng']);
+        $room = RoomType::factory()->create([
+            'destination_id' => $destination->id,
+            'name' => 'Ocean Villa',
+            'price_per_night' => 3000000,
+        ]);
+
+        $service = app(\App\Services\Interfaces\AiTravelAssistantInterface::class);
+        $res = $service->reply('đặt phòng', [], $user, 'session_book_test', 'shopping');
+
+        $this->assertStringContainsString('đặt phòng thành công', $res['answer']);
+        $this->assertNotEmpty($res['presentations']);
+        $this->assertSame('booking_action', $res['presentations'][0]['component']);
+        $this->assertSame('Vinpearl Resort Đà Nẵng', $res['presentations'][0]['payload']['hotel_name']);
+        $this->assertDatabaseHas('bookings', [
+            'user_id' => $user->id,
+            'room_type_id' => $room->id,
+        ]);
+    }
 }

@@ -44,4 +44,17 @@ class Booking extends Model
     {
         return $this->hasMany(ItineraryItem::class);
     }
+
+    public function isPaid(): bool
+    {
+        return $this->payments()->where('status', 'completed')->exists();
+    }
+
+    public function canBePaid(): bool
+    {
+        if (in_array($this->status, ['cancelled', 'completed'], true)) {
+            return false;
+        }
+        return !$this->isPaid();
+    }
 }

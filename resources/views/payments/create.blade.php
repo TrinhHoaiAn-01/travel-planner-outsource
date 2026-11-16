@@ -401,35 +401,6 @@
             <span style="color: var(--secondary); font-weight: 600;">Thanh toán</span>
         </div>
 
-        @if(session('warning'))
-            <div style="background: #FFFBEB; border: 1.5px solid #FDE68A; color: #92400E; padding: 14px 20px; border-radius: var(--radius-md); margin-bottom: 24px; font-size: 13.5px; display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 18px;">⚠️</span>
-                <div>
-                    <strong>Thông báo cổng thanh toán:</strong> {{ session('warning') }}
-                </div>
-            </div>
-        @endif
-
-        @if(session('error'))
-            <div style="background: #FEF2F2; border: 1.5px solid #FECACA; color: #B91C1C; padding: 14px 20px; border-radius: var(--radius-md); margin-bottom: 24px; font-size: 13.5px; display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 18px;">❌</span>
-                <div>
-                    <strong>Lỗi giao dịch:</strong> {{ session('error') }}
-                </div>
-            </div>
-        @endif
-
-        @if($errors->any())
-            <div style="background: #FEF2F2; border: 1px solid #FECACA; color: #B91C1C; padding: 14px 20px; border-radius: var(--radius-md); margin-bottom: 24px;">
-                <strong>Đã xảy ra lỗi:</strong>
-                <ul style="margin-left: 20px; margin-top: 4px;">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
         <div class="checkout-grid">
             <!-- Cột trái: Chọn phương thức thanh toán -->
             <div class="card">
@@ -443,11 +414,19 @@
                     <!-- Ràng buộc số tiền khớp chính xác với database theo quy tắc chống gian lận BR-21 -->
                     <input type="hidden" name="amount" value="{{ $booking->total_price }}">
 
+                    @php
+                        $selectedMethod = $selectedMethod ?? 'bank_transfer';
+                        $isBank = in_array($selectedMethod, ['bank_transfer', 'sepay'], true);
+                        $isMomo = $selectedMethod === 'momo';
+                        $isZalo = $selectedMethod === 'zalopay';
+                        $isCash = $selectedMethod === 'cash';
+                    @endphp
+
                     <div class="payment-methods-grid">
                         <!-- Chuyển khoản ngân hàng (VietQR) - Mặc định -->
-                        <label class="payment-option-label active" onclick="selectPayment('bank_transfer', this)">
+                        <label class="payment-option-label {{ $isBank ? 'active' : '' }}" onclick="selectPayment('bank_transfer', this)">
                             <div class="payment-option-info">
-                                <input type="radio" name="payment_method" value="bank_transfer" class="payment-option-input" checked>
+                                <input type="radio" name="payment_method" value="bank_transfer" class="payment-option-input" {{ $isBank ? 'checked' : '' }}>
                                 <div class="payment-icon-box icon-bank">CK</div>
                                 <div>
                                     <div class="payment-method-name">Chuyển Khoản Ngân Hàng (VietQR Chuẩn NAPAS 24/7)</div>
@@ -456,10 +435,34 @@
                             </div>
                         </label>
 
-                        <!-- Thanh toán khi nhận phòng -->
-                        <label class="payment-option-label" onclick="selectPayment('cash', this)">
+                        <!-- Ví MoMo -->
+                        <label class="payment-option-label {{ $isMomo ? 'active' : '' }}" onclick="selectPayment('momo', this)">
                             <div class="payment-option-info">
-                                <input type="radio" name="payment_method" value="cash" class="payment-option-input">
+                                <input type="radio" name="payment_method" value="momo" class="payment-option-input" {{ $isMomo ? 'checked' : '' }}>
+                                <div class="payment-icon-box icon-momo" style="background: #A50064; color: white;">MM</div>
+                                <div>
+                                    <div class="payment-method-name">Ví Điện Tử MoMo</div>
+                                    <div class="payment-method-desc">Thanh toán tức thì qua ví điện tử MoMo siêu tiện lợi</div>
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- Ví ZaloPay -->
+                        <label class="payment-option-label {{ $isZalo ? 'active' : '' }}" onclick="selectPayment('zalopay', this)">
+                            <div class="payment-option-info">
+                                <input type="radio" name="payment_method" value="zalopay" class="payment-option-input" {{ $isZalo ? 'checked' : '' }}>
+                                <div class="payment-icon-box icon-zalopay" style="background: #0068FF; color: white;">ZP</div>
+                                <div>
+                                    <div class="payment-method-name">Ví Điện Tử ZaloPay</div>
+                                    <div class="payment-method-desc">Thanh toán qua ví ZaloPay hoặc quét mã QR ZaloPay</div>
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- Thanh toán khi nhận phòng -->
+                        <label class="payment-option-label {{ $isCash ? 'active' : '' }}" onclick="selectPayment('cash', this)">
+                            <div class="payment-option-info">
+                                <input type="radio" name="payment_method" value="cash" class="payment-option-input" {{ $isCash ? 'checked' : '' }}>
                                 <div class="payment-icon-box icon-cash">TM</div>
                                 <div>
                                     <div class="payment-method-name">Thanh Toán Tiền Mặt Khi Nhận Phòng</div>
@@ -472,7 +475,7 @@
                     <!-- Sandbox / Instruction Panels -->
                     <div id="sandbox-container" style="margin-bottom: 24px;">
                         <!-- 1. VietQR Real Dynamic Panel (Mặc định hiển thị) -->
-                        <div id="panel-bank_transfer" class="sandbox-panel" style="background: #F0FDF4; border: 1.5px solid #BBF7D0; border-radius: var(--radius-md); padding: 20px;">
+                        <div id="panel-bank_transfer" class="sandbox-panel" style="display: {{ $isBank ? 'block;' : 'none;' }} background: #F0FDF4; border: 1.5px solid #BBF7D0; border-radius: var(--radius-md); padding: 20px;">
                             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
                                 <div style="display: flex; align-items: center; gap: 8px;">
                                     <span style="background: #16A34A; color: white; font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 4px;">VIETQR CHUẨN NAPAS 24/7</span>
@@ -519,8 +522,34 @@
                             </div>
                         </div>
 
-                        <!-- 2. Tiền Mặt Panel (Hiển thị khi chọn Tiền mặt) -->
-                        <div id="panel-cash" class="sandbox-panel" style="display: none; background: #FAF5FF; border: 1.5px solid #E9D5FF; border-radius: var(--radius-md); padding: 20px;">
+                        <!-- 2. MoMo Sandbox Panel -->
+                        <div id="panel-momo" class="sandbox-panel" style="display: {{ $isMomo ? 'block;' : 'none;' }} background: #FDF2F8; border: 1.5px solid #FBCFE8; border-radius: var(--radius-md); padding: 20px;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                <span style="background: #A50064; color: white; font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 4px;">VÍ ĐIỆN TỬ MOMO</span>
+                                <strong style="color: #9D174D; font-size: 14px;">Quét Mã Thanh Toán Qua Ứng Dụng MoMo</strong>
+                            </div>
+                            <div style="background: white; border: 1px solid #FBCFE8; padding: 14px 18px; border-radius: 8px; line-height: 1.7; font-size: 13px; color: #4B5563;">
+                                <p style="margin-bottom: 8px;">
+                                    Quý khách quét mã MoMo hoặc chuyển đến số ví <strong>0900000000</strong> với số tiền <strong>{{ number_format($booking->total_price, 0, ',', '.') }}đ</strong> và lời nhắn: <strong>TPB {{ $booking->booking_code }}</strong>.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- 3. ZaloPay Sandbox Panel -->
+                        <div id="panel-zalopay" class="sandbox-panel" style="display: {{ $isZalo ? 'block;' : 'none;' }} background: #EFF6FF; border: 1.5px solid #BFDBFE; border-radius: var(--radius-md); padding: 20px;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                <span style="background: #0068FF; color: white; font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 4px;">VÍ ZALOPAY</span>
+                                <strong style="color: #1D4ED8; font-size: 14px;">Quét Mã Thanh Toán ZaloPay QR</strong>
+                            </div>
+                            <div style="background: white; border: 1px solid #BFDBFE; padding: 14px 18px; border-radius: 8px; line-height: 1.7; font-size: 13px; color: #4B5563;">
+                                <p style="margin-bottom: 8px;">
+                                    Quý khách sử dụng ZaloPay quét mã QR thanh toán hóa đơn với số tiền <strong>{{ number_format($booking->total_price, 0, ',', '.') }}đ</strong>.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- 4. Tiền Mặt Panel (Hiển thị khi chọn Tiền mặt) -->
+                        <div id="panel-cash" class="sandbox-panel" style="display: {{ $isCash ? 'block;' : 'none;' }} background: #FAF5FF; border: 1.5px solid #E9D5FF; border-radius: var(--radius-md); padding: 20px;">
                             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
                                 <span style="background: #9333EA; color: white; font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 4px;">TIỀN MẶT KHI NHẬN PHÒNG</span>
                                 <strong style="color: #7E22CE; font-size: 14px;">Thanh Toán Trực Tiếp Tại Quầy Lễ Tân Khách Sạn</strong>
@@ -731,5 +760,6 @@
             startPaymentPolling();
         });
     </script>
+    @include('partials.popup-notification')
 </body>
 </html>

@@ -361,19 +361,6 @@
         <main class="register-card" aria-label="Biểu mẫu đăng ký">
             <h2 class="card-title">Đăng ký tài khoản</h2>
 
-            {{-- Thông báo phản hồi hệ thống nếu có --}}
-            @if(session('error'))
-                <div class="alert-box alert-danger" role="alert">
-                    {{ session('error') }}
-                </div>
-            @endif
-
-            @if(session('success'))
-                <div class="alert-box alert-success" role="alert">
-                    {{ session('success') }}
-                </div>
-            @endif
-
             <form action="{{ route('register') }}" method="POST" novalidate id="registerForm">
                 @csrf
 
@@ -535,5 +522,6 @@
         setupPasswordToggle('togglePassword', 'password');
         setupPasswordToggle('togglePasswordConfirm', 'password_confirmation');
     </script>
+    @include('partials.popup-notification')
 </body>
 </html>

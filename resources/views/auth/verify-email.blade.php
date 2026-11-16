@@ -144,18 +144,6 @@
 
         <h1 class="card-title">Xác thực tài khoản email</h1>
 
-        @if (session('status') == 'verification-link-sent')
-            <div class="alert-box alert-success" role="alert">
-                Liên kết xác thực mới đã được gửi đến địa chỉ email của bạn.
-            </div>
-        @endif
-
-        @if (session('success'))
-            <div class="alert-box alert-success" role="alert">
-                {{ session('success') }}
-            </div>
-        @endif
-
         <p class="card-text">
             Cảm ơn bạn đã đăng ký tài khoản Travel Planner! Trước khi bắt đầu, vui lòng kiểm tra hộp thư email và nhấp vào liên kết xác thực để kích hoạt tài khoản.
         </p>
@@ -174,5 +162,6 @@
             </form>
         </div>
     </div>
+    @include('partials.popup-notification')
 </body>
 </html>

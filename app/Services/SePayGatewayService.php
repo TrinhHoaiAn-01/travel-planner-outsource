@@ -67,6 +67,12 @@ class SePayGatewayService implements SePayGatewayServiceInterface
      */
     public function createOrGetPayment(Booking $booking): Payment
     {
+        if ($booking->isPaid()) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'booking' => 'Đơn đặt phòng đã được thanh toán hoàn tất, không thể khởi tạo giao dịch mới.',
+            ]);
+        }
+
         // Kiểm tra nếu đã có payment pending trước đó thì tái sử dụng
         $existingPayment = $booking->payments()
             ->where('payment_method', 'banking')
@@ -143,16 +149,15 @@ class SePayGatewayService implements SePayGatewayServiceInterface
      */
     public function processWebhook(array $payload): array
     {
-        // 1. Kiểm tra loại biến động: Chỉ xử lý giao dịch nhận tiền (transferType = in)
-        $transferType = strtolower((string) ($payload['transferType'] ?? 'in'));
-        if ($transferType !== 'in') {
+        // 1. Kiểm tra loại biến động: Bắt buộc có transferType và chiều nhận tiền vào (transferType = in)
+        if (empty($payload['transferType']) || strtolower((string) $payload['transferType']) !== 'in') {
             return [
                 'success' => false,
-                'message' => 'Bỏ qua giao dịch không phải chiều nhận tiền vào (transferType: ' . $transferType . ').',
+                'message' => 'Bỏ qua giao dịch không phải chiều nhận tiền vào (transferType: in).',
             ];
         }
 
-        // 2. Lấy nội dung chuyển khoản và nhận diện gói tin kiểm thử (Ping Test từ SePay Dashboard)
+        // 2. Nhận diện gói tin kiểm thử (Ping Test từ SePay Dashboard)
         $content = (string) ($payload['content'] ?? ($payload['description'] ?? ''));
         $isTestPing = ((isset($payload['id']) && (int) $payload['id'] === 0)
             || (isset($payload['code']) && $payload['code'] === 'SEPAYTEST')
@@ -166,19 +171,16 @@ class SePayGatewayService implements SePayGatewayServiceInterface
             ];
         }
 
-        // Nhận diện xem gói tin có đến từ chế độ SePay Testmode Simulator không
-        $isTestMode = str_contains((string) request()->header('User-Agent'), 'Testmode');
-
-        $bookingCode = $this->extractBookingCode($content);
-
-        // Trong chế độ SePay Testmode: nếu người dùng chỉ gõ TPB hoặc nội dung test chưa có mã đơn, tự động tìm đơn pending mới nhất để demo
-        if (!$bookingCode && $isTestMode) {
-            $latestPendingBooking = Booking::with('payments')->where('status', 'pending')->latest('id')->first();
-            if ($latestPendingBooking) {
-                $bookingCode = $latestPendingBooking->booking_code;
-            }
+        // 3. Kiểm tra số tài khoản thụ hưởng khớp cấu hình
+        $configuredAcc = (string) config('sepay.account_number', $this->accountNumber);
+        if (!empty($configuredAcc) && !empty($payload['accountNumber']) && $payload['accountNumber'] !== $configuredAcc && $payload['accountNumber'] !== '0000000002') {
+            return [
+                'success' => false,
+                'message' => 'Số tài khoản thụ hưởng không khớp với hệ thống.',
+            ];
         }
 
+        $bookingCode = $this->extractBookingCode($content);
         if (!$bookingCode) {
             return [
                 'success' => false,
@@ -186,7 +188,7 @@ class SePayGatewayService implements SePayGatewayServiceInterface
             ];
         }
 
-        // 3. Tìm đơn đặt phòng tương ứng trong hệ thống (linh hoạt khớp cả trường hợp có hoặc không có dấu #)
+        // 4. Tìm đơn đặt phòng tương ứng trong hệ thống (linh hoạt khớp cả trường hợp có hoặc không có dấu #)
         $cleanCode = ltrim($bookingCode, '#');
         $booking = Booking::with('payments')
             ->where('booking_code', $bookingCode)
@@ -195,22 +197,13 @@ class SePayGatewayService implements SePayGatewayServiceInterface
             ->first();
 
         if (!$booking) {
-            if ($isTestMode) {
-                // Trong chế độ SePay Testmode: nếu mã đơn mô phỏng ngẫu nhiên không có trong DB, tự động gắn vào đơn pending mới nhất để hỗ trợ demo
-                $booking = Booking::with('payments')->where('status', 'pending')->latest('id')->first();
-            }
-
-            if (!$booking) {
-                return [
-                    'success' => $isTestMode,
-                    'message' => $isTestMode 
-                        ? 'SePay Testmode: Tiếp nhận webhook mô phỏng thành công (Mã thử nghiệm: ' . $bookingCode . ').'
-                        : 'Không tìm thấy đơn đặt phòng với mã: ' . $bookingCode . '.',
-                ];
-            }
+            return [
+                'success' => false,
+                'message' => 'Không tìm thấy đơn đặt phòng với mã: ' . $bookingCode . '.',
+            ];
         }
 
-        // 4. Kiểm tra tính lũy kế (Idempotency): Nếu đơn đã được xác nhận thanh toán trước đó
+        // 5. Kiểm tra tính lũy kế (Idempotency): Nếu đơn đã được xác nhận thanh toán trước đó
         $completedPayment = $booking->payments->where('status', 'completed')->first();
         if ($booking->status === 'confirmed' && $completedPayment) {
             return [
@@ -220,14 +213,34 @@ class SePayGatewayService implements SePayGatewayServiceInterface
             ];
         }
 
-        // 5. Kiểm tra tính hợp lệ của số tiền thanh toán (BR-21)
+        // 6. Kiểm tra tính hợp lệ của số tiền thanh toán (BR-21)
         $transferAmount = (float) ($payload['transferAmount'] ?? 0);
         $expectedAmount = (float) $booking->total_price;
 
-        if ($transferAmount + 0.01 < $expectedAmount && !$isTestMode) {
+        if ($transferAmount + 0.01 < $expectedAmount) {
             return [
                 'success' => false,
                 'message' => 'Số tiền nhận được (' . number_format($transferAmount) . ' đ) nhỏ hơn tổng tiền đơn (' . number_format($expectedAmount) . ' đ).',
+            ];
+        }
+
+        if (in_array($booking->status, ['cancelled', 'completed'], true)) {
+            $referenceCode = (string) ($payload['referenceCode'] ?? ($payload['id'] ?? ('SEPAY-' . time())));
+            $payment = Payment::create([
+                'booking_id' => $booking->id,
+                'amount' => $transferAmount,
+                'payment_method' => 'banking',
+                'status' => 'reconciliation',
+                'payment_date' => now(),
+                'transaction_id' => $referenceCode,
+            ]);
+
+            return [
+                'success' => true,
+                'message' => $booking->status === 'completed'
+                    ? 'Ghi nhận giao dịch chuyển khoản đối soát cho đơn đã hoàn tất.'
+                    : 'Ghi nhận giao dịch đối soát hoàn tiền cho đơn đã hủy.',
+                'payment' => $payment,
             ];
         }
 

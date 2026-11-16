@@ -57,6 +57,10 @@ class BookingPolicy
             return false;
         }
 
+        if ($booking->isPaid()) {
+            return false;
+        }
+
         return true;
     }
 }

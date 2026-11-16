@@ -1,6 +1,6 @@
 {
-    "name": "search/home-search",
-    "description": "Thư viện tìm kiếm Trang chủ cho đồ án Travel Planner (Apache Solr 9 & SQL Index)",
+    "name": "search/search",
+    "description": "Thư viện tìm kiếm toàn diện cho đồ án Travel Planner (Apache Solr 9 & SQL Engine - Trang chủ & Toàn bộ Website)",
     "type": "library",
     "license": "MIT",
     "authors": [
@@ -14,8 +14,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Search\\HomeSearch\\": "src/"
+            "Search\\HomeSearch\\": "src/",
+            "Search\\": "src/"
         }
     }
 }
-

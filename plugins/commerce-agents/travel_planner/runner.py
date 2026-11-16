@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import datetime
 import inspect
 import json
 import os
@@ -57,6 +58,9 @@ class TravelStorefrontBackend(StorefrontBackend):
     async def add_favorite(self, session: ShoppingSessionContext, destination_name: str | None = None, destination_id: str | None = None) -> dict:
         pass
 
+    async def remove_favorite(self, session: ShoppingSessionContext, destination_name: str | None = None, destination_id: str | None = None) -> dict:
+        pass
+
     async def get_favorites(self, session: ShoppingSessionContext) -> list:
         pass
 
@@ -75,7 +79,16 @@ class TravelStorefrontBackend(StorefrontBackend):
     async def update_booking_dates(self, session: ShoppingSessionContext, booking_id: int | None = None, booking_code: str | None = None, check_in_date: str | None = None, check_out_date: str | None = None, nights: int = 3) -> dict:
         pass
 
-    async def confirm_bank_transfer(self, session: ShoppingSessionContext, booking_id: int | None = None, booking_code: str | None = None) -> dict:
+    async def confirm_bank_transfer(self, session: ShoppingSessionContext, booking_id: int | None = None, booking_code: str | None = None, action: str | None = None, only_info: bool = False) -> dict:
+        pass
+
+    async def generate_smart_itinerary(self, session: ShoppingSessionContext, trip_id: int | None = None, mode: str = 'fill_empty') -> dict:
+        pass
+
+    async def initiate_checkout(self, session: ShoppingSessionContext, provider: str | None = None) -> dict:
+        pass
+
+    async def checkout_trip(self, session: ShoppingSessionContext, trip_id: int | None = None, action: str | None = None) -> dict:
         pass
 
 
@@ -174,6 +187,83 @@ def detect_active_city_from_history(messages: list, state_data: dict) -> str | N
     return None
 
 
+def extract_nights_from_text(text: str) -> int | None:
+    """Trích xuất số đêm lưu trú từ câu prompt."""
+    if not text:
+        return None
+    # 1. Khớp dạng X ngày Y đêm -> Y đêm (ví dụ: 3 ngày 2 đêm -> 2)
+    m = re.search(r'(?i)\b\d+\s*ngày\s*(\d+)\s*đêm\b', text)
+    if m:
+        return int(m.group(1))
+    # 2. Khớp dạng Y đêm (ví dụ: 2 đêm -> 2)
+    m = re.search(r'(?i)\b(\d+)\s*đêm\b', text)
+    if m:
+        return int(m.group(1))
+    # 3. Khớp dạng X ngày (ví dụ: 3 ngày -> 3)
+    m = re.search(r'(?i)\b(\d+)\s*ngày\b', text)
+    if m:
+        return int(m.group(1))
+    return None
+
+
+def extract_dates_from_text(text: str) -> list[str]:
+    """Trích xuất các ngày tháng từ văn bản và chuẩn hóa về định dạng YYYY-MM-DD."""
+    if not text:
+        return []
+    dates = []
+    # 1. Tìm định dạng YYYY-MM-DD
+    for m in re.finditer(r'\b(\d{4})-(\d{1,2})-(\d{1,2})\b', text):
+        year, month, day = m.group(1), int(m.group(2)), int(m.group(3))
+        dates.append(f"{year}-{month:02d}-{day:02d}")
+
+    # 2. Tìm định dạng DD/MM/YYYY hoặc DD-MM-YYYY
+    for m in re.finditer(r'\b(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})\b', text):
+        day, month, year = int(m.group(1)), int(m.group(2)), m.group(3)
+        formatted = f"{year}-{month:02d}-{day:02d}"
+        if formatted not in dates:
+            dates.append(formatted)
+
+    # 3. Hỗ trợ mốc thời gian tương đối: hôm nay, ngày mai
+    t = text.lower()
+    today = datetime.date.today()
+    if any(k in t for k in ["bắt đầu từ hôm nay", "từ hôm nay", "hôm nay", "ngày hôm nay"]):
+        d_str = today.strftime("%Y-%m-%d")
+        if d_str not in dates:
+            dates.append(d_str)
+    elif any(k in t for k in ["bắt đầu từ ngày mai", "từ ngày mai", "ngày mai"]):
+        d_str = (today + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+        if d_str not in dates:
+            dates.append(d_str)
+
+    return dates
+
+
+def remove_accents(input_str: str) -> str:
+    """Chuyển đổi chuỗi tiếng Việt có dấu sang không dấu để đối sánh linh hoạt."""
+    import unicodedata
+    if not input_str:
+        return ""
+    nfkd_form = unicodedata.normalize('NFKD', input_str)
+    return "".join([c for c in nfkd_form if not unicodedata.combining(c)]).replace('đ', 'd').replace('Đ', 'D')
+
+
+def has_negative_intent(text: str) -> bool:
+    """Kiểm tra xem câu có ý định phủ định (từ chối, yêu cầu không thực hiện) hay không.
+    Tránh nhầm lẫn giới từ 'cho'/'Cho' với phủ định.
+    """
+    if not text:
+        return False
+    t = text.lower()
+    patterns = [
+        r'\b(đừng|dung|chớ|thôi không|không cần|khong can|không muốn|khong muon)\b',
+        r'\bchớ\b',
+    ]
+    for p in patterns:
+        if re.search(p, t):
+            return True
+    return False
+
+
 def classify_general_prompt(text: str) -> str | None:
     """Kiểm tra xem câu hỏi có phải là câu hỏi chung chung (chưa xác định địa điểm cụ thể) hay không.
     Trả về loại chủ đề: destinations | hotels | itineraries | cuisine | None
@@ -181,33 +271,53 @@ def classify_general_prompt(text: str) -> str | None:
     if not text:
         return None
 
+    # Nếu câu prompt là hành động nghiệp vụ trực tiếp thì không phải câu hỏi chung chung
+    if is_business_action_prompt(text):
+        return None
+
+    # Nếu câu prompt là yêu cầu tự động hóa hoặc thực hiện nghiệp vụ thì không phải câu hỏi chung chung
+    t = text.lower().strip()
+    if any(k in t for k in [
+        "tự động", "automation", "tự động hóa", "hãy tự động", "tự động làm", "tự động thực hiện",
+        "tự động lên", "tự động đặt", "tự động thêm", "tự động tạo", "tự động lưu", "auto"
+    ]):
+        return None
+
     # Nếu trong câu đã nhắc tới một thành phố cụ thể thì không phải câu hỏi chung chung
     if detect_city_in_text(text):
         return None
 
     t = text.lower().strip()
+    t_no_acc = remove_accents(t)
 
     # Nhóm khách sạn / lưu trú
-    if any(k in t for k in ["khách sạn", "đặt phòng", "resort", "lưu trú", "nhà nghỉ", "homestay", "chỗ ở", "thuê phòng"]):
+    if any(k in t or k in t_no_acc for k in [
+        "khách sạn", "khach san", "đặt phòng", "dat phong", "resort", "lưu trú", "luu tru",
+        "nhà nghỉ", "nha nghi", "homestay", "chỗ ở", "cho o", "thuê phòng", "thue phong"
+    ]):
         return "hotels"
 
     # Nhóm lịch trình / kế hoạch
-    if any(k in t for k in ["lên lịch trình", "lịch trình", "kế hoạch", "tour", "hành trình"]):
+    if any(k in t or k in t_no_acc for k in [
+        "lên lịch trình", "len lich trinh", "lịch trình", "lich trinh", "kế hoạch", "ke hoach", "tour", "hành trình", "hanh trinh"
+    ]):
         return "itineraries"
 
     # Nhóm ẩm thực / ăn uống
-    if any(k in t for k in ["ẩm thực", "món ngon", "ăn uống", "đặc sản", "ăn gì", "quán ăn"]):
+    if any(k in t or k in t_no_acc for k in [
+        "ẩm thực", "am thuc", "món ngon", "mon ngon", "ăn uống", "an uong", "đặc sản", "dac san", "ăn gì", "an gi", "quán ăn", "quan an"
+    ]):
         return "cuisine"
 
     # Nhóm tham quan / du lịch / điểm đến chung chung
-    if any(k in t for k in [
-        "tham quan", "du lịch", "điểm đến", "địa điểm", "điểm tham quan",
-        "gợi ý", "khám phá", "đi đâu", "chỗ chơi", "thắng cảnh", "danh lam", "bắt đầu"
+    if any(k in t or k in t_no_acc for k in [
+        "tham quan", "du lịch", "du lich", "điểm đến", "diem den", "địa điểm", "dia diem", "điểm tham quan", "diem tham quan",
+        "gợi ý", "goi y", "khám phá", "kham pha", "đi đâu", "di dau", "chỗ chơi", "cho choi", "thắng cảnh", "thang canh", "danh lam", "bắt đầu", "bat dau"
     ]):
         return "destinations"
 
     # Những câu chào hỏi ngắn không gắn địa điểm
-    if any(k == t for k in ["chào", "xin chào", "chào bạn", "hello", "hi", "alo", "start", "bắt đầu"]):
+    if any(k == t or k == t_no_acc for k in ["chào", "chao", "xin chào", "xin chao", "chào bạn", "chao ban", "hello", "hi", "alo", "start", "bắt đầu", "bat dau"]):
         return "destinations"
 
     return None
@@ -237,21 +347,37 @@ def sanitize_suggestions_for_city(suggestions: list[str], active_city: str | Non
 def resolve_guided_city_or_topic(user_message: str, active_city: str | None) -> tuple[str, list[str]] | None:
     """Xử lý điều hướng các điểm đến, thành phố và trải nghiệm trong cây gợi ý phân tầng khi chạy ở chế độ cục bộ/dự phòng."""
     u = (user_message or "").lower().strip()
+    u_no_acc = remove_accents(u)
+    if is_booking_intent(u) or is_payment_intent(u) or is_trip_checkout_intent(u) or is_cancel_booking_intent(u) or is_update_dates_intent(u):
+        return None
     detected_city = detect_city_in_text(user_message)
     target_city = detected_city or active_city
 
+    # 0. Xử lý yêu cầu tự động hóa (Automation)
+    if any(k in u or k in u_no_acc for k in ["tự động", "tu dong", "automation", "tự động hóa", "tu dong hoa", "tự động làm", "tu dong lam", "tự động lên", "tu dong len", "tự động đặt", "tu dong dat", "tự động thêm", "tu dong them", "auto"]):
+        target = target_city or "Đà Nẵng"
+        ans = (
+            f"Trợ lý AI Travel Planner đã kích hoạt chế độ tự động hóa thông minh cho chuyến đi tại {target}!\n\n"
+            f"• Tự động tối ưu và xếp lịch trình tham quan từng ngày vào kế hoạch chuyến đi.\n"
+            f"• Tự động chọn lọc khách sạn và điểm đến nổi bật nhất từ cơ sở dữ liệu Travel Planner.\n"
+            f"• Sẵn sàng đồng bộ trực tiếp vào chuyến đi và lưu danh sách yêu thích của bạn.\n\n"
+            f"Mời bạn chọn tác vụ bạn muốn hệ thống tự động hoàn tất ngay:"
+        )
+        chips = [f"Lịch trình {target} 3 ngày", f"Khách sạn {target}", f"Lưu yêu thích {target}", "Tạo chuyến đi mới"]
+        return ans, sanitize_suggestions_for_city(chips, target)
+
     # Nhận diện nếu câu hỏi hướng tới một trải nghiệm/chủ đề cụ thể thay vì chỉ là chọn tên thành phố chung
-    is_specific_category = any(k in u for k in [
-        "ẩm thực", "món", "ăn uống", "ăn gì", "đặc sản",
-        "khách sạn", "resort", "lưu trú", "nghỉ dưỡng", "phòng", "đặt phòng",
-        "bãi biển", "biển", "tắm biển",
-        "núi", "bà nà", "ngũ hành sơn", "sơn trà",
-        "lịch trình", "kế hoạch", "tour",
-        "mì quảng", "bánh tráng", "chợ cồn", "hải sản",
-        "phở", "bún chả", "cà phê trứng", "chợ đồng xuân",
-        "cơm tấm", "bánh mì", "chợ bến thành",
-        "bún bò", "bánh bèo", "chợ đông ba",
-        "ngày", "đêm", "ngân sách", "trẻ nhỏ", "con nhỏ"
+    is_specific_category = any(k in u or k in u_no_acc for k in [
+        "ẩm thực", "am thuc", "món", "mon", "ăn uống", "an uong", "ăn gì", "an gi", "đặc sản", "dac san",
+        "khách sạn", "khach san", "resort", "lưu trú", "luu tru", "nghỉ dưỡng", "nghi duong", "phòng", "phong", "đặt phòng", "dat phong",
+        "bãi biển", "bai bien", "biển", "bien", "tắm biển", "tam bien",
+        "núi", "nui", "bà nà", "ba na", "ngũ hành sơn", "ngu hanh son", "sơn trà", "son tra",
+        "lịch trình", "lich trinh", "kế hoạch", "ke hoach", "tour",
+        "mì quảng", "mi quang", "bánh tráng", "banh trang", "chợ cồn", "cho con", "hải sản", "hai san",
+        "phở", "pho", "bún chả", "bun cha", "cà phê trứng", "ca phe trung", "chợ đồng xuân", "cho dong xuan",
+        "cơm tấm", "com tam", "bánh mì", "banh mi", "chợ bến thành", "cho ben thanh",
+        "bún bò", "bun bo", "bánh bèo", "banh beo", "chợ đông ba", "cho dong ba",
+        "ngày", "ngay", "đêm", "dem", "ngân sách", "ngan sach", "trẻ nhỏ", "tre nho", "con nhỏ", "con nho"
     ])
 
     # 1. Người dùng chọn hoặc hỏi giới thiệu tổng quan một thành phố cụ thể (khi không đi kèm hạng mục chi tiết)
@@ -591,9 +717,9 @@ def resolve_guided_city_or_topic(user_message: str, active_city: str | None) -> 
             chips = ["Khách sạn Sài Gòn Morin", "Resort ven sông Hương", "Xem phòng trống"]
             return ans, sanitize_suggestions_for_city(chips, "Huế")
 
-        if any(k in u for k in ["lịch trình", "kế hoạch", "tour"]):
+        if any(k in u or k in u_no_acc for k in ["lịch trình", "lich trinh", "kế hoạch", "ke hoach", "tour"]):
             ans = (
-                "Travel Planner cung cấp các khung lịch trình khám phá di sản cố đô Huế và lăng tẩm hoàng gia.\n\n"
+                "Travel Planner cung cấp các khung lịch trình khám phá di sản cố đô Huế và lăng tẩm hoàng gia (gợi ý: Lịch trình 2 ngày 1 đêm hoặc 3 ngày 2 đêm).\n\n"
                 "Mời bạn chọn lịch trình bạn muốn tham khảo:"
             )
             chips = ["Lịch trình Huế 2 ngày 1 đêm", "Lịch trình Huế 3 ngày 2 đêm", "Lịch trình Huế 1 ngày di sản"]
@@ -640,6 +766,19 @@ def resolve_guided_city_or_topic(user_message: str, active_city: str | None) -> 
         chips = ["Lịch trình Đà Nẵng 3 ngày", "Lịch trình Hà Nội 3 ngày", "Lịch trình TP.HCM 2 ngày", "Lịch trình Huế 2 ngày"]
         return ans, chips
 
+    # Hỗ trợ yêu cầu tự động hóa trong chế độ dự phòng/cục bộ
+    if any(k in u for k in ["tự động", "automation", "tự động hóa", "tự động làm", "tự động lên", "tự động đặt", "tự động thêm", "auto"]):
+        target = target_city or "Đà Nẵng"
+        ans = (
+            f"Trợ lý AI Travel Planner đã kích hoạt chế độ tự động hóa thông minh cho chuyến đi tại {target}!\n\n"
+            f"• Tự động tối ưu và xếp lịch trình tham quan từng ngày vào kế hoạch chuyến đi.\n"
+            f"• Tự động chọn lọc khách sạn và điểm đến nổi bật nhất từ cơ sở dữ liệu Travel Planner.\n"
+            f"• Sẵn sàng đồng bộ trực tiếp vào chuyến đi và lưu danh sách yêu thích của bạn.\n\n"
+            f"Mời bạn chọn tác vụ bạn muốn hệ thống tự động hoàn tất ngay:"
+        )
+        chips = [f"Lịch trình {target} 3 ngày", f"Khách sạn {target}", f"Lưu yêu thích {target}", "Tạo chuyến đi mới"]
+        return ans, sanitize_suggestions_for_city(chips, target)
+
     if any(k in u for k in ["điểm đến khác", "chọn thành phố khác", "thành phố khác"]):
         ans = (
             "Mời bạn chọn một thành phố du lịch dưới đây để bắt đầu hành trình khám phá mới:"
@@ -650,59 +789,285 @@ def resolve_guided_city_or_topic(user_message: str, active_city: str | None) -> 
     return None
 
 
-def is_business_action_prompt(text: str) -> bool:
-    """Kiểm tra xem câu prompt của người dùng có phải là yêu cầu thực hiện trực tiếp một tính năng nghiệp vụ hay không.
-    (Ví dụ: thêm/xóa yêu thích, thêm/xóa vào chuyến đi, đặt phòng, xác nhận chuyển khoản, đổi ngày...)
-    Khi người dùng nhập trực tiếp các tính năng này chứng tỏ họ đã biết thông tin cụ thể, không cần hiển thị nút gợi ý hay ô thông tin bổ sung.
-    """
+def is_cancel_booking_intent(text: str) -> bool:
+    """Nhận diện ý định hủy đơn đặt phòng khách sạn."""
     if not text:
         return False
     t = text.lower().strip()
+    if has_negative_intent(t):
+        return False
+    if any(q in t for q in ["không?", "khong?", "được không", "the nao", "chính sách", "quy định", "như thế nào"]) or t.endswith("?"):
+        return False
+    return any(k in t for k in [
+        "hủy phòng", "huy phong", "hủy đặt phòng", "huy dat phong", "hủy booking", "huy booking",
+        "hủy đơn đặt phòng", "huy don dat phong", "hủy đơn", "huy don", "xóa phòng", "xoa phong",
+        "bỏ phòng", "bo phong", "tự động hủy", "tu dong huy", "hủy khách sạn", "huy khach san"
+    ]) or bool(re.search(r'(?i)\b(hủy|huy|cancel)\s+(#?bk|đơn|booking|phòng|lịch phòng)', t))
 
-    # 1. Nhóm yêu thích (Favorites)
+
+def is_update_dates_intent(text: str) -> bool:
+    """Nhận diện ý định đổi ngày / thay đổi ngày nhận hoặc trả phòng."""
+    if not text:
+        return False
+    t = text.lower().strip()
+    if has_negative_intent(t):
+        return False
+    if any(q in t for q in ["không?", "khong?", "được không", "the nao", "chính sách", "quy định", "như thế nào"]) or t.endswith("?"):
+        return False
+    return any(k in t for k in [
+        "đổi ngày", "doi ngay", "dời ngày", "thay đổi ngày", "thay doi ngay",
+        "cập nhật ngày", "cap nhat ngay", "đổi lịch phòng", "doi lich phong", "đổi lịch đặt phòng",
+        "thay đổi lịch phòng", "chuyển ngày phòng", "dời lịch"
+    ]) or bool(re.search(r'(?i)\b(đổi|doi|dời|thay đổi)\s+.*?\b(ngày|lịch|check in|check out)\b', t))
+
+
+def is_trip_checkout_intent(text: str) -> bool:
+    """Nhận diện ý định thanh toán tổng toàn bộ chuyến đi / kế hoạch chuyến đi / giỏ hàng."""
+    if not text:
+        return False
+    t = text.lower().strip()
+    if has_negative_intent(t):
+        return False
     if any(k in t for k in [
-        "yêu thích", "ưa thích", "vào yêu thích", "lưu yêu thích", "bỏ yêu thích", "xóa yêu thích",
-        "mục yêu thích", "danh sách yêu thích", "xem yêu thích", "thêm yêu thích"
+        "tiến hành đặt chuyến đi", "đặt chuyến đi của tôi", "đặt chuyến đi",
+        "thanh toán toàn bộ chuyến đi", "thanh toán toàn bộ", "thanh toán chuyến đi",
+        "thanh toán kế hoạch", "thanh toán kế hoạch chuyến đi", "thanh toán cả chuyến đi",
+        "thanh toán hết", "thanh toán tổng", "thanh toán giỏ hàng", "thanh toán các mục",
+        "thanh toan chuyen di", "thanh toan toan bo", "thanh toan tong", "checkout trip", "checkout cart"
     ]):
         return True
+    return bool(re.search(r'(?i)\b(thanh toán|đặt)\s+(toàn bộ|tổng|cả|hết)?\s*(kế hoạch\s+)?(chuyến đi|trip|giỏ hàng)\b', t))
 
-    # 2. Nhóm chuyến đi / Trip
+
+def is_payment_intent(text: str) -> bool:
+    """Nhận diện ý định thanh toán hoặc chuyển khoản ngân hàng."""
+    if not text:
+        return False
+    t = text.lower().strip()
+    if has_negative_intent(t):
+        return False
+    return any(k in t for k in [
+        "thanh toán", "chuyển khoản", "lấy mã qr", "mã qr", "qr thanh toán", "cho tôi qr",
+        "thanh toán đơn", "cho tôi thanh toán", "hướng dẫn thanh toán", "xác nhận chuyển khoản",
+        "chuyển tiền", "đã chuyển khoản", "đã thanh toán", "đã ck", "xác nhận ck", "kiểm tra thanh toán",
+        "kiểm tra chuyển khoản", "thanh toán phòng", "thanh toán booking", "thanh toán đơn đặt phòng",
+        "muốn thanh toán", "muốn chuyển khoản", "lấy qr", "trả tiền", "hoàn tất chuyển khoản",
+        "hoàn tất thanh toán", "xác nhận đã chuyển khoản", "xác nhận thanh toán", "xác nhận đơn"
+    ]) or bool(re.search(r'(?i)\b(chuyển khoản|thanh toán|chuyển tiền|trả tiền|hoàn tất chuyển khoản|xác nhận đã chuyển khoản|xác nhận thanh toán)\b', t))
+
+
+def is_booking_intent(text: str) -> bool:
+    """Nhận diện ý định đặt phòng khách sạn."""
+    if not text:
+        return False
+    t = text.lower().strip()
+    if has_negative_intent(t):
+        return False
+    if is_cancel_booking_intent(t) or is_payment_intent(t) or is_update_dates_intent(t):
+        return False
+    if any(q in t for q in ["không?", "khong?", "được không", "the nao", "chính sách", "quy định", "như thế nào"]) or t.endswith("?"):
+        return False
     if any(k in t for k in [
-        "vào chuyến đi", "vào trip", "thêm vào trip", "thêm vào chuyến đi",
-        "lưu vào chuyến đi", "xóa khỏi chuyến đi", "xóa khỏi trip", "chuyến đi của tôi",
-        "kế hoạch chuyến đi", "xem chuyến đi", "xem trip", "lên kế hoạch cho", "tạo chuyến đi"
+        "đặt phòng", "dat phong", "đặt lịch phòng", "dat lich phong", "book phòng", "book phong",
+        "đặt khách sạn", "dat khach san", "book khách sạn", "book khach san",
+        "đặt resort", "dat resort", "book resort",
+        "thuê phòng", "thue phong", "thuê khách sạn", "thuê resort",
+        "đặt chỗ nghỉ", "dat cho nghi", "book chỗ nghỉ", "book cho nghi",
+        "đặt chỗ lưu trú", "book chỗ lưu trú", "đặt phòng nghỉ", "book phòng nghỉ",
+        "tự động đặt phòng", "tự động book phòng", "auto book phòng", "auto book",
+        "hãy đặt phòng", "hãy book phòng", "đặt ngay",
+        "đặt lịch", "dat lich", "đặt chỗ", "dat cho", "đặt kỳ nghỉ", "book lịch", "book chỗ"
     ]):
         return True
-
-    # 3. Nhóm đặt phòng / Booking (trực tiếp ra lệnh đặt phòng)
-    if any(k in t for k in [
-        "đặt lịch phòng", "đặt lịch", "đặt phòng", "book phòng", "hãy đặt", "đặt ngay",
-        "hủy phòng", "hủy đặt phòng", "hủy booking", "đặt chỗ"
-    ]):
+    if re.search(r'(?i)\b(đặt|dat|book|thuê|thue)\s+(ngay\s+)?(lịch\s+)?(\d+\s+)?(phòng|khách sạn|resort|chỗ nghỉ|chỗ lưu trú)', t):
         return True
-
-    # 4. Nhóm thanh toán / Chuyển khoản (Bank transfer & Checkout)
-    if any(k in t for k in [
-        "chuyển khoản", "thanh toán", "xác nhận chuyển khoản", "chuyển tiền", "đã chuyển khoản",
-        "hoàn tất chuyển khoản", "đã xác nhận thanh toán", "xác nhận thanh toán", "đã thanh toán",
-        "hoàn tất thanh toán", "đã chuyển tiền", "đã ck", "xác nhận ck", "kiểm tra thanh toán",
-        "kiểm tra đơn", "kiểm tra chuyển khoản"
-    ]):
+    if re.search(r'(?i)\b(đặt|dat|book|thuê|thue)\s+.*?\b(phòng|khách sạn|resort|chỗ nghỉ|chỗ lưu trú|homestay|villa)\b', t):
         return True
-
-    # 5. Nhóm đổi ngày / Cập nhật ngày lưu trú
-    if any(k in t for k in [
-        "đổi ngày", "cập nhật ngày", "dời ngày", "thay đổi ngày"
-    ]):
+    if re.search(r'(?i)\b(đặt|dat|book|thuê|thue)\s+(lịch\s+)?(\d+\s*ngày\s*)?(\d+\s*đêm\s*)?(tại|ở|ở tại|cho|của)\b', t):
         return True
-
-    # 6. Nhóm xem giỏ hàng / đơn hàng cụ thể
-    if any(k in t for k in [
-        "giỏ hàng của tôi", "xem giỏ hàng", "đơn đặt phòng của tôi", "lịch sử đặt phòng", "danh sách đơn", "xem đơn"
-    ]):
+    if re.search(r'(?i)\b(muốn|cần|giúp tôi)\s+(đặt|book)\s+(phòng|khách sạn|resort)', t):
         return True
-
     return False
+
+
+def is_remove_trip_intent(text: str) -> bool:
+    """Nhận diện ý định xóa điểm đến khỏi chuyến đi."""
+    if not text:
+        return False
+    t = text.lower().strip()
+    if has_negative_intent(t):
+        return False
+    return any(k in t for k in [
+        "xóa khỏi chuyến đi", "xoa khoi chuyen di", "xóa khỏi trip", "xoa khoi trip",
+        "bỏ khỏi chuyến đi", "bo khoi chuyen di", "bỏ khỏi trip", "bo khoi trip",
+        "bỏ ra khỏi chuyến đi", "bỏ ra khỏi trip", "loại bỏ khỏi chuyến đi", "xóa khỏi kế hoạch"
+    ]) or bool(re.search(r'(?i)\b(xóa|xoa|bỏ|bo)\s+.*?\s+(khỏi|ra khỏi)\s+(chuyến đi|trip|kế hoạch)', t))
+
+
+def is_itinerary_intent(text: str) -> bool:
+    """Nhận diện ý định tự động tạo / sinh lịch trình thông minh bằng AI cho chuyến đi."""
+    if not text:
+        return False
+    t = text.lower().strip()
+    if has_negative_intent(t):
+        return False
+    return any(k in t for k in [
+        "tự động tạo lịch trình", "tự động sinh lịch trình", "tự động lên lịch trình",
+        "sinh lịch trình bằng ai", "tạo lịch trình bằng ai", "lên lịch trình ai",
+        "tự động lập lịch trình", "lên lịch trình thông minh", "gợi ý lịch trình tự động",
+        "tự động sắp xếp lịch trình", "tự động tạo itinerary", "auto generate itinerary",
+        "tự động tạo kế hoạch", "lập lịch trình tự động", "sinh lịch trình ai",
+        "lịch trình thông minh"
+    ]) or bool(re.search(r'(?i)\b(tự động|auto|sinh|tạo|lập|sắp xếp|gợi ý)\s+.*?\b(lịch trình|itinerary)\b', t)) or bool(re.search(r'(?i)\b(lịch trình|itinerary)\s+.*?\b(thông minh|ai|tự động)\b', t))
+
+
+def is_trip_intent(text: str) -> bool:
+    """Nhận diện ý định thêm điểm đến vào chuyến đi."""
+    if not text:
+        return False
+    t = text.lower().strip()
+    if has_negative_intent(t) or is_remove_trip_intent(t) or is_itinerary_intent(t):
+        return False
+    if any(k in t for k in [
+        "vào chuyến đi", "vào trip", "thêm vào trip", "thêm vào chuyến đi", "lưu vào chuyến đi",
+        "lên lịch đi điểm này", "thêm điểm này vào chuyến đi", "cho vào trip", "cho vào chuyến đi",
+        "vào kế hoạch chuyến đi", "vào kế hoạch trip"
+    ]):
+        return True
+    return bool(re.search(r'(?i)\b(thêm|lưu|cho|đưa)\s+.*?\s+(vào|cho)\s+(chuyến đi|trip|kế hoạch chuyến đi|kế hoạch)', t))
+
+
+def is_remove_favorite_intent(text: str) -> bool:
+    """Nhận diện ý định xóa khỏi danh sách yêu thích."""
+    if not text:
+        return False
+    t = text.lower().strip()
+    if has_negative_intent(t):
+        return False
+    return any(k in t for k in [
+        "xóa khỏi yêu thích", "xoa khoi yeu thich", "xóa khỏi mục yêu thích", "xóa khỏi danh sách yêu thích",
+        "bỏ yêu thích", "bo yeu thich", "bỏ khỏi yêu thích", "bỏ ưa thích", "xóa yêu thích", "hủy yêu thích",
+        "bỏ khỏi danh sách yêu thích", "không thích nữa"
+    ]) or bool(re.search(r'(?i)\b(xóa|xoa|bỏ|bo)\s+.*?\s+(khỏi|ra khỏi)?\s*(yêu thích|ưa thích)', t))
+
+
+def is_favorite_intent(text: str) -> bool:
+    """Nhận diện ý định thêm điểm đến vào danh sách yêu thích."""
+    if not text:
+        return False
+    t = text.lower().strip()
+    if has_negative_intent(t) or is_remove_favorite_intent(t):
+        return False
+    if any(k in t for k in [
+        "yêu thích", "ưa thích", "vào yêu thích", "lưu yêu thích", "thêm yêu thích",
+        "thích điểm này", "thích địa điểm này", "mục yêu thích", "danh sách yêu thích",
+        "thêm vào yêu thích", "lưu vào yêu thích", "cho vào yêu thích", "thích điểm đến này",
+        "lưu điểm này", "thích chỗ này"
+    ]):
+        return True
+    return bool(re.search(r'(?i)\b(thêm|lưu|cho)\s+.*?\s+(vào|mục|danh sách)\s+(yêu thích|ưa thích)', t))
+
+
+def extract_room_count_from_text(text: str) -> int:
+    """Trích xuất số lượng phòng cần đặt từ câu prompt (ví dụ: 'đặt 2 phòng' -> 2)."""
+    if not text:
+        return 1
+    m = re.search(r'(?i)\b(\d+)\s*phòng\b', text)
+    if m:
+        return max(1, min(10, int(m.group(1))))
+    return 1
+
+
+def extract_booking_code_from_text(text: str) -> str | None:
+    """Trích xuất mã đơn đặt phòng #BK-... hoặc #TRIP-... hoặc mã số đơn từ câu prompt."""
+    if not text:
+        return None
+    match = re.search(r'#?((?:BK|TRIP)[-A-Za-z0-9]+)', text, re.IGNORECASE)
+    if match:
+        code = match.group(1).upper()
+        return f"#{code}" if not code.startswith('#') else code
+    num_match = re.search(r'(?i)\b(?:đơn|mã đơn|booking|mã)\s*(?:số|id)?\s*#?(\d+)\b', text)
+    if num_match:
+        return num_match.group(1)
+    return None
+
+
+def extract_destination_from_text(text: str) -> str | None:
+    """Trích xuất tên điểm đến từ câu prompt."""
+    if not text:
+        return None
+    cleaned = text
+    prefixes = [
+        r'^\s*(tự động\s+)?(thêm|lưu|cho|đưa|hãy|bỏ|xóa)\s+(vào|cho|khỏi|ra khỏi)?\s*(trip|chuyến đi|kế hoạch|danh sách yêu thích|mục yêu thích|danh sách|mục|yêu thích)?\s*(điểm|địa điểm|nơi)?\s*',
+        r'^\s*(thêm|lưu|cho|đưa|hãy|bỏ|xóa)\s*',
+    ]
+    for p in prefixes:
+        cleaned = re.sub(p, '', cleaned, flags=re.IGNORECASE)
+
+    suffixes = [
+        r'\s+(vào|cho|khỏi|ra khỏi)\s+(danh sách\s+)?(mục\s+)?(chuyến đi|trip|kế hoạch chuyến đi|kế hoạch|yêu thích|ưa thích)(\s+của tôi)?(\s+(nhé|nha|ạ|đi|giúp tôi|cho tôi))?$',
+        r'\s+(vào|khỏi)\s+(chuyến đi|trip|kế hoạch|yêu thích|ưa thích)(\s+của tôi)?$',
+        r'\s+(của tôi|giúp tôi|cho tôi|nhé|nha|ạ|đi)$',
+    ]
+    for s in suffixes:
+        cleaned = re.sub(s, '', cleaned, flags=re.IGNORECASE)
+
+    cleaned = re.sub(r'^(điểm|địa điểm|nơi)\s+', '', cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+    city = detect_city_in_text(cleaned)
+    if cleaned and len(cleaned) > 2 and cleaned.lower() not in ['điểm này', 'chỗ này', 'đây', 'điểm']:
+        return cleaned
+    return city
+
+
+def extract_hotel_from_text(text: str) -> str | None:
+    """Trích xuất tên khách sạn/resort từ câu prompt."""
+    if not text:
+        return None
+    # 1. Loại bỏ các mệnh lệnh đặt phòng
+    cleaned = re.sub(r'(?i)\b(tự động|auto|hãy|cho tôi|giúp tôi)?\s*(đặt|book|thuê)\s*(ngay\s*)?(\d+\s*)?(phòng|lịch phòng|lịch nghỉ|lịch|kỳ nghỉ|khách sạn|resort|chỗ nghỉ|chỗ lưu trú)?\b', '', text)
+    cleaned = re.sub(r'(?i)\b(tự động đặt phòng|tự động book phòng|auto book phòng|hãy đặt phòng|hãy book phòng|đặt phòng|đặt lịch phòng|đặt lịch|dat lich|book phòng|đặt khách sạn|book khách sạn|đặt resort|book resort|hãy đặt|thuê phòng|thuê resort|thuê khách sạn|đặt chỗ nghỉ|book chỗ nghỉ|book ngay|đặt ngay|book|đặt)\b', '', cleaned)
+    # 2. Loại bỏ các cụm số lượng phòng (ví dụ: 2 phòng, 1 phòng)
+    cleaned = re.sub(r'(?i)\b\d+\s*phòng\b', '', cleaned)
+    # 3. Loại bỏ các cụm thời gian lưu trú (ví dụ: 3 ngày 2 đêm, 2 đêm, 3 ngày...)
+    cleaned = re.sub(r'(?i)\b\d+\s*ngày\s*\d+\s*đêm\b', '', cleaned)
+    cleaned = re.sub(r'(?i)\b\d+\s*(ngày|đêm|người)\b', '', cleaned)
+    # 4. Loại bỏ các mốc thời gian bắt đầu
+    cleaned = re.sub(r'(?i)\b(bắt đầu từ hôm nay|bắt đầu từ ngày mai|bắt đầu từ|từ hôm nay|từ ngày mai|hôm nay|ngày mai)\b', '', cleaned)
+    # 5. Loại bỏ ngày cụ thể định dạng YYYY-MM-DD hoặc DD/MM/YYYY
+    cleaned = re.sub(r'\b\d{4}-\d{1,2}-\d{1,2}\b', '', cleaned)
+    cleaned = re.sub(r'\b\d{1,2}[/.-]\d{1,2}[/.-]\d{4}\b', '', cleaned)
+    cleaned = re.sub(r'(?i)\b(từ ngày|đến ngày|sang ngày|từ|đến)\b', '', cleaned)
+    # 6. Loại bỏ các từ nối và lịch sự đầu/cuối câu
+    while True:
+        prev = cleaned.strip()
+        cleaned = re.sub(r'(?i)^(lịch|lịch nghỉ|kỳ nghỉ|chỗ|chỗ nghỉ|của|ở|tại|ở tại|cho tôi|giúp tôi|ở khu|khu vực)\s+', '', prev)
+        if cleaned == prev:
+            break
+    cleaned = re.sub(r'(?i)\s+(cho tôi|giúp tôi|nhé|nha|với|ạ|đi)$', '', cleaned.strip())
+    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+    city = detect_city_in_text(cleaned)
+    if cleaned and len(cleaned) > 2 and cleaned.lower() not in ['khách sạn', 'resort', 'phòng', 'chỗ nghỉ', 'ngay', 'lịch', 'chỗ']:
+        return cleaned
+    return city
+
+
+def is_business_action_prompt(text: str) -> bool:
+    """Kiểm tra xem câu prompt của người dùng có phải là yêu cầu thực hiện trực tiếp một tính năng nghiệp vụ hay không."""
+    if not text:
+        return False
+    if (is_favorite_intent(text) or is_remove_favorite_intent(text) or
+        is_payment_intent(text) or is_booking_intent(text) or
+        is_cancel_booking_intent(text) or is_update_dates_intent(text) or
+        is_trip_intent(text) or is_remove_trip_intent(text) or is_itinerary_intent(text) or
+        is_trip_checkout_intent(text)):
+        return True
+    t = text.lower().strip()
+    return any(k in t for k in [
+        "yêu thích", "ưa thích", "vào chuyến đi", "vào trip", "đặt phòng", "book phòng",
+        "hủy phòng", "đổi ngày", "thanh toán", "chuyển khoản", "lịch trình", "tự động",
+        "đặt lịch", "đặt chỗ", "book lịch", "book chỗ"
+    ])
 
 
 def extract_all_memory_facts(
@@ -1128,10 +1493,545 @@ async def main():
         })
         return
 
+    user_msg = (request.get('message') or '').strip()
+    active_city = current_mentioned_city or previous_active_city
+    is_guest = request.get('user_id') in (None, 'guest', '')
+
+    # Tự động hóa trực quan các nghiệp vụ người dùng: Yêu thích, Thanh toán, Đặt phòng, Chuyến đi, Hủy phòng, Đổi ngày, Lịch trình AI
+    if not is_guest:
+        backend = make_backend(TravelStorefrontBackend)
+        session = ShoppingSessionContext(session_id=request['session_id'], user_id=request['user_id'])
+
+        # 1. Hủy phòng / Hủy đơn đặt phòng -> Tự động hủy và hiển thị BookingActionCard
+        if is_cancel_booking_intent(user_msg):
+            extracted_code = extract_booking_code_from_text(user_msg)
+            extracted_hotel = extract_hotel_from_text(user_msg)
+            try:
+                res = await backend.cancel_booking(
+                    session,
+                    booking_code=extracted_code,
+                    hotel_name=extracted_hotel,
+                )
+                b_code = res.get('booking_code') or extracted_code or ''
+                h_name = res.get('hotel_name', 'Khách sạn / Resort')
+                ans_text = res.get('message') or f"Đã tự động hủy đơn đặt phòng {b_code} tại {h_name} thành công!"
+                ui_event = AgentEvent.ui(component='booking_action', payload=res)
+                emit({'type': 'agent_event', 'event': AgentEvent.text_delta(ans_text).model_dump(mode='json')})
+                emit({'type': 'agent_event', 'event': ui_event.model_dump(mode='json')})
+                messages.append({'role': 'user', 'content': user_msg})
+                messages.append({'role': 'assistant', 'content': ans_text})
+                emit({
+                    'type': 'result',
+                    'answer': ans_text,
+                    'presentations': [ui_event.data],
+                    'messages': messages,
+                    'state': raw_state,
+                    'memory': [fact.model_dump(mode='json') for fact in await memory.get_facts(subject)]
+                })
+                return
+            except Exception as e:
+                err_msg = str(e)
+                if "DomainException:" in err_msg:
+                    err_msg = err_msg.split("DomainException:", 1)[1].strip()
+                ans_text = f"Không thể tự động hủy đơn đặt phòng: {err_msg}"
+                emit({'type': 'agent_event', 'event': AgentEvent.text_delta(ans_text).model_dump(mode='json')})
+                messages.append({'role': 'user', 'content': user_msg})
+                messages.append({'role': 'assistant', 'content': ans_text})
+                emit({
+                    'type': 'result',
+                    'answer': ans_text,
+                    'presentations': [],
+                    'messages': messages,
+                    'state': raw_state,
+                    'memory': [fact.model_dump(mode='json') for fact in await memory.get_facts(subject)]
+                })
+                return
+
+        # 2. Đổi ngày / Cập nhật ngày đặt phòng -> Tự động cập nhật và hiển thị BookingActionCard
+        if is_update_dates_intent(user_msg):
+            extracted_code = extract_booking_code_from_text(user_msg)
+            dates = extract_dates_from_text(user_msg)
+            nights = extract_nights_from_text(user_msg) or 2
+            cin = dates[0] if dates and len(dates) >= 1 else None
+            cout = dates[1] if dates and len(dates) >= 2 else None
+            try:
+                res = await backend.update_booking_dates(
+                    session,
+                    booking_code=extracted_code,
+                    check_in_date=cin,
+                    check_out_date=cout,
+                    nights=nights,
+                )
+                ans_text = res.get('message') or "Đã tự động cập nhật ngày nhận/trả phòng thành công!"
+                ui_event = AgentEvent.ui(component='booking_action', payload=res)
+                emit({'type': 'agent_event', 'event': AgentEvent.text_delta(ans_text).model_dump(mode='json')})
+                emit({'type': 'agent_event', 'event': ui_event.model_dump(mode='json')})
+                messages.append({'role': 'user', 'content': user_msg})
+                messages.append({'role': 'assistant', 'content': ans_text})
+                emit({
+                    'type': 'result',
+                    'answer': ans_text,
+                    'presentations': [ui_event.data],
+                    'messages': messages,
+                    'state': raw_state,
+                    'memory': [fact.model_dump(mode='json') for fact in await memory.get_facts(subject)]
+                })
+                return
+            except Exception as e:
+                err_msg = str(e)
+                if "DomainException:" in err_msg:
+                    err_msg = err_msg.split("DomainException:", 1)[1].strip()
+                ans_text = f"Không thể cập nhật ngày đặt phòng: {err_msg}"
+                emit({'type': 'agent_event', 'event': AgentEvent.text_delta(ans_text).model_dump(mode='json')})
+                messages.append({'role': 'user', 'content': user_msg})
+                messages.append({'role': 'assistant', 'content': ans_text})
+                emit({
+                    'type': 'result',
+                    'answer': ans_text,
+                    'presentations': [],
+                    'messages': messages,
+                    'state': raw_state,
+                    'memory': [fact.model_dump(mode='json') for fact in await memory.get_facts(subject)]
+                })
+                return
+
+        # 2.5. Thanh toán tổng toàn bộ chuyến đi (Trip Checkout)
+        if is_trip_checkout_intent(user_msg):
+            try:
+                res = await backend.checkout_trip(session)
+                trip_name = res.get('hotel_name', 'Kế hoạch chuyến đi')
+                total_price = res.get('total_price', 0)
+                total_items = res.get('total_items', 0)
+                total_formatted = f"{int(total_price):,} VNĐ".replace(',', '.')
+                b_code = res.get('booking_code', '')
+                ans_text = (
+                    f"Đã tự động tính tổng số tiền thanh toán cho toàn bộ {total_items} mục trong {trip_name}: "
+                    f"{total_formatted}! Từng mục thanh toán đã được khởi tạo riêng biệt và hiển thị trong Quản lý thanh toán của Admin. "
+                    f"Quý khách vui lòng quét mã VietQR hoặc chuyển khoản theo thông tin bên dưới, sau đó bấm 'Xác nhận đã chuyển khoản' "
+                    f"để Quản trị viên (Admin) duyệt từng mục:"
+                )
+                ui_event = AgentEvent.ui(component='booking_action', payload=res)
+                emit({'type': 'agent_event', 'event': AgentEvent.text_delta(ans_text).model_dump(mode='json')})
+                emit({'type': 'agent_event', 'event': ui_event.model_dump(mode='json')})
+                messages.append({'role': 'user', 'content': user_msg})
+                messages.append({'role': 'assistant', 'content': ans_text})
+                auto_facts = extract_all_memory_facts(
+                    user_text=user_msg,
+                    assistant_text=ans_text,
+                    active_city=active_city,
+                    session_id=request['session_id'],
+                    tools_called=[{'name': 'checkout_trip', 'arguments': {}}],
+                )
+                if auto_facts:
+                    await memory.upsert_facts(subject, auto_facts)
+                emit({
+                    'type': 'result',
+                    'answer': ans_text,
+                    'presentations': [ui_event.data],
+                    'messages': messages,
+                    'state': raw_state,
+                    'memory': [fact.model_dump(mode='json') for fact in await memory.get_facts(subject)]
+                })
+                return
+            except Exception as e:
+                err_msg = str(e)
+                if "DomainException:" in err_msg:
+                    err_msg = err_msg.split("DomainException:", 1)[1].strip()
+                ans_text = f"Không thể khởi tạo thanh toán chuyến đi: {err_msg}"
+                emit({'type': 'agent_event', 'event': AgentEvent.text_delta(ans_text).model_dump(mode='json')})
+                messages.append({'role': 'user', 'content': user_msg})
+                messages.append({'role': 'assistant', 'content': ans_text})
+                emit({
+                    'type': 'result',
+                    'answer': ans_text,
+                    'presentations': [],
+                    'messages': messages,
+                    'state': raw_state,
+                    'memory': [fact.model_dump(mode='json') for fact in await memory.get_facts(subject)]
+                })
+                return
+
+        # 3. Thanh toán / Chuyển khoản ngân hàng -> Lập tức tự làm và hiển thị BookingActionCard
+        if is_payment_intent(user_msg):
+            extracted_code = extract_booking_code_from_text(user_msg)
+            is_qr_only = bool(re.search(
+                r'(?i)\b(cho tôi mã qr|lấy mã qr|xin mã qr|hướng dẫn chuyển khoản|thông tin chuyển khoản|thông tin tài khoản|cú pháp chuyển khoản|mã qr đâu|xem qr|cho xem qr)\b',
+                user_msg
+            )) and not any(k in user_msg.lower() for k in ['đã chuyển', 'hoàn tất', 'xác nhận', 'đã thanh toán', 'đã ck', 'rồi', 'thành công', 'kiểm tra'])
+            try:
+                res = await backend.confirm_bank_transfer(
+                    session,
+                    booking_code=extracted_code,
+                    action='get_info' if is_qr_only else 'confirm',
+                    only_info=is_qr_only
+                )
+                b_code = res.get('booking_code', '')
+                h_name = res.get('hotel_name', 'Khách sạn / Resort')
+                is_paid = res.get('is_paid', False)
+                awaiting_admin = res.get('awaiting_admin', False)
+                txn_id = res.get('transaction_id', '')
+                txn_str = f" (Mã giao dịch: {txn_id})" if txn_id else ""
+                is_trip = res.get('is_trip_checkout', False)
+                total_items = res.get('total_items', 1)
+                approved_items = res.get('approved_items', 0)
+                if is_paid:
+                    if is_trip:
+                        ans_text = f"Quản trị viên (Admin) đã duyệt đầy đủ tất cả {total_items}/{total_items} mục thanh toán cho chuyến đi {b_code}! Toàn bộ chuyến đi của bạn đã chính thức được xác nhận thành công."
+                    else:
+                        ans_text = f"Quản trị viên (Admin) đã duyệt và xác nhận thanh toán thành công cho đơn đặt phòng {b_code} tại {h_name}{txn_str}! Phòng của bạn đã chính thức được xác nhận sẵn sàng."
+                elif awaiting_admin:
+                    if is_trip:
+                        ans_text = f"Đã ghi nhận thông tin chuyển khoản cho chuyến đi {b_code}! Hệ thống đang chờ Quản trị viên (Admin) kiểm tra và duyệt từng mục thanh toán tại Admin Dashboard ({approved_items}/{total_items} mục đã duyệt)..."
+                    else:
+                        ans_text = f"Đã ghi nhận thông tin chuyển khoản của bạn cho đơn {b_code} tại {h_name}! Hệ thống đang chờ Quản trị viên (Admin) kiểm tra và duyệt thanh toán tại Admin Dashboard. Ngay sau khi Admin xác nhận, hệ thống sẽ tự động cập nhật phòng sẵn sàng!"
+                else:
+                    if is_trip:
+                        ans_text = f"Dưới đây là thông tin thanh toán tổng cho toàn bộ {total_items} mục trong chuyến đi {b_code}. Quý khách vui lòng quét mã QR hoặc chuyển khoản theo thông tin bên dưới, sau đó bấm nút 'Xác nhận đã chuyển khoản' để gửi yêu cầu duyệt đến Quản trị viên:"
+                    else:
+                        ans_text = f"Dưới đây là thông tin thanh toán trực quan kèm mã QR SePay / VietQR cho đơn {b_code} tại {h_name}. Quý khách vui lòng quét mã QR hoặc chuyển khoản theo thông tin bên dưới, sau đó bấm nút 'Xác nhận đã chuyển khoản' để gửi yêu cầu duyệt đến Quản trị viên:"
+                ui_event = AgentEvent.ui(component='booking_action', payload=res)
+                emit({'type': 'agent_event', 'event': AgentEvent.text_delta(ans_text).model_dump(mode='json')})
+                emit({'type': 'agent_event', 'event': ui_event.model_dump(mode='json')})
+                messages.append({'role': 'user', 'content': user_msg})
+                messages.append({'role': 'assistant', 'content': ans_text})
+                auto_facts = extract_all_memory_facts(
+                    user_text=user_msg,
+                    assistant_text=ans_text,
+                    active_city=active_city,
+                    session_id=request['session_id'],
+                    tools_called=[{'name': 'confirm_bank_transfer', 'arguments': {'booking_code': b_code}}],
+                )
+                if auto_facts:
+                    await memory.upsert_facts(subject, auto_facts)
+                emit({
+                    'type': 'result',
+                    'answer': ans_text,
+                    'presentations': [ui_event.data],
+                    'messages': messages,
+                    'state': raw_state,
+                    'memory': [fact.model_dump(mode='json') for fact in await memory.get_facts(subject)]
+                })
+                return
+            except Exception as e:
+                err_msg = str(e)
+                if "DomainException:" in err_msg:
+                    err_msg = err_msg.split("DomainException:", 1)[1].strip()
+                ans_text = f"Không thể lấy thông tin thanh toán: {err_msg}"
+                emit({'type': 'agent_event', 'event': AgentEvent.text_delta(ans_text).model_dump(mode='json')})
+                messages.append({'role': 'user', 'content': user_msg})
+                messages.append({'role': 'assistant', 'content': ans_text})
+                emit({
+                    'type': 'result',
+                    'answer': ans_text,
+                    'presentations': [],
+                    'messages': messages,
+                    'state': raw_state,
+                    'memory': [fact.model_dump(mode='json') for fact in await memory.get_facts(subject)]
+                })
+                return
+
+        # 4. Đặt phòng khách sạn -> Lập tức tự làm và hiển thị BookingActionCard
+        if is_booking_intent(user_msg):
+            extracted_hotel = extract_hotel_from_text(user_msg) or active_city
+            nights = extract_nights_from_text(user_msg) or 2
+            room_count = extract_room_count_from_text(user_msg)
+            dates = extract_dates_from_text(user_msg)
+            cin = dates[0] if dates and len(dates) >= 1 else datetime.date.today().strftime('%Y-%m-%d')
+            if dates and len(dates) >= 2:
+                cout = dates[1]
+            else:
+                cin_dt = datetime.datetime.strptime(cin, '%Y-%m-%d').date()
+                cout = (cin_dt + datetime.timedelta(days=nights)).strftime('%Y-%m-%d')
+            try:
+                res = await backend.book_hotel_room(
+                    session,
+                    hotel_name=extracted_hotel,
+                    destination_name=extracted_hotel,
+                    nights=nights,
+                    check_in_date=cin,
+                    check_out_date=cout,
+                    room_count=room_count,
+                )
+                h_name = res.get('hotel_name', extracted_hotel or 'Khách sạn')
+                b_code = res.get('booking_code', '')
+                ans_text = f"Đã tự động tạo đơn đặt phòng thành công cho bạn tại {h_name} (mã đơn {b_code})! Dưới đây là thông tin chi tiết và hướng dẫn thanh toán trực quan:"
+                ui_event = AgentEvent.ui(component='booking_action', payload=res)
+                emit({'type': 'agent_event', 'event': AgentEvent.text_delta(ans_text).model_dump(mode='json')})
+                emit({'type': 'agent_event', 'event': ui_event.model_dump(mode='json')})
+                messages.append({'role': 'user', 'content': user_msg})
+                messages.append({'role': 'assistant', 'content': ans_text})
+                auto_facts = extract_all_memory_facts(
+                    user_text=user_msg,
+                    assistant_text=ans_text,
+                    active_city=active_city,
+                    session_id=request['session_id'],
+                    tools_called=[{'name': 'book_hotel_room', 'arguments': {'hotel_name': h_name}}],
+                )
+                if auto_facts:
+                    await memory.upsert_facts(subject, auto_facts)
+                emit({
+                    'type': 'result',
+                    'answer': ans_text,
+                    'presentations': [ui_event.data],
+                    'messages': messages,
+                    'state': raw_state,
+                    'memory': [fact.model_dump(mode='json') for fact in await memory.get_facts(subject)]
+                })
+                return
+            except Exception as e:
+                err_msg = str(e)
+                if "DomainException:" in err_msg:
+                    err_msg = err_msg.split("DomainException:", 1)[1].strip()
+                ans_text = f"Không thể tự động đặt phòng: {err_msg}"
+                emit({'type': 'agent_event', 'event': AgentEvent.text_delta(ans_text).model_dump(mode='json')})
+                messages.append({'role': 'user', 'content': user_msg})
+                messages.append({'role': 'assistant', 'content': ans_text})
+                emit({
+                    'type': 'result',
+                    'answer': ans_text,
+                    'presentations': [],
+                    'messages': messages,
+                    'state': raw_state,
+                    'memory': [fact.model_dump(mode='json') for fact in await memory.get_facts(subject)]
+                })
+                return
+
+        # 5. Xóa khỏi chuyến đi / Trip -> Lập tức tự làm và hiển thị TripActionCard
+        if is_remove_trip_intent(user_msg):
+            extracted_dest = extract_destination_from_text(user_msg) or active_city
+            try:
+                res = await backend.remove_destination_from_trip(session, destination_name=extracted_dest, query=extracted_dest)
+                dest_name = extracted_dest or 'Điểm đến'
+                ans_text = res.get('message') or f"Đã tự động xóa \"{dest_name}\" khỏi kế hoạch chuyến đi của bạn!"
+                ui_event = AgentEvent.ui(component='trip_action', payload=res)
+                emit({'type': 'agent_event', 'event': AgentEvent.text_delta(ans_text).model_dump(mode='json')})
+                emit({'type': 'agent_event', 'event': ui_event.model_dump(mode='json')})
+                messages.append({'role': 'user', 'content': user_msg})
+                messages.append({'role': 'assistant', 'content': ans_text})
+                emit({
+                    'type': 'result',
+                    'answer': ans_text,
+                    'presentations': [ui_event.data],
+                    'messages': messages,
+                    'state': raw_state,
+                    'memory': [fact.model_dump(mode='json') for fact in await memory.get_facts(subject)]
+                })
+                return
+            except Exception as e:
+                err_msg = str(e)
+                if "DomainException:" in err_msg:
+                    err_msg = err_msg.split("DomainException:", 1)[1].strip()
+                ans_text = f"Không thể xóa điểm đến khỏi chuyến đi: {err_msg}"
+                emit({'type': 'agent_event', 'event': AgentEvent.text_delta(ans_text).model_dump(mode='json')})
+                messages.append({'role': 'user', 'content': user_msg})
+                messages.append({'role': 'assistant', 'content': ans_text})
+                emit({
+                    'type': 'result',
+                    'answer': ans_text,
+                    'presentations': [],
+                    'messages': messages,
+                    'state': raw_state,
+                    'memory': [fact.model_dump(mode='json') for fact in await memory.get_facts(subject)]
+                })
+                return
+
+        # 6. Tự động sinh lịch trình thông minh bằng AI cho chuyến đi
+        if is_itinerary_intent(user_msg):
+            try:
+                res = await backend.generate_smart_itinerary(session, mode='fill_empty')
+                trip_title = res.get('trip_title', 'Chuyến đi')
+                count = res.get('activities_count', 0)
+                ans_text = f"Đã tự động tạo {count} hoạt động lịch trình thông minh bằng AI cho chuyến đi \"{trip_title}\"!"
+                ui_event = AgentEvent.ui(component='trip_action', payload=res)
+                emit({'type': 'agent_event', 'event': AgentEvent.text_delta(ans_text).model_dump(mode='json')})
+                emit({'type': 'agent_event', 'event': ui_event.model_dump(mode='json')})
+                messages.append({'role': 'user', 'content': user_msg})
+                messages.append({'role': 'assistant', 'content': ans_text})
+                emit({
+                    'type': 'result',
+                    'answer': ans_text,
+                    'presentations': [ui_event.data],
+                    'messages': messages,
+                    'state': raw_state,
+                    'memory': [fact.model_dump(mode='json') for fact in await memory.get_facts(subject)]
+                })
+                return
+            except Exception as e:
+                err_msg = str(e)
+                if "DomainException:" in err_msg:
+                    err_msg = err_msg.split("DomainException:", 1)[1].strip()
+                ans_text = f"Không thể tự động sinh lịch trình: {err_msg}"
+                emit({'type': 'agent_event', 'event': AgentEvent.text_delta(ans_text).model_dump(mode='json')})
+                messages.append({'role': 'user', 'content': user_msg})
+                messages.append({'role': 'assistant', 'content': ans_text})
+                emit({
+                    'type': 'result',
+                    'answer': ans_text,
+                    'presentations': [],
+                    'messages': messages,
+                    'state': raw_state,
+                    'memory': [fact.model_dump(mode='json') for fact in await memory.get_facts(subject)]
+                })
+                return
+
+        # 7. Thêm vào chuyến đi / Trip -> Lập tức tự làm và hiển thị TripActionCard
+        if is_trip_intent(user_msg):
+            extracted_dest = extract_destination_from_text(user_msg) or active_city
+            try:
+                res = await backend.add_destination_to_trip(session, destination_name=extracted_dest)
+                dest_name = res.get('destination_name') or extracted_dest or 'Điểm đến'
+                ans_text = f"Đã tự động thêm \"{dest_name}\" vào kế hoạch chuyến đi của bạn! ✈️"
+                ui_event = AgentEvent.ui(component='trip_action', payload=res)
+                emit({'type': 'agent_event', 'event': AgentEvent.text_delta(ans_text).model_dump(mode='json')})
+                emit({'type': 'agent_event', 'event': ui_event.model_dump(mode='json')})
+                messages.append({'role': 'user', 'content': user_msg})
+                messages.append({'role': 'assistant', 'content': ans_text})
+                auto_facts = extract_all_memory_facts(
+                    user_text=user_msg,
+                    assistant_text=ans_text,
+                    active_city=active_city,
+                    session_id=request['session_id'],
+                    tools_called=[{'name': 'add_destination_to_trip', 'arguments': {'destination_name': dest_name}}],
+                )
+                if auto_facts:
+                    await memory.upsert_facts(subject, auto_facts)
+                emit({
+                    'type': 'result',
+                    'answer': ans_text,
+                    'presentations': [ui_event.data],
+                    'messages': messages,
+                    'state': raw_state,
+                    'memory': [fact.model_dump(mode='json') for fact in await memory.get_facts(subject)]
+                })
+                return
+            except Exception as e:
+                err_msg = str(e)
+                if "DomainException:" in err_msg:
+                    err_msg = err_msg.split("DomainException:", 1)[1].strip()
+                ans_text = f"Không thể thêm điểm đến vào chuyến đi: {err_msg}"
+                emit({'type': 'agent_event', 'event': AgentEvent.text_delta(ans_text).model_dump(mode='json')})
+                messages.append({'role': 'user', 'content': user_msg})
+                messages.append({'role': 'assistant', 'content': ans_text})
+                emit({
+                    'type': 'result',
+                    'answer': ans_text,
+                    'presentations': [],
+                    'messages': messages,
+                    'state': raw_state,
+                    'memory': [fact.model_dump(mode='json') for fact in await memory.get_facts(subject)]
+                })
+                return
+
+        # 8. Xóa khỏi danh sách yêu thích
+        if is_remove_favorite_intent(user_msg):
+            extracted_dest = extract_destination_from_text(user_msg) or active_city
+            try:
+                res = await backend.remove_favorite(session, destination_name=extracted_dest)
+                dest_name = res.get('destination_name') or extracted_dest or 'Điểm đến'
+                ans_text = res.get('message') or f"Đã tự động xóa \"{dest_name}\" khỏi danh sách yêu thích."
+                ui_event = AgentEvent.ui(component='favorite_action', payload=res)
+                emit({'type': 'agent_event', 'event': AgentEvent.text_delta(ans_text).model_dump(mode='json')})
+                emit({'type': 'agent_event', 'event': ui_event.model_dump(mode='json')})
+                messages.append({'role': 'user', 'content': user_msg})
+                messages.append({'role': 'assistant', 'content': ans_text})
+                emit({
+                    'type': 'result',
+                    'answer': ans_text,
+                    'presentations': [ui_event.data],
+                    'messages': messages,
+                    'state': raw_state,
+                    'memory': [fact.model_dump(mode='json') for fact in await memory.get_facts(subject)]
+                })
+                return
+            except Exception as e:
+                err_msg = str(e)
+                if "DomainException:" in err_msg:
+                    err_msg = err_msg.split("DomainException:", 1)[1].strip()
+                ans_text = f"Không thể xóa khỏi danh sách yêu thích: {err_msg}"
+                emit({'type': 'agent_event', 'event': AgentEvent.text_delta(ans_text).model_dump(mode='json')})
+                messages.append({'role': 'user', 'content': user_msg})
+                messages.append({'role': 'assistant', 'content': ans_text})
+                emit({
+                    'type': 'result',
+                    'answer': ans_text,
+                    'presentations': [],
+                    'messages': messages,
+                    'state': raw_state,
+                    'memory': [fact.model_dump(mode='json') for fact in await memory.get_facts(subject)]
+                })
+                return
+
+        # 9. Thêm vào mục yêu thích -> Lập tức tự làm và hiển thị FavoriteActionCard
+        if is_favorite_intent(user_msg):
+            extracted_dest = extract_destination_from_text(user_msg) or active_city
+            try:
+                res = await backend.add_favorite(session, destination_name=extracted_dest)
+                dest_name = res.get('destination_name') or extracted_dest or 'Điểm đến'
+                ans_text = f"Đã tự động thêm \"{dest_name}\" vào danh sách yêu thích của bạn! ❤️"
+                ui_event = AgentEvent.ui(component='favorite_action', payload=res)
+                emit({'type': 'agent_event', 'event': AgentEvent.text_delta(ans_text).model_dump(mode='json')})
+                emit({'type': 'agent_event', 'event': ui_event.model_dump(mode='json')})
+                messages.append({'role': 'user', 'content': user_msg})
+                messages.append({'role': 'assistant', 'content': ans_text})
+                auto_facts = extract_all_memory_facts(
+                    user_text=user_msg,
+                    assistant_text=ans_text,
+                    active_city=active_city,
+                    session_id=request['session_id'],
+                    tools_called=[{'name': 'add_favorite', 'arguments': {'destination_name': dest_name}}],
+                )
+                if auto_facts:
+                    await memory.upsert_facts(subject, auto_facts)
+                emit({
+                    'type': 'result',
+                    'answer': ans_text,
+                    'presentations': [ui_event.data],
+                    'messages': messages,
+                    'state': raw_state,
+                    'memory': [fact.model_dump(mode='json') for fact in await memory.get_facts(subject)]
+                })
+                return
+            except Exception as e:
+                err_msg = str(e)
+                if "DomainException:" in err_msg:
+                    err_msg = err_msg.split("DomainException:", 1)[1].strip()
+                ans_text = f"Không thể thêm vào danh sách yêu thích: {err_msg}"
+                emit({'type': 'agent_event', 'event': AgentEvent.text_delta(ans_text).model_dump(mode='json')})
+                messages.append({'role': 'user', 'content': user_msg})
+                messages.append({'role': 'assistant', 'content': ans_text})
+                emit({
+                    'type': 'result',
+                    'answer': ans_text,
+                    'presentations': [],
+                    'messages': messages,
+                    'state': raw_state,
+                    'memory': [fact.model_dump(mode='json') for fact in await memory.get_facts(subject)]
+                })
+                return
+
+    elif is_guest and any([
+        is_favorite_intent(user_msg), is_remove_favorite_intent(user_msg),
+        is_payment_intent(user_msg), is_booking_intent(user_msg),
+        is_cancel_booking_intent(user_msg), is_update_dates_intent(user_msg),
+        is_trip_intent(user_msg), is_remove_trip_intent(user_msg),
+        is_itinerary_intent(user_msg), is_trip_checkout_intent(user_msg),
+    ]):
+        ans_text = "Chào bạn! Tính năng này yêu cầu lưu trữ dữ liệu cá nhân. Vui lòng đăng nhập tài khoản Travel Planner tại /login để tự động thực hiện và hiển thị thẻ trực quan của bạn."
+        emit({'type': 'agent_event', 'event': AgentEvent.text_delta(ans_text).model_dump(mode='json')})
+        messages.append({'role': 'user', 'content': user_msg})
+        messages.append({'role': 'assistant', 'content': ans_text})
+        emit({
+            'type': 'result',
+            'answer': ans_text,
+            'presentations': [],
+            'messages': messages,
+            'state': raw_state,
+            'memory': [fact.model_dump(mode='json') for fact in await memory.get_facts(subject)]
+        })
+        return
+
     # 3. Khi chưa có AI API Client được cấu hình (chưa có GEMINI_API_KEY hoặc OPENAI_API_KEY)
     if not primary_client:
-        user_msg = (request.get('message') or '').strip()
-        active_city = current_mentioned_city or previous_active_city
         guided_result = resolve_guided_city_or_topic(user_msg, active_city)
         if guided_result:
             ans_text, chips = guided_result
@@ -1286,10 +2186,20 @@ async def main():
         '5. KIỂM TRA DUYỆT THANH TOÁN TỪ ADMIN (BẮT BUỘC): Khi khách hàng thông báo đã chuyển khoản hoặc yêu cầu xác nhận thanh toán cho đơn đặt phòng, bạn BẮT BUỘC gọi công cụ confirm_bank_transfer. NẾU công cụ trả về status là pending hoặc is_paid là False (chưa được Quản trị viên duyệt), bạn BẮT BUỘC phải thông báo rõ ràng cho khách rằng đơn hiện đang ở trạng thái Chờ thanh toán và CHƯA ĐƯỢC Quản trị viên (Admin) duyệt/áp dụng thanh toán vào hệ thống. Yêu cầu khách vui lòng chuyển khoản theo thông tin số tài khoản được cung cấp hoặc đợi Quản trị viên kiểm tra và duyệt đơn trước khi hoàn tất xác nhận. TUYỆT ĐỐI KHÔNG tự ý chúc mừng hay báo phòng đã sẵn sàng khi Quản trị viên chưa duyệt!'
     )
 
+    automation_rules = (
+        'QUY TẮC TỰ ĐỘNG HÓA MỌI VIỆC KHI USER PROMPT (AUTONOMOUS TASK AUTOMATION): '
+        'Khi người dùng yêu cầu "tự động", "automation", "tự động hóa", "hãy tự động", "tự động lên lịch trình", "tự động đặt phòng", "tự động thêm vào chuyến đi/trip", "tự động lưu yêu thích", "tự động thực hiện mọi việc", '
+        'bạn là Trợ lý AI có quyền năng tự động hóa toàn diện. Bạn BẮT BUỘC PHẢI CHỦ ĐỘNG TỰ ĐỘNG THỰC HIỆN TOÀN BỘ CÁC BƯỚC một cách liền mạch, không được từ chối hay bắt người dùng phải tự thao tác thủ công: '
+        '1. Tự động truy vấn database tìm điểm đến/khách sạn phù hợp nhất qua search_products. '
+        '2. Tự động gọi các công cụ thực thi: add_destination_to_trip (thêm điểm vào chuyến đi), book_hotel_room (tạo đơn đặt phòng), add_favorite (lưu vào danh sách yêu thích), present_itinerary (trình bày lịch trình) ngay trong cùng lượt phản hồi. '
+        '3. Sau khi thực thi tự động, thông báo kết quả cụ thể và xác nhận rõ ràng các tác vụ đã hoàn thành cho người dùng.'
+    )
+
     if merchant:
         brand_voice = (
             'Bạn là Trợ lý AI Quản trị của Travel Planner. Bắt buộc 100% trả lời bằng tiếng Việt lịch sự, thân thiện, rõ ràng, chỉ dùng dữ liệu công cụ cung cấp. Tuyệt đối không trả lời bằng tiếng Anh. '
             f'{security_and_database_rules} '
+            f'{automation_rules} '
             'Kết thúc câu trả lời bằng present_suggestions với các tác vụ quản trị hữu ích.'
         )
     elif is_guest:
@@ -1298,11 +2208,11 @@ async def main():
             f'{city_scope_note} '
             f'{general_prompt_rules} '
             f'{security_and_database_rules} '
+            f'{automation_rules} '
             f'{suggestion_tree_rules} '
             'Người dùng hiện tại là khách vãng lai (chưa đăng nhập tài khoản). '
             'Khách ĐƯỢC PHÉP dùng trợ lý để tìm kiếm thông tin tổng thể của website: điểm đến, khách sạn, resort, giá vé tham khảo, gợi ý lịch trình, chính sách dịch vụ. '
-            'Tuy nhiên khách BỊ HẠN CHẾ: KHÔNG THỂ đặt lịch phòng khách sạn, KHÔNG THỂ thêm vào mục yêu thích, KHÔNG THỂ thêm vào chuyến đi/trip, và KHÔNG THỂ thực hiện các tính năng tự động hóa của người dùng đã đăng nhập. '
-            'Nếu khách yêu cầu đặt phòng, lưu yêu thích, thêm vào chuyến đi hoặc thanh toán, bạn TUYỆT ĐỐI KHÔNG GỌI CÁC CÔNG CỤ NÀY, mà hãy giải thích lịch sự rằng tính năng này yêu cầu đăng nhập tài khoản Travel Planner và mời khách đăng nhập tại /login.'
+            'Nếu khách yêu cầu các tác vụ tự động hóa cá nhân (như đặt phòng, lưu yêu thích, thêm vào chuyến đi), bạn hãy giải thích lịch sự rằng các tính năng lưu trữ dữ liệu cá nhân này yêu cầu đăng nhập tài khoản Travel Planner và mời khách đăng nhập tại /login, đồng thời vẫn tự động hỗ trợ tư vấn và trình bày thông tin chi tiết cho khách tham khảo.'
         )
     else:
         brand_voice = (
@@ -1310,8 +2220,9 @@ async def main():
             f'{city_scope_note} '
             f'{general_prompt_rules} '
             f'{security_and_database_rules} '
+            f'{automation_rules} '
             f'{suggestion_tree_rules} '
-            'Người dùng đã đăng nhập tài khoản. Khi người dùng yêu cầu: (1) Thêm vào mục yêu thích -> lập tức gọi add_favorite; (2) Thêm vào chuyến đi / trip -> lập tức gọi add_destination_to_trip; (3) Đặt phòng khách sạn -> lập tức gọi book_hotel_room; (4) Đổi ngày đặt phòng -> lập tức gọi update_booking_dates; (5) Báo đã chuyển khoản -> lập tức gọi confirm_bank_transfer; (6) Xóa điểm đến khỏi chuyến đi -> lập tức gọi remove_destination_from_trip; (7) Hủy phòng hoặc xóa phòng khách sạn khỏi chuyến đi -> lập tức gọi cancel_booking.'
+            'Người dùng đã đăng nhập tài khoản. Bạn có toàn quyền tự động hóa mọi tác vụ cho người dùng: (1) Thêm vào mục yêu thích -> lập tức gọi add_favorite; (2) Thêm vào chuyến đi / trip -> lập tức gọi add_destination_to_trip; (3) Đặt phòng khách sạn -> lập tức gọi book_hotel_room; (4) Đổi ngày đặt phòng -> lập tức gọi update_booking_dates; (5) Báo đã chuyển khoản -> lập tức gọi confirm_bank_transfer; (6) Xóa điểm đến khỏi chuyến đi -> lập tức gọi remove_destination_from_trip; (7) Hủy phòng hoặc xóa phòng khách sạn khỏi chuyến đi -> lập tức gọi cancel_booking; (8) Yêu cầu tự động hóa tổng thể hoặc lên lịch trình -> lập tức tự động tìm kiếm và gọi các công cụ tương ứng để hoàn tất toàn bộ yêu cầu.'
         )
 
     common = dict(
@@ -1340,20 +2251,23 @@ async def main():
                 f'{city_scope_note} '
                 f'{general_prompt_rules} '
                 f'{security_and_database_rules} '
+                f'{automation_rules} '
                 f'{suggestion_tree_rules} '
                 'Nếu khách yêu cầu đặt phòng, lưu yêu thích hoặc thêm vào trip, hãy hướng dẫn khách đăng nhập tài khoản Travel Planner tại /login vì các tính năng này yêu cầu đăng nhập.'
             )
         else:
             domain_search_notes = (
                 'Danh mục là điểm đến du lịch và phòng lưu trú của Travel Planner. Khách đã đăng nhập. '
+                'Khi khách yêu cầu tự động hóa hoặc ra lệnh thực hiện tác vụ, hãy tự động thực thi ngay lập tức. '
                 'Khi khách bảo "thêm vào yêu thích" hoặc tương tự, gọi ngay add_favorite với tên điểm đến. '
                 'Khi khách bảo "thêm vào trip" hoặc "thêm vào chuyến đi", gọi ngay add_destination_to_trip. '
-                'Khi khách bảo "hãy đặt lịch phòng ... 3 ngày" hoặc tương tự, gọi ngay book_hotel_room với tên khách sạn/resort và số đêm lưu trú. ' \
+                'Khi khách bảo "hãy đặt lịch phòng ... 3 ngày" hoặc tương tự, gọi ngay book_hotel_room với tên khách sạn/resort và số đêm lưu trú. '
                 'Khi khách bảo "xóa ... khỏi chuyến đi" hoặc "hủy phòng", gọi ngay remove_destination_from_trip hoặc cancel_booking. '
                 'Khi khách yêu cầu đổi ngày hoặc chuyển khoản thanh toán, gọi ngay update_booking_dates hoặc confirm_bank_transfer. Giá tiền VND. '
                 f'{city_scope_note} '
                 f'{general_prompt_rules} '
                 f'{security_and_database_rules} '
+                f'{automation_rules} '
                 f'{suggestion_tree_rules} '
                 f'{memory_guidance}'
             )
@@ -1445,6 +2359,127 @@ async def main():
         # Nếu là hành động nghiệp vụ trực tiếp, loại bỏ hoàn toàn suggestions khỏi presentations và không sinh fallback
         if is_business_action:
             presentations = [p for p in presentations if p.get('component') != 'suggestions']
+            # Đảm bảo nếu mô hình AI không gọi tool visual action, hệ thống tự động thực thi và hiển thị thẻ trực quan
+            if not is_guest and not any(p.get('component') in {'favorite_action', 'booking_action', 'trip_action', 'checkout', 'order_status'} for p in presentations):
+                user_msg = (request.get('message') or '').strip()
+                if is_cancel_booking_intent(user_msg):
+                    try:
+                        extracted_code = extract_booking_code_from_text(user_msg)
+                        extracted_hotel = extract_hotel_from_text(user_msg) or merchant or active_city
+                        res = await agent.backend.cancel_booking(
+                            session,
+                            booking_code=extracted_code,
+                            hotel_name=extracted_hotel,
+                        )
+                        ui_event = AgentEvent.ui(component='booking_action', payload=res)
+                        emit({'type': 'agent_event', 'event': ui_event.model_dump(mode='json')})
+                        presentations.append(ui_event.data)
+                    except Exception:
+                        pass
+                elif is_update_dates_intent(user_msg):
+                    try:
+                        extracted_code = extract_booking_code_from_text(user_msg)
+                        dates = extract_dates_from_text(user_msg)
+                        nights = extract_nights_from_text(user_msg) or 2
+                        cin = dates[0] if dates and len(dates) >= 1 else None
+                        cout = dates[1] if dates and len(dates) >= 2 else None
+                        res = await agent.backend.update_booking_dates(
+                            session,
+                            booking_code=extracted_code,
+                            check_in_date=cin,
+                            check_out_date=cout,
+                            nights=nights,
+                        )
+                        ui_event = AgentEvent.ui(component='booking_action', payload=res)
+                        emit({'type': 'agent_event', 'event': ui_event.model_dump(mode='json')})
+                        presentations.append(ui_event.data)
+                    except Exception:
+                        pass
+                elif is_payment_intent(user_msg):
+                    try:
+                        is_qr_only = bool(re.search(
+                            r'(?i)\b(cho tôi mã qr|lấy mã qr|xin mã qr|hướng dẫn chuyển khoản|thông tin chuyển khoản|thông tin tài khoản|cú pháp chuyển khoản|mã qr đâu|xem qr|cho xem qr)\b',
+                            user_msg
+                        )) and not any(k in user_msg.lower() for k in ['đã chuyển', 'hoàn tất', 'xác nhận', 'đã thanh toán', 'đã ck', 'rồi', 'thành công', 'kiểm tra'])
+                        res = await agent.backend.confirm_bank_transfer(
+                            session,
+                            booking_code=extract_booking_code_from_text(user_msg),
+                            action='get_info' if is_qr_only else 'confirm',
+                            only_info=is_qr_only
+                        )
+                        pay_event = AgentEvent.ui(component='booking_action', payload=res)
+                        emit({'type': 'agent_event', 'event': pay_event.model_dump(mode='json')})
+                        presentations.append(pay_event.data)
+                    except Exception:
+                        pass
+                elif is_booking_intent(user_msg):
+                    try:
+                        nights = extract_nights_from_text(user_msg) or 2
+                        room_count = extract_room_count_from_text(user_msg)
+                        dates = extract_dates_from_text(user_msg)
+                        cin = dates[0] if dates and len(dates) >= 1 else datetime.date.today().strftime('%Y-%m-%d')
+                        if dates and len(dates) >= 2:
+                            cout = dates[1]
+                        else:
+                            cin_dt = datetime.datetime.strptime(cin, '%Y-%m-%d').date()
+                            cout = (cin_dt + datetime.timedelta(days=nights)).strftime('%Y-%m-%d')
+                        hname = extract_hotel_from_text(user_msg) or merchant or active_city
+                        res = await agent.backend.book_hotel_room(
+                            session,
+                            hotel_name=hname,
+                            destination_name=hname,
+                            nights=nights,
+                            check_in_date=cin,
+                            check_out_date=cout,
+                            room_count=room_count,
+                        )
+                        book_event = AgentEvent.ui(component='booking_action', payload=res)
+                        emit({'type': 'agent_event', 'event': book_event.model_dump(mode='json')})
+                        presentations.append(book_event.data)
+                    except Exception:
+                        pass
+                elif is_remove_trip_intent(user_msg):
+                    try:
+                        extracted_dest = extract_destination_from_text(user_msg) or active_city
+                        res = await agent.backend.remove_destination_from_trip(session, destination_name=extracted_dest, query=extracted_dest)
+                        trip_event = AgentEvent.ui(component='trip_action', payload=res)
+                        emit({'type': 'agent_event', 'event': trip_event.model_dump(mode='json')})
+                        presentations.append(trip_event.data)
+                    except Exception:
+                        pass
+                elif is_itinerary_intent(user_msg):
+                    try:
+                        res = await agent.backend.generate_smart_itinerary(session, mode='fill_empty')
+                        trip_event = AgentEvent.ui(component='trip_action', payload=res)
+                        emit({'type': 'agent_event', 'event': trip_event.model_dump(mode='json')})
+                        presentations.append(trip_event.data)
+                    except Exception:
+                        pass
+                elif is_trip_intent(user_msg):
+                    try:
+                        res = await agent.backend.add_destination_to_trip(session, destination_name=extract_destination_from_text(user_msg) or active_city)
+                        trip_event = AgentEvent.ui(component='trip_action', payload=res)
+                        emit({'type': 'agent_event', 'event': trip_event.model_dump(mode='json')})
+                        presentations.append(trip_event.data)
+                    except Exception:
+                        pass
+                elif is_remove_favorite_intent(user_msg):
+                    try:
+                        extracted_dest = extract_destination_from_text(user_msg) or active_city
+                        res = await agent.backend.remove_favorite(session, destination_name=extracted_dest)
+                        fav_event = AgentEvent.ui(component='favorite_action', payload=res)
+                        emit({'type': 'agent_event', 'event': fav_event.model_dump(mode='json')})
+                        presentations.append(fav_event.data)
+                    except Exception:
+                        pass
+                elif is_favorite_intent(user_msg):
+                    try:
+                        res = await agent.backend.add_favorite(session, destination_name=extract_destination_from_text(user_msg) or active_city)
+                        fav_event = AgentEvent.ui(component='favorite_action', payload=res)
+                        emit({'type': 'agent_event', 'event': fav_event.model_dump(mode='json')})
+                        presentations.append(fav_event.data)
+                    except Exception:
+                        pass
         elif not has_suggestions:
             # Cơ chế Fallback bảo đảm: nếu là lượt khám phá và mô hình chưa gọi present_suggestions, tự động sinh nút gợi ý bước tiếp theo
             ans_text = ''.join(text).strip()

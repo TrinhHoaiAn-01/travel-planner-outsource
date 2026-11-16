@@ -514,10 +514,15 @@
             .catch(err => {
                 btn.disabled = false;
                 btn.innerText = '⚡ Giả lập Nhận Tiền Ngay (Dev Test)';
-                alert('Lỗi giả lập: ' + err.message);
+                if (window.showErrorPopup) {
+                    window.showErrorPopup('Lỗi giả lập: ' + err.message);
+                } else {
+                    alert('Lỗi giả lập: ' + err.message);
+                }
             });
         }
     </script>
+    @include('partials.popup-notification')
 </body>
 </html>
 

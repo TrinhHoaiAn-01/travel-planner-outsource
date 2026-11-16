@@ -104,23 +104,25 @@
 
     .data-table {
         width: 100%;
+        min-width: 980px;
         border-collapse: collapse;
         text-align: left;
     }
 
     .data-table th {
         background: #F8FAFC;
-        padding: 12px 20px;
+        padding: 12px 18px;
         font-size: 12px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         color: #64748B;
         border-bottom: 1px solid #E2E8F0;
+        white-space: nowrap;
     }
 
     .data-table td {
-        padding: 16px 20px;
+        padding: 14px 18px;
         border-bottom: 1px solid #F1F5F9;
         font-size: 13.5px;
         color: #1E293B;
@@ -134,11 +136,15 @@
     .badge-status {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        padding: 4px 10px;
+        justify-content: center;
+        gap: 5px;
+        padding: 5px 12px;
         border-radius: 9999px;
         font-size: 12px;
         font-weight: 600;
+        line-height: 1.25;
+        white-space: nowrap;
+        text-align: center;
     }
 
     .badge-pending { background: #FEF3C7; color: #B45309; }
@@ -146,22 +152,43 @@
     .badge-failed { background: #FEE2E2; color: #B91C1C; }
     .badge-refunded { background: #F3E8FF; color: #7E22CE; }
 
-    .btn-action-view {
-        background: #EFF6FF;
-        color: #2563EB;
-        padding: 6px 12px;
-        border-radius: 6px;
-        font-weight: 600;
-        font-size: 12.5px;
-        text-decoration: none;
+    .btn-action-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
         display: inline-flex;
         align-items: center;
-        gap: 4px;
-        transition: all 0.2s;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid;
+        text-decoration: none;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    .btn-action-view {
+        border-color: #BAE6FD;
+        color: #0284C7;
+        background-color: #F0F9FF;
     }
 
     .btn-action-view:hover {
-        background: #DBEAFE;
+        background-color: #E0F2FE;
+        border-color: #0284C7;
+        color: #0369A1;
+    }
+
+    .btn-action-delete {
+        border-color: #FECACA;
+        color: #EF4444;
+        background-color: #FEF2F2;
+    }
+
+    .btn-action-delete:hover {
+        background-color: #FEE2E2;
+        border-color: #EF4444;
+        color: #DC2626;
     }
 
     .pagination-wrapper {
@@ -181,12 +208,6 @@
         <p class="page-subtitle">Kiểm soát dòng tiền, đối soát giao dịch và quản lý trạng thái thanh toán theo quy tắc BR-21.</p>
     </div>
 </div>
-
-@if(session('success'))
-    <div style="background: #ECFDF5; border: 1px solid #A7F3D0; color: #065F46; padding: 12px 18px; border-radius: 8px; margin-bottom: 20px; font-weight: 600; font-size: 14px;">
-        {{ session('success') }}
-    </div>
-@endif
 
 <div class="table-container-card">
     <!-- Bộ Lọc Trạng Thái & Tìm Kiếm -->
@@ -223,43 +244,46 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Mã Giao Dịch</th>
-                    <th>Mã Đơn Đặt</th>
+                    <th style="white-space: nowrap;">Mã Giao Dịch</th>
+                    <th style="white-space: nowrap;">Mã Đơn Đặt</th>
                     <th>Khách Hàng</th>
-                    <th>Phương Thức</th>
-                    <th>Số Tiền</th>
-                    <th>Thời Gian</th>
-                    <th>Trạng Thái</th>
-                    <th style="text-align: right;">Hành Động</th>
+                    <th style="white-space: nowrap;">Phương Thức</th>
+                    <th style="white-space: nowrap;">Số Tiền</th>
+                    <th style="white-space: nowrap;">Thời Gian</th>
+                    <th style="white-space: nowrap; min-width: 130px;">Trạng Thái</th>
+                    <th style="text-align: right; white-space: nowrap;">Hành Động</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($payments as $payment)
                     <tr>
-                        <td style="font-family: monospace; font-weight: 700; color: #2563EB;">
+                        <td style="font-family: monospace; font-weight: 700; color: #2563EB; white-space: nowrap;">
                             {{ $payment->transaction_id }}
                         </td>
-                        <td>
+                        <td style="white-space: nowrap;">
                             <a href="{{ route('admin.bookings.show', $payment->booking->id) }}" style="color: #0F172A; font-weight: 600; text-decoration: none;">
-                                #{{ $payment->booking->booking_code ?? 'N/A' }}
+                                #{{ ltrim($payment->booking->booking_code ?? 'N/A', '#') }}
                             </a>
+                            <div style="font-size: 11.5px; color: #64748B; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $payment->booking->roomType?->destination?->name ?? '' }} - {{ $payment->booking->roomType?->name ?? '' }}">
+                                {{ $payment->booking->roomType?->destination?->name ?? 'Dịch vụ lưu trú' }} ({{ $payment->booking->roomType?->name ?? 'Phòng nghỉ' }})
+                            </div>
                         </td>
                         <td>
                             <div style="font-weight: 600;">{{ $payment->booking->user->name ?? 'N/A' }}</div>
                             <div style="font-size: 12px; color: #64748B;">{{ $payment->booking->user->email ?? '' }}</div>
                         </td>
-                        <td>
+                        <td style="white-space: nowrap;">
                             <span style="font-weight: 700; text-transform: uppercase; font-size: 12px; color: #475569;">
                                 {{ $payment->payment_method }}
                             </span>
                         </td>
-                        <td style="font-weight: 800; color: #059669; font-size: 14.5px;">
+                        <td style="font-weight: 800; color: #059669; font-size: 14.5px; white-space: nowrap;">
                             {{ number_format($payment->amount, 0, ',', '.') }}đ
                         </td>
-                        <td style="font-size: 12.5px; color: #64748B;">
+                        <td style="font-size: 12.5px; color: #64748B; white-space: nowrap;">
                             {{ \Carbon\Carbon::parse($payment->payment_date ?? $payment->created_at)->format('H:i d/m/Y') }}
                         </td>
-                        <td>
+                        <td style="white-space: nowrap;">
                             @switch($payment->status)
                                 @case('completed')
                                     <span class="badge-status badge-completed">Thành công</span>
@@ -277,10 +301,47 @@
                                     <span class="badge-status">{{ ucfirst($payment->status) }}</span>
                             @endswitch
                         </td>
-                        <td style="text-align: right;">
-                            <a href="{{ route('admin.payments.show', $payment->id) }}" class="btn-action-view">
-                                Chi tiết &rarr;
-                            </a>
+                        <td style="text-align: right; white-space: nowrap;">
+                            <div style="display: inline-flex; align-items: center; justify-content: flex-end; gap: 6px;">
+                                @if($payment->status === 'pending')
+                                    <form action="{{ route('admin.payments.update-status', $payment->id) }}" method="POST" style="margin: 0; display: inline;" onsubmit="return handleFormConfirm(this, event, 'Xác nhận duyệt thanh toán cho đơn #{{ ltrim($payment->booking->booking_code ?? '', '#') }}?', 'Duyệt thanh toán', false);">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="status" value="completed">
+                                        <button type="submit"
+                                                class="btn-action-circle"
+                                                style="color: #059669; border-color: #A7F3D0; background: #ECFDF5; cursor: pointer;"
+                                                title="Duyệt">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="20 6 9 17 4 12"></polyline>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                @endif
+
+                                <a href="{{ route('admin.payments.show', $payment->id) }}"
+                                   class="btn-action-circle btn-action-view"
+                                   title="Chi tiết">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                </a>
+
+                                <form action="{{ route('admin.payments.destroy', $payment->id) }}" method="POST" style="margin: 0; display: inline;" onsubmit="return handleFormConfirm(this, event, 'Bạn có chắc chắn muốn xóa giao dịch thanh toán {{ $payment->transaction_id }} không?', 'Xác nhận xóa', true);">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                            class="btn-action-circle btn-action-delete"
+                                            title="Xóa">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M3 6h18"></path>
+                                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                                        </svg>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 @empty

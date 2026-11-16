@@ -37,13 +37,19 @@ class DestinationController extends Controller
      */
     public function index(Request $request): View
     {
-        $filters = $request->only(['search', 'keyword', 'city_id', 'category_id', 'budget', 'is_lodging', 'sort']);
+        $filters = $request->only(['search', 'keyword', 'city_id', 'category_id', 'budget', 'is_lodging', 'sort', 'engine']);
+        $engine = strtolower((string) $request->input('engine', 'solr'));
+        if (! in_array($engine, ['solr', 'sql'], true)) {
+            $engine = 'solr';
+        }
+        $filters['engine'] = $engine;
+
         $perPage = (int) $request->input('per_page', 6);
         if (! in_array($perPage, [6, 9, 12, 18, 24])) {
             $perPage = 6;
         }
 
-        $destinations = $this->destinationService->getDestinations($filters, $perPage);
+        $destinations = $this->destinationService->getDestinations($filters, $perPage, $engine);
         $cities = $this->destinationService->getPopularCities(20);
         $categories = $this->destinationService->getCategories();
 
@@ -53,6 +59,7 @@ class DestinationController extends Controller
             'categories' => $categories,
             'currentFilters' => $filters,
             'perPage' => $perPage,
+            'engine' => $engine,
         ]);
     }
 

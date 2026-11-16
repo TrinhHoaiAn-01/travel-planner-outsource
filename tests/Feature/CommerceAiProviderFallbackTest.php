@@ -11,6 +11,8 @@ class CommerceAiProviderFallbackTest extends TestCase
 {
     use RefreshDatabase;
 
+    private array $originalConfig = [];
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -18,6 +20,18 @@ class CommerceAiProviderFallbackTest extends TestCase
             \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
             \Illuminate\Routing\Middleware\ThrottleRequests::class,
         ]);
+        $this->originalConfig = [
+            'commerce.openai_api_key' => config('commerce.openai_api_key'),
+            'commerce.openai_model' => config('commerce.openai_model'),
+            'commerce.gemini_api_key' => config('commerce.gemini_api_key'),
+            'commerce.gemini_model' => config('commerce.gemini_model'),
+        ];
+    }
+
+    protected function tearDown(): void
+    {
+        config($this->originalConfig);
+        parent::tearDown();
     }
 
     /**
@@ -78,8 +92,10 @@ class CommerceAiProviderFallbackTest extends TestCase
         $user = User::factory()->create(['role' => 'user', 'is_active' => true]);
 
         // Đặt OPENAI_API_KEY giả lập bị lỗi (sai key), giữ GEMINI_API_KEY thật đang hoạt động
-        $origOpenAi = config('commerce.openai_api_key');
-        $realGemini = config('commerce.gemini_api_key') ?: env('GEMINI_API_KEY');
+        $realGemini = $this->originalConfig['commerce.gemini_api_key'] ?: env('GEMINI_API_KEY');
+        if (! $realGemini) {
+            $this->markTestSkipped('Cần có GEMINI_API_KEY để kiểm thử fallback sang Gemini khi OpenAI lỗi.');
+        }
         try {
             config([
                 'commerce.openai_api_key' => 'sk-invalid-mock-openai-key-trigger-fallback',
@@ -100,7 +116,7 @@ class CommerceAiProviderFallbackTest extends TestCase
             $this->assertStringContainsString('gemini', $content);
             $this->assertStringNotContainsString('Máy chủ Travel Planner hiện đang bận', $content);
         } finally {
-            config(['commerce.openai_api_key' => $origOpenAi]);
+            config($this->originalConfig);
         }
     }
 
@@ -111,9 +127,7 @@ class CommerceAiProviderFallbackTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'user', 'is_active' => true]);
 
-        // Cấu hình cố tình ghi gemini-2.5-flash
-        $origModel = config('commerce.gemini_model');
-        $realGemini = config('commerce.gemini_api_key') ?: env('GEMINI_API_KEY');
+        $realGemini = $this->originalConfig['commerce.gemini_api_key'] ?: env('GEMINI_API_KEY');
         try {
             config([
                 'commerce.openai_api_key' => null,
@@ -131,7 +145,7 @@ class CommerceAiProviderFallbackTest extends TestCase
             $this->assertStringNotContainsString('Máy chủ AI (gemini-2.5-flash) đang phản hồi chậm', $content);
             $this->assertStringContainsString('turn_complete', $content);
         } finally {
-            config(['commerce.gemini_model' => $origModel]);
+            config($this->originalConfig);
         }
     }
 }

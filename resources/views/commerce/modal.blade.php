@@ -4,6 +4,9 @@
     $title = $merchant ? 'Merchant Agent' : 'Travel Agent';
 @endphp
 
+<!-- Pre-fetch and pre-warm AI Assistant -->
+<link rel="prefetch" href="{{ $targetUrl }}">
+
 <!-- Resizable AI Assistant Split Screen Panel (Phong cách sang trọng, tông trắng tinh tế, font Times New Roman) -->
 <div id="commerceSidePanel" class="commerce-side-panel" role="complementary" aria-label="AI Travel Assistant Panel">
     <!-- Thanh kéo kích thước chia đôi giữa 2 màn hình (Center Resizer Handle with Grip) -->
@@ -65,14 +68,16 @@
 
     <!-- Vùng thân chứa Iframe ứng dụng Commerce Agents -->
     <div class="commerce-panel-body">
-        <div id="commercePanelLoading" class="commerce-panel-loading">
+        <div id="commercePanelLoading" class="commerce-panel-loading" style="display: none;">
             <div class="commerce-panel-spinner"></div>
             <span>Đang tải trợ lý…</span>
         </div>
         <iframe id="commerceIframe"
+                src="{{ $targetUrl }}"
                 data-src="{{ $targetUrl }}"
                 title="{{ $title }}"
                 class="commerce-panel-iframe"
+                loading="eager"
                 onload="onCommerceIframeLoaded()">
         </iframe>
     </div>
@@ -463,10 +468,31 @@
             applyPanelWidth(targetWidth, true);
         };
 
+        function warmUpCommerceIframe() {
+            const iframe = document.getElementById('commerceIframe');
+            if (!iframe) return;
+            if (!iframe.src || iframe.src === 'about:blank' || iframe.src === window.location.href) {
+                const targetSrc = iframe.getAttribute('data-src') || '{{ $targetUrl }}';
+                if (targetSrc) {
+                    iframe.src = targetSrc;
+                }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             applyPanelWidth(getInitialWidth(), false);
             applyDisplayMode(getDisplayMode());
             setupResizeListeners();
+
+            // Khởi tạo ngay lập tức iframe trợ lý AI trong nền
+            warmUpCommerceIframe();
+
+            // Preload on launcher button hover or touch
+            const launcher = document.getElementById('commerceFloatingLauncher');
+            if (launcher) {
+                launcher.addEventListener('mouseenter', warmUpCommerceIframe, { once: true });
+                launcher.addEventListener('touchstart', warmUpCommerceIframe, { once: true, passive: true });
+            }
         });
 
         window.addEventListener('resize', function () {
@@ -552,12 +578,7 @@
             const iframe = document.getElementById('commerceIframe');
             if (!panel || !iframe) return;
 
-            if (!iframe.src || iframe.src === 'about:blank' || iframe.src === window.location.href) {
-                const targetSrc = iframe.getAttribute('data-src');
-                if (targetSrc) {
-                    iframe.src = targetSrc;
-                }
-            }
+            warmUpCommerceIframe();
 
             applyPanelWidth(getInitialWidth(), false);
             panel.classList.add('is-open');

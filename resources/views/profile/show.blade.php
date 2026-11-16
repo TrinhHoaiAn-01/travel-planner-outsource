@@ -705,19 +705,6 @@
             <span class="breadcrumb-current">Hồ sơ cá nhân</span>
         </nav>
 
-        <!-- Thông báo flash -->
-        @if(session('success'))
-            <div class="alert-box alert-success" role="alert">
-                {{ session('success') }}
-            </div>
-        @endif
-
-        @if(session('error'))
-            <div class="alert-box alert-danger" role="alert">
-                {{ session('error') }}
-            </div>
-        @endif
-
         <!-- Layout 2 cột -->
         <div class="profile-layout">
             <!-- Cột trái: Tóm tắt thông tin người dùng -->
@@ -1200,5 +1187,6 @@
             });
         }
     </script>
+    @include('partials.popup-notification')
 </body>
 </html>

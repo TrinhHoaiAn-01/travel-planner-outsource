@@ -356,19 +356,6 @@
             <p class="card-subtitle">Chào mừng bạn quay trở lại</p>
         </div>
 
-        {{-- Thông báo phản hồi hệ thống nếu có --}}
-        @if(session('error'))
-            <div class="alert-box alert-danger" role="alert">
-                {{ session('error') }}
-            </div>
-        @endif
-
-        @if(session('success'))
-            <div class="alert-box alert-success" role="alert">
-                {{ session('success') }}
-            </div>
-        @endif
-
         <form action="{{ route('login') }}" method="POST" novalidate id="loginForm">
             @csrf
 
@@ -569,5 +556,6 @@
             });
         }
     </script>
+    @include('partials.popup-notification')
 </body>
 </html>

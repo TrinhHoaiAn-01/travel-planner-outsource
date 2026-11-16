@@ -25,14 +25,10 @@ class CityManagementService implements CityManagementServiceInterface
     {
         $query = City::query()->withCount('destinations');
 
-        // Lọc theo từ khóa tìm kiếm (tên, mã tỉnh/thành hoặc khu vực)
+        // 1. Tìm kiếm bằng Apache Solr thông qua SearchServiceInterface
         if (! empty($filters['search'])) {
-            $search = trim($filters['search']);
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'LIKE', "%{$search}%")
-                    ->orWhere('code', 'LIKE', "%{$search}%")
-                    ->orWhere('region', 'LIKE', "%{$search}%");
-            });
+            $search = trim((string) $filters['search']);
+            app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'city', $search);
         }
 
         // Lọc theo khu vực (miền)

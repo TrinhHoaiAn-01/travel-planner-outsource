@@ -19,13 +19,10 @@ class TripService implements TripServiceInterface
             ->where('user_id', $userId)
             ->with(['expenses', 'itineraryItems.destination']);
 
-        // Tìm kiếm theo từ khóa (tên hoặc mô tả chuyến đi)
+        // 1. Tìm kiếm bằng Apache Solr thông qua SearchServiceInterface
         if (! empty($filters['search'])) {
             $searchKeyword = trim((string) $filters['search']);
-            $query->where(function ($q) use ($searchKeyword) {
-                $q->where('name', 'LIKE', "%{$searchKeyword}%")
-                    ->orWhere('description', 'LIKE', "%{$searchKeyword}%");
-            });
+            app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'trip', $searchKeyword, $userId);
         }
 
         // Lọc theo trạng thái chuyến đi
@@ -292,12 +289,13 @@ class TripService implements TripServiceInterface
             $clonedTrip->save();
 
             foreach ($originalTrip->itineraryItems as $item) {
-                $clonedItem = $item->replicate(['created_at', 'updated_at', 'trip_id']);
+                $clonedItem = $item->replicate(['created_at', 'updated_at', 'trip_id', 'booking_id']);
                 $clonedItem->trip_id = $clonedTrip->id;
+                $clonedItem->booking_id = null;
                 $clonedItem->save();
             }
 
-            return $clonedTrip;
+            return $clonedTrip->load('itineraryItems');
         });
     }
 

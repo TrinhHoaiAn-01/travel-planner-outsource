@@ -707,41 +707,6 @@
             margin-top: 10px;
         }
 
-        /* Toast Message */
-        .toast-container-custom {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            z-index: 2000;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .toast-item {
-            background: var(--white);
-            color: var(--text-dark);
-            padding: 12px 18px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-            border-left: 4px solid var(--primary);
-            font-size: 14px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            animation: slideInRight 0.3s ease;
-        }
-
-        .toast-item.toast-success { border-left-color: var(--success); }
-        .toast-item.toast-info { border-left-color: var(--primary); }
-        .toast-item.toast-danger { border-left-color: var(--danger); }
-
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
         .fade-card-out {
             opacity: 0 !important;
             transform: scale(0.9) !important;
@@ -1017,32 +982,15 @@
         </div>
     </div>
 
-    <!-- Toast Notifications Container -->
-    <div class="toast-container-custom" id="toastContainer"></div>
-
     <!-- JavaScript Xử Lý AJAX Không Load Lại Trang -->
     <script>
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-        // Hiển thị thông báo Toast
+        // Hiển thị thông báo (Chuyển sang Popup giữa màn hình)
         function showToast(message, type = 'success') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast-item toast-${type}`;
-            
-            let icon = '<i class="bi bi-check-circle-fill" style="color: var(--success); font-size: 18px;"></i>';
-            if (type === 'danger') icon = '<i class="bi bi-exclamation-circle-fill" style="color: var(--danger); font-size: 18px;"></i>';
-            if (type === 'info') icon = '<i class="bi bi-info-circle-fill" style="color: var(--primary); font-size: 18px;"></i>';
-
-            toast.innerHTML = `${icon} <span>${message}</span>`;
-            container.appendChild(toast);
-
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(100%)';
-                toast.style.transition = 'all 0.3s ease';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
+            if (window.showAppPopup) {
+                window.showAppPopup({ type: type === 'danger' ? 'error' : type, message: message });
+            }
         }
 
         // Dropdown người dùng
@@ -1236,5 +1184,6 @@
         }
     </script>
     @include('commerce.launcher', ['merchant' => false])
+    @include('partials.popup-notification')
 </body>
 </html>

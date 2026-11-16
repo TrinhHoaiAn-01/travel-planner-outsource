@@ -172,23 +172,29 @@
 
     /* Cột 5: Trạng thái (Huy hiệu xanh lá chuẩn ảnh) */
     .badge-status-active {
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         padding: 4px 10px;
         border-radius: 9999px;
         font-size: 12px;
         font-weight: 600;
-        line-height: 1.2;
+        line-height: 1.25;
+        white-space: nowrap;
         background-color: #ECFDF5;
         color: #10B981;
     }
 
     .badge-status-inactive {
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         padding: 4px 10px;
         border-radius: 9999px;
         font-size: 12px;
         font-weight: 600;
-        line-height: 1.2;
+        line-height: 1.25;
+        white-space: nowrap;
         background-color: #F1F5F9;
         color: #64748B;
     }
@@ -471,33 +477,6 @@
 
 @section('content')
 <div class="category-management-container">
-
-    {{-- Thông báo phản hồi --}}
-    @if(session('success'))
-        <div class="flash-alert-banner flash-alert-success">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"/>
-                </svg>
-                <span>{{ session('success') }}</span>
-            </div>
-            <button type="button" onclick="this.parentElement.style.display='none'" style="background:none; border:none; color:inherit; cursor:pointer;">&times;</button>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="flash-alert-banner flash-alert-error">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" y1="8" x2="12" y2="12"/>
-                    <line x1="12" y1="16" x2="12.01" y2="16"/>
-                </svg>
-                <span>{{ session('error') }}</span>
-            </div>
-            <button type="button" onclick="this.parentElement.style.display='none'" style="background:none; border:none; color:inherit; cursor:pointer;">&times;</button>
-        </div>
-    @endif
 
     {{-- Tiêu đề trang & Nút thêm mới --}}
     <div class="category-header-row">

@@ -24,13 +24,10 @@ class CategoryManagementService implements CategoryManagementServiceInterface, C
     {
         $query = Category::query()->withCount('destinations');
 
-        // Lọc theo từ khóa tìm kiếm (tên danh mục hoặc slug)
+        // 1. Tìm kiếm bằng Apache Solr thông qua SearchServiceInterface
         if (! empty($filters['search'])) {
-            $search = trim($filters['search']);
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'LIKE', "%{$search}%")
-                    ->orWhere('slug', 'LIKE', "%{$search}%");
-            });
+            $search = trim((string) $filters['search']);
+            app(\App\Services\Interfaces\SearchServiceInterface::class)->apply($query, 'category', $search);
         }
 
         // Lọc theo trạng thái hiển thị

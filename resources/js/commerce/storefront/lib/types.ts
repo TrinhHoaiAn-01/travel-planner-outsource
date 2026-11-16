@@ -154,14 +154,32 @@ export interface BookingActionPayload {
   room_count?: number;
   total_price: number;
   status: string;
+  is_paid?: boolean;
+  awaiting_admin?: boolean;
+  transaction_id?: string;
   payment_instructions?: {
     bank_name: string;
     account_number: string;
     account_holder: string;
     amount: number;
     transfer_syntax: string;
+    qr_code_url?: string;
   };
   message: string;
   view_url?: string;
   pay_url?: string;
+  is_trip_checkout?: boolean;
+  trip_id?: number;
+  batch_code?: string;
+  items_count?: number;
+  total_items?: number;
+  approved_items?: number;
+  items?: Array<{
+    payment_id: number;
+    booking_id: number;
+    booking_code: string;
+    title: string;
+    amount: number;
+    status: string;
+  }>;
 }
