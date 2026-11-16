@@ -118,5 +118,25 @@ interface DestinationServiceInterface
      * @return Collection
      */
     public function getDestinationGallery(Destination $destination): Collection;
+
+    /**
+     * Lấy danh sách thành phố phục vụ bộ lọc nhanh (Quick Filter) trên trang khám phá.
+     * Tối đa $limit thành phố có trong dữ liệu admin (không dùng data mẫu),
+     * được xếp theo tổng số tiền người dùng chi trả cho các điểm đến (destinations) trong thành phố đó nhiều nhất.
+     *
+     * @param int $limit
+     * @return Collection
+     */
+    public function getQuickFilterCities(int $limit = 3): Collection;
+
+    /**
+     * Lấy danh sách địa điểm phục vụ bộ lọc nhanh (Quick Filter) trên trang khám phá.
+     * Tối đa $limit địa điểm có trong data admin (không dùng data mẫu),
+     * được xếp theo tổng số tiền người dùng chi trả nhiều nhất.
+     *
+     * @param int $limit
+     * @return Collection
+     */
+    public function getQuickFilterDestinations(int $limit = 3): Collection;
 }
 

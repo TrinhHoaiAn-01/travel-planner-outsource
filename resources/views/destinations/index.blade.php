@@ -506,6 +506,10 @@
             background: #F1F5F9;
             text-decoration: none;
             transition: all 0.2s;
+            white-space: nowrap;
+            max-width: 240px;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .pill-city:hover {
@@ -937,6 +941,9 @@
         <div class="filter-card">
             <form action="{{ route('destinations.index') }}" method="GET" id="destinationsFilterForm">
                 <input type="hidden" name="per_page" value="{{ request('per_page', $perPage ?? 6) }}">
+                @if(request('destination_id'))
+                    <input type="hidden" name="destination_id" id="filterDestinationId" value="{{ request('destination_id') }}">
+                @endif
                 <div class="filter-form-grid">
                     <!-- 1. Tìm kiếm theo tên & Chọn Engine Solr / SQL -->
                     <div class="filter-field">
@@ -1041,26 +1048,24 @@
                         </span>
                     </label>
 
+                    @if(isset($quickFilterCities) && $quickFilterCities->isNotEmpty())
                     <div class="quick-cities-wrap">
                         <span class="quick-city-label">Lọc nhanh:</span>
-                        @php
-                            $quickCitiesConfig = [
-                                'Đà Nẵng' => $cities->first(fn($c) => str_contains(mb_strtolower($c->name), 'đà nẵng') || str_contains(mb_strtolower($c->name), 'da nang')),
-                                'Phú Quốc' => $cities->first(fn($c) => str_contains(mb_strtolower($c->name), 'phú quốc') || str_contains(mb_strtolower($c->name), 'phu quoc')),
-                                'Hạ Long' => $cities->first(fn($c) => str_contains(mb_strtolower($c->name), 'hạ long') || str_contains(mb_strtolower($c->name), 'ha long')),
-                            ];
-                        @endphp
-                        @foreach($quickCitiesConfig as $label => $cityObj)
+                        @foreach($quickFilterCities as $qCity)
                             @php
-                                $cityId = $cityObj ? $cityObj->id : null;
-                                $isActive = $cityId && (string)request('city_id') === (string)$cityId;
+                                $isActive = (string)request('city_id') === (string)$qCity->id;
+                                $targetUrl = $isActive
+                                    ? route('destinations.index', request()->except(['city_id', 'page']))
+                                    : route('destinations.index', array_merge(request()->except(['city_id', 'page']), ['city_id' => $qCity->id]));
                             @endphp
-                            <a href="{{ $cityId ? route('destinations.index', array_merge(request()->except(['city_id', 'page']), ['city_id' => $cityId])) : '#' }}" 
-                               class="pill-city {{ $isActive ? 'active' : '' }}">
-                                {{ $label }}
+                            <a href="{{ $targetUrl }}" 
+                               class="pill-city {{ $isActive ? 'active' : '' }}"
+                               title="{{ $qCity->name }}@if(!empty($qCity->total_spent) && $qCity->total_spent > 0) (Tổng chi trả: {{ number_format($qCity->total_spent, 0, ',', '.') }}đ)@endif">
+                                {{ $qCity->name }}
                             </a>
                         @endforeach
                     </div>
+                    @endif
                 </div>
             </form>
         </div>
@@ -1217,6 +1222,10 @@
                 const el = document.getElementById(id);
                 if (el) {
                     el.addEventListener('change', function () {
+                        const destIdInput = document.getElementById('filterDestinationId');
+                        if (destIdInput && (id === 'filterCity' || id === 'filterCategory')) {
+                            destIdInput.value = '';
+                        }
                         form.submit();
                     });
                 }

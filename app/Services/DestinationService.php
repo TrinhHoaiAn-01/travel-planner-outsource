@@ -476,6 +476,11 @@ class DestinationService implements DestinationServiceInterface
             $query->where('city_id', $filters['city_id']);
         }
 
+        // 2b. Lọc trực tiếp theo ID địa điểm từ bộ lọc nhanh (Quick Filter)
+        if (!empty($filters['destination_id']) && $filters['destination_id'] !== 'all') {
+            $query->where('destinations.id', $filters['destination_id']);
+        }
+
         // 3. Lọc theo Danh mục
         if (!empty($filters['category_id']) && $filters['category_id'] !== 'all') {
             $query->where('category_id', $filters['category_id']);
@@ -589,16 +594,49 @@ class DestinationService implements DestinationServiceInterface
      */
     public function getRelatedDestinations(Destination $destination, int $limit = 4): Collection
     {
-        return Destination::query()
-            ->with(['city', 'category', 'primaryImage', 'roomTypes'])
+        // 1. Trích xuất từ khóa nhận diện chính từ tên điểm đến (ví dụ: 'Messi' từ 'Kỷ tưởng niệm Messi')
+        $cleanName = trim(preg_replace('/^(kỷ niệm|kỷ tưởng niệm|khách sạn|khu du lịch|bảo tàng|sân vận động)\s+/iu', '', $destination->name));
+        $keyword = mb_strlen($cleanName) >= 3 ? $cleanName : null;
+
+        // 2. Tìm kiếm các điểm đến liên quan trực tiếp: cùng thành phố, cùng danh mục hoặc cùng từ khóa thương hiệu/địa danh
+        $related = Destination::query()
+            ->with(['city', 'category', 'primaryImage', 'images', 'roomTypes'])
             ->where('id', '!=', $destination->id)
-            ->where(function ($q) use ($destination) {
+            ->where(function ($q) use ($destination, $keyword) {
                 $q->where('city_id', $destination->city_id)
                     ->orWhere('category_id', $destination->category_id);
+
+                if (! empty($keyword)) {
+                    $q->orWhere('name', 'like', "%{$keyword}%");
+                }
             })
+            ->orderByRaw("
+                CASE 
+                    WHEN city_id = {$destination->city_id} AND category_id = {$destination->category_id} THEN 1
+                    WHEN city_id = {$destination->city_id} THEN 2
+                    WHEN category_id = {$destination->category_id} THEN 3
+                    ELSE 4
+                END ASC
+            ")
             ->orderByDesc('rating')
             ->limit($limit)
             ->get();
+
+        // 3. Dự phòng chuẩn nghiệp vụ: nếu chưa đủ số lượng $limit, tự động bổ sung các điểm đến nổi bật khác để lấp đầy giao diện
+        if ($related->count() < $limit) {
+            $excludeIds = $related->pluck('id')->push($destination->id)->all();
+            $moreDestinations = Destination::query()
+                ->with(['city', 'category', 'primaryImage', 'images', 'roomTypes'])
+                ->whereNotIn('id', $excludeIds)
+                ->orderByDesc('is_featured')
+                ->orderByDesc('rating')
+                ->limit($limit - $related->count())
+                ->get();
+
+            $related = $related->merge($moreDestinations);
+        }
+
+        return $related;
     }
 
     /**
@@ -628,6 +666,68 @@ class DestinationService implements DestinationServiceInterface
         return $destination->images()
             ->orderByDesc('is_primary')
             ->orderBy('id', 'asc')
+            ->get();
+    }
+
+    /**
+     * Lấy danh sách thành phố phục vụ bộ lọc nhanh (Quick Filter) trên trang khám phá.
+     * Tối đa $limit thành phố có trong dữ liệu admin (không dùng data mẫu, nếu có 2 thì hiện 2),
+     * được sắp xếp theo tổng số tiền người dùng chi trả cho các điểm đến (destinations) trong thành phố đó nhiều nhất.
+     *
+     * @param int $limit
+     * @return Collection
+     */
+    public function getQuickFilterCities(int $limit = 3): Collection
+    {
+        return City::query()
+            ->where('is_active', true)
+            ->select('cities.*')
+            ->selectSub(function ($query) {
+                $query->from('bookings')
+                    ->join('room_types', 'bookings.room_type_id', '=', 'room_types.id')
+                    ->join('destinations', 'room_types.destination_id', '=', 'destinations.id')
+                    ->leftJoin('payments', function ($pJoin) {
+                        $pJoin->on('bookings.id', '=', 'payments.booking_id')
+                            ->where('payments.status', '=', 'completed');
+                    })
+                    ->whereColumn('destinations.city_id', 'cities.id')
+                    ->whereNotIn('bookings.status', ['cancelled'])
+                    ->selectRaw('COALESCE(SUM(CASE WHEN payments.id IS NOT NULL THEN payments.amount ELSE bookings.total_price END), 0)');
+            }, 'total_spent')
+            ->orderByDesc('total_spent')
+            ->orderBy('cities.id', 'asc')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Lấy danh sách địa điểm phục vụ bộ lọc nhanh (Quick Filter) trên trang khám phá.
+     * Tối đa $limit địa điểm có trong data admin (không dùng data mẫu, nếu có 2 thì hiện 2),
+     * được xếp theo tổng số tiền người dùng chi trả nhiều nhất.
+     *
+     * @param int $limit
+     * @return Collection
+     */
+    public function getQuickFilterDestinations(int $limit = 3): Collection
+    {
+        return Destination::query()
+            ->with(['city', 'category', 'primaryImage'])
+            ->select('destinations.*')
+            ->selectSub(function ($query) {
+                $query->from('bookings')
+                    ->join('room_types', 'bookings.room_type_id', '=', 'room_types.id')
+                    ->leftJoin('payments', function ($pJoin) {
+                        $pJoin->on('bookings.id', '=', 'payments.booking_id')
+                            ->where('payments.status', '=', 'completed');
+                    })
+                    ->whereColumn('room_types.destination_id', 'destinations.id')
+                    ->whereNotIn('bookings.status', ['cancelled'])
+                    ->selectRaw('COALESCE(SUM(CASE WHEN payments.id IS NOT NULL THEN payments.amount ELSE bookings.total_price END), 0)');
+            }, 'total_spent')
+            ->orderByDesc('total_spent')
+            ->orderByDesc('destinations.rating')
+            ->orderBy('destinations.id', 'asc')
+            ->limit($limit)
             ->get();
     }
 }

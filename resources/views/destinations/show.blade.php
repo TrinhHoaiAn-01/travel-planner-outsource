@@ -627,7 +627,7 @@
             transform: scale(1.05);
         }
 
-        /* 6. Related Destinations (Địa Điểm Khám Phá Liên Quan - FR13) */
+        /* 6. Related Destinations (Địa Điểm Khám Phá Liên Quan - Chuẩn nghiệp vụ & Thiết kế tinh tế) */
         .related-destinations-section {
             margin-top: 48px;
             padding-top: 36px;
@@ -635,55 +635,53 @@
         }
 
         .section-title-wrap {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 12px;
+            margin-bottom: 22px;
         }
 
-        .btn-view-all-related {
-            font-size: 14px;
-            font-weight: 600;
-            color: #0066FF;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            transition: gap 0.2s;
+        .section-title-wrap .section-headline {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0F172A;
+            margin: 0 0 6px 0;
+            letter-spacing: -0.01em;
         }
 
-        .btn-view-all-related:hover {
-            gap: 8px;
-            text-decoration: underline;
+        .section-title-wrap .section-subtitle {
+            font-size: 13.5px;
+            color: #64748B;
+            margin: 0;
+            line-height: 1.5;
         }
 
         .related-cards-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 20px;
+            align-items: stretch;
         }
 
         .related-dest-card {
             background: #FFFFFF;
             border: 1px solid #E2E8F0;
-            border-radius: 16px;
+            border-radius: 12px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            transition: transform 0.2s, box-shadow 0.2s;
+            height: 100%;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            position: relative;
         }
 
         .related-dest-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.08);
             border-color: #CBD5E1;
         }
 
         .related-card-img-wrap {
             position: relative;
-            height: 180px;
+            width: 100%;
+            height: 160px;
             overflow: hidden;
             background: #F1F5F9;
         }
@@ -692,6 +690,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            display: block;
             transition: transform 0.3s ease;
         }
 
@@ -704,29 +703,31 @@
             top: 10px;
             left: 10px;
             display: flex;
-            flex-direction: column;
-            gap: 5px;
+            align-items: center;
+            gap: 6px;
             z-index: 2;
         }
 
         .badge-cat-tag {
-            background: rgba(15, 23, 42, 0.75);
+            background: rgba(15, 23, 42, 0.72);
             backdrop-filter: blur(4px);
             color: #FFFFFF;
             font-size: 11px;
-            font-weight: 700;
+            font-weight: 500;
             padding: 3px 8px;
-            border-radius: 12px;
+            border-radius: 6px;
+            line-height: 1.2;
         }
 
         .badge-hotel-tag {
-            background: rgba(16, 185, 129, 0.9);
+            background: rgba(15, 23, 42, 0.72);
             backdrop-filter: blur(4px);
             color: #FFFFFF;
             font-size: 11px;
-            font-weight: 700;
+            font-weight: 500;
             padding: 3px 8px;
-            border-radius: 12px;
+            border-radius: 6px;
+            line-height: 1.2;
         }
 
         .fav-form-corner {
@@ -738,30 +739,31 @@
 
         .btn-fav-small {
             background: rgba(255, 255, 255, 0.9);
-            border: none;
+            border: 1px solid rgba(226, 232, 240, 0.8);
             border-radius: 50%;
-            width: 32px;
-            height: 32px;
+            width: 30px;
+            height: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 0;
             line-height: 0;
             cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
             transition: all 0.2s;
         }
 
         .btn-fav-small:hover {
-            transform: scale(1.1);
+            transform: scale(1.08);
             background: #FFFFFF;
         }
 
         .related-card-body {
-            padding: 16px;
+            padding: 14px 16px;
             display: flex;
             flex-direction: column;
             flex: 1;
+            justify-content: space-between;
         }
 
         .related-meta-row {
@@ -774,81 +776,102 @@
         }
 
         .related-city-name {
-            font-weight: 600;
-            color: #475569;
+            font-weight: 500;
+            color: #64748B;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .related-rating {
-            font-weight: 700;
-            color: #F59E0B;
+            font-weight: 600;
+            color: #D97706;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
         }
 
         .related-dest-title {
-            font-size: 15px;
-            font-weight: 700;
+            font-size: 14.5px;
+            font-weight: 600;
             color: #0F172A;
-            margin-bottom: 6px;
+            margin: 0 0 6px 0;
             line-height: 1.35;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .related-dest-title a {
             color: inherit;
             text-decoration: none;
-            transition: color 0.2s;
+            transition: color 0.15s;
         }
 
         .related-dest-title a:hover {
-            color: #0066FF;
+            color: #2563EB;
         }
 
         .related-dest-desc {
-            font-size: 13px;
+            font-size: 12.5px;
             color: #64748B;
-            line-height: 1.45;
-            margin-bottom: 14px;
-            flex: 1;
+            line-height: 1.5;
+            margin: 0 0 12px 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-height: 38px;
         }
 
         .related-card-footer {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding-top: 12px;
+            padding-top: 10px;
             border-top: 1px solid #F1F5F9;
+            margin-top: auto;
         }
 
         .price-label-xs {
             font-size: 11px;
             color: #94A3B8;
             display: block;
+            line-height: 1.2;
+            margin-bottom: 2px;
         }
 
         .price-val-sm {
-            font-size: 14px;
-            font-weight: 800;
-            color: #0066FF;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #0F172A;
         }
 
         .btn-related-detail {
             font-size: 12px;
-            font-weight: 700;
-            color: #0066FF;
-            background: #EBF5FF;
-            padding: 6px 12px;
-            border-radius: 16px;
+            font-weight: 600;
+            color: #334155;
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            padding: 5px 12px;
+            border-radius: 6px;
             text-decoration: none;
             transition: all 0.2s;
         }
 
         .btn-related-detail:hover {
-            background: #0066FF;
+            background: #0F172A;
+            border-color: #0F172A;
             color: #FFFFFF;
         }
 
         .related-empty-box {
             background: #F8FAFC;
             border: 1px dashed #CBD5E1;
-            border-radius: 16px;
+            border-radius: 12px;
             padding: 36px 20px;
             text-align: center;
             color: #64748B;
@@ -856,8 +879,15 @@
 
         @media (max-width: 1024px) {
             .related-cards-grid {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
+        }
+
+        @media (max-width: 640px) {
+            .related-cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
         }
 
         @media (max-width: 640px) {
@@ -2213,39 +2243,34 @@
         <!-- 6. Khối Địa Điểm Khám Phá Liên Quan (Related Destinations - FR13) -->
         <div class="related-destinations-section" id="relatedDestinationsSection">
             <div class="section-title-wrap">
-                <div>
-                    <span class="badge-cat-pill" style="margin-bottom: 6px;">Khám phá thêm</span>
-                    <h2 class="section-headline" style="margin-bottom: 4px;">📍 Địa Điểm Khám Phá Liên Quan</h2>
-                    <p style="font-size: 14px; color: #64748B;">
-                        Gợi ý các điểm đến hấp dẫn tương tự tại {{ $destination->city->name }} hoặc cùng danh mục {{ $destination->category->name ?? 'du lịch' }}
-                    </p>
-                </div>
-                @if($destination->city)
-                    <a href="{{ route('cities.destinations', $destination->city->slug) }}" class="btn-view-all-related">
-                        Xem tất cả tại {{ $destination->city->name }} &rsaquo;
-                    </a>
-                @endif
+                <h2 class="section-headline">Địa Điểm Khám Phá Liên Quan</h2>
+                <p class="section-subtitle">
+                    Gợi ý các điểm đến hấp dẫn tương tự tại {{ $destination->city->name ?? 'khu vực' }} hoặc cùng danh mục {{ $destination->category->name ?? 'du lịch' }}
+                </p>
             </div>
 
             @if(isset($relatedDestinations) && $relatedDestinations->isNotEmpty())
                 <div class="related-cards-grid">
                     @foreach($relatedDestinations as $rel)
+                        @php
+                            $relImg = $rel->primaryImage?->image_path ?? $rel->images->first()?->image_path;
+                            if (!empty($relImg) && !str_starts_with($relImg, 'http') && !str_starts_with($relImg, '/')) {
+                                $relImg = '/' . $relImg;
+                            }
+                            if (empty($relImg)) {
+                                $relImg = 'https://images.unsplash.com/photo-1528127269322-539801943592?w=600';
+                            }
+                        @endphp
                         <div class="related-dest-card">
                             <div class="related-card-img-wrap">
-                                @if($rel->primaryImage)
-                                    <img src="{{ $rel->primaryImage->image_path }}" alt="{{ $rel->name }}">
-                                @elseif($rel->images->isNotEmpty())
-                                    <img src="{{ $rel->images->first()->image_path }}" alt="{{ $rel->name }}">
-                                @else
-                                    <img src="https://images.unsplash.com/photo-1528127269322-539801943592?w=600" alt="{{ $rel->name }}">
-                                @endif
+                                <img src="{{ $relImg }}" alt="{{ $rel->name }}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1528127269322-539801943592?w=600'">
 
                                 <div class="related-badges-stack">
                                     @if($rel->category)
                                         <span class="badge-cat-tag">{{ $rel->category->name }}</span>
                                     @endif
                                     @if($rel->has_hotel)
-                                        <span class="badge-hotel-tag">🏨 Có nơi lưu trú</span>
+                                        <span class="badge-hotel-tag">Lưu trú</span>
                                     @endif
                                 </div>
 
@@ -2253,7 +2278,7 @@
                                 <form action="{{ route('favorites.toggle', $rel->id) }}" method="POST" class="fav-form-corner">
                                     @csrf
                                     <button type="submit" class="btn-fav-small" title="Lưu yêu thích">
-                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#0F172A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block; pointer-events: none;">
+                                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block; pointer-events: none;">
                                             <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
                                         </svg>
                                     </button>
@@ -2261,20 +2286,28 @@
                             </div>
 
                             <div class="related-card-body">
-                                <div class="related-meta-row">
-                                    <span class="related-city-name">📍 {{ $rel->city->name }}</span>
-                                    <span class="related-rating">⭐ {{ number_format($rel->rating, 1) }}</span>
+                                <div>
+                                    <div class="related-meta-row">
+                                        <span class="related-city-name">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                                            {{ $rel->city->name ?? 'Điểm đến' }}
+                                        </span>
+                                        <span class="related-rating">
+                                            <svg width="11" height="11" viewBox="0 0 24 24" fill="#D97706" stroke="#D97706" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                            {{ number_format($rel->rating, 1) }}
+                                        </span>
+                                    </div>
+
+                                    <h4 class="related-dest-title">
+                                        <a href="{{ route('destinations.show', $rel->slug) }}" title="{{ $rel->name }}">
+                                            {{ $rel->name }}
+                                        </a>
+                                    </h4>
+
+                                    <p class="related-dest-desc">
+                                        {{ \Illuminate\Support\Str::limit($rel->description ?? 'Điểm đến du lịch hấp dẫn với nhiều hoạt động trải nghiệm đặc sắc.', 90) }}
+                                    </p>
                                 </div>
-
-                                <h4 class="related-dest-title">
-                                    <a href="{{ route('destinations.show', $rel->slug) }}">
-                                        {{ $rel->name }}
-                                    </a>
-                                </h4>
-
-                                <p class="related-dest-desc">
-                                    {{ \Illuminate\Support\Str::limit($rel->description ?? 'Điểm đến du lịch hấp dẫn với nhiều hoạt động trải nghiệm đặc sắc.', 80) }}
-                                </p>
 
                                 <div class="related-card-footer">
                                     <div>
@@ -2290,7 +2323,7 @@
                                         </div>
                                     </div>
                                     <a href="{{ route('destinations.show', $rel->slug) }}" class="btn-related-detail">
-                                        Chi tiết &rsaquo;
+                                        Chi tiết
                                     </a>
                                 </div>
                             </div>
