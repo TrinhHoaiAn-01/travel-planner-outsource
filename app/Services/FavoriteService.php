@@ -24,7 +24,8 @@ class FavoriteService implements FavoriteServiceInterface
             ->with([
                 'destination.city',
                 'destination.category',
-                'destination.primaryImage'
+                'destination.primaryImage',
+                'destination.images',
             ])
             ->latest('created_at')
             ->paginate($perPage);

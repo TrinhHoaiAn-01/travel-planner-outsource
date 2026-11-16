@@ -735,10 +735,7 @@
                 <p class="page-heading-subtitle">Lưu lại những điểm đến bạn mong muốn khám phá trong các chuyến đi tới</p>
             </div>
             <div class="header-actions">
-                <button type="button" class="btn-demo-empty" id="toggleDemoEmptyBtn" onclick="toggleDemoEmptyState()">
-                    <i class="bi bi-eye"></i> Xem trạng thái Trống (Demo)
-                </button>
-                <a href="{{ route('home') }}#destinations" class="btn-primary-blue">
+                <a href="{{ route('destinations.index') }}" class="btn-primary-blue">
                     <i class="bi bi-plus-lg"></i> Khám phá thêm địa điểm
                 </a>
             </div>
@@ -761,12 +758,18 @@
                     }
                     
                     // Ảnh đại diện thật của địa điểm
-                    $imageUrl = $dest->primaryImage->image_path ?? 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800';
+                    $primaryImg = $dest->primaryImage?->image_path ?? $dest->images->first()?->image_path;
+                    if (!empty($primaryImg) && !str_starts_with($primaryImg, 'http') && !str_starts_with($primaryImg, '/')) {
+                        $primaryImg = '/' . $primaryImg;
+                    }
+                    $imageUrl = $primaryImg ?: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800';
                 @endphp
                 <div class="fav-card" id="fav-card-{{ $dest->id }}" data-destination-id="{{ $dest->id }}">
                     <!-- Card Image -->
                     <div class="fav-card-image-box">
-                        <img src="{{ $imageUrl }}" alt="{{ $dest->name }}" class="fav-card-img" loading="lazy">
+                        <a href="{{ route('destinations.show', $dest->slug) }}" style="display: block; width: 100%; height: 100%;">
+                            <img src="{{ $imageUrl }}" alt="{{ $dest->name }}" class="fav-card-img" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800'">
+                        </a>
                         <span class="card-category-badge {{ $badgeStyle }}">{{ $catName }}</span>
                         <!-- Nút Xóa Khỏi Yêu Thích (Có xác nhận trước khi xóa) -->
                         <button type="button" class="btn-trash-remove" 
@@ -794,7 +797,11 @@
                             </span>
                         </div>
 
-                        <h3 class="card-destination-title">{{ $dest->name }}</h3>
+                        <h3 class="card-destination-title">
+                            <a href="{{ route('destinations.show', $dest->slug) }}" style="color: inherit; text-decoration: none;">
+                                {{ $dest->name }}
+                            </a>
+                        </h3>
                         <p class="card-destination-desc">{{ $dest->description ?? 'Điểm đến du lịch hấp dẫn không thể bỏ lỡ trong hành trình khám phá.' }}</p>
 
                         <!-- Card Footer -->
@@ -807,7 +814,7 @@
                                         onclick="openAddToTripModal({{ $dest->id }}, '{{ addslashes($dest->name) }}')">
                                     + Trip
                                 </button>
-                                <a href="{{ route('home') }}#destinations" class="btn-pill-detail">
+                                <a href="{{ route('destinations.show', $dest->slug) }}" class="btn-pill-detail">
                                     Chi tiết
                                 </a>
                             </div>
@@ -1046,35 +1053,6 @@
                 card.classList.remove('fade-card-out');
                 showToast('Không thể kết nối máy chủ.', 'danger');
             });
-        }
-
-        // Xem trạng thái Trống (Demo)
-        let isDemoEmptyActive = false;
-        function toggleDemoEmptyState() {
-            const grid = document.getElementById('favoritesGridContainer');
-            const emptyBox = document.getElementById('favoritesEmptyState');
-            const btn = document.getElementById('toggleDemoEmptyBtn');
-
-            isDemoEmptyActive = !isDemoEmptyActive;
-
-            if (isDemoEmptyActive) {
-                grid.style.display = 'none';
-                emptyBox.style.display = 'block';
-                btn.innerHTML = '<i class="bi bi-grid-3x3-gap"></i> Xem lại danh sách';
-                btn.style.borderColor = 'var(--primary)';
-                btn.style.color = 'var(--primary)';
-            } else {
-                const remainingCards = grid.querySelectorAll('.fav-card');
-                if (remainingCards.length > 0) {
-                    grid.style.display = 'grid';
-                    emptyBox.style.display = 'none';
-                } else {
-                    emptyBox.style.display = 'block';
-                }
-                btn.innerHTML = '<i class="bi bi-eye"></i> Xem trạng thái Trống (Demo)';
-                btn.style.borderColor = '#94A3B8';
-                btn.style.color = '#475569';
-            }
         }
 
         // Modal Thêm vào Trip
