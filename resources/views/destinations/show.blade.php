@@ -1557,8 +1557,13 @@
             display: flex;
             align-items: center;
             gap: 3px;
-            color: #F59E0B;
             font-size: 15px;
+        }
+        .review-feed-stars i.star-empty {
+            color: #E2E8F0;
+        }
+        .review-feed-stars i.star-filled {
+            color: #F59E0B;
         }
         .review-feed-comment {
             font-size: 13.5px;
@@ -2032,15 +2037,10 @@
                     <!-- Danh Sách Các Đánh Giá Thực Tế & Mẫu Khớp Ảnh 2 Báo Cáo -->
                     <div class="reviews-feed-container">
                         @php
-                            // Lấy danh sách reviews đã duyệt
+                            // Danh sách nhận xét công khai đã được kiểm duyệt (Theo đúng chuẩn DB)
                             $displayReviews = $reviews->filter(function($r) {
                                 return $r->status === \App\Models\Review::STATUS_APPROVED;
                             });
-
-                            // Nếu người dùng hiện tại có review đang pending, hiển thị để họ xem trạng thái
-                            if (auth()->check() && $userReview && $userReview->status !== \App\Models\Review::STATUS_APPROVED) {
-                                $displayReviews = collect([$userReview])->merge($displayReviews);
-                            }
                         @endphp
 
                         @foreach($displayReviews as $item)
@@ -2073,7 +2073,7 @@
                                     </div>
                                     <div class="review-feed-stars">
                                         @for($s = 1; $s <= 5; $s++)
-                                            <i class="bi bi-star-fill {{ $s <= $item->rating ? 'star-filled' : 'star-empty' }}"></i>
+                                            <i class="bi bi-star-fill" style="color: {{ $s <= $item->rating ? '#F59E0B' : '#E2E8F0' }}; font-size: 15px;"></i>
                                         @endfor
                                     </div>
                                 </div>
