@@ -35,8 +35,10 @@ class StoreDestinationRequest extends FormRequest
             'duration' => ['nullable', 'integer', 'min:0'],
             'is_featured' => ['nullable', 'boolean'],
             'has_hotel' => ['nullable', 'boolean'],
-            'image_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp,gif', 'max:2048'],
-            'image_url' => ['nullable', 'string', 'max:2048'],
+            'image_file' => ['nullable'],
+            'image_files' => ['nullable', 'array'],
+            'image_files.*' => ['image', 'mimes:jpeg,png,jpg,webp,gif', 'max:5120'],
+            'image_url' => ['nullable', 'string', 'max:5000'],
         ];
     }
 

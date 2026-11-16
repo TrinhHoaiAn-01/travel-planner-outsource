@@ -1704,9 +1704,15 @@
 
             $galleryImages = [];
             if ($primaryImg) {
+                if (!str_starts_with($primaryImg, 'http') && !str_starts_with($primaryImg, '/')) {
+                    $primaryImg = '/' . $primaryImg;
+                }
                 $galleryImages[] = $primaryImg;
             }
             foreach ($dbImages as $img) {
+                if (!empty($img) && !str_starts_with($img, 'http') && !str_starts_with($img, '/')) {
+                    $img = '/' . $img;
+                }
                 if (!in_array($img, $galleryImages)) {
                     $galleryImages[] = $img;
                 }

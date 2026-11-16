@@ -428,25 +428,33 @@
         background-color: #DC2626;
     }
 
-    /* Icon Picker Grid */
+    /* Icon Picker Grid - Thiết kế chuẩn không xuống dòng và scale đẹp */
     .icon-radio-grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 10px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
         margin-top: 6px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .icon-radio-option {
-        display: flex;
-        flex-direction: column;
+        display: inline-flex;
+        flex-direction: row;
         align-items: center;
+        justify-content: center;
         gap: 6px;
-        padding: 10px 6px;
+        padding: 8px 6px;
         border: 1.5px solid #E2E8F0;
         border-radius: 10px;
         cursor: pointer;
         transition: all 0.2s ease;
-        text-align: center;
+        white-space: nowrap;
+        min-width: 0;
+        width: 100%;
+        box-sizing: border-box;
+        background-color: #FFFFFF;
+        user-select: none;
     }
 
     .icon-radio-option input {
@@ -463,14 +471,40 @@
         background-color: #EFF6FF;
     }
 
+    .icon-radio-option .category-icon-box {
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .icon-radio-option .category-icon-box svg {
+        width: 15px;
+        height: 15px;
+        flex-shrink: 0;
+    }
+
     .icon-radio-option .opt-label {
-        font-size: 11px;
+        font-size: 11.5px;
         font-weight: 600;
         color: #475569;
+        white-space: nowrap;
+        flex-shrink: 0;
+        line-height: 1.2;
     }
 
     .icon-radio-option.selected .opt-label {
         color: #1D4ED8;
+    }
+
+    @media (max-width: 540px) {
+        .icon-radio-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
     }
 </style>
 @endpush

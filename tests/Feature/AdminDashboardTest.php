@@ -62,33 +62,16 @@ class AdminDashboardTest extends TestCase
 
         // 4 Thẻ chỉ số thống kê
         $response->assertSee('TỔNG SỐ NGƯỜI DÙNG');
-        $response->assertSee('4.520');
         $response->assertSee('TỔNG SỐ ĐIỂM ĐẾN');
-        $response->assertSee('1.280');
         $response->assertSee('TỔNG ĐẶT PHÒNG');
-        $response->assertSee('860');
         $response->assertSee('TỔNG DOANH THU');
-        $response->assertSee('128.500.000 đ');
 
         // Biểu đồ và Tỷ lệ đặt phòng theo loại
         $response->assertSee('Thống Kê Lượt Đặt Phòng Theo Tháng');
         $response->assertSee('Tỷ Lệ Đặt Phòng - Theo Loại');
-        $response->assertSee('Khách Sạn');
-        $response->assertSee('Resort & Nghỉ Dưỡng');
-        $response->assertSee('Homestay');
-        $response->assertSee('Căn Hộ & Villa');
 
         // Bảng Giao dịch gần đây
         $response->assertSee('Giao Dịch Gần Đây');
-        $response->assertSee('#BK-2026-0891');
-        $response->assertSee('Nguyễn Văn An');
-        $response->assertSee('Vinpearl Resort Nha Trang');
-        $response->assertSee('3.500.000 đ');
-        $response->assertSee('Hoàn thành');
-        $response->assertSee('#BK-2026-0890');
-        $response->assertSee('Trần Thị Mai');
-        $response->assertSee('#BK-2026-0889');
-        $response->assertSee('Lê Hoàng Nam');
     }
 
     /**

@@ -26,8 +26,10 @@ class StoreCityRequest extends FormRequest
             'code' => ['nullable', 'string', 'max:50', 'unique:cities,code'],
             'region' => ['nullable', 'string', 'max:50'],
             'description' => ['nullable', 'string', 'max:2000'],
-            'image' => ['nullable', 'string', 'max:2048'],
-            'image_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp,gif', 'max:2048'],
+            'image' => ['nullable', 'string', 'max:5000'],
+            'image_file' => ['nullable'],
+            'image_files' => ['nullable', 'array'],
+            'image_files.*' => ['image', 'mimes:jpeg,png,jpg,webp,gif', 'max:5120'],
             'is_active' => ['nullable', 'boolean'],
         ];
     }

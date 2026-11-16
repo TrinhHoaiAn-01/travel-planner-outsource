@@ -590,7 +590,7 @@
                 <line x1="8" y1="2" x2="8" y2="6"></line>
                 <line x1="3" y1="10" x2="21" y2="10"></line>
             </svg>
-            <span>01/10/2026 - 07/10/2026</span>
+            <span>{{ now()->startOfMonth()->format('d/m/Y') }} - {{ now()->format('d/m/Y') }}</span>
         </div>
         <a href="{{ route('admin.dashboard.export') }}" class="btn-export-report" id="btnExportReport" download="bao-cao-thong-ke-travel-planner-2026.csv" title="Xuất báo cáo thống kê định dạng CSV/Excel">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -781,7 +781,7 @@
                 @forelse($recentBookings as $booking)
                     <tr>
                         <td>
-                            <a href="{{ route('admin.bookings.show', ['booking' => $booking['booking_code']]) }}" class="booking-code-link">
+                            <a href="{{ route('admin.bookings.show', ['booking' => $booking['id'] ?? $booking['booking_code']]) }}" class="booking-code-link">
                                 {{ $booking['booking_code'] }}
                             </a>
                         </td>

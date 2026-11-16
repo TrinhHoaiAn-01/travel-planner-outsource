@@ -98,12 +98,12 @@ class DestinationManagementService implements DestinationManagementServiceInterf
                 'is_featured' => isset($data['is_featured']) ? (bool) $data['is_featured'] : false,
             ]);
 
-            // Xử lý lưu hình ảnh đại diện (File upload hoặc URL)
-            $primaryImagePath = $this->handleImageUpload($data);
-            if (! empty($primaryImagePath)) {
+            // Xử lý lưu hình ảnh đại diện (Hỗ trợ tải lên nhiều ảnh cùng 1 lúc)
+            $uploadedImages = $this->handleMultipleImageUploads($data);
+            foreach ($uploadedImages as $index => $imagePath) {
                 $destination->images()->create([
-                    'image_path' => $primaryImagePath,
-                    'is_primary' => true,
+                    'image_path' => $imagePath,
+                    'is_primary' => ($index === 0),
                 ]);
             }
 
@@ -170,17 +170,32 @@ class DestinationManagementService implements DestinationManagementServiceInterf
 
             $destination->update($updateData);
 
-            // Cập nhật ảnh đại diện mới nếu có tải lên
-            $newImagePath = $this->handleImageUpload($data);
-            if (! empty($newImagePath)) {
-                // Đặt các ảnh hiện tại về is_primary = false
-                $destination->images()->update(['is_primary' => false]);
+            // Xử lý xóa ảnh nếu được chỉ định
+            if (! empty($data['delete_image_ids']) && is_array($data['delete_image_ids'])) {
+                $destination->images()->whereIn('id', $data['delete_image_ids'])->delete();
+            }
 
-                // Tạo hoặc cập nhật ảnh đại diện mới
+            // Cập nhật các ảnh mới nếu có tải lên (hỗ trợ nhiều ảnh cùng lúc)
+            $newImages = $this->handleMultipleImageUploads($data);
+            $hasPrimary = $destination->images()->where('is_primary', true)->exists();
+
+            foreach ($newImages as $index => $imgPath) {
+                $isPrimary = false;
+                if (! $hasPrimary && $index === 0) {
+                    $isPrimary = true;
+                    $hasPrimary = true;
+                }
+
                 $destination->images()->create([
-                    'image_path' => $newImagePath,
-                    'is_primary' => true,
+                    'image_path' => $imgPath,
+                    'is_primary' => $isPrimary,
                 ]);
+            }
+
+            // Đảm bảo luôn có ít nhất 1 ảnh đại diện chính nếu địa điểm có hình ảnh
+            if (! $destination->images()->where('is_primary', true)->exists() && $destination->images()->exists()) {
+                $first = $destination->images()->first();
+                $first->update(['is_primary' => true]);
             }
 
             // Quản lý trạng thái nơi lưu trú
@@ -278,28 +293,64 @@ class DestinationManagementService implements DestinationManagementServiceInterf
     }
 
     /**
-     * Xử lý lưu trữ tệp hình ảnh tải lên hoặc sử dụng đường dẫn URL hợp lệ.
+     * Xử lý lưu trữ danh sách tệp hình ảnh tải lên hoặc sử dụng đường dẫn URL hợp lệ (hỗ trợ nhiều ảnh).
+     *
+     * @param array $data
+     * @return array<int, string>
+     */
+    private function handleMultipleImageUploads(array $data): array
+    {
+        $imagePaths = [];
+
+        // 1. Tải lên danh sách nhiều tệp ảnh qua mảng image_files
+        if (! empty($data['image_files']) && is_array($data['image_files'])) {
+            foreach ($data['image_files'] as $file) {
+                if ($file instanceof UploadedFile) {
+                    $extension = $file->getClientOriginalExtension() ?: 'jpg';
+                    $filename = 'destination_' . Str::random(24) . '.' . $extension;
+                    $path = $file->storeAs('destinations', $filename, 'public');
+                    $imagePaths[] = Storage::url($path);
+                }
+            }
+        }
+
+        // 2. Tải lên tệp ảnh qua trường image_file (đơn lẻ hoặc mảng)
+        if (isset($data['image_file'])) {
+            $files = is_array($data['image_file']) ? $data['image_file'] : [$data['image_file']];
+            foreach ($files as $file) {
+                if ($file instanceof UploadedFile) {
+                    $extension = $file->getClientOriginalExtension() ?: 'jpg';
+                    $filename = 'destination_' . Str::random(24) . '.' . $extension;
+                    $path = $file->storeAs('destinations', $filename, 'public');
+                    $imagePaths[] = Storage::url($path);
+                }
+            }
+        }
+
+        // 3. Đường dẫn URL hình ảnh trực tiếp (hỗ trợ nhập 1 hoặc nhiều URL cách nhau bằng dấu phẩy)
+        if (! empty($data['image_url'])) {
+            $rawUrls = explode(',', (string) $data['image_url']);
+            foreach ($rawUrls as $url) {
+                $trimmed = trim($url);
+                if (! empty($trimmed)) {
+                    $imagePaths[] = $trimmed;
+                }
+            }
+        }
+
+        return $imagePaths;
+    }
+
+    /**
+     * Xử lý lưu trữ tệp hình ảnh tải lên hoặc sử dụng đường dẫn URL hợp lệ (tương thích ngược).
      *
      * @param array $data
      * @return string|null
      */
     private function handleImageUpload(array $data): ?string
     {
-        if (isset($data['image_file']) && $data['image_file'] instanceof UploadedFile) {
-            $file = $data['image_file'];
-            $extension = $file->getClientOriginalExtension() ?: 'jpg';
-            $filename = 'destination_' . Str::random(24) . '.' . $extension;
+        $images = $this->handleMultipleImageUploads($data);
 
-            // Lưu trữ an toàn trong thư mục public/destinations
-            $path = $file->storeAs('destinations', $filename, 'public');
-
-            return Storage::url($path);
-        }
-
-        if (! empty($data['image_url'])) {
-            return trim($data['image_url']);
-        }
-
-        return null;
+        return $images[0] ?? null;
     }
 }

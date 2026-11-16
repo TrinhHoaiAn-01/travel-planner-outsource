@@ -35,6 +35,15 @@ class City extends Model
     ];
 
     /**
+     * Tự động thêm các trường tính toán khi serialize sang mảng/JSON.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = [
+        'images',
+    ];
+
+    /**
      * Mối quan hệ: Một thành phố có nhiều địa điểm du lịch.
      */
     public function destinations(): HasMany
@@ -48,6 +57,58 @@ class City extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    /**
+     * Lấy URL ảnh đại diện đầu tiên của thành phố (tương thích ngược nếu lưu chuỗi hoặc JSON mảng ảnh).
+     */
+    public function getImageAttribute($value): ?string
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        $img = $value;
+        if (str_starts_with($value, '[') && str_ends_with($value, ']')) {
+            $decoded = json_decode($value, true);
+            if (is_array($decoded) && ! empty($decoded)) {
+                $img = $decoded[0];
+            }
+        }
+
+        if (! empty($img) && ! str_starts_with($img, 'http') && ! str_starts_with($img, '/')) {
+            $img = '/' . $img;
+        }
+
+        return $img;
+    }
+
+    /**
+     * Lấy danh sách toàn bộ hình ảnh của thành phố dưới dạng mảng.
+     *
+     * @return array<int, string>
+     */
+    public function getImagesAttribute(): array
+    {
+        $raw = $this->attributes['image'] ?? null;
+        if (empty($raw)) {
+            return [];
+        }
+
+        $images = [$raw];
+        if (str_starts_with($raw, '[') && str_ends_with($raw, ']')) {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                $images = $decoded;
+            }
+        }
+
+        return array_map(function ($img) {
+            if (! empty($img) && ! str_starts_with($img, 'http') && ! str_starts_with($img, '/')) {
+                return '/' . $img;
+            }
+            return $img;
+        }, $images);
     }
 
     /**

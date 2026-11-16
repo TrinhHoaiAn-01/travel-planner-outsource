@@ -184,20 +184,46 @@ class CityManagementService implements CityManagementServiceInterface
     }
 
     /**
-     * Xử lý lưu trữ tệp hình ảnh tải lên hoặc trả về URL.
+     * Xử lý lưu trữ tệp hình ảnh tải lên hoặc trả về URL (hỗ trợ chọn tải lên nhiều ảnh).
      *
      * @param array $data
      * @return string|null
      */
     protected function handleImageUpload(array $data): ?string
     {
-        if (isset($data['image_file']) && $data['image_file'] instanceof UploadedFile) {
-            $path = $data['image_file']->store('cities', 'public');
-            return Storage::disk('public')->url($path);
+        $uploadedUrls = [];
+
+        // Hỗ trợ chọn nhiều ảnh qua mảng image_files
+        if (! empty($data['image_files']) && is_array($data['image_files'])) {
+            foreach ($data['image_files'] as $file) {
+                if ($file instanceof UploadedFile) {
+                    $path = $file->store('cities', 'public');
+                    $uploadedUrls[] = Storage::disk('public')->url($path);
+                }
+            }
+        }
+
+        // Hỗ trợ trường hợp tải ảnh qua image_file
+        if (isset($data['image_file'])) {
+            $files = is_array($data['image_file']) ? $data['image_file'] : [$data['image_file']];
+            foreach ($files as $file) {
+                if ($file instanceof UploadedFile) {
+                    $path = $file->store('cities', 'public');
+                    $uploadedUrls[] = Storage::disk('public')->url($path);
+                }
+            }
+        }
+
+        if (! empty($uploadedUrls)) {
+            return count($uploadedUrls) > 1 ? json_encode($uploadedUrls) : $uploadedUrls[0];
         }
 
         if (! empty($data['image']) && is_string($data['image'])) {
-            return trim($data['image']);
+            $rawUrls = array_values(array_filter(array_map('trim', explode(',', $data['image']))));
+            if (count($rawUrls) > 1) {
+                return json_encode($rawUrls);
+            }
+            return $rawUrls[0] ?? null;
         }
 
         return null;

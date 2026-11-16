@@ -83,8 +83,11 @@ class DestinationController extends Controller
     {
         $data = $request->validated();
 
-        if ($request->hasFile('image_file')) {
-            $data['image_file'] = $request->file('image_file');
+        if ($request->hasFile('image_files')) {
+            $data['image_files'] = $request->file('image_files');
+        } elseif ($request->hasFile('image_file')) {
+            $files = $request->file('image_file');
+            $data['image_files'] = is_array($files) ? $files : [$files];
         }
 
         $this->destinationManagementService->createDestination($data);
@@ -177,8 +180,15 @@ class DestinationController extends Controller
         $destinationModel = $this->resolveDestinationModel($destination);
         $data = $request->validated();
 
-        if ($request->hasFile('image_file')) {
-            $data['image_file'] = $request->file('image_file');
+        if ($request->hasFile('image_files')) {
+            $data['image_files'] = $request->file('image_files');
+        } elseif ($request->hasFile('image_file')) {
+            $files = $request->file('image_file');
+            $data['image_files'] = is_array($files) ? $files : [$files];
+        }
+
+        if ($request->has('delete_image_ids')) {
+            $data['delete_image_ids'] = (array) $request->input('delete_image_ids');
         }
 
         $this->destinationManagementService->updateDestination($destinationModel->id, $data);

@@ -10,7 +10,7 @@
     <!-- Preload critical React bundles for instant load -->
     <link rel="modulepreload" href="{{ asset('build/assets/Boundary-BtyRJOZM.js') }}">
     @if(!$merchant)
-        <link rel="modulepreload" href="{{ asset('build/assets/shopping-F7xK9m2Q.js') }}">
+        <link rel="modulepreload" href="{{ asset('build/assets/shopping-NkzagRnY.js') }}">
         <link rel="stylesheet" href="{{ asset('build/assets/shopping-DnmuUCsB.css') }}">
     @else
         <link rel="modulepreload" href="{{ asset('build/assets/merchant-B_LNYEpS.js') }}">

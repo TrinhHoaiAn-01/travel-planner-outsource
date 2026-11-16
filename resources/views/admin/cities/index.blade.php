@@ -662,8 +662,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Hoặc tải tệp ảnh từ máy tính</label>
-                    <input type="file" name="image_file" class="form-control" accept="image/*">
+                    <label class="form-label">Hoặc tải tệp ảnh từ máy tính (Cho phép chọn nhiều ảnh)</label>
+                    <input type="file" name="image_files[]" class="form-control" accept="image/*" multiple>
                 </div>
 
                 <div class="form-group">
@@ -721,13 +721,18 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Đường dẫn hình ảnh (Image URL)</label>
-                    <input type="text" name="image" id="edit_image" class="form-control">
+                    <label class="form-label">Đường dẫn hình ảnh (URL - Cho phép nhập nhiều URL cách nhau bằng dấu phẩy)</label>
+                    <input type="text" name="image" id="edit_image" class="form-control" placeholder="https://images.unsplash.com/..., https://...">
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Hoặc tải tệp ảnh mới thay thế</label>
-                    <input type="file" name="image_file" class="form-control" accept="image/*">
+                    <label class="form-label">Hoặc tải thêm / thay thế tệp ảnh (Cho phép chọn nhiều ảnh)</label>
+                    <input type="file" name="image_files[]" class="form-control" accept="image/*" multiple>
+                </div>
+
+                <div class="form-group" id="edit_city_images_wrap" style="display: none;">
+                    <label class="form-label">Hình ảnh hiện tại</label>
+                    <div id="edit_city_images_grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-top: 6px;"></div>
                 </div>
 
                 <div class="form-group">
@@ -786,6 +791,19 @@
         document.getElementById('edit_is_active').value = city.is_active ? '1' : '0';
         document.getElementById('edit_image').value = city.image || '';
         document.getElementById('edit_description').value = city.description || '';
+
+        const imagesWrap = document.getElementById('edit_city_images_wrap');
+        const imagesGrid = document.getElementById('edit_city_images_grid');
+        if (city.images && city.images.length > 0) {
+            imagesGrid.innerHTML = city.images.map(img => {
+                const u = (img && !img.startsWith('http') && !img.startsWith('/')) ? '/' + img : img;
+                return `<img src="${u}" style="width: 100%; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #E2E8F0;" onerror="this.src='https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=150&q=80'">`;
+            }).join('');
+            imagesWrap.style.display = 'block';
+        } else {
+            imagesGrid.innerHTML = '';
+            imagesWrap.style.display = 'none';
+        }
 
         document.getElementById('editCityModal').classList.add('active');
     }

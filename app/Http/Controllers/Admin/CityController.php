@@ -57,8 +57,11 @@ class CityController extends Controller
     {
         $data = $request->validated();
 
-        if ($request->hasFile('image_file')) {
-            $data['image_file'] = $request->file('image_file');
+        if ($request->hasFile('image_files')) {
+            $data['image_files'] = $request->file('image_files');
+        } elseif ($request->hasFile('image_file')) {
+            $files = $request->file('image_file');
+            $data['image_files'] = is_array($files) ? $files : [$files];
         }
 
         $this->cityService->createCity($data);
@@ -79,8 +82,11 @@ class CityController extends Controller
     {
         $data = $request->validated();
 
-        if ($request->hasFile('image_file')) {
-            $data['image_file'] = $request->file('image_file');
+        if ($request->hasFile('image_files')) {
+            $data['image_files'] = $request->file('image_files');
+        } elseif ($request->hasFile('image_file')) {
+            $files = $request->file('image_file');
+            $data['image_files'] = is_array($files) ? $files : [$files];
         }
 
         $this->cityService->updateCity($id, $data);

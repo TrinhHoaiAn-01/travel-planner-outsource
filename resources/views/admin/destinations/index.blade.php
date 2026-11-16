@@ -925,13 +925,13 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Đường dẫn hình ảnh (URL)</label>
-                    <input type="url" name="image_url" class="form-control" placeholder="https://images.unsplash.com/...">
+                    <label class="form-label">Đường dẫn hình ảnh (URL - Cho phép nhập nhiều URL cách nhau bằng dấu phẩy)</label>
+                    <input type="text" name="image_url" class="form-control" placeholder="https://images.unsplash.com/..., https://...">
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Hoặc tải lên hình ảnh từ máy tính (Tối đa 2MB)</label>
-                    <input type="file" name="image_file" class="form-control" accept="image/*">
+                    <label class="form-label">Hoặc tải lên hình ảnh từ máy tính (Cho phép chọn nhiều ảnh cùng 1 lúc)</label>
+                    <input type="file" name="image_files[]" class="form-control" accept="image/*" multiple>
                 </div>
 
                 <div class="form-group">
@@ -1028,13 +1028,19 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Đường dẫn hình ảnh (URL)</label>
-                    <input type="url" name="image_url" id="edit_image_url" class="form-control">
+                    <label class="form-label">Đường dẫn hình ảnh (URL - Cho phép nhập nhiều URL cách nhau bằng dấu phẩy)</label>
+                    <input type="text" name="image_url" id="edit_image_url" class="form-control" placeholder="https://images.unsplash.com/..., https://...">
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Thay đổi ảnh bằng tệp tải lên (Tối đa 2MB)</label>
-                    <input type="file" name="image_file" class="form-control" accept="image/*">
+                    <label class="form-label">Tải lên thêm hình ảnh từ máy tính (Cho phép chọn nhiều ảnh cùng 1 lúc)</label>
+                    <input type="file" name="image_files[]" class="form-control" accept="image/*" multiple>
+                </div>
+
+                <div class="form-group" id="edit_existing_images_wrap" style="display: none;">
+                    <label class="form-label">Hình ảnh hiện tại (Đánh dấu ô bên dưới ảnh để xóa ảnh)</label>
+                    <div id="edit_existing_images_grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-top: 8px;">
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -1147,10 +1153,33 @@
                 document.getElementById('edit_opening_time').value = data.opening_time;
                 document.getElementById('edit_closing_time').value = data.closing_time;
                 document.getElementById('edit_address').value = data.address || '';
-                document.getElementById('edit_image_url').value = data.primary_image || '';
+                document.getElementById('edit_image_url').value = '';
                 document.getElementById('edit_description').value = data.description || '';
                 document.getElementById('edit_has_hotel').checked = !!data.has_hotel;
                 document.getElementById('edit_is_featured').checked = !!data.is_featured;
+
+                // Hiển thị danh sách ảnh hiện tại và cho phép chọn xóa
+                const existingWrap = document.getElementById('edit_existing_images_wrap');
+                const existingGrid = document.getElementById('edit_existing_images_grid');
+                if (data.images && data.images.length > 0) {
+                    existingGrid.innerHTML = data.images.map(img => {
+                        const imgUrl = (img.url && !img.url.startsWith('http') && !img.url.startsWith('/')) ? '/' + img.url : img.url;
+                        return `
+                            <div style="position: relative; border-radius: 8px; overflow: hidden; border: 1px solid #E2E8F0; background: #F8FAFC;">
+                                <img src="${imgUrl}" style="width: 100%; height: 75px; object-fit: cover;" onerror="this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=150&q=80'">
+                                <label style="display: flex; align-items: center; justify-content: center; gap: 4px; padding: 4px; font-size: 11.5px; color: #DC2626; background: #FFFFFF; cursor: pointer; border-top: 1px solid #F1F5F9; user-select: none;">
+                                    <input type="checkbox" name="delete_image_ids[]" value="${img.id}">
+                                    <span>Xóa</span>
+                                </label>
+                                ${img.is_primary ? '<span style="position: absolute; top: 4px; left: 4px; background: #2563EB; color: #FFFFFF; font-size: 9.5px; padding: 2px 5px; border-radius: 4px; font-weight: 600;">Chính</span>' : ''}
+                            </div>
+                        `;
+                    }).join('');
+                    existingWrap.style.display = 'block';
+                } else {
+                    existingGrid.innerHTML = '';
+                    existingWrap.style.display = 'none';
+                }
 
                 openModal('editModal');
             }
@@ -1182,9 +1211,20 @@
                 const d = response.data;
                 document.getElementById('view_title').innerText = d.name + ' (' + d.code + ')';
 
-                let imgHtml = d.primary_image
-                    ? `<img src="${d.primary_image}" style="width: 100%; max-height: 220px; object-fit: cover; border-radius: 10px; margin-bottom: 16px;" onerror="this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80'">`
-                    : '';
+                let imgHtml = '';
+                if (d.images && d.images.length > 0) {
+                    imgHtml = `
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-bottom: 16px;">
+                            ${d.images.map(img => {
+                                const u = (img.url && !img.url.startsWith('http') && !img.url.startsWith('/')) ? '/' + img.url : img.url;
+                                return `<img src="${u}" style="width: 100%; height: 95px; object-fit: cover; border-radius: 8px; border: 1px solid #E2E8F0;" onerror="this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=300&q=80'">`;
+                            }).join('')}
+                        </div>
+                    `;
+                } else if (d.primary_image) {
+                    const pi = (d.primary_image && !d.primary_image.startsWith('http') && !d.primary_image.startsWith('/')) ? '/' + d.primary_image : d.primary_image;
+                    imgHtml = `<img src="${pi}" style="width: 100%; max-height: 220px; object-fit: cover; border-radius: 10px; margin-bottom: 16px;" onerror="this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80'">`;
+                }
 
                 let hotelBadge = d.has_hotel
                     ? '<span class="badge-hotel-yes">Có khách sạn</span>'

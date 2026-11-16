@@ -2,11 +2,21 @@
 
 namespace Tests\Unit;
 
+use App\Models\Booking;
+use App\Models\Category;
+use App\Models\City;
+use App\Models\Destination;
+use App\Models\Payment;
+use App\Models\RoomType;
+use App\Models\User;
 use App\Services\DashboardService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class DashboardServiceTest extends TestCase
 {
+    use RefreshDatabase;
+
     private DashboardService $dashboardService;
 
     protected function setUp(): void
@@ -16,10 +26,70 @@ class DashboardServiceTest extends TestCase
     }
 
     /**
-     * Kiểm thử phương thức getSummaryStatistics trả về đầy đủ các chỉ số thống kê tổng quan.
+     * Kiểm thử phương thức getSummaryStatistics trả về đầy đủ các chỉ số thống kê tổng quan realtime.
      */
     public function test_get_summary_statistics_returns_expected_structure_and_values(): void
     {
+        // Tạo dữ liệu mẫu trong DB để kiểm tra tính toán realtime
+        $user = User::create([
+            'name' => 'Nguyễn Văn An',
+            'email' => 'an@example.com',
+            'password' => bcrypt('password'),
+            'role' => 'user',
+            'is_active' => true,
+        ]);
+
+        $city = City::create([
+            'name' => 'Đà Nẵng',
+            'slug' => 'da-nang',
+            'is_active' => true,
+        ]);
+
+        $category = Category::create([
+            'name' => 'Khách Sạn',
+            'slug' => 'khach-san',
+            'icon' => 'hotel',
+            'is_active' => true,
+        ]);
+
+        $destination = Destination::create([
+            'city_id' => $city->id,
+            'category_id' => $category->id,
+            'name' => 'Vinpearl Resort',
+            'slug' => 'vinpearl-resort',
+            'entrance_fee' => 1000000,
+            'rating' => 4.8,
+            'is_featured' => true,
+        ]);
+
+        $roomType = RoomType::create([
+            'destination_id' => $destination->id,
+            'name' => 'Phòng Deluxe',
+            'price_per_night' => 1000000,
+            'capacity' => 2,
+            'quantity' => 5,
+        ]);
+
+        $booking = Booking::create([
+            'user_id' => $user->id,
+            'room_type_id' => $roomType->id,
+            'room_count' => 1,
+            'check_in_date' => now()->toDateString(),
+            'check_out_date' => now()->addDays(2)->toDateString(),
+            'total_price' => 2000000,
+            'status' => 'completed',
+            'booking_code' => '#BK-2026-TEST',
+        ]);
+
+        Payment::create([
+            'booking_id' => $booking->id,
+            'amount' => 2000000,
+            'payment_method' => 'banking',
+            'transaction_id' => 'TXN-TEST-001',
+            'status' => 'completed',
+            'payment_date' => now(),
+        ]);
+
         $summary = $this->dashboardService->getSummaryStatistics();
 
         $this->assertIsArray($summary);
@@ -31,16 +101,11 @@ class DashboardServiceTest extends TestCase
         $this->assertArrayHasKey('pending_reviews', $summary);
         $this->assertArrayHasKey('system_status', $summary);
 
-        $this->assertSame('4.520', $summary['total_users']);
-        $this->assertSame('+12.5%', $summary['user_growth']);
-        $this->assertSame('1.280', $summary['total_destinations']);
-        $this->assertSame('+8.2%', $summary['destination_growth']);
-        $this->assertSame('860', $summary['total_bookings']);
-        $this->assertSame('+5.4%', $summary['booking_growth']);
-        $this->assertSame('128.500.000 đ', $summary['total_revenue']);
-        $this->assertSame('+14.8%', $summary['revenue_growth']);
-        $this->assertSame(3, $summary['pending_reviews']);
-        $this->assertSame('Hoạt động (Production)', $summary['system_status']);
+        $this->assertSame('1', $summary['total_users']);
+        $this->assertSame('1', $summary['total_destinations']);
+        $this->assertSame('1', $summary['total_bookings']);
+        $this->assertSame('2.000.000 đ', $summary['total_revenue']);
+        $this->assertSame('Hoạt động (Realtime)', $summary['system_status']);
     }
 
     /**
@@ -52,8 +117,6 @@ class DashboardServiceTest extends TestCase
 
         $this->assertIsArray($monthlyStats);
         $this->assertSame(2026, $monthlyStats['year']);
-        $this->assertSame('Tháng 7 (880 lượt)', $monthlyStats['peak_info']);
-        $this->assertSame('Tăng 18.2% so với cùng kỳ năm trước', $monthlyStats['growth_info']);
         $this->assertIsArray($monthlyStats['months']);
         $this->assertCount(12, $monthlyStats['months']);
 
@@ -66,12 +129,6 @@ class DashboardServiceTest extends TestCase
             $this->assertIsInt($monthData['value']);
             $this->assertStringEndsWith('%', $monthData['height']);
         }
-
-        // Kiểm tra tháng đỉnh điểm 7 (Tháng 7)
-        $july = $monthlyStats['months'][6];
-        $this->assertSame('7', $july['label']);
-        $this->assertSame(880, $july['value']);
-        $this->assertSame('95%', $july['height']);
     }
 
     /**
@@ -84,21 +141,13 @@ class DashboardServiceTest extends TestCase
         $this->assertIsArray($categories);
         $this->assertCount(4, $categories);
 
-        $this->assertSame('Khách Sạn', $categories[0]['name']);
-        $this->assertSame(45, $categories[0]['percentage']);
-        $this->assertSame('#2563EB', $categories[0]['color']);
-
-        $this->assertSame('Resort & Nghỉ Dưỡng', $categories[1]['name']);
-        $this->assertSame(30, $categories[1]['percentage']);
-        $this->assertSame('#06B6D4', $categories[1]['color']);
-
-        $this->assertSame('Homestay', $categories[2]['name']);
-        $this->assertSame(15, $categories[2]['percentage']);
-        $this->assertSame('#10B981', $categories[2]['color']);
-
-        $this->assertSame('Căn Hộ & Villa', $categories[3]['name']);
-        $this->assertSame(10, $categories[3]['percentage']);
-        $this->assertSame('#F59E0B', $categories[3]['color']);
+        foreach ($categories as $cat) {
+            $this->assertArrayHasKey('rank', $cat);
+            $this->assertArrayHasKey('name', $cat);
+            $this->assertArrayHasKey('percentage', $cat);
+            $this->assertArrayHasKey('color', $cat);
+            $this->assertIsInt($cat['percentage']);
+        }
     }
 
     /**
@@ -111,16 +160,12 @@ class DashboardServiceTest extends TestCase
         $this->assertIsArray($destinations);
         $this->assertCount(4, $destinations);
 
-        // Kiểm tra các điểm đến theo thứ tự rank
-        $this->assertSame(1, $destinations[0]['rank']);
-        $this->assertSame('Đà Nẵng', $destinations[0]['name']);
-        $this->assertSame(38, $destinations[0]['percentage']);
-        $this->assertSame('#2563EB', $destinations[0]['color']);
-
-        $this->assertSame(2, $destinations[1]['rank']);
-        $this->assertSame('Vịnh Hạ Long', $destinations[1]['name']);
-        $this->assertSame(26, $destinations[1]['percentage']);
-        $this->assertSame('#06B6D4', $destinations[1]['color']);
+        foreach ($destinations as $dest) {
+            $this->assertArrayHasKey('rank', $dest);
+            $this->assertArrayHasKey('name', $dest);
+            $this->assertArrayHasKey('percentage', $dest);
+            $this->assertArrayHasKey('color', $dest);
+        }
     }
 
     /**
@@ -128,38 +173,69 @@ class DashboardServiceTest extends TestCase
      */
     public function test_get_recent_bookings_returns_formatted_bookings(): void
     {
+        $user = User::create([
+            'name' => 'Nguyễn Văn An',
+            'email' => 'an@example.com',
+            'password' => bcrypt('password'),
+            'role' => 'user',
+            'is_active' => true,
+        ]);
+
+        $city = City::create([
+            'name' => 'Nha Trang',
+            'slug' => 'nha-trang',
+            'is_active' => true,
+        ]);
+
+        $category = Category::create([
+            'name' => 'Resort',
+            'slug' => 'resort',
+            'icon' => 'hotel',
+            'is_active' => true,
+        ]);
+
+        $destination = Destination::create([
+            'city_id' => $city->id,
+            'category_id' => $category->id,
+            'name' => 'Vinpearl Resort Nha Trang',
+            'slug' => 'vinpearl-resort-nha-trang',
+            'entrance_fee' => 3500000,
+            'rating' => 5.0,
+            'is_featured' => true,
+        ]);
+
+        $roomType = RoomType::create([
+            'destination_id' => $destination->id,
+            'name' => 'Biệt thự biển',
+            'price_per_night' => 3500000,
+            'capacity' => 4,
+            'quantity' => 2,
+        ]);
+
+        Booking::create([
+            'user_id' => $user->id,
+            'room_type_id' => $roomType->id,
+            'room_count' => 1,
+            'check_in_date' => now()->toDateString(),
+            'check_out_date' => now()->addDays(3)->toDateString(),
+            'total_price' => 3500000,
+            'status' => 'completed',
+            'booking_code' => '#BK-2026-0891',
+        ]);
+
         $bookings = $this->dashboardService->getRecentBookings(5);
 
         $this->assertIsArray($bookings);
-        $this->assertCount(3, $bookings);
+        $this->assertCount(1, $bookings);
 
-        // Đơn đầu tiên
         $first = $bookings[0];
         $this->assertSame('#BK-2026-0891', $first['booking_code']);
         $this->assertSame('Nguyễn Văn An', $first['customer_name']);
         $this->assertSame('Vinpearl Resort Nha Trang', $first['destination_name']);
-        $this->assertSame('07/10/2026', $first['booking_date']);
-        $this->assertSame(3500000, $first['total_price']);
+        $this->assertSame(3500000.0, $first['total_price']);
         $this->assertSame('3.500.000 đ', $first['formatted_price']);
-        $this->assertSame('Hoàn thành', $first['status']);
+        $this->assertSame('completed', $first['status']);
+        $this->assertSame('Hoàn thành', $first['status_label']);
         $this->assertSame('success', $first['status_badge']);
-
-        // Đơn thứ hai
-        $second = $bookings[1];
-        $this->assertSame('#BK-2026-0890', $second['booking_code']);
-        $this->assertSame('Trần Thị Mai', $second['customer_name']);
-        $this->assertSame('InterContinental Đà Nẵng', $second['destination_name']);
-        $this->assertSame('06/10/2026', $second['booking_date']);
-        $this->assertSame('Đang xử lý', $second['status']);
-        $this->assertSame('info', $second['status_badge']);
-
-        // Đơn thứ ba
-        $third = $bookings[2];
-        $this->assertSame('#BK-2026-0889', $third['booking_code']);
-        $this->assertSame('Lê Hoàng Nam', $third['customer_name']);
-        $this->assertSame('Terracotta Resort Đà Lạt', $third['destination_name']);
-        $this->assertSame('05/10/2026', $third['booking_date']);
-        $this->assertSame('Chờ duyệt', $third['status']);
-        $this->assertSame('warning', $third['status_badge']);
     }
 }
