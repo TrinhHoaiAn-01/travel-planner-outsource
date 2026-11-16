@@ -92,7 +92,7 @@ class BookingController extends Controller
     }
 
     /**
-     * Xử lý lưu đơn đặt phòng mới (Màn hình Hình 27 và Widget Đặt phòng).
+     * Xử lý lưu đơn đặt phòng mới (Màn hình Hình 27 chuyển tiếp sang Hình 28 Màn hình xác nhận thanh toán).
      */
     public function store(StoreBookingRequest $request): RedirectResponse
     {
@@ -101,16 +101,11 @@ class BookingController extends Controller
             Auth::id()
         );
 
-        if ($request->input('payment_method') === 'online') {
-            return redirect()
-                ->route('payments.create', $booking->id)
-                ->with('success', "Đặt phòng thành công! Mã đơn đặt: {$booking->booking_code}. Vui lòng lựa chọn phương thức thanh toán.");
-        }
-
-        if ($request->input('payment_method') === 'cod') {
+        // Theo tài liệu Báo cáo: Sau khi hoàn tất đặt phòng ở Hình 27, hệ thống chuyển thẳng tới Hình 28 (Màn hình xác nhận thanh toán / Chi tiết đặt phòng)
+        if ($request->filled('guest_name') || $request->filled('payment_method') || $request->input('redirect_to') === 'show') {
             return redirect()
                 ->route('bookings.show', $booking->id)
-                ->with('success', "Đặt phòng thành công! Mã đơn đặt: {$booking->booking_code}. Bạn đã chọn thanh toán trực tiếp khi nhận phòng tại khách sạn.");
+                ->with('success', "Đặt phòng thành công! Mã đơn đặt: {$booking->booking_code}");
         }
 
         if ($booking->trip_id) {

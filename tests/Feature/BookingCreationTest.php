@@ -209,9 +209,9 @@ class BookingCreationTest extends TestCase
     }
 
     /**
-     * Người dùng đặt phòng chọn thanh toán Online được chuyển tới trang chọn cổng thanh toán.
+     * Người dùng đặt phòng từ Hình 27 được chuyển thẳng tới Hình 28 (Màn hình xác nhận thanh toán / chi tiết đơn đặt phòng).
      */
-    public function test_authenticated_user_can_book_with_online_payment_redirect(): void
+    public function test_authenticated_user_can_book_from_hinh_27_and_redirects_to_hinh_28(): void
     {
         $checkIn = Carbon::now()->addDays(2)->toDateString();
         $checkOut = Carbon::now()->addDays(4)->toDateString();
@@ -229,11 +229,12 @@ class BookingCreationTest extends TestCase
 
         $booking = Booking::latest('id')->first();
         $this->assertNotNull($booking);
-        $response->assertRedirect(route('payments.create', $booking->id));
+        $response->assertRedirect(route('bookings.show', $booking->id));
+        $response->assertSessionHas('success');
     }
 
     /**
-     * Người dùng đặt phòng chọn thanh toán COD (tại khách sạn) được chuyển tới chi tiết đơn đặt phòng.
+     * Người dùng đặt phòng chọn thanh toán COD (tại khách sạn) cũng được chuyển thẳng tới Hình 28.
      */
     public function test_authenticated_user_can_book_with_cod_payment_redirect(): void
     {
@@ -254,5 +255,6 @@ class BookingCreationTest extends TestCase
         $booking = Booking::latest('id')->first();
         $this->assertNotNull($booking);
         $response->assertRedirect(route('bookings.show', $booking->id));
+        $response->assertSessionHas('success');
     }
 }
