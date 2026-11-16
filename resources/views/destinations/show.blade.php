@@ -1619,8 +1619,13 @@
             <div class="pill-card">
                 <span>⭐</span>
                 <div>
-                    <strong>{{ number_format($destination->rating, 1) }} / 5.0</strong>
-                    <span style="color: #64748B; font-weight: 400;">({{ $destination->approvedReviews->count() > 0 ? $destination->approvedReviews->count() : '1.240' }} đánh giá)</span>
+                    @if($destination->rating > 0 && $destination->approvedReviews->count() > 0)
+                        <strong>{{ number_format($destination->rating, 1) }} / 5.0</strong>
+                        <span style="color: #64748B; font-weight: 400;">({{ $destination->approvedReviews->count() }} đánh giá)</span>
+                    @else
+                        <strong>Chưa có đánh giá</strong>
+                        <span style="color: #64748B; font-weight: 400;">(0 đánh giá)</span>
+                    @endif
                 </div>
             </div>
 
@@ -1729,8 +1734,13 @@
                                     <i class="bi bi-star-fill fs-5"></i>
                                 </div>
                                 <div>
-                                    <div class="fw-bold fs-4 text-dark lh-1">{{ number_format($destination->rating, 1) }} <span class="fs-6 text-muted fw-normal">/ 5.0</span></div>
-                                    <div class="text-muted small fw-medium mt-1">({{ $destination->approvedReviews->count() }} nhận xét đã duyệt)</div>
+                                    @if($destination->rating > 0 && $destination->approvedReviews->count() > 0)
+                                        <div class="fw-bold fs-4 text-dark lh-1">{{ number_format($destination->rating, 1) }} <span class="fs-6 text-muted fw-normal">/ 5.0</span></div>
+                                        <div class="text-muted small fw-medium mt-1">({{ $destination->approvedReviews->count() }} nhận xét đã duyệt)</div>
+                                    @else
+                                        <div class="fw-bold fs-5 text-dark lh-1">Chưa có đánh giá</div>
+                                        <div class="text-muted small fw-medium mt-1">(Chưa có nhận xét nào được duyệt)</div>
+                                    @endif
                                 </div>
                             </div>
                         </div>

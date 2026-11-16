@@ -1119,7 +1119,11 @@
                                 📍 {{ $dest->city->name ?? 'Việt Nam' }}
                             </span>
                             <span class="rating-badge">
-                                ⭐ {{ number_format($dest->rating, 1) }}
+                                @if($dest->rating > 0)
+                                    ⭐ {{ number_format($dest->rating, 1) }}
+                                @else
+                                    ⭐ Chưa có đánh giá
+                                @endif
                             </span>
                         </div>
 
